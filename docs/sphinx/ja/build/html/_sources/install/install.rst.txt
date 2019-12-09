@@ -51,30 +51,14 @@ pythonモジュールは ``py_mc`` ディレクトリ以下に一式格納され
 インストール
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-安定版
-==========================
-
-PyPI に登録されているため、 ``pip`` を利用してインストール可能です。
-
-``$ pip install abacus``
-
-インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
-
-``$ pip install --user abacus``
-
-ライブラリの他に、スクリプト ``abacus`` がインストールされます。
-
-ユーザ改良版
-=============================================
-
 1. wheelファイルを作成します.
 
 ``$ ./make_wheel.sh``
 
 2. 作成されたファイルを使用して以下のようにインストールします.
 
-``$ pip install dist/abacus-\*.whl``
+``$ pip install dist/abics-\*.whl``
 
 インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
 
-``$ pip install --user dist/abacus-\*.whl``
+``$ pip install --user dist/abics-\*.whl``
