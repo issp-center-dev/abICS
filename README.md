@@ -57,10 +57,6 @@ For details, see the manual of `pip` by `pip help install`
 $ export PYTHONPATH=$Path_To_abics:$PYTHONPATH
 ```
 
-## Tutorial
-
-See [py_mc's wiki](https://github.com/skasamatsu/py_mc/wiki/Getting-Started) (temporary).
-
 ## License
 
 The distribution of the program package and the source codes follow GNU General Public License version 3 ([GPL v3](http://www.gnu.org/licenses/gpl-3.0.en.html)). 
