@@ -1,0 +1,261 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>4.4. [config] section &#8212; abICS 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5. Algorithm" href="../algorithm/index.html" />
+    <link rel="prev" title="4.3. [observer] section" href="parameter_observer.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="config-section">
+<h1>4.4. [config] section<a class="headerlink" href="#config-section" title="Permalink to this headline">¶</a></h1>
+<p>Specify alloy coordination, etc.
+The example is shown as follows:</p>
+<blockquote>
+<div><div class="highlight-none"><div class="highlight"><pre><span></span>[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+
+[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+    [0.237399980, 0.237399980, 0.237399980],
+    [0.762599945, 0.762599945, 0.762599945],
+    ...
+    [0.262599975, 0.262599975, 0.762599945],
+    ]
+
+[[config.defect_structure]]
+coords = [
+    [0.000000000, 0.000000000, 0.000000000],
+    [0.749999940, 0.249999985, 0.499999970],
+    ...
+    [0.124999993, 0.624999940, 0.124999993],
+    ]
+[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 16
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 8
+</pre></div>
+</div>
+</div></blockquote>
+<div class="section" id="input-format">
+<h2>4.4.1. Input Format<a class="headerlink" href="#input-format" title="Permalink to this headline">¶</a></h2>
+<p>Specify a keyword and its value in the form <code class="docutils literal"><span class="pre">keyword</span> <span class="pre">=</span> <span class="pre">value</span></code>.
+Comments can also be entered by adding # (Subsequent characters are ignored).</p>
+</div>
+<div class="section" id="key-words">
+<h2>4.4.2. Key words<a class="headerlink" href="#key-words" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><p class="first">Specify lattice</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">unitcell</span></code></li>
+</ul>
+<p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>
+Specify lattice vector <span class="math">\(\bf{a}, \bf{b}, \bf{c}\)</span> by
+the list format [ <span class="math">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] .</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">supercell</span></code></li>
+</ul>
+<p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>
+Specify the size of super lattice by the list format[ <span class="math">\(\bf{a}, \bf{b}, \bf{c}\)</span> ].</p>
+</div></blockquote>
+</li>
+<li><p class="first">[[config.base_structure]] section</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">type</span></code> and <code class="docutils literal"><span class="pre">coords</span></code> specify the atomic species that do not move in Monte Carlo calculation and their coordinates.</dt>
+<dd><p class="first">If there are multiple atomic species, specify multiple [[config.base_strucure]] sections.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">type</span></code></li>
+</ul>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>  Specify atomic specie.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">coords</span></code></li>
+</ul>
+<p><strong>Format :</strong> list of lists or str</p>
+<p class="last"><strong>Description :</strong>
+Specify coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.</p>
+</dd>
+</dl>
+</li>
+<li><p class="first">[[config.defect_structure]] section</p>
+<blockquote>
+<div><p>Specify the coordinates (coords) and atoms (group) that can enter the atoms to be updated in Monte Carlo.
+In Ver. 1.0, conversion tools from POSCAR and cif will be available.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">coords</span></code></li>
+</ul>
+<p><strong>Format :</strong> list of lists or str</p>
+<p><strong>Description :</strong>  Specify the coordinates where the atom enter.
+Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.</p>
+<ul>
+<li><p class="first">[[config.defect_structure.groups]] section</p>
+<blockquote>
+<div><p>Specify the atom group information to be updated by Monte Carlo.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">name</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>
+Specify the name of atomic group.</p>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">species</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>
+Specify the atomic species belonging to the atom group. The default value is a list containing only one specified by <code class="docutils literal"><span class="pre">name</span></code>.</p>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">coords</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> list of lists or str</p>
+<p><strong>Description :</strong>  Specify the coordinates of each atom in the atom group.
+Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
+Default value is  <cite>[[0.0, 0.0, 0.0]]</cite>.</p>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">num</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> int</p>
+<p><strong>Description :</strong>
+Specify the number of this atom group.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. About abICS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">4. File Format</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parameter_replica.html">4.1. [replica] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_solver.html">4.2. [solver] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_observer.html">4.3. [observer] section</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.4. [config] section</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">5. Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">6. Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">7. Contacts</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">4. File Format</a><ul>
+      <li>Previous: <a href="parameter_observer.html" title="previous chapter">4.3. [observer] section</a></li>
+      <li>Next: <a href="../algorithm/index.html" title="next chapter">5. Algorithm</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/file_specification/parameter_config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

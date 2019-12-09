@@ -1,0 +1,260 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>4.4. [config] セクション &#8212; abICS 0.1 ドキュメント</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/translations.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="5. アルゴリズム" href="../algorithm/index.html" />
+    <link rel="prev" title="4.3. [observer] セクション" href="parameter_observer.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="config">
+<h1>4.4. [config] セクション<a class="headerlink" href="#config" title="このヘッドラインへのパーマリンク">¶</a></h1>
+<p>合金の配位などを指定します.
+以下のようなファイルフォーマットをしています.</p>
+<blockquote>
+<div><div class="highlight-none"><div class="highlight"><pre><span></span>[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+
+[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+    [0.237399980, 0.237399980, 0.237399980],
+    [0.762599945, 0.762599945, 0.762599945],
+    ## 中略
+    [0.262599975, 0.262599975, 0.762599945],
+    ]
+
+[[config.defect_structure]]
+coords = [
+    [0.000000000, 0.000000000, 0.000000000],
+    [0.749999940, 0.249999985, 0.499999970],
+    ## 中略
+    [0.124999993, 0.624999940, 0.124999993],
+    ]
+[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 16
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 8
+</pre></div>
+</div>
+</div></blockquote>
+<div class="section" id="id1">
+<h2>4.4.1. 入力形式<a class="headerlink" href="#id1" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p><code class="docutils literal"><span class="pre">keyword</span> <span class="pre">=</span> <span class="pre">values</span></code> の形式でキーワードとその値を指定します.
+また, #をつけることでコメントを入力することができます(それ以降の文字は無視されます).</p>
+</div>
+<div class="section" id="id2">
+<h2>4.4.2. キーワード<a class="headerlink" href="#id2" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<ul>
+<li><p class="first">格子の指定</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal"><span class="pre">unitcell</span></code></li>
+</ul>
+<p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+格子ベクトル <span class="math">\(\bf{a}, \bf{b}, \bf{c}\)</span> を,
+リスト形式で [ <span class="math">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] として指定します.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">supercell</span></code></li>
+</ul>
+<p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+超格子の大きさをリスト形式で [ <span class="math">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] 指定します.</p>
+</div></blockquote>
+</li>
+<li><p class="first">[[config.base_structure]] セクション</p>
+<blockquote>
+<div><p><code class="docutils literal"><span class="pre">type</span></code> と <code class="docutils literal"><span class="pre">coords</span></code> によりモンテカルロ計算で動かさない原子種とその座標を指定します.
+原子種が複数ある場合には, 複数の [[config.base_strucure]] セクションを指定します.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">type</span></code></li>
+</ul>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>  原子種を指定します.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">coords</span></code></li>
+</ul>
+<p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  座標を指定します.
+3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 座標を N 行 3列に並べた文字列で指定します.</p>
+</div></blockquote>
+</li>
+<li><p class="first">[[config.defect_structure]] セクション</p>
+<blockquote>
+<div><p>モンテカルロで更新する原子が入る座標 (coords)と入りうる原子（団） (group) を指定します.
+Ver. 1.0ではPOSCAR や cif からの変換ツールが利用出来るようになる予定です.</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">coords</span></code></li>
+</ul>
+<p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  原子が入る座標を指定します.
+3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 座標を N 行 3列に並べた文字列で指定します.</p>
+<ul>
+<li><p class="first">[[config.defect_structure.groups]] セクション</p>
+<blockquote>
+<div><p>モンテカルロで更新する原子グループの情報を指定します.</p>
+<ul>
+<li><p class="first"><code class="docutils literal"><span class="pre">name</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+原子グループの名前を指定します.</p>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">species</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+原子グループに属する原子種を指定します. デフォルト値は <code class="docutils literal"><span class="pre">name</span></code> で指定したものがひとつだけ含まれたリストです.</p>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">coords</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  原子グループ中の各原子の座標を指定します.
+3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 座標を N 行 3列に並べた文字列で指定します.
+デフォルト値は <cite>[[0.0, 0.0, 0.0]]</cite> です。</p>
+</div></blockquote>
+</li>
+<li><p class="first"><code class="docutils literal"><span class="pre">num</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> int型</p>
+<p><strong>説明 :</strong>
+この原子グループの数を指定します.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 使用方法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">4. ファイルフォーマット</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parameter_replica.html">4.1. [replica] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_solver.html">4.2. [solver] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_observer.html">4.3. [observer] セクション</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.4. [config] セクション</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">5. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">6. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">7. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">4. ファイルフォーマット</a><ul>
+      <li>Previous: <a href="parameter_observer.html" title="前の章へ">4.3. [observer] セクション</a></li>
+      <li>Next: <a href="../algorithm/index.html" title="次の章へ">5. アルゴリズム</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>クイック検索</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="検索" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/file_specification/parameter_config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
