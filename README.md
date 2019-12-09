@@ -26,7 +26,7 @@ $ wget https://github.com/issp-center-dev/abics/archive/master.zip
 $ unzip master.zip
 ```
 
-## Install ABC-Sampling
+## Install abICS
 
 ### With `pip`
 
@@ -46,7 +46,7 @@ If you want to change the directory where installed,
 add `--user` option or `--prefix=DIRECTORY` option into the above command as
 
 ``` bash
-$ pip install --user dist/py_mc-*.whl
+$ pip install --user dist/abics-*.whl
 ```
 
 For details, see the manual of `pip` by `pip help install`
@@ -54,7 +54,7 @@ For details, see the manual of `pip` by `pip help install`
 ### Without `pip`
 
 ``` bash
-$ export PYTHONPATH=$Path_To_ABC-sampleing:$PYTHONPATH
+$ export PYTHONPATH=$Path_To_abics:$PYTHONPATH
 ```
 
 ## Tutorial
