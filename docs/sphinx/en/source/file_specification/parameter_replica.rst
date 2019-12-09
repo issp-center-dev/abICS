@@ -33,14 +33,14 @@ Keywords
     **Format :** float (>0)
 
     **Description :**
-    Initial temperature.
+    Minimum temperature for the replica.
 
     -  ``kTend``
 
     **Format :** float (>0)
 
     **Description :**
-    Final temperature.
+    Maximum temperature for the replica.
 
     -  ``nsteps``
 
