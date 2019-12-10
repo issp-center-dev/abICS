@@ -1,21 +1,21 @@
 &CONTROL
   calculation = 'scf'
-  tstress = .true.
-  tprnfor = .true.
+  tstress = .false.
+  tprnfor = .false.
   pseudo_dir = '~/qe/pot'
   disk_io = 'low'
-  wf_collect = .true.
+  wf_collect = .false.
 /
 &SYSTEM
   ecutwfc      =  60.0
   occupations  = "smearing"
-  smearing     = "m-p"
+  smearing     = "gauss"
   degauss      = 0.01
 /
 &electrons
   mixing_beta = 0.7
   conv_thr = 1.0d-8
-  electron_maxstep = 1
+  electron_maxstep = 100
 /
 ATOMIC_SPECIES
 Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
