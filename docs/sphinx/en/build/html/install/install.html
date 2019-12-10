@@ -62,6 +62,7 @@
 <li>pymatgen (for parsing vasp I/O)</li>
 <li>qe-tools (for parsing QE I/O)</li>
 </ul>
+<p>To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in <a class="reference internal" href="../contact/index.html"><span class="doc">Contacts</span></a> ).</p>
 </div>
 <div class="section" id="directory-structure">
 <h1>2.3. Directory structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h1>
@@ -102,10 +103,10 @@
 <ol class="arabic simple" start="2">
 <li>Install using the created file as follows:</li>
 </ol>
-<p><code class="docutils literal"><span class="pre">$</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">dist/py_mc-\*.whl</span></code></p>
+<p><code class="docutils literal"><span class="pre">$</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">dist/abics-\*.whl</span></code></p>
 <p>If you want to change the install directory, use
 <code class="docutils literal"><span class="pre">--user</span></code> option or <code class="docutils literal"><span class="pre">--prefix</span> <span class="pre">=</span> <span class="pre">DIRECTORY</span></code> ( <code class="docutils literal"><span class="pre">DIRECTORY</span></code> is the path to the directory where you want to install) option. In the following, the case for using <code class="docutils literal"><span class="pre">--user</span></code> option is shown:</p>
-<p><code class="docutils literal"><span class="pre">$</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">dist/py_mc-\*.whl</span></code></p>
+<p><code class="docutils literal"><span class="pre">$</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">dist/abics-\*.whl</span></code></p>
 </div>
 
 
@@ -137,7 +138,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">4. File Format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">5. Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">5. References</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">6. Acknowledgement</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../contact/index.html">7. Contacts</a></li>
 </ul>
@@ -171,7 +172,7 @@
       &copy;2019, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
       
       |

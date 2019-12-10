@@ -63,9 +63,9 @@ Install
 
 2. Install using the created file as follows:
 
-``$ pip install dist/py_mc-\*.whl``
+``$ pip install dist/abics-\*.whl``
 
 If you want to change the install directory, use
 ``--user`` option or ``--prefix = DIRECTORY`` ( ``DIRECTORY`` is the path to the directory where you want to install) option. In the following, the case for using ``--user`` option is shown:
 
-``$ pip install --user dist/py_mc-\*.whl``
+``$ pip install --user dist/abics-\*.whl``
