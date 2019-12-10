@@ -1,31 +1,19 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <meta charset="utf-8" />
     <title>3.1. 概要 &#8212; abICS 0.1 ドキュメント</title>
-    
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
     <script type="text/javascript" src="../_static/translations.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
     <link rel="next" title="4. ファイルフォーマット" href="../file_specification/index.html" />
@@ -36,8 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -51,30 +38,31 @@
 <h1>3.1. 概要<a class="headerlink" href="#id1" title="このヘッドラインへのパーマリンク">¶</a></h1>
 <p>abICSでは, モンテカルロステップ毎に位置座標を更新しながら、ソルバー(VASP, QEなど)によるエネルギー計算などを行います.
 そのため、位置座標以外の情報について予め用意する必要があります。これらの情報は、ソルバーの入力形式に従ったファイルを参照し取得します。</p>
+</div>
 <div class="section" id="id2">
-<h2>3.1.1. 参照ファイルの準備<a class="headerlink" href="#id2" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<h1>3.2. 参照ファイルの準備<a class="headerlink" href="#id2" title="このヘッドラインへのパーマリンク">¶</a></h1>
 <p>使用するソルバーの入力形式に従った入力ファイルを用意します。
-参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal"><span class="pre">base_input_dir</span></code> で指定します。
+参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
 以下、QEの参照ファイルの例について記載します。</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>&amp;CONTROL
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
   calculation = &#39;scf&#39;
-  tstress = .true.
-  tprnfor = .true.
+  tstress = .false.
+  tprnfor = .false.
   pseudo_dir = &#39;~/qe/pot&#39;
   disk_io = &#39;low&#39;
-  wf_collect = .true.
+  wf_collect = .false.
 /
 &amp;SYSTEM
   ecutwfc      =  60.0
   occupations  = &quot;smearing&quot;
-  smearing     = &quot;m-p&quot;
+  smearing     = &quot;gauss&quot;
   degauss      = 0.01
 /
 &amp;electrons
   mixing_beta = 0.7
   conv_thr = 1.0d-8
-  electron_maxstep = 1
+  electron_maxstep = 100
 /
 ATOMIC_SPECIES
 Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
@@ -88,22 +76,22 @@ K_POINTS automatic
 </div>
 </div>
 <div class="section" id="id3">
-<h2>3.1.2. 入力ファイルの作成<a class="headerlink" href="#id3" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<h1>3.3. 入力ファイルの作成<a class="headerlink" href="#id3" title="このヘッドラインへのパーマリンク">¶</a></h1>
 <p>次にabICSの入力ファイルを作成します。
 abICSの入力ファイルは, 以下の４つのセクションから構成されます.</p>
 <ol class="arabic simple">
-<li>[replica] セクション
-レプリカ数や温度の幅, モンテカルロステップ数など,レプリカ交換モンテカルロ部分のパラメータを指定します.</li>
-<li>[solver] セクション
-ソルバーの種類 (VASP, QE, …)、ソルバーへのパス、不変な入力ファイルのあるディレクトリなど（第一原理計算）ソルバーのパラメータを指定します.</li>
-<li>[observer] セクション
-取得する物理量の種類などを指定します.</li>
-<li>[config] セクション
-合金の配位などを指定します.</li>
+<li><p>[replica] セクション
+レプリカ数や温度の幅, モンテカルロステップ数など,レプリカ交換モンテカルロ部分のパラメータを指定します.</p></li>
+<li><p>[solver] セクション
+ソルバーの種類 (VASP, QE, ...)、ソルバーへのパス、不変な入力ファイルのあるディレクトリなど（第一原理計算）ソルバーのパラメータを指定します.</p></li>
+<li><p>[observer] セクション
+取得する物理量の種類などを指定します.</p></li>
+<li><p>[config] セクション
+合金の配位などを指定します.</p></li>
 </ol>
 <p>これらの詳細については <a class="reference internal" href="../file_specification/index.html"><span class="doc">ファイルフォーマット</span></a> をご覧ください。
 以下、QEの場合の入力ファイルの例を記載します。</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>[replica]
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[replica]
 nreplicas = 2
 nprocs_per_replica = 1
 
@@ -119,7 +107,7 @@ print_frequency = 1
 type = &#39;qe&#39;
 path= &#39;./pw.x&#39;
 base_input_dir = &#39;./baseinput&#39;
-perturb = 0.1
+perturb = 0.0
 run_scheme = &#39;mpi_spawn&#39;
 
 [config]
@@ -210,12 +198,84 @@ ignored_species = [&#39;O&#39;]
 </div>
 </div>
 <div class="section" id="abics">
-<h2>3.1.3. abICSの実行<a class="headerlink" href="#abics" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>ここで指定するプロセス数はレプリカ数と同じである必要があります。</p>
-<p>（MPI_Comm_spawn に由来する様々な事項（実際に割り当てられるプロセスの話やmpiexec のオプションなど）をここかどこかに記載する必要がある）</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics input.toml
+<h1>3.4. abICSの実行<a class="headerlink" href="#abics" title="このヘッドラインへのパーマリンク">¶</a></h1>
+<p>MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics input.toml
 </pre></div>
 </div>
+<p>実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。</p>
+<div class="section" id="mpi-tips">
+<h2>3.4.1. MPI プロセス数に関する Tips<a class="headerlink" href="#mpi-tips" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>abICS はソルバーの実行のために <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> という MPI ライブラリ関数を使用します。
+この関数は新規に MPI プロセスを(複数)起動して、そこで任意プログラムを(並列)実行します。</p>
+<p>たとえば、 1ノードあたり 4CPU コアをもつような並列計算機において、 2レプリカの計算を、1つあたり4並列のソルバーで実行する場合を考えます。
+<code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np</span> <span class="pre">2</span> <span class="pre">abics</span> <span class="pre">input.toml</span></code> として実行した場合、ノード 0 の最初の2コアでレプリカ制御プロセス A,B が起動し、それぞれが4並列ソルバー a,b を新規に起動します。
+そのとき、ソルバー a はノード 0 の残り2コアとノード 1 の先頭 2コアに、
+ソルバー b はノード 1 の残り2コアとノード 2 の先頭 2コアに配置され、ソルバー内でノード間通信が発生し、性能が低下します。</p>
+<p>初期プロセスを多めに取ることで、プロセスを整列させ、不要なノードまたぎが起きないようにできます。
+今回の例では、 <code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np</span> <span class="pre">4</span> <span class="pre">abics</span> <span class="pre">input.toml</span></code> とすることで、
+レプリカ制御プロセス A,B の他に何もしないプロセスで ノード0 をすべて埋めることができ、
+ソルバー a,b はそれぞれノード1, 2 を埋めることができます。</p>
+</div>
+<div class="section" id="mpi">
+<h2>3.4.2. MPI 実装依存性<a class="headerlink" href="#mpi" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>MPI 実装によっては、 <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> 関数で、「合計でいくつのプロセスを起動できるか」 という情報 (<code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code>) を利用することがあります。
+<code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> の設定方法など、 各種MPI 実装に関するTips を紹介します。</p>
+<div class="section" id="openmpi">
+<h3>OpenMPI<a class="headerlink" href="#openmpi" title="このヘッドラインへのパーマリンク">¶</a></h3>
+<p>使用できるCPU コア数と同じ値が <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> として自動で設定されます。
+使用プロセス数がこれを超える場合には、 <code class="docutils literal notranslate"><span class="pre">--oversubscribe</span></code> オプションを渡す必要があります。</p>
+<p>OpenMPI は、 <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> で呼び出したプロセスが非ゼロのリターンコードを返した場合に、すべてのプロセスごと終了します。
+リターンコードを無視したい場合は、 <code class="docutils literal notranslate"><span class="pre">--mca</span> <span class="pre">orte_abort_on_non_zero_status</span> <span class="pre">0</span></code> としてください。
+例えばQuantum ESPRESSO は、計算中に浮動小数点数例外を捕捉すると、終了時に非ゼロのリターンコードを返します。</p>
+</div>
+<div class="section" id="mpich-intel-mpi">
+<h3>MPICH / Intel MPI<a class="headerlink" href="#mpich-intel-mpi" title="このヘッドラインへのパーマリンク">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-usize</span> <span class="pre">&lt;num&gt;</span></code> オプションで <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> を指定できます。
+実際には指定しなくとも動作するようです。</p>
+</div>
+<div class="section" id="hpe-sgi-mpt">
+<h3>HPE (SGI) MPT<a class="headerlink" href="#hpe-sgi-mpt" title="このヘッドラインへのパーマリンク">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">-up</span> <span class="pre">&lt;num&gt;</span></code> オプションで <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> を指定できます。
+<code class="docutils literal notranslate"><span class="pre">-np</span> <span class="pre">&lt;num&gt;</span></code> オプションよりも先に指定する必要があります。</p>
+</div>
+<div class="section" id="id4">
+<h3>その他<a class="headerlink" href="#id4" title="このヘッドラインへのパーマリンク">¶</a></h3>
+<p>大規模スパコンなどでは、ベンダーがジョブスケジューラとともに専用の MPI 実行スクリプトを用意している場合があります。
+その場合は、個別のマニュアルを参考にしてください。</p>
+<p>例として、 物性研スパコン sekirei, enaga では、 <code class="docutils literal notranslate"><span class="pre">mpijob</span> <span class="pre">-spawn</span></code> とすることで、 <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> が自動的に設定されます。</p>
+</div>
+</div>
+</div>
+<div class="section" id="id5">
+<h1>3.5. abics の出力<a class="headerlink" href="#id5" title="このヘッドラインへのパーマリンク">¶</a></h1>
+<p>各レプリカディレクトリ以下に計算結果が出力されます。</p>
+<div class="section" id="structure-xxx-vasp">
+<h2>3.5.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code><a class="headerlink" href="#structure-xxx-vasp" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>各ステップごとの原子配置が VASP の POSCAR ファイル形式で出力されます。
+ステップ番号がファイル名の <code class="docutils literal notranslate"><span class="pre">XXX</span></code> に入ります。</p>
+</div>
+<div class="section" id="mine-vasp">
+<h2>3.5.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code><a class="headerlink" href="#mine-vasp" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>最低エネルギーを与えた原子位置が VASP の POSCAR ファイル形式で出力されます。</p>
+</div>
+<div class="section" id="obs-dat">
+<h2>3.5.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code><a class="headerlink" href="#obs-dat" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>各ステップごとの温度とエネルギーが電子ボルト単位で出力されます。</p>
+</div>
+<div class="section" id="obs-save-npy">
+<h2>3.5.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code><a class="headerlink" href="#obs-save-npy" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>各ステップごとのエネルギーが電子ボルト単位で出力されます。</p>
+</div>
+<div class="section" id="kt-hist-npy">
+<h2>3.5.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code><a class="headerlink" href="#kt-hist-npy" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>各ステップごとの温度（電子ボルト単位）が Numpy バイナリ形式で出力されます。
+<code class="docutils literal notranslate"><span class="pre">numpy.load('kT_hist.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
+</div>
+<div class="section" id="trank-hist-npy">
+<h2>3.5.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code><a class="headerlink" href="#trank-hist-npy" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<p>各ステップごとの温度インデックスが Numpy バイナリ形式で出力されます。
+<code class="docutils literal notranslate"><span class="pre">numpy.load('kT_hist.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
 </div>
 </div>
 
@@ -241,6 +301,10 @@ ignored_species = [&#39;O&#39;]
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">3. 使用方法</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">3.1. 概要</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">3.2. 参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.3. 入力ファイルの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abics">3.4. abICSの実行</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">3.5. abics の出力</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">4. ファイルフォーマット</a></li>
@@ -262,14 +326,22 @@ ignored_species = [&#39;O&#39;]
 </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>クイック検索</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="検索" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" />
+      <input type="submit" value="検索" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -278,8 +350,8 @@ ignored_species = [&#39;O&#39;]
       &copy;2019, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../_sources/how_to_use/basic_usage.rst.txt"
