@@ -1,0 +1,290 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>4.1. Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal MgAl2O4 &#8212; abICS 0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5. File Format" href="../file_specification/index.html" />
+    <link rel="prev" title="4. Tutorial" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="calculation-of-the-degree-of-inversion-of-mg-al-atoms-in-an-ionic-crystal-mgal2o4">
+<h1>4.1. Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal MgAl2O4<a class="headerlink" href="#calculation-of-the-degree-of-inversion-of-mg-al-atoms-in-an-ionic-crystal-mgal2o4" title="Permalink to this headline">¶</a></h1>
+<p>Input files are available from <code class="docutils literal notranslate"><span class="pre">examples/standard/spinel</span></code> .</p>
+<div class="section" id="example-by-using-quantumespresso">
+<h2>4.1.1. Example by using QuantumESPRESSO<a class="headerlink" href="#example-by-using-quantumespresso" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="preparing-the-input-files-for-abics">
+<h3>Preparing the input files for abICS<a class="headerlink" href="#preparing-the-input-files-for-abics" title="Permalink to this headline">¶</a></h3>
+<p>The input file of abICS is <code class="docutils literal notranslate"><span class="pre">input_qe.toml</span></code> .</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[replica]
+nreplicas = 2
+nprocs_per_replica = 1
+
+kTstart = 1000.0
+kTend = 1200.0
+
+nsteps = 5  # Number of steps for sampling
+RXtrial_frequency = 1
+sample_frequency = 1
+print_frequency = 1
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[replica]</span></code> is a section for specifying parameters of the exchange Monte Carlo method.
+In this example, the number of the replicas is 2 and the number of the steps is 5.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[solver]
+type = &#39;qe&#39;
+path= &#39;./pw.x&#39;
+base_input_dir = &#39;./baseinput&#39;
+perturb = 0.0
+run_scheme = &#39;mpi_spawn&#39;
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[solver]</span></code> is a section for specifying a solver program.
+This examples set <code class="docutils literal notranslate"><span class="pre">type</span></code> as <code class="docutils literal notranslate"><span class="pre">qe</span></code> in order to use Quantum ESPRESSO (QE).
+<code class="docutils literal notranslate"><span class="pre">path</span></code> specifies the path to <code class="docutils literal notranslate"><span class="pre">pw.x</span></code>, the SCF energy solver of QE.
+The directory that contains the input parameter files specific to each solver is given as <code class="docutils literal notranslate"><span class="pre">./baseinput</span></code> using <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code>.
+<code class="docutils literal notranslate"><span class="pre">perturb</span></code> is a random parameter that shifts atomic positions for structural optimization, but in this example it is set to 0 not to perform structural optimization.
+abICS starts <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> with <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code>, so give <code class="docutils literal notranslate"><span class="pre">mpi_spawn</span></code> as <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[config]</span></code> is the atomic position section.
+Specify the simulation cell (In units of angstrom) to be simulated by <code class="docutils literal notranslate"><span class="pre">unitcell</span></code> and <code class="docutils literal notranslate"><span class="pre">supercell</span></code>.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+     [0.237399980, 0.237399980, 0.237399980],
+     [0.762599945, 0.762599945, 0.762599945],
+     [0.512599945, 0.012600004, 0.737399936],
+     [0.487399966, 0.987399936, 0.262599975],
+     [0.012600004, 0.737399936, 0.512599945],
+     [0.987399936, 0.262599975, 0.487399966],
+     [0.737399936, 0.512599945, 0.012600004],
+     [0.262599975, 0.487399966, 0.987399936],
+     [0.987399936, 0.487399966, 0.262599975],
+     [0.012600004, 0.512599945, 0.737399936],
+     [0.487399966, 0.262599975, 0.987399936],
+     [0.512599945, 0.737399936, 0.012600004],
+     [0.262599975, 0.987399936, 0.487399966],
+     [0.737399936, 0.012600004, 0.512599945],
+     [0.237399980, 0.737399936, 0.737399936],
+     [0.762599945, 0.262599975, 0.262599975],
+     [0.512599945, 0.512599945, 0.237399980],
+     [0.487399966, 0.487399966, 0.762599945],
+     [0.012600004, 0.237399980, 0.012600004],
+     [0.987399936, 0.762599945, 0.987399936],
+     [0.987399936, 0.987399936, 0.762599945],
+     [0.012600004, 0.012600004, 0.237399980],
+     [0.487399966, 0.762599945, 0.487399966],
+     [0.512599945, 0.237399980, 0.512599945],
+     [0.737399936, 0.237399980, 0.737399936],
+     [0.262599975, 0.762599945, 0.262599975],
+     [0.237399980, 0.512599945, 0.512599945],
+     [0.762599945, 0.487399966, 0.487399966],
+     [0.762599945, 0.987399936, 0.987399936],
+     [0.237399980, 0.012600004, 0.012600004],
+     [0.737399936, 0.737399936, 0.237399980],
+     [0.262599975, 0.262599975, 0.762599945],
+     ]
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> is a section that specifies the atoms that should not be moved in the Monte Carlo calculation.
+<code class="docutils literal notranslate"><span class="pre">type</span></code> is the name of the atom and <code class="docutils literal notranslate"><span class="pre">coords</span></code> is the fraction coordinate where the atom is located.
+<code class="docutils literal notranslate"><span class="pre">coords</span></code> can be used to give not only a list of lists but also a string representing a numeric matrix with three columns separated by white space and as many rows as there are atoms.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.defect_structure]]
+coords = [
+     [0.000000000, 0.000000000, 0.000000000],
+     [0.749999940, 0.249999985, 0.499999970],
+     [0.249999985, 0.749999940, 0.499999970],
+     [0.249999985, 0.499999970, 0.749999940],
+     [0.749999940, 0.499999970, 0.249999985],
+     [0.499999970, 0.749999940, 0.249999985],
+     [0.499999970, 0.249999985, 0.749999940],
+     [0.000000000, 0.499999970, 0.499999970],
+     [0.749999940, 0.749999940, 0.000000000],
+     [0.249999985, 0.249999985, 0.000000000],
+     [0.249999985, 0.000000000, 0.249999985],
+     [0.749999940, 0.000000000, 0.749999940],
+     [0.499999970, 0.000000000, 0.499999970],
+     [0.000000000, 0.749999940, 0.749999940],
+     [0.000000000, 0.249999985, 0.249999985],
+     [0.499999970, 0.499999970, 0.000000000],
+     [0.374999970, 0.374999970, 0.374999970],
+     [0.624999940, 0.624999940, 0.624999940],
+     [0.374999970, 0.874999940, 0.874999940],
+     [0.624999940, 0.124999993, 0.124999993],
+     [0.874999940, 0.874999940, 0.374999970],
+     [0.124999993, 0.124999993, 0.624999940],
+     [0.874999940, 0.374999970, 0.874999940],
+     [0.124999993, 0.624999940, 0.124999993],
+     ]
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> is the section for specifying the positions of the atoms you want to move in the Monte Carlo calculation.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 16
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 8
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure.groups]]</span></code> is the section for specifying the name and number of atoms to be moved in the Monte Carlo calculation.
+Scatter the 16 <code class="docutils literal notranslate"><span class="pre">Al</span></code> and 8 <code class="docutils literal notranslate"><span class="pre">Mg</span></code> atoms into the coordinates specified by <code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code>.</p>
+</div>
+<div class="section" id="preparing-the-input-file-of-qe">
+<h3>Preparing the input file of QE<a class="headerlink" href="#preparing-the-input-file-of-qe" title="Permalink to this headline">¶</a></h3>
+<p>abICS generates the input files of the solver from the internal atomic structure, but information other than the structure, such as pseudopotential information, must be supplied by the user.
+In the case of QE, such information is specified by <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> in the directory specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the format of the input file of <code class="docutils literal notranslate"><span class="pre">pw.x</span></code>.
+Based on this file, an input file with unit cells and atomic structure is automatically generated.</p>
+<ul class="simple">
+<li><p>Notes
+- The pseudopotential directory <code class="docutils literal notranslate"><span class="pre">pseudo_dir</span></code> must be passed as an absolute path. <code class="docutils literal notranslate"><span class="pre">~</span></code> expands to the user’s home directory.
+- <code class="docutils literal notranslate"><span class="pre">disk_io</span></code> must not be <code class="docutils literal notranslate"><span class="pre">none</span></code> .</p></li>
+</ul>
+</div>
+<div class="section" id="execution-and-analysis">
+<h3>Execution and analysis<a class="headerlink" href="#execution-and-analysis" title="Permalink to this headline">¶</a></h3>
+<p>See “How to use” section for information on setting the number of processes and options for running MPI.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 abics input_qe.toml
+</pre></div>
+</div>
+<p>After the axis calculation, the degree of inversion (DOI: ratio of Al atoms where Mg atoms were originally located) is calculated.
+To do this, use the scripts <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> and <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> in the <code class="docutils literal notranslate"><span class="pre">examples/standard/spinel</span></code> directory.</p>
+<p>First, use <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> to summarize the structure information for each replica by temperature:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 python3 ./separateT.py input_qe.toml
+</pre></div>
+</div>
+<p>The results are stored in the <code class="docutils literal notranslate"><span class="pre">Tseparate</span></code> directory.
+If this directory already exists, the old one is moved to another directory <code class="docutils literal notranslate"><span class="pre">Tseparate.DATE</span></code> (<code class="docutils literal notranslate"><span class="pre">DATE</span></code> is the current datetime).</p>
+<p>Next, calculate DOI by using <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code>:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 python3 ./calc_DOI.py input_qe.toml
+</pre></div>
+</div>
+<p>The results are stored in <code class="docutils literal notranslate"><span class="pre">Tseparate/DOI_T.dat</span></code> .</p>
+<a class="reference internal image-reference" href="../_images/doi_2.png"><img alt="../_images/doi_2.png" class="align-center" src="../_images/doi_2.png" style="width: 400px;" /></a>
+<p>If you increase the number of replicas, you can calculate at various temperatures.
+You can also get better results by increasing the number of steps.
+The first number of samples to discard in Monte Carlo averaging can be specified by the value of <code class="docutils literal notranslate"><span class="pre">throwout</span></code> in the <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> script.
+For example, if you do with 17 replicas and 20 steps, the following result will be obtained</p>
+<a class="reference internal image-reference" href="../_images/doi_17.png"><img alt="../_images/doi_17.png" class="align-center" src="../_images/doi_17.png" style="width: 400px;" /></a>
+<p>You can see that DOI increases as the temperature increases.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. About abICS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Usage</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">4. Tutorial</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.1. Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal MgAl2O4</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">5. File Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">6. References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">7. Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">8. Contacts</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">4. Tutorial</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">4. Tutorial</a></li>
+      <li>Next: <a href="../file_specification/index.html" title="next chapter">5. File Format</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/tutorial/spinel.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
