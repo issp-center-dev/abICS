@@ -173,7 +173,7 @@ See "How to use" section for information on setting the number of processes and 
    mpiexec -np 2 abics input_qe.toml
 
 
-After the axis calculation, the degree of inversion (DOI: ratio of Al atoms where Mg atoms were originally located) is calculated.
+After the abICS calculation, the degree of inversion (DOI: ratio of Al atoms where Mg atoms were originally located) is calculated.
 To do this, use the scripts ``separateT.py`` and ``calc_DOI.py`` in the ``examples/standard/spinel`` directory.
 
 First, use ``separateT.py`` to summarize the structure information for each replica by temperature::
