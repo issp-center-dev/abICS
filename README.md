@@ -11,7 +11,7 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 - pymatgen (for parsing vasp I/O)
 - qe-tools (for parsing QE I/O)
 
-## Get ABICS
+## Get abICS
 
 ### With Git (recommended)
 
