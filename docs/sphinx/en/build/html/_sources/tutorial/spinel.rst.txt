@@ -98,10 +98,6 @@ Specify the simulation cell (In units of angstrom) to be simulated by ``unitcell
         [0.262599975, 0.262599975, 0.762599945],
         ]
 
-``[[config.base_structure]]`` は、モンテカルロ計算で動かさない原子を指定するセクションです。
-``type`` で原子名を指定し、 ``coords`` でその原子が位置する分率座標を指定します。
-``coords`` ではリストのリストだけではなく、空白区切り3列で、原子数だけ行があるような数値行列を表す文字列を与えることもできます。
-
 ``[[config.base_structure]]`` is a section that specifies the atoms that should not be moved in the Monte Carlo calculation.
 ``type`` is the name of the atom and ``coords`` is the fraction coordinate where the atom is located.
 ``coords`` can be used to give not only a list of lists but also a string representing a numeric matrix with three columns separated by white space and as many rows as there are atoms.
