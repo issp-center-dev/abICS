@@ -34,7 +34,7 @@ The input file of abICS is constructed by the following four sections:
 4. [config] section
    Specify the configuration of the alloy, etc.
 
-For details, see :doc:`../file_specification/index` .
+For details, see :doc:`../inputfiles/index` .
 The following is an example of an input file selecting QE as a solver.
 
 .. literalinclude::  ../../../../../examples/standard/spinel/input_qe.toml
@@ -99,37 +99,4 @@ Others
 On large supercomputers, the vendor may provide a dedicated MPI execution script along with the job scheduler.
 In this case, refer to the manuals.
 On the ISSP supercomputer systems, Sekirei and Enaga, for example, ``mpijob -spawn`` sets ``MPI_UNIVERSE_SIZE`` properly.
-
-
-The output of abics
----------------------
-The calculation results are output below each replica directory.
-
-``structure.XXX.vasp``
-=========================
-The atomic position for each step in the POSCAR file format of VASP is saved.
-``XXX`` in the filename means the index of the step.
-
-``minE.vasp``
-====================
-The atomic position minimizing the total energy in the POSCAR file format of VASP is saved.
-
-``obs.dat``
-===================
-The temperature and the total energy for each step in units of eV is saved.
-
-``obs_save.npy``
-==================
-The total energy for each step in units of eV in the Numpy binary format is saved.
-Users can load it as ``darray`` by using ``numpy.load('obs_save.npy')``.
-
-``kT_hist.npy``
-==================
-The temperature for each step in units of eV in the Numpy binary format is saved.
-Users can load it as ``darray`` by using ``numpy.load('kT_hist.npy')``.
-
-``Trank_hist.npy``
-==================
-The rank (index) of the temperature for each step in the Numpy binary format is saved.
-Users can load it as ``darray`` by using ``numpy.load('Trank_hist.npy')``.
 

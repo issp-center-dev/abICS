@@ -16,7 +16,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="4. ファイルフォーマット" href="../file_specification/index.html" />
+    <link rel="next" title="4. チュートリアル" href="../tutorial/index.html" />
     <link rel="prev" title="3. 使用方法" href="index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -89,7 +89,7 @@ abICSの入力ファイルは, 以下の４つのセクションから構成さ�
 <li><p>[config] セクション
 合金の配位などを指定します.</p></li>
 </ol>
-<p>これらの詳細については <a class="reference internal" href="../file_specification/index.html"><span class="doc">ファイルフォーマット</span></a> をご覧ください。
+<p>これらの詳細については <a class="reference internal" href="../inputfiles/index.html"><span class="doc">入力ファイルフォーマット</span></a> をご覧ください。
 以下、QEの場合の入力ファイルの例を記載します。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[replica]
 nreplicas = 2
@@ -247,38 +247,6 @@ ignored_species = [&#39;O&#39;]
 </div>
 </div>
 </div>
-<div class="section" id="id5">
-<h1>3.5. abics の出力<a class="headerlink" href="#id5" title="このヘッドラインへのパーマリンク">¶</a></h1>
-<p>各レプリカディレクトリ以下に計算結果が出力されます。</p>
-<div class="section" id="structure-xxx-vasp">
-<h2>3.5.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code><a class="headerlink" href="#structure-xxx-vasp" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>各ステップごとの原子配置が VASP の POSCAR ファイル形式で出力されます。
-ステップ番号がファイル名の <code class="docutils literal notranslate"><span class="pre">XXX</span></code> に入ります。</p>
-</div>
-<div class="section" id="mine-vasp">
-<h2>3.5.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code><a class="headerlink" href="#mine-vasp" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>最低エネルギーを与えた原子位置が VASP の POSCAR ファイル形式で出力されます。</p>
-</div>
-<div class="section" id="obs-dat">
-<h2>3.5.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code><a class="headerlink" href="#obs-dat" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>各ステップごとの温度とエネルギーが電子ボルト単位で出力されます。</p>
-</div>
-<div class="section" id="obs-save-npy">
-<h2>3.5.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code><a class="headerlink" href="#obs-save-npy" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>各ステップごとのエネルギーが電子ボルト単位で出力されます。
-<code class="docutils literal notranslate"><span class="pre">numpy.load('obs_save.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
-</div>
-<div class="section" id="kt-hist-npy">
-<h2>3.5.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code><a class="headerlink" href="#kt-hist-npy" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>各ステップごとの温度（電子ボルト単位）が Numpy バイナリ形式で出力されます。
-<code class="docutils literal notranslate"><span class="pre">numpy.load('kT_hist.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
-</div>
-<div class="section" id="trank-hist-npy">
-<h2>3.5.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code><a class="headerlink" href="#trank-hist-npy" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>各ステップごとの温度インデックスが Numpy バイナリ形式で出力されます。
-<code class="docutils literal notranslate"><span class="pre">numpy.load('Trank_hist.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
-</div>
-</div>
 
 
           </div>
@@ -305,13 +273,14 @@ ignored_species = [&#39;O&#39;]
 <li class="toctree-l2"><a class="reference internal" href="#id2">3.2. 参照ファイルの準備</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id3">3.3. 入力ファイルの作成</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#abics">3.4. abICSの実行</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">3.5. abics の出力</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">4. ファイルフォーマット</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">5. 参考文献</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">6. 謝辞</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">7. お問い合わせ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">7. 参考文献</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">8. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">9. お問い合わせ</a></li>
 </ul>
 
 <div class="relations">
@@ -320,7 +289,7 @@ ignored_species = [&#39;O&#39;]
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">3. 使用方法</a><ul>
       <li>Previous: <a href="index.html" title="前の章へ">3. 使用方法</a></li>
-      <li>Next: <a href="../file_specification/index.html" title="次の章へ">4. ファイルフォーマット</a></li>
+      <li>Next: <a href="../tutorial/index.html" title="次の章へ">4. チュートリアル</a></li>
   </ul></li>
   </ul></li>
 </ul>

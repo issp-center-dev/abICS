@@ -15,7 +15,8 @@ Welcome to abICS's documentation!
    install/index
    how_to_use/index
    tutorial/index
-   file_specification/index
+   inputfiles/index
+   outputfiles/index
    algorithm/index
    acknowledge/index
    contact/index

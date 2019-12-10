@@ -1,5 +1,5 @@
 ***************************
-File Format
+Input Files Format
 ***************************
 
 The input file of abICS is constructed by the following four sections:
