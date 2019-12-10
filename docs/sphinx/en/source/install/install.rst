@@ -3,9 +3,9 @@
 Download
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The source codes of abICS can be obtained from `GitHub page <https://github.com/issp-center-dev/pymc-dev>`_ .
+The source codes of abICS can be obtained from `GitHub page <https://github.com/issp-center-dev/abICS>`_ .
 
-``$ git clone https://github.com/issp-center-dev/pymc-dev``
+``$ git clone https://github.com/issp-center-dev/abICS``
 
 Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~

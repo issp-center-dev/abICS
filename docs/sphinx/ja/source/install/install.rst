@@ -3,9 +3,9 @@
 ダウンロード
 ~~~~~~~~~~~~~~~~~~~~~~
 
-abICS のソースコードは `GitHub page <https://github.com/issp-center-dev/pymc-dev>`_ からダウンロードできます。
+abICS のソースコードは `GitHub page <https://github.com/issp-center-dev/abICS>`_ からダウンロードできます。
 
-``$ git clone https://github.com/issp-center-dev/pymc-dev``
+``$ git clone https://github.com/issp-center-dev/abICS``
 
 必要なライブラリ・環境
 ~~~~~~~~~~~~~~~~~~~~~~
