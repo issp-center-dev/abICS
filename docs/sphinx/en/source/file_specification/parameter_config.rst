@@ -69,7 +69,7 @@ Key words
 - [[config.base_structure]] section
 
   ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
-    If there are multiple atomic species, specify multiple [[config.base_strucure]] sections.
+    If there are multiple atomic species, specify multiple [[config.base_structure]] sections.
 
     - ``type``
 

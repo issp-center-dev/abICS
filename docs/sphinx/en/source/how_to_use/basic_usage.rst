@@ -73,7 +73,7 @@ In this example, ``mpiexec -np 4 abics input.toml`` will allow the replica contr
 Comments on MPI implementation
 ====================================
 In the ``MPI_Comm_spawn`` function, a MPI implementation can use the information "how many process can be started in total" by ``MPI_UNIVERSE_SIZE``.
-In this seciton, we will comment on some MPI implementations including how to set ``MPI_UNIVERSE_SIZE``.
+In this section, we will comment on some MPI implementations including how to set ``MPI_UNIVERSE_SIZE``.
 
 OpenMPI
 ~~~~~~~~~~~~~

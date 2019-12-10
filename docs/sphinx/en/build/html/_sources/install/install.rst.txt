@@ -30,22 +30,13 @@ The directory structure of abICS is given as follows:
      - examples
         - standard
             - spinel
-                - QE
-                - vasp
-                - openmx
-            - sub-lattice
-                - QE
-                - vasp
-                - openmx
         - expert 
             - ising2D
             - 2D_hardcore
             …
     - make_wheel.sh
-    - py_mc
-        - pymc.py
+    - abics
         - python module
-    - test
 
 ``examples/standard`` contains samples that can be run by simple files.
 ``examples/expert`` contains examples by using python module.
