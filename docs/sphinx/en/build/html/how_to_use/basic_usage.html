@@ -1,30 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <meta charset="utf-8" />
     <title>3.1. Basic usage &#8212; abICS 0.1 documentation</title>
-    
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="4. File Format" href="../file_specification/index.html" />
@@ -35,8 +23,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -53,27 +40,27 @@ Therefore, it is necessary to prepare information other than the position coordi
 <div class="section" id="prepare-a-reference-file">
 <h2>3.1.1. Prepare a reference file<a class="headerlink" href="#prepare-a-reference-file" title="Permalink to this headline">¶</a></h2>
 <p>Prepare an input file according to the input format of the solver to be used.
-The path of the reference file is specified by <code class="docutils literal"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal"><span class="pre">[solver]</span></code> section in the abICS input file.
+The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section in the abICS input file.
 The coordinate information does not need to be described because it refers to the abICS input file.
 The following is an example of a QE reference file.</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>&amp;CONTROL
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
   calculation = &#39;scf&#39;
-  tstress = .true.
-  tprnfor = .true.
+  tstress = .false.
+  tprnfor = .false.
   pseudo_dir = &#39;~/qe/pot&#39;
   disk_io = &#39;low&#39;
-  wf_collect = .true.
+  wf_collect = .false.
 /
 &amp;SYSTEM
   ecutwfc      =  60.0
   occupations  = &quot;smearing&quot;
-  smearing     = &quot;m-p&quot;
+  smearing     = &quot;gauss&quot;
   degauss      = 0.01
 /
 &amp;electrons
   mixing_beta = 0.7
   conv_thr = 1.0d-8
-  electron_maxstep = 1
+  electron_maxstep = 100
 /
 ATOMIC_SPECIES
 Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
@@ -90,18 +77,18 @@ K_POINTS automatic
 <h2>3.1.2. Make an input file of abICS<a class="headerlink" href="#make-an-input-file-of-abics" title="Permalink to this headline">¶</a></h2>
 <p>The input file of abICS is constructed by the following four sections:</p>
 <ol class="arabic simple">
-<li>[replica] section
-Specify the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps.</li>
-<li>[solver] section
-Specify the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,…), the path to the solver, and the directory containing immutable input files.</li>
-<li>[observer] section
-Specify the type of physical quantity to be calculated.</li>
-<li>[config] section
-Specify the configuration of the alloy, etc.</li>
+<li><p>[replica] section
+Specify the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps.</p></li>
+<li><p>[solver] section
+Specify the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,…), the path to the solver, and the directory containing immutable input files.</p></li>
+<li><p>[observer] section
+Specify the type of physical quantity to be calculated.</p></li>
+<li><p>[config] section
+Specify the configuration of the alloy, etc.</p></li>
 </ol>
 <p>For details, see <a class="reference internal" href="../file_specification/index.html"><span class="doc">File Format</span></a> .
 The following is an example of an input file selecting QE as a solver.</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>[replica]
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[replica]
 nreplicas = 2
 nprocs_per_replica = 1
 
@@ -117,7 +104,7 @@ print_frequency = 1
 type = &#39;qe&#39;
 path= &#39;./pw.x&#39;
 base_input_dir = &#39;./baseinput&#39;
-perturb = 0.1
+perturb = 0.0
 run_scheme = &#39;mpi_spawn&#39;
 
 [config]
@@ -209,11 +196,86 @@ ignored_species = [&#39;O&#39;]
 </div>
 <div class="section" id="execution">
 <h2>3.1.3. Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h2>
-<p>The number of processes specified here must be the same as the number of replicas.</p>
-<p>(Various matters derived from MPI_Comm_spawn (the actual process to be allocated, mpiexec options, etc. need to be described somewhere)</p>
-<div class="highlight-none"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics input.toml
+<p>The number of processes specified here must be greater than or equal to the number of replicas.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics input.toml
 </pre></div>
 </div>
+<p>This creates a directory named with the replica number under the current directory, and each replica runs the solver in it.</p>
+</div>
+<div class="section" id="tips-for-the-number-of-mpi-processes">
+<h2>3.1.4. Tips for the number of MPI processes<a class="headerlink" href="#tips-for-the-number-of-mpi-processes" title="Permalink to this headline">¶</a></h2>
+<p>abICS uses the MPI library function <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> to run the solver.
+This function executes another program on new MPI processes.</p>
+<p>For example, consider that you have a parallel machine with 4 CPU cores per node
+and want to run two replicas and to invoke solvers on 4 CPU cores.
+If invoked as <code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np2</span> <span class="pre">abics</span> <span class="pre">input.toml</span></code>, the replica control processes A and B are started on the first two cores of node 0,
+each starting a new four-parallel solver a and b.
+Then, solver a fills the remaining two cores in node 0 and the first two cores in node 1,
+and solver b is placed on the remaining two cores in node 1 and the first two cores in node 2.
+This causes inter-node communication within the solver and reduces performance.</p>
+<p>By taking more of the initial process, you can align the processes and prevent unnecessary node stripping.
+In this example, <code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np</span> <span class="pre">4</span> <span class="pre">abics</span> <span class="pre">input.toml</span></code> will allow the replica control processes A and B to fill all the cores of the node 0, while solvers a and b fill nodes 1 and 2, respectively.</p>
+</div>
+<div class="section" id="comments-on-mpi-implementation">
+<h2>3.1.5. Comments on MPI implementation<a class="headerlink" href="#comments-on-mpi-implementation" title="Permalink to this headline">¶</a></h2>
+<p>In the <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> function, a MPI implementation can use the information “how many process can be started in total” by <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code>.
+In this seciton, we will comment on some MPI implementations including how to set <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code>.</p>
+<div class="section" id="openmpi">
+<h3>OpenMPI<a class="headerlink" href="#openmpi" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> is automatically set to the number of the CPU cores available.
+If you want more processes, you should pass the <code class="docutils literal notranslate"><span class="pre">--oversubscribe</span></code> option to the <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> command.</p>
+<p>When one of the spawned process returns a nonzero return code, all the OpenMPI processes will abort.
+The <code class="docutils literal notranslate"><span class="pre">--mca</span> <span class="pre">orte_abort_on_non_zero_status</span> <span class="pre">0</span></code> option allows you to ignore the return code.
+Quantum ESPRESSO, for example, may return a nonzero value due to a floating point exception even if the calculation is successfully completed.</p>
+</div>
+<div class="section" id="mpich-intel-mpi">
+<h3>MPICH / Intel MPI<a class="headerlink" href="#mpich-intel-mpi" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">-usize</span> <span class="pre">&lt;num&gt;</span></code> option set <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code>.
+Indeed, MPICH and Intel MPI seem not to use this value in <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code>.</p>
+</div>
+<div class="section" id="hpe-sgi-mpt">
+<h3>HPE (SGI) MPT<a class="headerlink" href="#hpe-sgi-mpt" title="Permalink to this headline">¶</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">-up</span> <span class="pre">&lt;num&gt;</span></code> option set <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code>.
+This must be set before the <code class="docutils literal notranslate"><span class="pre">-np</span> <span class="pre">&lt;num&gt;</span></code> option.</p>
+</div>
+<div class="section" id="others">
+<h3>Others<a class="headerlink" href="#others" title="Permalink to this headline">¶</a></h3>
+<p>On large supercomputers, the vendor may provide a dedicated MPI execution script along with the job scheduler.
+In this case, refer to the manuals.
+On the ISSP supercomputer systems, Sekirei and Enaga, for example, <code class="docutils literal notranslate"><span class="pre">mpijob</span> <span class="pre">-spawn</span></code> sets <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> properly.</p>
+</div>
+</div>
+</div>
+<div class="section" id="the-output-of-abics">
+<h1>3.2. The output of abics<a class="headerlink" href="#the-output-of-abics" title="Permalink to this headline">¶</a></h1>
+<p>The calculation results are output below each replica directory.</p>
+<div class="section" id="structure-xxx-vasp">
+<h2>3.2.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code><a class="headerlink" href="#structure-xxx-vasp" title="Permalink to this headline">¶</a></h2>
+<p>The atomic position for each step in the POSCAR file format of VASP is saved.
+<code class="docutils literal notranslate"><span class="pre">XXX</span></code> in the filename means the index of the step.</p>
+</div>
+<div class="section" id="mine-vasp">
+<h2>3.2.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code><a class="headerlink" href="#mine-vasp" title="Permalink to this headline">¶</a></h2>
+<p>The atomic position minimizing the total energy in the POSCAR file format of VASP is saved.</p>
+</div>
+<div class="section" id="obs-dat">
+<h2>3.2.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code><a class="headerlink" href="#obs-dat" title="Permalink to this headline">¶</a></h2>
+<p>The temperature and the total energy for each step in units of eV is saved.</p>
+</div>
+<div class="section" id="obs-save-npy">
+<h2>3.2.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code><a class="headerlink" href="#obs-save-npy" title="Permalink to this headline">¶</a></h2>
+<p>The total energy for each step in units of eV in the Numpy binary format is saved.
+Users can load it as <code class="docutils literal notranslate"><span class="pre">darray</span></code> by using <code class="docutils literal notranslate"><span class="pre">numpy.load('obs_save.npy')</span></code>.</p>
+</div>
+<div class="section" id="kt-hist-npy">
+<h2>3.2.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code><a class="headerlink" href="#kt-hist-npy" title="Permalink to this headline">¶</a></h2>
+<p>The temperature for each step in units of eV in the Numpy binary format is saved.
+Users can load it as <code class="docutils literal notranslate"><span class="pre">darray</span></code> by using <code class="docutils literal notranslate"><span class="pre">numpy.load('kT_hist.npy')</span></code>.</p>
+</div>
+<div class="section" id="trank-hist-npy">
+<h2>3.2.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code><a class="headerlink" href="#trank-hist-npy" title="Permalink to this headline">¶</a></h2>
+<p>The rank (index) of the temperature for each step in the Numpy binary format is saved.
+Users can load it as <code class="docutils literal notranslate"><span class="pre">darray</span></code> by using <code class="docutils literal notranslate"><span class="pre">numpy.load('Trank_hist.npy')</span></code>.</p>
 </div>
 </div>
 
@@ -240,6 +302,7 @@ ignored_species = [&#39;O&#39;]
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">3. Usage</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">3.1. Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-output-of-abics">3.2. The output of abics</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">4. File Format</a></li>
@@ -261,14 +324,22 @@ ignored_species = [&#39;O&#39;]
 </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -277,8 +348,8 @@ ignored_species = [&#39;O&#39;]
       &copy;2019, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../_sources/how_to_use/basic_usage.rst.txt"

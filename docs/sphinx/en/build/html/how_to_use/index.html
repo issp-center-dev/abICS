@@ -1,30 +1,18 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
+    <meta charset="utf-8" />
     <title>3. Usage &#8212; abICS 0.1 documentation</title>
-    
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="3.1. Basic usage" href="basic_usage.html" />
@@ -35,8 +23,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -54,6 +41,17 @@
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html#prepare-a-reference-file">3.1.1. Prepare a reference file</a></li>
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html#make-an-input-file-of-abics">3.1.2. Make an input file of abICS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html#execution">3.1.3. Execution</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#tips-for-the-number-of-mpi-processes">3.1.4. Tips for the number of MPI processes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#comments-on-mpi-implementation">3.1.5. Comments on MPI implementation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html#the-output-of-abics">3.2. The output of abics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#structure-xxx-vasp">3.2.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#mine-vasp">3.2.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#obs-dat">3.2.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#obs-save-npy">3.2.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#kt-hist-npy">3.2.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#trank-hist-npy">3.2.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -83,6 +81,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="basic_usage.html">3.1. Basic usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#the-output-of-abics">3.2. The output of abics</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">4. File Format</a></li>
@@ -102,14 +101,22 @@
 </div>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
@@ -118,8 +125,8 @@
       &copy;2019, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.0.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../_sources/how_to_use/index.rst.txt"

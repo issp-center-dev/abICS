@@ -122,6 +122,7 @@ abics の出力
 ``obs_save.npy``
 ==================
 各ステップごとのエネルギーが電子ボルト単位で出力されます。
+``numpy.load('obs_save.npy')`` で、 ``darray`` として読み取ることができます。
 
 ``kT_hist.npy``
 ==================
@@ -131,5 +132,5 @@ abics の出力
 ``Trank_hist.npy``
 ==================
 各ステップごとの温度インデックスが Numpy バイナリ形式で出力されます。
-``numpy.load('kT_hist.npy')`` で、 ``darray`` として読み取ることができます。
+``numpy.load('Trank_hist.npy')`` で、 ``darray`` として読み取ることができます。
 
