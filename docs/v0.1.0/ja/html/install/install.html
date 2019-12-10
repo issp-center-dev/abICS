@@ -16,7 +16,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
-    <link rel="next" title="3. 使用方法" href="../how_to_use/index.html" />
+    <link rel="next" title="3. 基本的な使用方法" href="../how_to_use/index.html" />
     <link rel="prev" title="2. インストール方法" href="index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -57,30 +57,27 @@
 <p>abICSのディレクトリ構成は以下のようになっています.
 <code class="docutils literal notranslate"><span class="pre">examples/standard</span></code> には簡易ファイルで実行可能なサンプルが,
 <code class="docutils literal notranslate"><span class="pre">examples/expert</span></code> にはpythonモジュールを直接用いて作成されたサンプルがあります.
-pythonモジュールは <code class="docutils literal notranslate"><span class="pre">py_mc</span></code> ディレクトリ以下に一式格納されています.</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span> - examples
-    - standard
-        - spinel
-            - QE
-            - vasp
-            - openmx
-        - sub-lattice
-            - QE
-            - vasp
-            - openmx
-    - expert
-        - ising2D
-        - 2D_hardcore
-        …
-- make_wheel.sh
-- py_mc
-    - pymc.py
-    - pythonモジュール
-- test
+pythonモジュールは <code class="docutils literal notranslate"><span class="pre">abics</span></code> ディレクトリ以下に一式格納されています.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.
+|-- COPYING
+|-- README.md
+|-- abics/
+|   |-- __init__.py
+|   |-- applications/
+|   |-- mc.py
+|   |-- mc_mpi.py
+|   |-- scripts/
+|   `-- util.py
+|-- docs/
+|   `-- sphinx/
+|-- examples/
+|   |-- expert/
+|   `-- standard/
+|-- make_wheel.sh
+|-- setup.cfg
+`-- setup.py
 </pre></div>
 </div>
-</div></blockquote>
 </div>
 <div class="section" id="id4">
 <h1>2.4. インストール<a class="headerlink" href="#id4" title="このヘッドラインへのパーマリンク">¶</a></h1>
@@ -122,11 +119,13 @@ pythonモジュールは <code class="docutils literal notranslate"><span class=
 <li class="toctree-l2"><a class="reference internal" href="#id4">2.4. インストール</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 使用方法</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">4. ファイルフォーマット</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">5. 参考文献</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">6. 謝辞</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">7. お問い合わせ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">7. 参考文献</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">8. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">9. お問い合わせ</a></li>
 </ul>
 
 <div class="relations">
@@ -135,7 +134,7 @@ pythonモジュールは <code class="docutils literal notranslate"><span class=
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">2. インストール方法</a><ul>
       <li>Previous: <a href="index.html" title="前の章へ">2. インストール方法</a></li>
-      <li>Next: <a href="../how_to_use/index.html" title="次の章へ">3. 使用方法</a></li>
+      <li>Next: <a href="../how_to_use/index.html" title="次の章へ">3. 基本的な使用方法</a></li>
   </ul></li>
   </ul></li>
 </ul>

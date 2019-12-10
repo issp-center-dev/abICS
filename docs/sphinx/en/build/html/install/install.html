@@ -15,7 +15,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="3. Usage" href="../how_to_use/index.html" />
+    <link rel="next" title="3. Basic Usage" href="../how_to_use/index.html" />
     <link rel="prev" title="2. Install" href="index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -54,20 +54,26 @@
 <div class="section" id="directory-structure">
 <h1>2.3. Directory structure<a class="headerlink" href="#directory-structure" title="Permalink to this headline">¶</a></h1>
 <p>The directory structure of abICS is given as follows:</p>
-<blockquote>
-<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span> - examples
-    - standard
-        - spinel
-    - expert
-        - ising2D
-        - 2D_hardcore
-        …
-- make_wheel.sh
-- abics
-    - python module
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.
+|-- COPYING
+|-- README.md
+|-- abics/
+|   |-- __init__.py
+|   |-- applications/
+|   |-- mc.py
+|   |-- mc_mpi.py
+|   |-- scripts/
+|   `-- util.py
+|-- docs/
+|   `-- sphinx/
+|-- examples/
+|   |-- expert/
+|   `-- standard/
+|-- make_wheel.sh
+|-- setup.cfg
+`-- setup.py
 </pre></div>
 </div>
-</div></blockquote>
 <p><code class="docutils literal notranslate"><span class="pre">examples/standard</span></code> contains samples that can be run by simple files.
 <code class="docutils literal notranslate"><span class="pre">examples/expert</span></code> contains examples by using python module.</p>
 <p>A set of python modules are located in the <code class="docutils literal notranslate"><span class="pre">py_mc</span></code> directory.</p>
@@ -114,12 +120,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#install">2.4. Install</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Basic Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. Tutorial</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../file_specification/index.html">5. File Format</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">6. References</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">7. Acknowledgement</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">8. Contacts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. Input Files Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. Output Files Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">7. References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">8. Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">9. Contacts</a></li>
 </ul>
 
 <div class="relations">
@@ -128,7 +135,7 @@
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html">2. Install</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter">2. Install</a></li>
-      <li>Next: <a href="../how_to_use/index.html" title="next chapter">3. Usage</a></li>
+      <li>Next: <a href="../how_to_use/index.html" title="next chapter">3. Basic Usage</a></li>
   </ul></li>
   </ul></li>
 </ul>

@@ -25,18 +25,27 @@ Directory structure
 
 The directory structure of abICS is given as follows:
 
-  :: 
+:: 
 
-     - examples
-        - standard
-            - spinel
-        - expert 
-            - ising2D
-            - 2D_hardcore
-            …
-    - make_wheel.sh
-    - abics
-        - python module
+ .
+ |-- COPYING
+ |-- README.md
+ |-- abics/
+ |   |-- __init__.py
+ |   |-- applications/
+ |   |-- mc.py
+ |   |-- mc_mpi.py
+ |   |-- scripts/
+ |   `-- util.py
+ |-- docs/
+ |   `-- sphinx/
+ |-- examples/
+ |   |-- expert/
+ |   `-- standard/
+ |-- make_wheel.sh
+ |-- setup.cfg
+ `-- setup.py
+ 
 
 ``examples/standard`` contains samples that can be run by simple files.
 ``examples/expert`` contains examples by using python module.
