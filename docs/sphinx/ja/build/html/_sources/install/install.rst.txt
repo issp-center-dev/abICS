@@ -18,6 +18,8 @@ abICS のソースコードは `GitHub page <https://github.com/issp-center-dev/
 - pymatgen (for parsing vasp I/O)
 - qe-tools (for parsing QE I/O)
 
+VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
+
 ディレクトリ構成
 ~~~~~~~~~~~~~~~~~~~~~~
 

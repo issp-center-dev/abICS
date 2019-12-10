@@ -18,6 +18,8 @@ Prerequisites
 - pymatgen (for parsing vasp I/O)
 - qe-tools (for parsing QE I/O)
 
+To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` ).
+  
 Directory structure
 ~~~~~~~~~~~~~~~~~~~~~~
 
