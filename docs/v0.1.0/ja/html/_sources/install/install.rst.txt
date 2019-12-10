@@ -60,8 +60,8 @@ pythonモジュールは ``abics`` ディレクトリ以下に一式格納され
 
 2. 作成されたファイルを使用して以下のようにインストールします.
 
-``$ pip install dist/abics-\*.whl``
+``$ pip install dist/abics-*.whl``
 
 インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
 
-``$ pip install --user dist/abics-\*.whl``
+``$ pip install --user dist/abics-*.whl``
