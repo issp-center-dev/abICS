@@ -39,7 +39,7 @@
 
 
 \title{abICS Documentation}
-\date{Dec 09, 2019}
+\date{Dec 10, 2019}
 \release{0.1}
 \author{abICS's team}
 \newcommand{\sphinxlogo}{\vbox{}}
@@ -148,6 +148,8 @@ qe-tools (for parsing QE I/O)
 
 \end{itemize}
 
+To use VASP as a solver, a patch must be applied to use MPI\_COMM\_SPAWN. If you wish to use it, please contact us (the e-mail address is written in {\hyperref[\detokenize{contact/index::doc}]{\sphinxcrossref{\DUrole{doc}{Contacts}}}} ).
+
 
 \section{Directory structure}
 \label{\detokenize{install/install:directory-structure}}
@@ -198,22 +200,192 @@ Install using the created file as follows:
 
 \end{enumerate}
 
-\sphinxcode{\$ pip install dist/py\_mc-\textbackslash{}*.whl}
+\sphinxcode{\$ pip install dist/abics-\textbackslash{}*.whl}
 
-If you want to change the install directry, use
+If you want to change the install directory, use
 \sphinxcode{-{-}user} option or \sphinxcode{-{-}prefix = DIRECTORY} ( \sphinxcode{DIRECTORY} is the path to the directory where you want to install) option. In the following, the case for using \sphinxcode{-{-}user} option is shown:
 
-\sphinxcode{\$ pip install -{-}user dist/py\_mc-\textbackslash{}*.whl}
+\sphinxcode{\$ pip install -{-}user dist/abics-\textbackslash{}*.whl}
 
 
 \chapter{Usage}
 \label{\detokenize{how_to_use/index:usage}}\label{\detokenize{how_to_use/index::doc}}
 
-\section{Overview}
-\label{\detokenize{how_to_use/basic_usage:overview}}\label{\detokenize{how_to_use/basic_usage::doc}}
+\section{Basic usage}
+\label{\detokenize{how_to_use/basic_usage::doc}}\label{\detokenize{how_to_use/basic_usage:basic-usage}}
+In abICS, physical quantities by solver (VASP, QE, etc.) are calculated while updating the position coordinates for each Monte Carlo step.
+Therefore, it is necessary to prepare information other than the position coordinates in advance. This information is obtained by referring to the file according to the solver input format.
 
-\subsection{Preparing the input file}
-\label{\detokenize{how_to_use/basic_usage:preparing-the-input-file}}
+
+\subsection{Prepare a reference file}
+\label{\detokenize{how_to_use/basic_usage:prepare-a-reference-file}}
+Prepare an input file according to the input format of the solver to be used.
+The path of the reference file is specified by \sphinxcode{base\_input\_dir} in the \sphinxcode{{[}solver{]}} section in the abICS input file.
+The coordinate information does not need to be described because it refers to the abICS input file.
+The following is an example of a QE reference file.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+\PYGZam{}CONTROL
+  calculation = \PYGZsq{}scf\PYGZsq{}
+  tstress = .true.
+  tprnfor = .true.
+  pseudo\PYGZus{}dir = \PYGZsq{}\PYGZti{}/qe/pot\PYGZsq{}
+  disk\PYGZus{}io = \PYGZsq{}low\PYGZsq{}
+  wf\PYGZus{}collect = .true.
+/
+\PYGZam{}SYSTEM
+  ecutwfc      =  60.0
+  occupations  = \PYGZdq{}smearing\PYGZdq{}
+  smearing     = \PYGZdq{}m\PYGZhy{}p\PYGZdq{}
+  degauss      = 0.01
+/
+\PYGZam{}electrons
+  mixing\PYGZus{}beta = 0.7
+  conv\PYGZus{}thr = 1.0d\PYGZhy{}8
+  electron\PYGZus{}maxstep = 1
+/
+ATOMIC\PYGZus{}SPECIES
+Al 26.981 Al.pbesol\PYGZhy{}nl\PYGZhy{}kjpaw\PYGZus{}psl.1.0.0.UPF
+Mg 24.305 Mg.pbesol\PYGZhy{}spnl\PYGZhy{}kjpaw\PYGZus{}psl.1.0.0.UPF
+O  16.000 O.pbesol\PYGZhy{}n\PYGZhy{}kjpaw\PYGZus{}psl.1.0.0.UPF
+ATOMIC\PYGZus{}POSITIONS crystal
+
+K\PYGZus{}POINTS automatic
+1 1 1 0 0 0
+\end{sphinxVerbatim}
+
+
+\subsection{Make an input file of abICS}
+\label{\detokenize{how_to_use/basic_usage:make-an-input-file-of-abics}}
+The input file of abICS is constructed by the following four sections:
+\begin{enumerate}
+\item {} 
+{[}replica{]} section
+Specify the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps.
+
+\item {} 
+{[}solver{]} section
+Specify the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,…), the path to the solver, and the directory containing immutable input files.
+
+\item {} 
+{[}observer{]} section
+Specify the type of physical quantity to be calculated.
+
+\item {} 
+{[}config{]} section
+Specify the configuration of the alloy, etc.
+
+\end{enumerate}
+
+For details, see {\hyperref[\detokenize{file_specification/index::doc}]{\sphinxcrossref{\DUrole{doc}{File Format}}}} .
+The following is an example of an input file selecting QE as a solver.
+
+\begin{sphinxVerbatim}[commandchars=\\\{\}]
+[replica]
+nreplicas = 2
+nprocs\PYGZus{}per\PYGZus{}replica = 1
+
+kTstart = 1000.0
+kTend = 1200.0
+
+nsteps = 2  \PYGZsh{} Number of steps for sampling
+RXtrial\PYGZus{}frequency = 1
+sample\PYGZus{}frequency = 1
+print\PYGZus{}frequency = 1
+
+[solver]
+type = \PYGZsq{}qe\PYGZsq{}
+path= \PYGZsq{}./pw.x\PYGZsq{}
+base\PYGZus{}input\PYGZus{}dir = \PYGZsq{}./baseinput\PYGZsq{}
+perturb = 0.1
+run\PYGZus{}scheme = \PYGZsq{}mpi\PYGZus{}spawn\PYGZsq{}
+
+[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+
+[[config.base\PYGZus{}structure]]
+type = \PYGZdq{}O\PYGZdq{}
+coords = [
+     [0.237399980, 0.237399980, 0.237399980],
+     [0.762599945, 0.762599945, 0.762599945],
+     [0.512599945, 0.012600004, 0.737399936],
+     [0.487399966, 0.987399936, 0.262599975],
+     [0.012600004, 0.737399936, 0.512599945],
+     [0.987399936, 0.262599975, 0.487399966],
+     [0.737399936, 0.512599945, 0.012600004],
+     [0.262599975, 0.487399966, 0.987399936],
+     [0.987399936, 0.487399966, 0.262599975],
+     [0.012600004, 0.512599945, 0.737399936],
+     [0.487399966, 0.262599975, 0.987399936],
+     [0.512599945, 0.737399936, 0.012600004],
+     [0.262599975, 0.987399936, 0.487399966],
+     [0.737399936, 0.012600004, 0.512599945],
+     [0.237399980, 0.737399936, 0.737399936],
+     [0.762599945, 0.262599975, 0.262599975],
+     [0.512599945, 0.512599945, 0.237399980],
+     [0.487399966, 0.487399966, 0.762599945],
+     [0.012600004, 0.237399980, 0.012600004],
+     [0.987399936, 0.762599945, 0.987399936],
+     [0.987399936, 0.987399936, 0.762599945],
+     [0.012600004, 0.012600004, 0.237399980],
+     [0.487399966, 0.762599945, 0.487399966],
+     [0.512599945, 0.237399980, 0.512599945],
+     [0.737399936, 0.237399980, 0.737399936],
+     [0.262599975, 0.762599945, 0.262599975],
+     [0.237399980, 0.512599945, 0.512599945],
+     [0.762599945, 0.487399966, 0.487399966],
+     [0.762599945, 0.987399936, 0.987399936],
+     [0.237399980, 0.012600004, 0.012600004],
+     [0.737399936, 0.737399936, 0.237399980],
+     [0.262599975, 0.262599975, 0.762599945],
+     ]
+
+[[config.defect\PYGZus{}structure]]
+coords = [
+     [0.000000000, 0.000000000, 0.000000000],
+     [0.749999940, 0.249999985, 0.499999970],
+     [0.249999985, 0.749999940, 0.499999970],
+     [0.249999985, 0.499999970, 0.749999940],
+     [0.749999940, 0.499999970, 0.249999985],
+     [0.499999970, 0.749999940, 0.249999985],
+     [0.499999970, 0.249999985, 0.749999940],
+     [0.000000000, 0.499999970, 0.499999970],
+     [0.749999940, 0.749999940, 0.000000000],
+     [0.249999985, 0.249999985, 0.000000000],
+     [0.249999985, 0.000000000, 0.249999985],
+     [0.749999940, 0.000000000, 0.749999940],
+     [0.499999970, 0.000000000, 0.499999970],
+     [0.000000000, 0.749999940, 0.749999940],
+     [0.000000000, 0.249999985, 0.249999985],
+     [0.499999970, 0.499999970, 0.000000000],
+     [0.374999970, 0.374999970, 0.374999970],
+     [0.624999940, 0.624999940, 0.624999940],
+     [0.374999970, 0.874999940, 0.874999940],
+     [0.624999940, 0.124999993, 0.124999993],
+     [0.874999940, 0.874999940, 0.374999970],
+     [0.124999993, 0.124999993, 0.624999940],
+     [0.874999940, 0.374999970, 0.874999940],
+     [0.124999993, 0.624999940, 0.124999993],
+     ]
+[[config.defect\PYGZus{}structure.groups]]
+name = \PYGZsq{}Al\PYGZsq{}
+\PYGZsh{} species = [\PYGZsq{}Al\PYGZsq{}]    \PYGZsh{} default
+\PYGZsh{} coords = [[[0,0,0]]]  \PYGZsh{} default
+num = 16
+[[config.defect\PYGZus{}structure.groups]]
+name = \PYGZsq{}Mg\PYGZsq{}
+\PYGZsh{} species = [\PYGZsq{}Mg\PYGZsq{}]    \PYGZsh{} default
+\PYGZsh{} coords = [[[0,0,0]]]  \PYGZsh{} default
+num = 8
+
+
+[observer]
+ignored\PYGZus{}species = [\PYGZsq{}O\PYGZsq{}]
+\end{sphinxVerbatim}
+
 
 \subsection{Execution}
 \label{\detokenize{how_to_use/basic_usage:execution}}
@@ -291,7 +463,7 @@ About temperatures
 \sphinxstylestrong{Format :} float (\textgreater{}0)
 
 \sphinxstylestrong{Description :}
-Initial temperature.
+Minimum temperature for the replica.
 \begin{itemize}
 \item {} 
 \sphinxcode{kTend}
@@ -301,7 +473,7 @@ Initial temperature.
 \sphinxstylestrong{Format :} float (\textgreater{}0)
 
 \sphinxstylestrong{Description :}
-Final temperature.
+Maximum temperature for the replica.
 \begin{itemize}
 \item {} 
 \sphinxcode{nsteps}
@@ -657,9 +829,18 @@ Specify the number of this atom group.
 \end{itemize}
 
 
-\chapter{Algorithm}
-\label{\detokenize{algorithm/index::doc}}\label{\detokenize{algorithm/index:algorithm}}
-T.B.A.
+\chapter{References}
+\label{\detokenize{algorithm/index:references}}\label{\detokenize{algorithm/index::doc}}\begin{itemize}
+\item {} 
+Overview of abICS
+- Shusuke Kasamatsu and Osamu Sugino 2019 J. Phys.: Condens. Matter \sphinxstyleemphasis{31} 085901
+
+\item {} 
+About Exchange Monte Carlo method
+- Hukushima K and Nemoto K 1996 J. Phys. Soc. Japan \sphinxstyleemphasis{65} 1604\textendash{}8
+- Swendsen R and Wang J 1986 Phys. Rev. Lett. \sphinxstyleemphasis{57} 2607\textendash{}9
+
+\end{itemize}
 
 
 \chapter{Acknowledgement}

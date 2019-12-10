@@ -3,9 +3,9 @@
 Download
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The source codes of abICS can be obtained from `GitHub page <https://github.com/issp-center-dev/pymc-dev>`_ .
+The source codes of abICS can be obtained from `GitHub page <https://github.com/issp-center-dev/abICS>`_ .
 
-``$ git clone https://github.com/issp-center-dev/pymc-dev``
+``$ git clone https://github.com/issp-center-dev/abICS``
 
 Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -63,9 +63,9 @@ Install
 
 2. Install using the created file as follows:
 
-``$ pip install dist/py_mc-\*.whl``
+``$ pip install dist/abics-\*.whl``
 
 If you want to change the install directory, use
 ``--user`` option or ``--prefix = DIRECTORY`` ( ``DIRECTORY`` is the path to the directory where you want to install) option. In the following, the case for using ``--user`` option is shown:
 
-``$ pip install --user dist/py_mc-\*.whl``
+``$ pip install --user dist/abics-\*.whl``
