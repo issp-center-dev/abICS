@@ -1,3 +1,13 @@
+"""
+To deal with QuantumESPRESSO
+
+Todo
+----
+
+* implement seldyn_arr in update_info_by_structure
+
+"""
+
 from collections import namedtuple
 import xml.etree.ElementTree as ET
 import os.path
@@ -14,13 +24,10 @@ from ...util import expand_path
 hartree2eV = spc.value("Hartree energy in eV")
 Bohr2AA = spc.value('Bohr radius') * 1e10
 
-def load_QE_result(path):
-    return ComputedEntry(composition=Composition(comp), energy=ene)
-
 
 class QESolver(SolverBase):
     """
-    This class defines the QE solver.
+    Solver class dealing with QuantumESPRESSO (with new XML format).
     """
 
     def __init__(self, path_to_solver):
@@ -30,7 +37,7 @@ class QESolver(SolverBase):
         Parameters
         ----------
         path_to_solver : str
-                      Path to the solver.
+            Path to the solver.
         """
         super(QESolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
@@ -38,20 +45,54 @@ class QESolver(SolverBase):
         self.output = QESolver.Output("pwscf")
 
     def name(self):
+        """
+        Returns
+        -------
+        solver_name : str
+            Name of solver, "QuantumESPRESSO".
+        """
         return "QuantumESPRESSO"
 
     class Input(object):
+        """
+        QE input files manager.
+
+        Attributes
+        ----------
+        pwi : qe_tools.parsers.PwInputFile
+            QE input.
+        datadir : str
+            Path to the data directory of QE.
+        filetocheck : str
+            Name of the file to be used for check finished.
+        """
         def __init__(self):
             self.pwi = None
             self.datadir = "pwscf.save"
             self.filetocheck = "data-file-schema.xml"
 
         def cleanup(self, rundir):
+            """
+            Remove file for check finished.
+
+            Parameters
+            ----------
+            rundir : str
+                Path to the solver's output directory.
+            """
             checkfile = os.path.join(rundir, self.datadir, self.filetocheck)
             if os.path.exists(checkfile):
                 os.remove(checkfile)
 
         def check_finished(self, rundir):
+            """
+            Check if the solver program has finished or not.
+
+            Parameters
+            ----------
+            rundir : str
+                Path to the solver's output directory.
+            """
             f = os.path.join(rundir, self.datadir, self.filetocheck)
             if not os.path.exists(f):
                 return False
@@ -62,10 +103,14 @@ class QESolver(SolverBase):
             return True
 
         def from_directory(self, base_input_dir):
-            # set information of base_input and pos_info from files in base_input_dir
+            """
+            Initialize information from files in base_input_dir.
 
-            # self.base_vasp_input = VaspInput.from_directory(base_input_dir)
-            # self.base_info = self.base_vasp_input.get("INCAR")
+            Parameters
+            ----------
+            base_input_dir : str
+                Path to the directory including base input files.
+            """
 
             self.pwi = PwInputFile(os.path.join(os.getcwd(), base_input_dir, "scf.in"))
             self.pwi.namelists["CONTROL"]["prefix"] = "pwscf"
@@ -74,6 +119,20 @@ class QESolver(SolverBase):
             )
 
         def update_info_by_structure(self, structure, seldyn_arr=None):
+            """
+            Update information by atomic structure.
+
+            Parameters
+            ----------
+            structure : pymatgen.Structure
+                Atomic structure
+            seldyn_arr : Array[bool], default=None
+                Selective dynamics array
+
+            Todo
+            ----
+            * Make seldyn_arr work
+            """
             A = structure.lattice.matrix
             self.pwi.cell_parameters = {"units": "alat", "cell": A}
 
@@ -92,31 +151,21 @@ class QESolver(SolverBase):
                 self.pwi.atomic_positions["fixed_coords"][i] = [False, False, False]
 
         def update_info_from_files(self, output_dir, rerun):
-            # TODO
             """
-            if rerun == 1:
-                info_dict = ["BASE", "POS"]
-            elif rerun > 0:
-                info_dict = ["POS"]
+            Do nothing.
+            """
+            pass
 
-            # Add update procedure
-            # 1. Check kind of the update information
-            # 2. Replace the information
-            for info in info_dict:
-                if info == "BASE":
-                    # Modify parameters
-                    self.base_info = self.base_vasp_input.get("INCAR")
-                    self.base_info.update({"IBRION": 3, "POTIM": 0.2})
-                    self.base_vasp_input.update({"INCAR": self.base_info})
-                elif info == "POS":
-                    # Update positions
-                    self.pos_info = Poscar.from_file(
-                        os.path.join(output_dir, "CONTCAR")
-                    )
-                    self.base_vasp_input.update({"POSCAR": self.pos_info})
-            """
 
         def write_input(self, output_dir):
+            """
+            Generate input files of the solver program.
+
+            Parameters
+            ----------
+            output_dir : str
+                Path to working directory.
+            """
             self.pwi.namelists["CONTROL"]["outdir"] = output_dir
             os.makedirs(output_dir, exist_ok=True)
             with open(os.path.join(output_dir, "scf.in"), "w") as f:
@@ -182,10 +231,26 @@ class QESolver(SolverBase):
             return ["-in", os.path.join(output_dir, "scf.in")]
 
     class Output(object):
+        """
+        Output manager.
+        """
         def __init__(self, prefix):
             pass
 
         def get_results(self, output_dir):
+            """
+            Get energy and structure obtained by the solver program.
+
+            Parameters
+            ----------
+            output_dir : str
+                Path to the working directory.
+
+            Returns
+            -------
+            phys : named_tuple("energy", "structure")
+                Total energy and atomic structure.
+            """
             # Read results from files in output_dir and calculate values
             tree = ET.parse(
                 os.path.join(output_dir, "pwscf.save", "data-file-schema.xml")
@@ -213,4 +278,10 @@ class QESolver(SolverBase):
             return Phys(np.float64(ene), structure)
 
     def solver_run_schemes(self):
+        """
+        Returns
+        -------
+        schemes : tuple[str]
+            Implemented runner schemes.
+        """
         return ("mpi_spawn",)
