@@ -9,7 +9,16 @@ import os.path
 
 class VASPSolver(SolverBase):
     """
-    This class defines the VASP solver.
+    VASP solver
+
+    Attributes
+    ----------
+    path_to_solver : str
+        Path to the solver
+    input : VASPSolver.Input
+        Input manager
+    output : VASPSolver.Output
+        Output manager
     """
 
     def __init__(self, path_to_solver):
@@ -19,7 +28,7 @@ class VASPSolver(SolverBase):
         Parameters
         ----------
         path_to_solver : str
-                      Path to the solver.
+            Path to the solver.
         """
         super(VASPSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
@@ -30,12 +39,24 @@ class VASPSolver(SolverBase):
         return "VASP"
 
     class Input(object):
+        """
+        Input manager for VASP
+
+        Attributes
+        ----------
+        base_info : dict
+            Common parameters
+        pos_info : pymatgen.Structure
+            Atom positions
+        """
         def __init__(self):
             self.base_info = None
             self.pos_info = None
 
         def from_directory(self, base_input_dir):
-            # set information of base_input and pos_info from files in base_input_dir
+            """
+            set information of base_input and pos_info from files in base_input_dir
+            """
             self.base_vasp_input = VaspInput.from_directory(base_input_dir)
             self.base_info = self.base_vasp_input.get("INCAR")
             return self.base_vasp_input
