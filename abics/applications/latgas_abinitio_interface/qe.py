@@ -71,29 +71,29 @@ class QESolver(SolverBase):
             self.datadir = "pwscf.save"
             self.filetocheck = "data-file-schema.xml"
 
-        def cleanup(self, rundir):
+        def cleanup(self, workdir):
             """
             Remove file for check finished.
 
             Parameters
             ----------
-            rundir : str
-                Path to the solver's output directory.
+            workdir : str
+                Path to the working directory.
             """
-            checkfile = os.path.join(rundir, self.datadir, self.filetocheck)
+            checkfile = os.path.join(workdir, self.datadir, self.filetocheck)
             if os.path.exists(checkfile):
                 os.remove(checkfile)
 
-        def check_finished(self, rundir):
+        def check_finished(self, workdir):
             """
             Check if the solver program has finished or not.
 
             Parameters
             ----------
-            rundir : str
-                Path to the solver's output directory.
+            workdir : str
+                Path to the working directory.
             """
-            f = os.path.join(rundir, self.datadir, self.filetocheck)
+            f = os.path.join(workdir, self.datadir, self.filetocheck)
             if not os.path.exists(f):
                 return False
             try:
@@ -157,18 +157,18 @@ class QESolver(SolverBase):
             pass
 
 
-        def write_input(self, output_dir):
+        def write_input(self, workdir):
             """
             Generate input files of the solver program.
 
             Parameters
             ----------
-            output_dir : str
+            workdir : str
                 Path to working directory.
             """
-            self.pwi.namelists["CONTROL"]["outdir"] = output_dir
-            os.makedirs(output_dir, exist_ok=True)
-            with open(os.path.join(output_dir, "scf.in"), "w") as f:
+            self.pwi.namelists["CONTROL"]["outdir"] = workdir
+            os.makedirs(workdir, exist_ok=True)
+            with open(os.path.join(workdir, "scf.in"), "w") as f:
                 for section in self.pwi.namelists.keys():
                     f.write("&{}\n".format(section))
                     for k, v in self.pwi.namelists[section].items():
@@ -223,12 +223,28 @@ class QESolver(SolverBase):
                     f.write(" {}".format(int(2 * offset)))
                 f.write("\n")
 
-        def file_for_check_finished(self, output_dir):
-            return os.path.join(output_dir, self.datadir, self.filetocheck)
+        def file_for_check_finished(self, workdir):
+            return os.path.join(workdir, self.datadir, self.filetocheck)
 
-        def cl_args(self, nprocs, nthreads, output_dir):
-            # Specify command line arguments
-            return ["-in", os.path.join(output_dir, "scf.in")]
+        def cl_args(self, nprocs, nthreads, workdir):
+            """
+            Generate command line arguments of the solver program.
+
+            Parameters
+            ----------
+            nprocs : int
+                The number of processes.
+            nthreads : int
+                The number of threads.
+            workdir : str
+                Path to the working directory.
+
+            Returns
+            -------
+            args : list[str]
+                Arguments of command
+            """
+            return ["-in", os.path.join(workdir, "scf.in")]
 
     class Output(object):
         """
@@ -237,23 +253,25 @@ class QESolver(SolverBase):
         def __init__(self, prefix):
             pass
 
-        def get_results(self, output_dir):
+        def get_results(self, workdir):
             """
             Get energy and structure obtained by the solver program.
 
             Parameters
             ----------
-            output_dir : str
+            workdir : str
                 Path to the working directory.
 
             Returns
             -------
             phys : named_tuple("energy", "structure")
                 Total energy and atomic structure.
+                The energy is measured in the units of eV
+                and coodinates is measured in the units of Angstrom.
             """
             # Read results from files in output_dir and calculate values
             tree = ET.parse(
-                os.path.join(output_dir, "pwscf.save", "data-file-schema.xml")
+                os.path.join(workdir, "pwscf.save", "data-file-schema.xml")
             )
             root = tree.getroot()
             A = np.zeros((3, 3))
