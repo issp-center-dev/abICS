@@ -43,26 +43,26 @@ class SolverBase(object):
             """
             return None
 
-        def update_info_from_files(self, output_dir, rerun):
+        def update_info_from_files(self, workdir, rerun):
             """
             Update information by result files.
 
             Parameters
             ----------
-            output_dir : str
+            workdir : str
                 Path to working directory.
             rerun : int
             """
 
             return None
 
-        def write_input(self, output_dir):
+        def write_input(self, workdir):
             """
             Generate input files of the solver program.
 
             Parameters
             ----------
-            output_dir : str
+            workdir : str
                 Path to working directory.
             """
             return None
@@ -84,7 +84,7 @@ class SolverBase(object):
 
         def cl_args(self, nprocs, nthreads, workdir):
             """
-            Generate argument parameters of the solver program.
+            Generate command line arguments of the solver program.
 
             Parameters
             ----------
@@ -94,6 +94,11 @@ class SolverBase(object):
                 The number of threads.
             workdir : str
                 Path to the working directory.
+
+            Returns
+            -------
+            args : list[str]
+                Arguments of command
             """
             return []
 
@@ -101,22 +106,24 @@ class SolverBase(object):
         """
         Output manager.
         """
-        def get_results(self, output_dir):
+        def get_results(self, workdir):
             """
             Get energy and structure obtained by the solver program.
 
             Parameters
             ----------
-            output_dir : str
+            workdir : str
                 Path to the working directory.
 
             Returns
             -------
             phys : named_tuple("energy", "structure")
                 Total energy and atomic structure.
+                The energy is measured in the units of eV
+                and coodinates is measured in the units of Angstrom.
             """
             Phys = namedtuple("PhysVaules", ("energy", "structure"))
-            # Read results from files in output_dir and calculate values
+            # Read results from files in workdir and calculate values
             phys = Phys(0.0, None)
             return phys
 
