@@ -3,6 +3,7 @@ from collections import namedtuple
 import numpy as np
 import os.path
 import scipy.constants as spc
+import subprocess
 from pymatgen.io.cif import CifParser
 
 hartree2eV = spc.value("Hartree energy in eV")
@@ -78,7 +79,36 @@ class OpenMXSolver(SolverBase):
             #TODO
             # check the base input file name (now, set "base.dat")
             self.base_openmx_input = self.OpenMXInputFile(os.path.join(os.getcwd(), base_input_dir, "base.dat"))
+            self.vps_info = self._get_vps_info(self.base_openmx_input)
+
             return self.base_openmx_input
+
+        def _get_vps_info(self, openmx_input):
+            """
+            Get vps information from the DFT_DATA19 directory.
+
+            Parameters
+            ----------
+            openmx_input: dictionary
+                Check whether Data.path is included in the base.dat file
+
+            Returns
+            -------
+            vps_info:  Dictionary (key: specie, value: electron number)
+                Dictionary for vps_info.
+
+            """
+            vps_info = {}
+            if "Data.path" in openmx_input:
+                path = openmx_input["Data.path"]
+            else:
+                cmd = "which openmx"
+                path = os.path.join(subprocess.check_output(cmd.split()).splitlines()[0].rstrip("openmx"), "../DFT_DATA19")
+            with open(os.path.join(path, "vps_info.txt"), "r") as f:
+                lines = f.readlines()
+                for line in lines:
+                    vps_info[line.split()[0]] = float(line.split()[1])
+            return vps_info
 
         def update_info_by_structure(self, structure, seldyn_arr=None):
             """
@@ -92,19 +122,29 @@ class OpenMXSolver(SolverBase):
 
 
             """
+            # Get lattice information
             A = structure.lattice.matrix
-            #Update unitvector information
+            # Get electron density information
+            electron_info = [[float(info[5]), float(info[6])] for info in self.base_openmx_input["Atoms.SpeciesAndCoordinates"]]
+
+            # Update unitvector information
             self.base_openmx_input["Atoms.UnitVectors.Unit"] = "Ang"
             self.base_openmx_input["Atoms.UnitVectors"] = A # numpy.ndarray
             nat = len(structure.sites)
             self.base_openmx_input["Atoms.Number"] = nat
             self.base_openmx_input["Atoms.SpeciesAndCoordinates.Unit"] = "FRAC"
             self.base_openmx_input["Atoms.SpeciesAndCoordinates"] = [[0, "", 0.0, 0.0, 0.0, 0.0, 0.0]]*nat
-            spin_up = structure.site_properties["spin_up"]
-            spin_down = structure.site_properties["spin_down"]
 
+            mag = [0.0] * nat
+            if "magnetization" in structure.site_properties:
+                mag = structure.site_properties["magnetization"]
+
+            #Get electron_info
+            atomic_species = self.base_openmx_input["Definition.of.Atomic.Species"]
             for idx, site in enumerate(structure.sites):
-                self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx, site.specie, site.a, site.b, site.c, spin_up[idx], spin_down[idx]]
+                electron_number = self.vps_info[[specie[2] for specie in atomic_species if specie[0] == site.specie][0]]
+                self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx, site.specie, site.a, site.b, site.c,
+                                                                             0.5 * electron_number + mag[idx], 0.5 * electron_number - mag[idx]]
 
             #TODO Structure relaxation (issue 24)
             #Use MD.type, MD.Fixed.XYZ
