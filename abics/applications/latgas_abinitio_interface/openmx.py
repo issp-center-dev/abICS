@@ -5,6 +5,7 @@ import os.path
 import scipy.constants as spc
 from pymatgen.io.cif import CifParser
 
+hartree2eV = spc.value("Hartree energy in eV")
 Bohr2AA = spc.value('Bohr radius') * 1e10
 
 class OpenMXSolver(SolverBase):
@@ -229,12 +230,28 @@ class OpenMXSolver(SolverBase):
                 lines_strip = [line.strip() for line in lines]
                 # Get total energy
                 Utot = float([line for line in lines_strip if 'Utot.' in line][0].split()[1])
+                # Change energy unit from Hartree to eV
+                Utot *= hartree2eV
 
-            # Get Cell information from cif file
-            # Note:
-            # Since ,in cif file, initial atomic coordinates are outputted,
-            # xyz file must be read.
-            A = CifParser("{}.cif".format(self.base_openmx_input["System.Name"])).get_structures()[0].lattice
+            # Get Cell information from dat# file
+            A = np.zeros((3, 3))
+            output_file = "{}.dat#".format(self.base_openmx_input["System.Name"])
+            with open(output_file, "r") as fi:
+                lines = fi.readlines()
+                lines_strip = [line.strip() for line in lines]
+                # Get Cell information
+                # Read Atoms.UnitVectors.Unit
+                Atoms_UnitVectors_Unit = [line.split()[1] for line in lines_strip if 'Atoms.UnitVectors.Unit' in line][
+                    0]
+                print(Atoms_UnitVectors_Unit)
+                line_number_unit_vector_start = \
+                [i for i, line in enumerate(lines_strip) if '<Atoms.UnitVectors' in line][0]
+                print(line_number_unit_vector_start)
+                for i, line in enumerate(
+                        lines_strip[line_number_unit_vector_start + 1: line_number_unit_vector_start + 4]):
+                    A[:, i] = list(line.split())
+                if Atoms_UnitVectors_Unit == "AU":
+                    A *= Bohr2AA
 
             # Note:
             # Since xyz format of OpenMX is not correct (3 columns are added at each line).
