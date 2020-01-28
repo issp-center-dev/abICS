@@ -4,7 +4,7 @@ import numpy as np
 import os.path
 import scipy.constants as spc
 import subprocess
-from pymatgen.io.cif import CifParser
+from pymatgen import Structure
 
 hartree2eV = spc.value("Hartree energy in eV")
 Bohr2AA = spc.value('Bohr radius') * 1e10
@@ -26,7 +26,7 @@ class OpenMXSolver(SolverBase):
         super(OpenMXSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
         self.input = OpenMXSolver.Input()
-        self.output = OpenMXSolver.Output()
+        self.output = OpenMXSolver.Output(self.input)
 
     def name(self):
         """
@@ -99,11 +99,12 @@ class OpenMXSolver(SolverBase):
 
             """
             vps_info = {}
-            if "Data.path" in openmx_input:
-                path = openmx_input["Data.path"]
+            if "DATA.PATH" in openmx_input:
+                path = openmx_input["DATA.PATH"][0]
             else:
                 cmd = "which openmx"
-                path = os.path.join(subprocess.check_output(cmd.split()).splitlines()[0].rstrip("openmx"), "../DFT_DATA19")
+                path = os.path.join(subprocess.check_output(cmd.split()).splitlines()[0].decode().rstrip("openmx"), "../DFT_DATA19")
+                openmx_input["DATA.PATH"] = [path]
             with open(os.path.join(path, "vps_info.txt"), "r") as f:
                 lines = f.readlines()
                 for line in lines:
@@ -128,11 +129,12 @@ class OpenMXSolver(SolverBase):
             electron_info = [[float(info[5]), float(info[6])] for info in self.base_openmx_input["Atoms.SpeciesAndCoordinates"]]
 
             # Update unitvector information
-            self.base_openmx_input["Atoms.UnitVectors.Unit"] = "Ang"
+            self.base_openmx_input["Atoms.UnitVectors.Unit"] = ["Ang"]
             self.base_openmx_input["Atoms.UnitVectors"] = A # numpy.ndarray
             nat = len(structure.sites)
-            self.base_openmx_input["Atoms.Number"] = nat
-            self.base_openmx_input["Atoms.SpeciesAndCoordinates.Unit"] = "FRAC"
+            # For write_input, Atoms.Number must be list format.
+            self.base_openmx_input["Atoms.Number"] = [nat]
+            self.base_openmx_input["Atoms.SpeciesAndCoordinates.Unit"] = ["FRAC"]
             self.base_openmx_input["Atoms.SpeciesAndCoordinates"] = [[0, "", 0.0, 0.0, 0.0, 0.0, 0.0]]*nat
 
             mag = [0.0] * nat
@@ -142,10 +144,9 @@ class OpenMXSolver(SolverBase):
             #Get electron_info
             atomic_species = self.base_openmx_input["Definition.of.Atomic.Species"]
             for idx, site in enumerate(structure.sites):
-                electron_number = self.vps_info[[specie[2] for specie in atomic_species if specie[0] == site.specie][0]]
-                self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx, site.specie, site.a, site.b, site.c,
+                electron_number = self.vps_info[[specie[2] for specie in atomic_species if specie[0] == str(site.specie)][0]]
+                self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx+1, site.specie, site.a, site.b, site.c,
                                                                              0.5 * electron_number + mag[idx], 0.5 * electron_number - mag[idx]]
-
             #TODO Structure relaxation (issue 24)
             #Use MD.type, MD.Fixed.XYZ
 
@@ -159,8 +160,14 @@ class OpenMXSolver(SolverBase):
 
 
             """
-            with open(output_dir, "w") as f:
-                for key, values in self.openmx_dict.items():
+            self.output_inputfile_dir = output_dir
+            try:
+                os.makedirs(output_dir)
+            except:
+                pass
+            output_file = os.path.join(output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0]))
+            with open(output_file, "w") as f:
+                for key, values in self.base_openmx_input.items():
                     if key in self.openmx_vec_list:
                         print_stamp = "<{}\n".format(key)
                         for value_list in values:
@@ -195,21 +202,18 @@ class OpenMXSolver(SolverBase):
             clargs: Dictionary
                 command line arguments
             """
-            clargs = [output_dir, "{}.dat".format(self.base_openmx_input["System.Name"])]
+            clargs = [output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])]
             return clargs
 
-        def OpenMXInputFile(self, current_dir, base_input_dir, file_name):
+        def OpenMXInputFile(self, input_file):
             """
 
             Read base input file for setting initial conditions.
 
             Parameters
             ----------
-            current_dir: str
-
-            base_input_dir: str
-
-            file_name: str
+            input_file: str
+            Full path of input file
 
             Returns
             -------
@@ -217,22 +221,21 @@ class OpenMXSolver(SolverBase):
 
 
             """
-            input_dir = os.path.join(current_dir, base_input_dir, file_name)
             OpenMX_dict = {}
-            with open(input_dir, "r") as f:
+            with open(input_file, "r") as f:
                 lines = f.readlines()
                 # delete comment out
                 list_flag = False
                 for line in lines:
-                    line = line.split("#")[0]
-                    if len(line) >= 2:
+                    line = line.strip().split("#")[0]
+                    if len(line) >= 2 or line != "":
                         words = line.split()
                         if words[0][0] == "<":
                             list_flag = True
                             vec_list = []
                         elif words[0][-1:] == ">":
-                            OpenMX_dict[line[:-2]] = vec_list
-                            self.openmx_vec_list.append(line[:-2])
+                            OpenMX_dict[line[:-1]] = vec_list
+                            self.openmx_vec_list.append(line[:-1])
                             list_flag = False
                         else:
                             if list_flag is False:
@@ -245,7 +248,8 @@ class OpenMXSolver(SolverBase):
         #def submit: Use submit defined in run_base_mpi.py
 
     class Output(object):
-        def __init__(self):
+        def __init__(self, input):
+            self.input = input
             pass
 
         def get_results(self, output_dir):
@@ -255,7 +259,7 @@ class OpenMXSolver(SolverBase):
             Parameters
             ----------
             output_dir: str
-                    Name of output directory
+                    Output directory name
 
             Returns
             -------
@@ -264,7 +268,7 @@ class OpenMXSolver(SolverBase):
 
             """
             # Read results from files in output_dir and calculate values
-            output_file = "{}.out".format(self.base_openmx_input["System.Name"])
+            output_file = os.path.join(output_dir, "{}.out".format(self.input.base_openmx_input["System.Name"][0]))
             with open(output_file, "r") as fi:
                 lines = fi.readlines()
                 lines_strip = [line.strip() for line in lines]
@@ -275,7 +279,7 @@ class OpenMXSolver(SolverBase):
 
             # Get Cell information from dat# file
             A = np.zeros((3, 3))
-            output_file = "{}.dat#".format(self.base_openmx_input["System.Name"])
+            output_file = os.path.join(self.input.output_inputfile_dir, "{}.dat#".format(self.input.base_openmx_input["System.Name"][0]))
             with open(output_file, "r") as fi:
                 lines = fi.readlines()
                 lines_strip = [line.strip() for line in lines]
@@ -283,10 +287,8 @@ class OpenMXSolver(SolverBase):
                 # Read Atoms.UnitVectors.Unit
                 Atoms_UnitVectors_Unit = [line.split()[1] for line in lines_strip if 'Atoms.UnitVectors.Unit' in line][
                     0]
-                print(Atoms_UnitVectors_Unit)
                 line_number_unit_vector_start = \
                 [i for i, line in enumerate(lines_strip) if '<Atoms.UnitVectors' in line][0]
-                print(line_number_unit_vector_start)
                 for i, line in enumerate(
                         lines_strip[line_number_unit_vector_start + 1: line_number_unit_vector_start + 4]):
                     A[:, i] = list(line.split())
@@ -296,7 +298,7 @@ class OpenMXSolver(SolverBase):
             # Note:
             # Since xyz format of OpenMX is not correct (3 columns are added at each line).
             # pymatgen.io.xyz can not work.
-            output_file = "{}.xyz".format(self.base_openmx_input["System.Name"])
+            output_file = os.path.join(output_dir, "{}.xyz".format(self.input.base_openmx_input["System.Name"][0]))
             species = []
             positions = []
             with open(output_file, "r") as fi:
@@ -307,11 +309,8 @@ class OpenMXSolver(SolverBase):
                     species.append(line[0])
                     positions.append([float(s) for s in line[1:4]])
             structure = Structure(A, species, positions, coords_are_cartesian=True)
-            Phys = namedtuple("PhysVaules", ("energy", "structure"))
+            Phys = namedtuple("PhysValues", ("energy", "structure"))
             return Phys(np.float64(Utot), structure)
 
     def solver_run_schemes(self):
         return ('mpi_spawn_ready',)
-
-
-
