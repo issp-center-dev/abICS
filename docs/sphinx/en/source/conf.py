@@ -147,8 +147,8 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'abICS.tex', u'abICS Documentation',
-     u'abICS\'s team', 'manual'),
+    ('index','abICS.tex', u'abICS Documentation',
+     u'abICS\'s team', 'manual', 'True'),
 ]
 
 
