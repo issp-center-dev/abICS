@@ -8,6 +8,19 @@ class DFTParams:
 
     @classmethod
     def from_dict(cls, d):
+        """
+        Read information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        params: DFTParams object
+            self
+        """
         if 'solver' in d:
             d = d['solver']
         params = cls()
@@ -21,5 +34,18 @@ class DFTParams:
 
     @classmethod
     def from_toml(cls, f):
+        """
+        Read information from toml file
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oDFTParams: DFTParams object
+            self
+        """
         import toml
         return cls.from_dict(toml.load(f))

@@ -77,6 +77,7 @@ class VASPSolver(SolverBase):
 
         def update_info_by_structure(self, structure, seldyn_arr=None):
             """
+            Update information by structure file
 
             Parameters
             ----------
@@ -90,6 +91,7 @@ class VASPSolver(SolverBase):
 
         def update_info_from_files(self, workdir, rerun):
             """
+            Update information from output files.
 
             Parameters
             ----------
