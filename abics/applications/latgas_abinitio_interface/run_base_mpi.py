@@ -206,57 +206,59 @@ class runner_multistep(object):
         return energy, newstructure
 
 
+# def submit_bulkjob(solverrundirs, path_to_solver, n_mpiprocs, n_ompthreads):
+#     joblist = open("joblist.txt", "w")
+#     if n_ompthreads != 1:
+#         progtype = "H" + str(n_ompthreads)
+#     else:
+#         progtype = "M"
+#     for solverrundir in solverrundirs:
+#         joblist.write(
+#             ";".join([path_to_solver, str(n_mpiprocs), progtype, solverrundir]) + "\n"
+#         )
+#     stdout = open("stdout.log", "w")
+#     stderr = open("stderr.log", "w")
+#     stdin = open(os.devnull, "r")
+#     joblist.close()
+#     start = timer()
+#     p = subprocess.Popen(
+#         "bulkjob ./joblist.txt", stdout=stdout, stderr=stderr, stdin=stdin, shell=True
+#     )
+#     exitcode = p.wait()
+#     end = timer()
+#     print("it took ", end - start, " secs. to start vasp and finish")
+#     sys.stdout.flush()
+#     stdin.close()
+#     std.err.close()
+#     std.out.close()
+#     return exitcode
+# 
+# 
 # class run_mpibulkjob:
-#     def __init__(self, path_to_soler, nprocs, comm):
-#         self.path_to_solver = path_to_spawn_ready_vasp
+#     def __init__(self, path_to_spawn_ready_vasp, nprocs, comm):
+#         self.path_to_vasp = path_to_spawn_ready_vasp
 #         self.nprocs = nprocs
 #         self.comm = comm
 #         self.commsize = comm.Get_size()
 #         self.commrank = comm.Get_rank()
-#
+# 
 #     def submit(self, solverinput, output_dir):
 #         solverinput.write_input(output_dir=output_dir)
 #         solverrundirs = self.comm.gather(output_dir, root=0)
 #         exitcode = 1
 #         if self.commrank == 0:
 #             exitcode = np.array(
-#                 [self.submit_bulkjob(solverrundirs)]
+#                 [submit_bulkjob(solverrundirs, self.path_to_vasp, self.nprocs, 1)]
 #             )
 #             for i in range(1, self.commsize):
 #                 self.comm.Isend([exitcode, MPI.INT], dest=i, tag=i)
-#
+# 
 #         else:
 #             exitcode = np.array([0])
 #             while not self.comm.Iprobe(source=0, tag=self.commrank):
 #                 time.sleep(0.2)
 #             self.comm.Recv([exitcode, MPI.INT], source=0, tag=self.commrank)
 #         return exitcode[0]
-#
-#
-#     def submit_bulkjob(self, solverrundirs):
-#         joblist = open("joblist.txt", "w")
-#         if self.n_ompthreads != 1:
-#             progtype = "H" + str(n_ompthreads)
-#         else:
-#             progtype = "M"
-#         for solverrundir in solverrundirs:
-#             joblist.write(
-#                 ";".join([path_to_solver, str(n_mpiprocs), progtype, solverrundir]) + "\n"
-#             )
-#         stdout = open("stdout.log", "w")
-#         stderr = open("stderr.log", "w")
-#         stdin = open(os.devnull, "r")
-#         joblist.flush()
-#         start = timer()
-#         p = subprocess.Popen(
-#             "bulkjob ./joblist.txt", stdout=stdout, stderr=stderr, stdin=stdin, shell=True
-#         )
-#         exitcode = p.wait()
-#         end = timer()
-#         print("it took ", end - start, " secs. to start vasp and finish")
-#         sys.stdout.flush()
-#         return exitcode
-
 
 class run_mpispawn:
     """
