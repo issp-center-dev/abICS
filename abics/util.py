@@ -1,4 +1,5 @@
 import os.path
+import pickle
 
 import numpy as np
 
@@ -16,3 +17,22 @@ def expand_path(path, basedir):
     if not path.startswith('/'):
         path = os.path.join(basedir, path)
     return path
+
+
+def pickle_dump(data, filename):
+    with open(filename, 'wb') as f:
+        pickle.dump(data, f)
+
+
+def pickle_load(filename):
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+
+def numpy_save(data, filename, allow_pickle=False):
+    with open(filename, 'wb') as f:
+        np.save(f, data, allow_pickle)
+
+
+def numpy_load(filename):
+    with open(filename, 'rb') as f:
+        return np.load(f)

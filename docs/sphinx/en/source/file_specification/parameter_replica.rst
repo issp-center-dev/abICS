@@ -17,6 +17,7 @@ The example is shown as follows.
         RXtrial_frequency = 2
         sample_frequency = 1
         print_frequency = 1
+        seed = 12345
 
 Input Format
 ^^^^^^^^^^^^
@@ -84,3 +85,9 @@ Keywords
     **Format :** int (nature number)
 
     **Description :**     The number of Monte Carlo steps for saving physical quantities. Default value = 1.
+
+    -  ``seed``
+
+    **Format :** int
+
+    **Description :**     The base value of seeds of the pseudo random number generators. The seed of RNG for each process is set as ``seed + rank * 137`` . If seed <= 0, each seed will be initialized randomly. Default value = 0.

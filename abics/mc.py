@@ -221,10 +221,11 @@ class CanonicalMonteCarlo:
         nsample = 0
         self.energy = self.model.energy(self.config)
         output = open("obs.dat", "a")
-        if hasattr(observer.observe(self, open(os.devnull, "w")), "__add__"):
-            observe = True
-        else:
-            observe = False
+        with open(os.devnull, 'w') as f:
+            if hasattr(observer.observe(self, f), "__add__"):
+                observe = True
+            else:
+                observe = False
 
         for i in range(1, nsteps + 1):
             self.MCstep()
@@ -235,6 +236,7 @@ class CanonicalMonteCarlo:
                 nsample += 1
                 if save_obs:
                     self.obs_save.append(obs_step)
+        output.close()
         if save_obs:
             np.save(open("obs_save.npy", "wb"), np.array(self.obs_save))
         if nsample > 0:
