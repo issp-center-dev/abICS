@@ -23,13 +23,34 @@ class model:
     # def __init__(self):
 
     def energy(self, config):
-        """Calculate energy of configuration: input: config"""
+        """
+        Calculate energy of configuration: input: config
+
+        Parameters
+        ----------
+        config
+
+        Returns
+        -------
+
+        """
         return 0.0
 
     def trialstep(self, config, energy):
-        """Define a trial step on config. Returns dconfig, which can contain the minimal information for
+        """
+        Define a trial step on config. Returns dconfig, which can contain the minimal information for
         constructing the trial configuration from config to be used in newconfig(). Make sure that
-        config is the same upon entry and exit"""
+        config is the same upon entry and exit
+
+        Parameters
+        ----------
+        config
+        energy
+
+        Returns
+        -------
+
+        """
         dE = 0.0
         dconfig = None
         # Return only change in configuration dconfig so that
@@ -38,17 +59,47 @@ class model:
         return dconfig, dE
 
     def newconfig(self, config, dconfig):
-        """Build new configuration from config and dconfig."""
+        """
+        Build new configuration from config and dconfig
+
+        Parameters
+        ----------
+        config
+        dconfig
+
+        Returns
+        -------
+
+        """
         return config
 
 
 class grid_1D:
     def __init__(self, dx, minx, maxx):
+        """
+
+        Parameters
+        ----------
+        dx
+        minx
+        maxx
+        """
         self.dx = dx
         self.x = np.arange(minx, maxx, dx)
 
 
 def binning(x, nlevels):
+    """
+
+    Parameters
+    ----------
+    x
+    nlevels
+
+    Returns
+    -------
+
+    """
     error_estimate = []
     x = np.array(x, dtype=np.float64)
     # assert 2**nlevels*10 < len(x)
@@ -70,6 +121,16 @@ empty_array = np.array([])
 
 
 def obs_encode(*args):
+    """
+
+    Parameters
+    ----------
+    args
+
+    Returns
+    -------
+
+    """
     # nargs = np.array([len(args)])
     # args_length_list = []
     obs_array = empty_array
@@ -85,6 +146,16 @@ def obs_encode(*args):
 
 
 def args_info(*args):
+    """
+
+    Parameters
+    ----------
+    args
+
+    Returns
+    -------
+
+    """
     nargs = np.array([len(args)])
     args_length_list = []
     for arg in args:
@@ -98,6 +169,17 @@ def args_info(*args):
 
 
 def obs_decode(args_info, obs_array):
+    """
+
+    Parameters
+    ----------
+    args_info
+    obs_array
+
+    Returns
+    -------
+
+    """
     nargs = args_info[0]
     args_length_array = args_info[1 : nargs + 1]
     args = []
@@ -114,6 +196,17 @@ def obs_decode(args_info, obs_array):
 
 def make_observefunc(logfunc, *multiDfuncs):
     def observefunc(calc_state, outputfi):
+        """
+
+        Parameters
+        ----------
+        calc_state
+        outputfi
+
+        Returns
+        -------
+
+        """
         obs_log = logfunc(calc_state)
         outputfi.write(str(calc_state.kT) + "\t")
         if hasattr(obs_log, "__getitem__"):
@@ -135,6 +228,16 @@ class observer_base:
         self.lprintcount = 0
 
     def obs_info(self, calc_state):
+        """
+
+        Parameters
+        ----------
+        calc_state
+
+        Returns
+        -------
+
+        """
         obs_log = self.logfunc(calc_state)
         if isinstance(obs_log, tuple) == False:
             obs_log = (obs_log,)
@@ -150,15 +253,57 @@ class observer_base:
         return args_info(*obs_log, *obs_ND)
 
     def logfunc(self, calc_state):
+        """
+
+        Parameters
+        ----------
+        calc_state
+
+        Returns
+        -------
+
+        """
         return (calc_state.energy,)
 
     def savefuncs(self, calc_state):
+        """
+
+        Parameters
+        ----------
+        calc_state
+
+        Returns
+        -------
+
+        """
         return None
 
     def writefile(self, calc_state):
+        """
+
+        Parameters
+        ----------
+        calc_state
+
+        Returns
+        -------
+
+        """
         return None
 
     def observe(self, calc_state, outputfi, lprint=True):
+        """
+
+        Parameters
+        ----------
+        calc_state
+        outputfi
+        lprint
+
+        Returns
+        -------
+
+        """
         obs_log = np.atleast_1d(self.logfunc(calc_state))
         if lprint:
             outputfi.write(
@@ -184,6 +329,15 @@ class observer_base:
 
 class CanonicalMonteCarlo:
     def __init__(self, model, kT, config, grid=0):
+        """
+
+        Parameters
+        ----------
+        model
+        kT
+        config
+        grid
+        """
         self.model = model
         self.config = config
         self.kT = kT
@@ -217,6 +371,20 @@ class CanonicalMonteCarlo:
         observer=observer_base(),
         save_obs=False,
     ):
+        """
+
+        Parameters
+        ----------
+        nsteps
+        sample_frequency
+        print_frequency
+        observer
+        save_obs
+
+        Returns
+        -------
+
+        """
         observables = 0.0
         nsample = 0
         self.energy = self.model.energy(self.config)
@@ -246,6 +414,18 @@ class CanonicalMonteCarlo:
 
 
 def swap_configs(MCreplicas, rep, accept_count):
+    """
+
+    Parameters
+    ----------
+    MCreplicas
+    rep
+    accept_count
+
+    Returns
+    -------
+
+    """
     # swap configs, energy
     tmp = MCreplicas[rep + 1].config
     tmpe = MCreplicas[rep + 1].energy

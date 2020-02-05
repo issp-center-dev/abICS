@@ -5,6 +5,19 @@ from pymatgen.io.vasp.inputs import Poscar
 
 
 def g_r(structure, specie1, specie2, grid_1D):
+    """
+
+    Parameters
+    ----------
+    structure
+    specie1
+    specie2
+    grid_1D
+
+    Returns
+    -------
+
+    """
     X = grid_1D.x
     dr = grid_1D.dx
     assert grid_1D.x[0] == dr
@@ -48,6 +61,18 @@ def g_r(structure, specie1, specie2, grid_1D):
 
 
 def isotropic_gauss_nd(x, xcenter, sigma):
+    """
+
+    Parameters
+    ----------
+    x
+    xcenter
+    sigma
+
+    Returns
+    -------
+
+    """
     return np.prod(
         1.0
         / (np.sqrt(2.0 * np.pi * sigma))
@@ -56,6 +81,18 @@ def isotropic_gauss_nd(x, xcenter, sigma):
 
 
 def gauss_1d(x, center, sigma):
+    """
+
+    Parameters
+    ----------
+    x
+    center
+    sigma
+
+    Returns
+    -------
+
+    """
     return (
         1.0
         / (np.sqrt(2.0 * np.pi) * sigma)
@@ -64,6 +101,20 @@ def gauss_1d(x, center, sigma):
 
 
 def write_rho_vasp(structure, species, sigma, mesh, filename):
+    """
+
+    Parameters
+    ----------
+    structure
+    species
+    sigma
+    mesh
+    filename
+
+    Returns
+    -------
+
+    """
     frac_coor_grid = np.array(
         np.meshgrid(range(mesh[0]), range(mesh[1]), range(mesh[2]), indexing="ij")
     ).T.reshape(-1, 3) / np.array(mesh)
