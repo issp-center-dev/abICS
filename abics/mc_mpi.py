@@ -26,6 +26,7 @@ class RXParams:
         params.sample_frequency = d.get('sample_frequency', 1)
         params.print_frequency = d.get('print_frequency', 1)
         params.reload = d.get('reload', False)
+        params.seed = d.get('seed', 0)
         return params
 
     @classmethod
@@ -40,8 +41,11 @@ def RX_MPI_init(rxparams):
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
-    rand_seeds = [rand.random() for i in range(worldprocs)]
-    rand.seed(rand_seeds[worldrank])
+    if rxparams.seed > 0:
+        rand.seed(rxparams.seed + worldrank * 137)
+    else:
+        rand_seeds = [rand.random() for i in range(worldprocs)]
+        rand.seed(rand_seeds[worldrank])
 
     if worldprocs > nreplicas:
         if worldrank == 0:
