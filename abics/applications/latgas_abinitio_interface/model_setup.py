@@ -35,6 +35,17 @@ def gauss(x, x0, sigma):
 
 
 def match_id(lst, obj):
+    """
+
+    Parameters
+    ----------
+    lst
+    obj
+
+    Returns
+    -------
+
+    """
     mapping = []
     for i in range(len(lst)):
         if lst[i] == obj:
@@ -43,6 +54,17 @@ def match_id(lst, obj):
 
 
 def nomatch_id(lst, obj):
+    """
+
+    Parameters
+    ----------
+    lst
+    obj
+
+    Returns
+    -------
+
+    """
     mapping = []
     for i in range(len(lst)):
         if lst[i] != obj:
@@ -51,6 +73,17 @@ def nomatch_id(lst, obj):
 
 
 def match_latgas_group(latgas_rep, group):
+    """
+
+    Parameters
+    ----------
+    latgas_rep
+    group
+
+    Returns
+    -------
+
+    """
     mapping = []
     for i in range(len(latgas_rep)):
         if latgas_rep[i][0] == group.name:
@@ -59,6 +92,19 @@ def match_latgas_group(latgas_rep, group):
 
 
 def g_r(structure, specie1, specie2, grid_1D):
+    """
+
+    Parameters
+    ----------
+    structure
+    specie1
+    specie2
+    grid_1D
+
+    Returns
+    -------
+
+    """
     X = grid_1D.x
     dr = grid_1D.dx
 
@@ -115,6 +161,17 @@ class dft_latgas(model):
         check_ion_move=False,
         ion_move_tol=0.7,
     ):
+        """
+
+        Parameters
+        ----------
+        abinitio_run
+        selective_dynamics
+        save_history
+        l_update_basestruct
+        check_ion_move
+        ion_move_tol
+        """
         self.matcher = StructureMatcher(primitive_cell=False, allow_subset=False)
         self.abinitio_run = abinitio_run
         self.selective_dynamics = selective_dynamics
@@ -124,6 +181,16 @@ class dft_latgas(model):
         self.ion_move_tol = ion_move_tol
 
     def energy(self, config):
+        """
+
+        Parameters
+        ----------
+        config
+
+        Returns
+        -------
+
+        """
         """ Calculate total energy"""
 
         config.structure.sort(key=lambda site: site.species_string)
@@ -178,6 +245,17 @@ class dft_latgas(model):
         return np.float64(energy)
 
     def trialstep(self, config, energy_now):
+        """
+
+        Parameters
+        ----------
+        config
+        energy_now
+
+        Returns
+        -------
+
+        """
 
         e0 = energy_now
 
@@ -244,6 +322,17 @@ class dft_latgas(model):
         return dconfig, dE
 
     def newconfig(self, config, dconfig):
+        """
+
+        Parameters
+        ----------
+        config
+        dconfig
+
+        Returns
+        -------
+
+        """
         """Construct the new configuration after the trial step is accepted"""
         config.structure, config.defect_sublattices = dconfig
         if self.l_update_basestruct:
@@ -264,6 +353,20 @@ class energy_lst(dft_latgas):
         selective_dynamics=None,
         matcher=None,
     ):
+        """
+
+        Parameters
+        ----------
+        calcode
+        vasp_run
+        base_vaspinput
+        matcher_base
+        queen
+        reps
+        energy_lst
+        selective_dynamics
+        matcher
+        """
         super().__init__(
             calcode,
             vasp_run,
@@ -277,12 +380,31 @@ class energy_lst(dft_latgas):
         self.energy_list = energy_lst
 
     def energy(self, config, save_history=False):
+        """
+
+        Parameters
+        ----------
+        config
+        save_history
+
+        Returns
+        -------
+
+        """
         rep_id = self.reps.index(tuple(config.latgas_rep))
         return np.float64(self.energy_list[rep_id])
 
 
 class group(object):
     def __init__(self, name, species, coords=np.array([[[0.0, 0.0, 0.0]]])):
+        """
+
+        Parameters
+        ----------
+        name
+        species
+        coords
+        """
         self.name = name
         self.species = species
         self.coords = np.array(coords)
@@ -294,6 +416,13 @@ class group(object):
 
 class defect_sublattice(object):
     def __init__(self, site_centers, groups):
+        """
+
+        Parameters
+        ----------
+        site_centers
+        groups
+        """
         self.site_centers = np.array(site_centers)
         self.groups = groups
         self.groups_orr = []
@@ -305,6 +434,16 @@ class defect_sublattice(object):
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Parameters
+        ----------
+        d
+
+        Returns
+        -------
+
+        """
         site_centers = read_coords(d["coords"])
         groups = []
         for g in d["groups"]:
@@ -316,6 +455,17 @@ class defect_sublattice(object):
 
 
 def base_structure(lat, dict_str):
+    """
+
+    Parameters
+    ----------
+    lat
+    dict_str
+
+    Returns
+    -------
+
+    """
     st = Structure(lat, [], [])
     if dict_str[0] == {}:
         return st
