@@ -6,6 +6,7 @@ import pickle
 import random as rand
 
 from abics.mc import *
+from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
 class RXParams:
@@ -14,24 +15,25 @@ class RXParams:
 
     @classmethod
     def from_dict(cls, d):
-        if 'replica' in d:
-            d = d['replica']
+        if "replica" in d:
+            d = d["replica"]
         params = cls()
-        params.nreplicas = d['nreplicas']
-        params.nprocs_per_replica = d['nprocs_per_replica']
-        params.kTstart = d['kTstart']
-        params.kTend = d['kTend']
-        params.nsteps = d['nsteps']
-        params.RXtrial_frequency = d.get('RXtrial_frequency', 1)
-        params.sample_frequency = d.get('sample_frequency', 1)
-        params.print_frequency = d.get('print_frequency', 1)
-        params.reload = d.get('reload', False)
-        params.seed = d.get('seed', 0)
+        params.nreplicas = d["nreplicas"]
+        params.nprocs_per_replica = d["nprocs_per_replica"]
+        params.kTstart = d["kTstart"]
+        params.kTend = d["kTend"]
+        params.nsteps = d["nsteps"]
+        params.RXtrial_frequency = d.get("RXtrial_frequency", 1)
+        params.sample_frequency = d.get("sample_frequency", 1)
+        params.print_frequency = d.get("print_frequency", 1)
+        params.reload = d.get("reload", False)
+        params.seed = d.get("seed", 0)
         return params
 
     @classmethod
     def from_toml(cls, fname):
         import toml
+
         return cls.from_dict(toml.load(fname))
 
 
@@ -97,7 +99,7 @@ class ParallelMC(object):
                 pass
             os.chdir(str(self.rank))
         observables = self.mycalc.run(nsteps, sample_frequency, observer)
-        pickle.dump(self.mycalc.config, open("config.pickle", "wb"))
+        pickle_dump(self.mycalc.config, "config.pickle")
         if self.subdirs:
             os.chdir("../")
         if sample_frequency:
@@ -120,16 +122,16 @@ class TemperatureRX_MPI(ParallelMC):
         self.kT_hist = []
 
     def reload(self):
-        self.rank_to_T = pickle.load(open("rank_to_T.pickle", "rb"))
+        self.rank_to_T = pickle_load("rank_to_T.pickle")
         self.mycalc.kT = self.kTs[self.rank_to_T[self.rank]]
-        self.mycalc.config = pickle.load(open(str(self.rank) + "/calc.pickle", "rb"))
-        self.obs_save0 = np.load(open(str(self.rank) + "/obs_save.npy", "rb"))
-        self.Trank_hist0 = np.load(open(str(self.rank) + "/Trank_hist.npy", "rb"))
-        self.kT_hist0 = np.load(open(str(self.rank) + "/kT_hist.npy", "rb"))
+        self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
+        self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
+        self.Trank_hist0 = numpy_load(os.path.join(str(self.rank), "Trank_hist.npy"))
+        self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
 
     def find_procrank_from_Trank(self, Trank):
         i = np.argwhere(self.rank_to_T == Trank)
-        if i == None:
+        if i is None:
             sys.exit("Internal error in TemperatureRX_MPI.find_procrank_from_Trank")
         else:
             return i
@@ -203,9 +205,8 @@ class TemperatureRX_MPI(ParallelMC):
             os.chdir(str(self.rank))
         self.accept_count = 0
         self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
-        test_observe = observer.observe(
-            self.mycalc, open(os.devnull, "w"), lprint=False
-        )
+        with open(os.devnull, "w") as f:
+            test_observe = observer.observe(self.mycalc, f, lprint=False)
         if hasattr(test_observe, "__iter__"):
             obs_len = len(test_observe)
             obs = np.zeros([len(self.kTs), obs_len])
@@ -215,24 +216,24 @@ class TemperatureRX_MPI(ParallelMC):
             observe = False
         nsample = 0
         XCscheme = 0
-        output = open("obs.dat", "a")
-        for i in range(1, nsteps + 1):
-            self.mycalc.MCstep()
-            if i % RXtrial_frequency == 0:
-                self.Xtrial(XCscheme)
-                XCscheme = (XCscheme + 1) % 2
-            if i % sample_frequency == 0 and observe:
-                obs_step = observer.observe(
-                    self.mycalc, output, i % print_frequency == 0
-                )
-                obs[self.rank_to_T[self.rank]] += obs_step
-                if save_obs:
-                    self.obs_save.append(obs_step)
-                    self.Trank_hist.append(self.rank_to_T[self.rank])
-                    self.kT_hist.append(self.mycalc.kT)
-                nsample += 1
+        with open("obs.dat", "a") as output:
+            for i in range(1, nsteps + 1):
+                self.mycalc.MCstep()
+                if i % RXtrial_frequency == 0:
+                    self.Xtrial(XCscheme)
+                    XCscheme = (XCscheme + 1) % 2
+                if i % sample_frequency == 0 and observe:
+                    obs_step = observer.observe(
+                        self.mycalc, output, i % print_frequency == 0
+                    )
+                    obs[self.rank_to_T[self.rank]] += obs_step
+                    if save_obs:
+                        self.obs_save.append(obs_step)
+                        self.Trank_hist.append(self.rank_to_T[self.rank])
+                        self.kT_hist.append(self.mycalc.kT)
+                    nsample += 1
 
-        pickle.dump(self.mycalc.config, open("calc.pickle", "wb"))
+        pickle_dump(self.mycalc.config, "calc.pickle")
         if save_obs:
             if hasattr(self, "obs_save0"):
                 obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
@@ -245,16 +246,16 @@ class TemperatureRX_MPI(ParallelMC):
                 Trank_hist_ = np.array(self.Trank_hist)
                 kT_hist_ = np.array(self.kT_hist)
 
-            np.save(open("obs_save.npy", "wb"), obs_save_, False)
-            np.save(open("Trank_hist.npy", "wb"), Trank_hist_, False)
-            np.save(open("kT_hist.npy", "wb"), kT_hist_, False)
+            numpy_save(obs_save_, "obs_save.npy")
+            numpy_save(Trank_hist_, "Trank_hist.npy")
+            numpy_save(kT_hist_, "kT_hist.npy")
 
         if subdirs:
             os.chdir("../")
 
         if self.rank == 0:
-            pickle.dump(self.rank_to_T, open("rank_to_T.pickle", "wb"))
-            np.save(open("kTs.npy", "wb"), self.kTs, False)
+            pickle_dump(self.rank_to_T, "rank_to_T.pickle")
+            numpy_save(self.kTs, "kTs.npy")
 
         if nsample != 0:
             obs = np.array(obs)
