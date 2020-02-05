@@ -73,7 +73,7 @@ class OpenMXSolver(SolverBase):
 
             Returns
             -------
-            self.base_openmx_input:  Dictionary
+            self.base_openmx_input:  dict
                         Dictionary for base information of the solver.
             """
             #TODO
@@ -89,12 +89,12 @@ class OpenMXSolver(SolverBase):
 
             Parameters
             ----------
-            openmx_input: dictionary
+            openmx_input: dict
                 Check whether Data.path is included in the base.dat file
 
             Returns
             -------
-            vps_info:  Dictionary (key: specie, value: electron number)
+            vps_info:  dict (key: specie, value: electron number)
                 Dictionary for vps_info.
 
             """
@@ -157,8 +157,7 @@ class OpenMXSolver(SolverBase):
             Parameters
             ----------
             output_dir: str
-
-
+                Path to the output directory
             """
             self.output_inputfile_dir = output_dir
             try:
@@ -199,7 +198,7 @@ class OpenMXSolver(SolverBase):
 
             Returns
             -------
-            clargs: Dictionary
+            clargs: dict
                 command line arguments
             """
             clargs = [output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])]
@@ -217,7 +216,7 @@ class OpenMXSolver(SolverBase):
 
             Returns
             -------
-            OpenMX_dict: dictionary
+            OpenMX_dict: dict
 
 
             """
