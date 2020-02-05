@@ -112,7 +112,7 @@ def submit_bulkjob(solverrundirs, path_to_solver, n_mpiprocs, n_ompthreads):
     stdout = open("stdout.log", "w")
     stderr = open("stderr.log", "w")
     stdin = open(os.devnull, "r")
-    joblist.flush()
+    joblist.close()
     start = timer()
     p = subprocess.Popen(
         "bulkjob ./joblist.txt", stdout=stdout, stderr=stderr, stdin=stdin, shell=True
@@ -121,6 +121,9 @@ def submit_bulkjob(solverrundirs, path_to_solver, n_mpiprocs, n_ompthreads):
     end = timer()
     print("it took ", end - start, " secs. to start vasp and finish")
     sys.stdout.flush()
+    stdin.close()
+    std.err.close()
+    std.out.close()
     return exitcode
 
 
