@@ -18,6 +18,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
 from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
+from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
@@ -51,6 +52,8 @@ def main():
         solver = VASPSolver(dftparams.path)
     elif dftparams.solver == 'qe':
         solver = QESolver(dftparams.path)
+    elif dftparams.solver == 'openmx':
+        solver = OpenMXSolver(dftparams.path)
     else:
         print('unknown solver: {}'.format(dftparams.solver))
         sys.exit(1)

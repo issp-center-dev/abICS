@@ -15,6 +15,18 @@ from abics.util import read_coords
 
 
 def gauss(x, x0, sigma):
+    """
+
+    Parameters
+    ----------
+    x
+    x0
+    sigma
+
+    Returns
+    -------
+
+    """
     return (
         1.0
         / (np.sqrt(2.0 * np.pi) * sigma)
@@ -329,6 +341,16 @@ class config:
         cellsize=[1, 1, 1],
         perf_structure=None,
     ):
+        """
+
+        Parameters
+        ----------
+        base_structure
+        defect_sublattices
+        num_defects
+        cellsize
+        perf_structure
+        """
         try:
             num_defect_sublat = len(defect_sublattices)
         except TypeError:
@@ -404,6 +426,16 @@ class config:
         self.set_latgas()
 
     def set_latgas(self, defect_sublattices=False):
+        """
+
+        Parameters
+        ----------
+        defect_sublattices
+
+        Returns
+        -------
+
+        """
         if defect_sublattices:
             self.defect_sublattices = defect_sublattices
         assert len(self.defect_sublattices) == self.n_sublat
@@ -435,6 +467,18 @@ class config:
         self.set_latgas()
 
     def count(self, group_name, orientation):
+        """
+
+        Parameters
+        ----------
+        group_name: str
+
+        orientation:
+
+        Returns
+        -------
+
+        """
         num_grp = []
 
         for defect_sublattice in self.defect_sublattices:
@@ -451,6 +495,19 @@ class config:
             idx += 1
 
     def defect_sublattice_structure(self, sublat_id):
+        """
+
+        Parameters
+        ----------
+        sublat_id: int
+            index of sublattice
+
+        Returns
+        -------
+        sublattice_structure: pymatgen.Structure
+            sublattice structure object
+
+        """
         assert sublat_id < self.n_sublat
         sublattice_structure = self.structure.copy()
         base_sites = self.matcher_base.get_mapping(self.structure, self.base_structure)
@@ -476,6 +533,18 @@ class ObserverParams:
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        oparams: ObserverParams
+            self
+        """
         if "observer" in d:
             d = d["observer"]
         params = cls()
@@ -484,6 +553,18 @@ class ObserverParams:
 
     @classmethod
     def from_toml(cls, f):
+        """
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oparams : ObserverParams
+            self
+        """
         import toml
 
         return cls.from_dict(toml.load(f))
