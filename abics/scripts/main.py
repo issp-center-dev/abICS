@@ -21,8 +21,7 @@ from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
-def main():
-    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+def main_impl(tomlfile):
     rxparams = RXParams.from_toml(tomlfile)
     nreplicas = rxparams.nreplicas
     nprocs_per_replica = rxparams.nprocs_per_replica
@@ -98,3 +97,8 @@ def main():
 
     if comm.Get_rank() == 0:
         print(obs)
+
+
+def main():
+    tomlfile = sys.argv[1] if len(argv) > 1 else "input.toml"
+    main_impl(tomlfile)
