@@ -2,6 +2,14 @@ from abics.mc import observer_base
 
 
 class default_observer(observer_base):
+    """
+    Default observer.
+
+    Attributes
+    ----------
+    minE : float
+        Minimum of energy
+    """
     def __init__(self, comm, Lreload=False):
         super(default_observer, self).__init__()
         self.minE = 100000.0
