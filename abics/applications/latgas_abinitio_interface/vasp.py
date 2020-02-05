@@ -1,3 +1,8 @@
+"""
+To deal with VASP
+"""
+
+
 from .base_solver import SolverBase
 from collections import namedtuple
 from pymatgen.io.vasp.inputs import Poscar, VaspInput
@@ -9,7 +14,16 @@ import os.path
 
 class VASPSolver(SolverBase):
     """
-    This class defines the VASP solver.
+    VASP solver
+
+    Attributes
+    ----------
+    path_to_solver : str
+        Path to the solver
+    input : VASPSolver.Input
+        Input manager
+    output : VASPSolver.Output
+        Output manager
     """
 
     def __init__(self, path_to_solver):
@@ -19,7 +33,7 @@ class VASPSolver(SolverBase):
         Parameters
         ----------
         path_to_solver : str
-                      Path to the solver.
+            Path to the solver.
         """
         super(VASPSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
@@ -30,12 +44,25 @@ class VASPSolver(SolverBase):
         return "VASP"
 
     class Input(object):
+        """
+        Input manager for VASP
+
+        Attributes
+        ----------
+        base_info : dict
+            Common parameters
+        pos_info : pymatgen.Structure
+            Atom positions
+        """
+
         def __init__(self):
             self.base_info = None
             self.pos_info = None
 
         def from_directory(self, base_input_dir):
-            # set information of base_input and pos_info from files in base_input_dir
+            """
+            set information of base_input and pos_info from files in base_input_dir
+            """
             self.base_vasp_input = VaspInput.from_directory(base_input_dir)
             self.base_info = self.base_vasp_input.get("INCAR")
             return self.base_vasp_input
@@ -44,7 +71,7 @@ class VASPSolver(SolverBase):
             self.pos_info = Poscar(structure=structure, selective_dynamics=seldyn_arr)
             self.base_vasp_input.update({"POSCAR": self.pos_info})
 
-        def update_info_from_files(self, output_dir, rerun):
+        def update_info_from_files(self, workdir, rerun):
             if rerun == 1:
                 info_dict = ["BASE", "POS"]
             elif rerun > 0:
@@ -61,30 +88,73 @@ class VASPSolver(SolverBase):
                     self.base_vasp_input.update({"INCAR": self.base_info})
                 elif info == "POS":
                     # Update positions
-                    self.pos_info = Poscar.from_file(os.path.join(output_dir, "CONTCAR"))
+                    self.pos_info = Poscar.from_file(
+                        os.path.join(workdir, "CONTCAR")
+                    )
                     self.base_vasp_input.update({"POSCAR": self.pos_info})
 
-        def write_input(self, output_dir):
-            # Write input files
+        def write_input(self, workdir):
+            """
+            Generate input files of the solver program.
+
+            Parameters
+            ----------
+            workdir : str
+                Path to working directory.
+            """
             if self.base_info is None:
                 raise AttributeError("Fail to set base_info.")
-            self.base_vasp_input.write_input(output_dir=output_dir)
+            self.base_vasp_input.write_input(output_dir=workdir)
 
-        def cl_args(self, nprocs, nthreads, output_dir):
-            # Specify command line arguments
-            return [output_dir,]
+        def cl_args(self, nprocs, nthreads, workdir):
+            """
+            Generate command line argument of the solver program.
+
+            Parameters
+            ----------
+            nprocs : int
+                The number of processes.
+            nthreads : int
+                The number of threads.
+            workdir : str
+                Path to the working directory.
+
+            Returns
+            -------
+            args : list[str]
+                Arguments of command
+            """
+            return [workdir]
 
     class Output(object):
+        """
+        Output manager.
+        """
         def __init__(self):
             self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
             self.queen = BorgQueen(self.drone)
 
-        def get_results(self, output_dir):
+        def get_results(self, workdir):
+            """
+            Get energy and structure obtained by the solver program.
+
+            Parameters
+            ----------
+            workdir : str
+                Path to the working directory.
+
+            Returns
+            -------
+            phys : named_tuple("energy", "structure")
+                Total energy and atomic structure.
+                The energy is measured in the units of eV
+                and coodinates is measured in the units of Angstrom.
+            """
             # Read results from files in output_dir and calculate values
             Phys = namedtuple("PhysVaules", ("energy", "structure"))
-            self.queen.serial_assimilate(output_dir)
+            self.queen.serial_assimilate(workdir)
             results = self.queen.get_data()[-1]
             return Phys(np.float64(results.energy), results.structure)
 
     def solver_run_schemes(self):
-        return ('mpi_spawn_ready',)
+        return ("mpi_spawn_ready",)
