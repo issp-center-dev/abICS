@@ -111,7 +111,7 @@ class OpenMXSolver(SolverBase):
                     vps_info[line.split()[0]] = float(line.split()[1])
             return vps_info
 
-        def update_info_by_structure(self, structure, seldyn_arr=None):
+        def update_info_by_structure(self, structure):
             """
             Update base_openmx_input by structure
 
@@ -147,7 +147,8 @@ class OpenMXSolver(SolverBase):
                 electron_number = self.vps_info[[specie[2] for specie in atomic_species if specie[0] == str(site.specie)][0]]
                 self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx+1, site.specie, site.a, site.b, site.c,
                                                                              0.5 * electron_number + mag[idx], 0.5 * electron_number - mag[idx]]
-            if seldyn_arr is not None:
+            if "seldyn" in structure.site_properties:
+                seldyn_arr = structure.site_properties["seldyn"]
                 self.base_openmx_input["MD.Fixed.XYZ"] = [[0, int(False), int(False), int(False)]] * nat
                 for idx, dyn_info in enumerate(seldyn_arr):
                     fix_info = (~np.array(dyn_info)).astype(int)
