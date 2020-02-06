@@ -316,4 +316,4 @@ class OpenMXSolver(SolverBase):
             return Phys(np.float64(Utot), structure)
 
     def solver_run_schemes(self):
-        return ('mpi_spawn_ready',)
+        return ('mpi_spawn_ready', "subprocess",)
