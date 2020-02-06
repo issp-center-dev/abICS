@@ -205,7 +205,7 @@ class OpenMXSolver(SolverBase):
             clargs: dict
                 command line arguments
             """
-            clargs = [output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])]
+            clargs = ["{}.dat".format(os.path.join(output_dir, self.base_openmx_input["System.Name"][0]))]
             return clargs
 
         def OpenMXInputFile(self, input_file):
