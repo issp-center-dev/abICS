@@ -1,11 +1,6 @@
 """
 To deal with QuantumESPRESSO
 
-Todo
-----
-
-* implement seldyn_arr in update_info_by_structure
-
 """
 
 from collections import namedtuple
@@ -118,7 +113,7 @@ class QESolver(SolverBase):
                 self.pwi.namelists["CONTROL"]["pseudo_dir"], os.getcwd()
             )
 
-        def update_info_by_structure(self, structure, seldyn_arr=None):
+        def update_info_by_structure(self, structure):
             """
             Update information by atomic structure.
 
@@ -126,12 +121,6 @@ class QESolver(SolverBase):
             ----------
             structure : pymatgen.Structure
                 Atomic structure
-            seldyn_arr : Array[bool], default=None
-                Selective dynamics array
-
-            Todo
-            ----
-            * Make seldyn_arr work
             """
             A = structure.lattice.matrix
             self.pwi.cell_parameters = {"units": "alat", "cell": A}
@@ -149,6 +138,11 @@ class QESolver(SolverBase):
                 self.pwi.atomic_positions["names"][i] = site.specie
                 self.pwi.atomic_positions["positions"][i] = [site.a, site.b, site.c]
                 self.pwi.atomic_positions["fixed_coords"][i] = [False, False, False]
+
+            if "seldyn" in structure.site_properties:
+                seldyn_arr = structure.site_properties["seldyn"]
+                for idx, dyn_info in enumerate(seldyn_arr):
+                    self.pwi.atomic_positions["fixed_coords"][i] = (~np.array(dyn_info)).tolist()
 
         def update_info_from_files(self, output_dir, rerun):
             """

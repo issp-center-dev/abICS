@@ -47,13 +47,12 @@ class aenetSolver(SolverBase):
             self.base_info = os.path.abspath(base_input_dir)
             self.pos_info = open('{}/structure.xsf'.format(base_input_dir), 'r').read()
 
-        def update_info_by_structure(self, structure, seldyn_arr=None):
+        def update_info_by_structure(self, structure):
             """
 
             Parameters
             ----------
             structure
-            seldyn_arr
 
             Returns
             -------

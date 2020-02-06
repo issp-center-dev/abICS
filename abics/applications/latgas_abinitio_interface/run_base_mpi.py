@@ -102,7 +102,7 @@ class runner(object):
             raise ValueError(msg)
         self.perturb = perturb
 
-    def submit(self, structure, output_dir, seldyn_arr=None):
+    def submit(self, structure, output_dir):
         """
         Run a solver program and return results
 
@@ -112,8 +112,6 @@ class runner(object):
             Structure of compounds
         output_dir : str
             Name of directory where solver program saves output files
-        seldyn_arr : list[bool] or NoneType, default None
-            Selective dynamics attribute
 
         Returns
         -------
@@ -125,7 +123,7 @@ class runner(object):
         if self.perturb:
             structure.perturb(self.perturb)
         solverinput = self.base_solver_input
-        solverinput.update_info_by_structure(structure, seldyn_arr)
+        solverinput.update_info_by_structure(structure)
         self.run.submit(self.solver_name, solverinput, output_dir)
         results = self.output.get_results(output_dir)
         return np.float64(results.energy), results.structure
@@ -197,11 +195,11 @@ class runner_multistep(object):
                 )
             )
 
-    def submit(self, structure, output_dir, seldyn_arr=None):
-        energy, newstructure = self.runners[0].submit(structure, output_dir, seldyn_arr)
+    def submit(self, structure, output_dir):
+        energy, newstructure = self.runners[0].submit(structure, output_dir)
         for i in range(1, len(self.runners)):
             energy, newstructure = self.runners[i].submit(
-                newstructure, output_dir, seldyn_arr
+                newstructure, output_dir
             )
         return energy, newstructure
 

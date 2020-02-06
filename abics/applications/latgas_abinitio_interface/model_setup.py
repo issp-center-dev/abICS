@@ -206,18 +206,9 @@ class dft_latgas(model):
                     config.structure = calc_history[i][2]
                     return calc_history[i][0]
 
-        if self.selective_dynamics:
-            seldyn_arr = [[True, True, True] for i in range(len(structure))]
-            for specie in self.selective_dynamics:
-                indices = structure.indices_from_symbol(specie)
-                for i in indices:
-                    seldyn_arr[i] = [False, False, False]
-        else:
-            seldyn_arr = None
-
         structure0 = structure
         energy, structure = self.abinitio_run.submit(
-            structure, os.path.join(os.getcwd(), "output"), seldyn_arr
+            structure, os.path.join(os.getcwd(), "output")
         )
         if self.check_ion_move:
             relax_analy = analy.RelaxationAnalyzer(structure0, structure)
@@ -490,17 +481,25 @@ class config:
         num_defects,
         cellsize=[1, 1, 1],
         perf_structure=None,
+        base_structure_seldyn_array=None
     ):
-        """
-
+        """[summary]
+        
         Parameters
         ----------
-        base_structure
-        defect_sublattices
-        num_defects
-        cellsize
-        perf_structure
-        """
+        base_structure : [type]
+            [description]
+        defect_sublattices : [type]
+            [description]
+        num_defects : [type]
+            [description]
+        cellsize : list, optional
+            [description], by default [1, 1, 1]
+        perf_structure : [type], optional
+            [description], by default None
+        base_structure_seldyn_array : [type], optional
+            [description], by default None
+        """        
         try:
             num_defect_sublat = len(defect_sublattices)
         except TypeError:
@@ -518,6 +517,14 @@ class config:
         self.calc_history = []
         self.cellsize = cellsize
         self.base_structure = base_structure
+        if base_structure_seldyn_array != None:
+            if isinstance(base_structure_seldyn_array, np.ndarray):
+                base_structure_seldyn_array.tolist()
+            assert(len(base_structure) == len(base_structure_seldyn_array), 
+                "Lengths of base_structure and seldyn_array do not match")
+            self.base_structure.add_site_property("seldyn", base_structure_seldyn_array)
+        elif len(base_structure) != 0:
+            self.base_structure.add_site_property("seldyn", [[True, True, True] for i in range(len(base_structure))])
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -602,7 +609,7 @@ class config:
                     self.structure.append(
                         group.species[j],
                         group.coords[orr][j] + defect_sublattice.site_centers_sc[isite]
-                        # properties={"velocities":[0,0,0]}
+                        properties={"seldyn":[True, True, True]}
                     )
 
     def shuffle(self):

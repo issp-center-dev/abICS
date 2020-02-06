@@ -75,7 +75,7 @@ class VASPSolver(SolverBase):
             self.base_info = self.base_vasp_input.get("INCAR")
             return self.base_vasp_input
 
-        def update_info_by_structure(self, structure, seldyn_arr=None):
+        def update_info_by_structure(self, structure):
             """
             Update information by structure file
 
@@ -83,10 +83,8 @@ class VASPSolver(SolverBase):
             ----------
             structure : pymatgen.Structure
                 Atomic structure
-            seldyn_arr : array
-                Array of selected atoms which move dynamically
             """
-            self.pos_info = Poscar(structure=structure, selective_dynamics=seldyn_arr)
+            self.pos_info = Poscar(structure=structure, selective_dynamics=structure.site_properties["seldyn"])
             self.base_vasp_input.update({"POSCAR": self.pos_info})
 
         def update_info_from_files(self, workdir, rerun):
