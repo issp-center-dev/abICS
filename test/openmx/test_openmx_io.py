@@ -39,8 +39,8 @@ if __name__ == '__main__':
     subprocess.call(cmd.split())
 
     #Check seldyn_arr
-    seldyn_arr = [[False, False, False]] * len(phys.structure.sites)
-    input.update_info_by_structure(phys.structure, seldyn_arr)
+    phys.structure.add_site_property("seldyn", [[False, False, False]] * len(phys.structure.sites))
+    input.update_info_by_structure(phys.structure)
     print("Write input file.")
     input_dir = "test2"
     input.write_input(input_dir)
