@@ -15,6 +15,18 @@ from abics.util import read_coords
 
 
 def gauss(x, x0, sigma):
+    """
+
+    Parameters
+    ----------
+    x
+    x0
+    sigma
+
+    Returns
+    -------
+
+    """
     return (
         1.0
         / (np.sqrt(2.0 * np.pi) * sigma)
@@ -23,6 +35,17 @@ def gauss(x, x0, sigma):
 
 
 def match_id(lst, obj):
+    """
+
+    Parameters
+    ----------
+    lst
+    obj
+
+    Returns
+    -------
+
+    """
     mapping = []
     for i in range(len(lst)):
         if lst[i] == obj:
@@ -31,6 +54,17 @@ def match_id(lst, obj):
 
 
 def nomatch_id(lst, obj):
+    """
+
+    Parameters
+    ----------
+    lst
+    obj
+
+    Returns
+    -------
+
+    """
     mapping = []
     for i in range(len(lst)):
         if lst[i] != obj:
@@ -39,6 +73,17 @@ def nomatch_id(lst, obj):
 
 
 def match_latgas_group(latgas_rep, group):
+    """
+
+    Parameters
+    ----------
+    latgas_rep
+    group
+
+    Returns
+    -------
+
+    """
     mapping = []
     for i in range(len(latgas_rep)):
         if latgas_rep[i][0] == group.name:
@@ -47,6 +92,19 @@ def match_latgas_group(latgas_rep, group):
 
 
 def g_r(structure, specie1, specie2, grid_1D):
+    """
+
+    Parameters
+    ----------
+    structure
+    specie1
+    specie2
+    grid_1D
+
+    Returns
+    -------
+
+    """
     X = grid_1D.x
     dr = grid_1D.dx
 
@@ -103,6 +161,17 @@ class dft_latgas(model):
         check_ion_move=False,
         ion_move_tol=0.7,
     ):
+        """
+
+        Parameters
+        ----------
+        abinitio_run
+        selective_dynamics
+        save_history
+        l_update_basestruct
+        check_ion_move
+        ion_move_tol
+        """
         self.matcher = StructureMatcher(primitive_cell=False, allow_subset=False)
         self.abinitio_run = abinitio_run
         self.selective_dynamics = selective_dynamics
@@ -112,6 +181,16 @@ class dft_latgas(model):
         self.ion_move_tol = ion_move_tol
 
     def energy(self, config):
+        """
+
+        Parameters
+        ----------
+        config
+
+        Returns
+        -------
+
+        """
         """ Calculate total energy"""
 
         config.structure.sort(key=lambda site: site.species_string)
@@ -127,18 +206,9 @@ class dft_latgas(model):
                     config.structure = calc_history[i][2]
                     return calc_history[i][0]
 
-        if self.selective_dynamics:
-            seldyn_arr = [[True, True, True] for i in range(len(structure))]
-            for specie in self.selective_dynamics:
-                indices = structure.indices_from_symbol(specie)
-                for i in indices:
-                    seldyn_arr[i] = [False, False, False]
-        else:
-            seldyn_arr = None
-
         structure0 = structure
         energy, structure = self.abinitio_run.submit(
-            structure, os.path.join(os.getcwd(), "output"), seldyn_arr
+            structure, os.path.join(os.getcwd(), "output")
         )
         if self.check_ion_move:
             relax_analy = analy.RelaxationAnalyzer(structure0, structure)
@@ -166,6 +236,17 @@ class dft_latgas(model):
         return np.float64(energy)
 
     def trialstep(self, config, energy_now):
+        """
+
+        Parameters
+        ----------
+        config
+        energy_now
+
+        Returns
+        -------
+
+        """
 
         e0 = energy_now
 
@@ -232,6 +313,17 @@ class dft_latgas(model):
         return dconfig, dE
 
     def newconfig(self, config, dconfig):
+        """
+
+        Parameters
+        ----------
+        config
+        dconfig
+
+        Returns
+        -------
+
+        """
         """Construct the new configuration after the trial step is accepted"""
         config.structure, config.defect_sublattices = dconfig
         if self.l_update_basestruct:
@@ -252,6 +344,20 @@ class energy_lst(dft_latgas):
         selective_dynamics=None,
         matcher=None,
     ):
+        """
+
+        Parameters
+        ----------
+        calcode
+        vasp_run
+        base_vaspinput
+        matcher_base
+        queen
+        reps
+        energy_lst
+        selective_dynamics
+        matcher
+        """
         super().__init__(
             calcode,
             vasp_run,
@@ -265,12 +371,31 @@ class energy_lst(dft_latgas):
         self.energy_list = energy_lst
 
     def energy(self, config, save_history=False):
+        """
+
+        Parameters
+        ----------
+        config
+        save_history
+
+        Returns
+        -------
+
+        """
         rep_id = self.reps.index(tuple(config.latgas_rep))
         return np.float64(self.energy_list[rep_id])
 
 
 class group(object):
     def __init__(self, name, species, coords=np.array([[[0.0, 0.0, 0.0]]])):
+        """
+
+        Parameters
+        ----------
+        name
+        species
+        coords
+        """
         self.name = name
         self.species = species
         self.coords = np.array(coords)
@@ -282,6 +407,13 @@ class group(object):
 
 class defect_sublattice(object):
     def __init__(self, site_centers, groups):
+        """
+
+        Parameters
+        ----------
+        site_centers
+        groups
+        """
         self.site_centers = np.array(site_centers)
         self.groups = groups
         self.groups_orr = []
@@ -293,6 +425,16 @@ class defect_sublattice(object):
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Parameters
+        ----------
+        d
+
+        Returns
+        -------
+
+        """
         site_centers = read_coords(d["coords"])
         groups = []
         for g in d["groups"]:
@@ -304,6 +446,17 @@ class defect_sublattice(object):
 
 
 def base_structure(lat, dict_str):
+    """
+
+    Parameters
+    ----------
+    lat
+    dict_str
+
+    Returns
+    -------
+
+    """
     st = Structure(lat, [], [])
     if dict_str[0] == {}:
         return st
@@ -328,7 +481,25 @@ class config:
         num_defects,
         cellsize=[1, 1, 1],
         perf_structure=None,
+        base_structure_seldyn_array=None
     ):
+        """[summary]
+        
+        Parameters
+        ----------
+        base_structure : [type]
+            [description]
+        defect_sublattices : [type]
+            [description]
+        num_defects : [type]
+            [description]
+        cellsize : list, optional
+            [description], by default [1, 1, 1]
+        perf_structure : [type], optional
+            [description], by default None
+        base_structure_seldyn_array : [type], optional
+            [description], by default None
+        """        
         try:
             num_defect_sublat = len(defect_sublattices)
         except TypeError:
@@ -346,6 +517,14 @@ class config:
         self.calc_history = []
         self.cellsize = cellsize
         self.base_structure = base_structure
+        if base_structure_seldyn_array != None:
+            if isinstance(base_structure_seldyn_array, np.ndarray):
+                base_structure_seldyn_array.tolist()
+            assert(len(base_structure) == len(base_structure_seldyn_array), 
+                "Lengths of base_structure and seldyn_array do not match")
+            self.base_structure.add_site_property("seldyn", base_structure_seldyn_array)
+        elif len(base_structure) != 0:
+            self.base_structure.add_site_property("seldyn", [[True, True, True] for i in range(len(base_structure))])
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -404,6 +583,16 @@ class config:
         self.set_latgas()
 
     def set_latgas(self, defect_sublattices=False):
+        """
+
+        Parameters
+        ----------
+        defect_sublattices
+
+        Returns
+        -------
+
+        """
         if defect_sublattices:
             self.defect_sublattices = defect_sublattices
         assert len(self.defect_sublattices) == self.n_sublat
@@ -420,7 +609,7 @@ class config:
                     self.structure.append(
                         group.species[j],
                         group.coords[orr][j] + defect_sublattice.site_centers_sc[isite]
-                        # properties={"velocities":[0,0,0]}
+                        properties={"seldyn":[True, True, True]}
                     )
 
     def shuffle(self):
@@ -435,6 +624,18 @@ class config:
         self.set_latgas()
 
     def count(self, group_name, orientation):
+        """
+
+        Parameters
+        ----------
+        group_name: str
+
+        orientation:
+
+        Returns
+        -------
+
+        """
         num_grp = []
 
         for defect_sublattice in self.defect_sublattices:
@@ -451,6 +652,19 @@ class config:
             idx += 1
 
     def defect_sublattice_structure(self, sublat_id):
+        """
+
+        Parameters
+        ----------
+        sublat_id: int
+            index of sublattice
+
+        Returns
+        -------
+        sublattice_structure: pymatgen.Structure
+            sublattice structure object
+
+        """
         assert sublat_id < self.n_sublat
         sublattice_structure = self.structure.copy()
         base_sites = self.matcher_base.get_mapping(self.structure, self.base_structure)
@@ -476,6 +690,18 @@ class ObserverParams:
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        oparams: ObserverParams
+            self
+        """
         if "observer" in d:
             d = d["observer"]
         params = cls()
@@ -484,6 +710,18 @@ class ObserverParams:
 
     @classmethod
     def from_toml(cls, f):
+        """
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oparams : ObserverParams
+            self
+        """
         import toml
 
         return cls.from_dict(toml.load(f))

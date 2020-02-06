@@ -19,11 +19,11 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
+from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
-def main():
-    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+def main_impl(tomlfile):
     rxparams = RXParams.from_toml(tomlfile)
     nreplicas = rxparams.nreplicas
     nprocs_per_replica = rxparams.nprocs_per_replica
@@ -54,6 +54,8 @@ def main():
         solver = QESolver(dftparams.path)
     elif dftparams.solver == 'aenet':
         solver = aenetSolver(dftparams.path)
+    elif dftparams.solver == 'openmx':
+        solver = OpenMXSolver(dftparams.path)
     else:
         print('unknown solver: {}'.format(dftparams.solver))
         sys.exit(1)
@@ -101,3 +103,8 @@ def main():
 
     if comm.Get_rank() == 0:
         print(obs)
+
+
+def main():
+    tomlfile = sys.argv[1] if len(argv) > 1 else "input.toml"
+    main_impl(tomlfile)
