@@ -608,7 +608,7 @@ class config:
                 for j in range(group.natoms):
                     self.structure.append(
                         group.species[j],
-                        group.coords[orr][j] + defect_sublattice.site_centers_sc[isite]
+                        group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
                         properties={"seldyn":[True, True, True]}
                     )
 
