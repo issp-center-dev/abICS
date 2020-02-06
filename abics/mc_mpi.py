@@ -15,8 +15,18 @@ class RXParams:
 
     @classmethod
     def from_dict(cls, d):
-        if "replica" in d:
-            d = d["replica"]
+        """
+
+        Parameters
+        ----------
+        d
+
+        Returns
+        -------
+
+        """
+        if 'replica' in d:
+            d = d['replica']
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
@@ -32,12 +42,32 @@ class RXParams:
 
     @classmethod
     def from_toml(cls, fname):
+        """
+
+        Parameters
+        ----------
+        fname
+
+        Returns
+        -------
+
+        """
         import toml
 
         return cls.from_dict(toml.load(fname))
 
 
 def RX_MPI_init(rxparams):
+    """
+
+    Parameters
+    ----------
+    rxparams
+
+    Returns
+    -------
+
+    """
     nreplicas = rxparams.nreplicas
     nprocs_per_replica = rxparams.nprocs_per_replica
     commworld = MPI.COMM_WORLD
@@ -70,6 +100,18 @@ def RX_MPI_init(rxparams):
 
 class ParallelMC(object):
     def __init__(self, comm, MCalgo, model, configs, kTs, grid=None, subdirs=True):
+        """
+
+        Parameters
+        ----------
+        comm
+        MCalgo
+        model
+        configs
+        kTs
+        grid
+        subdirs
+        """
         self.comm = comm
         self.rank = self.comm.Get_rank()
         self.procs = self.comm.Get_size()
@@ -91,6 +133,18 @@ class ParallelMC(object):
         self.mycalc = MCalgo(model, mytemp, myconfig, grid)
 
     def run(self, nsteps, sample_frequency, observer=observer_base()):
+        """
+
+        Parameters
+        ----------
+        nsteps
+        sample_frequency
+        observer
+
+        Returns
+        -------
+
+        """
         if self.subdirs:
             # make working directory for this rank
             try:
@@ -110,6 +164,18 @@ class ParallelMC(object):
 
 class TemperatureRX_MPI(ParallelMC):
     def __init__(self, comm, MCalgo, model, configs, kTs, grid=None, subdirs=True):
+        """
+
+        Parameters
+        ----------
+        comm
+        MCalgo
+        model
+        configs
+        kTs
+        grid
+        subdirs
+        """
         super(TemperatureRX_MPI, self).__init__(
             comm, MCalgo, model, configs, kTs, grid, subdirs
         )
@@ -130,6 +196,16 @@ class TemperatureRX_MPI(ParallelMC):
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
 
     def find_procrank_from_Trank(self, Trank):
+        """
+
+        Parameters
+        ----------
+        Trank
+
+        Returns
+        -------
+
+        """
         i = np.argwhere(self.rank_to_T == Trank)
         if i is None:
             sys.exit("Internal error in TemperatureRX_MPI.find_procrank_from_Trank")
@@ -137,6 +213,16 @@ class TemperatureRX_MPI(ParallelMC):
             return i
 
     def Xtrial(self, XCscheme=-1):
+        """
+
+        Parameters
+        ----------
+        XCscheme
+
+        Returns
+        -------
+
+        """
         # What is my temperature rank?
         myTrank = self.rank_to_T[self.rank]
         if (myTrank + XCscheme) % 2 == 0 and myTrank == self.procs - 1:
@@ -197,6 +283,22 @@ class TemperatureRX_MPI(ParallelMC):
         subdirs=True,
         save_obs=True,
     ):
+        """
+
+        Parameters
+        ----------
+        nsteps
+        RXtrial_frequency
+        sample_frequency
+        print_frequency
+        observer
+        subdirs
+        save_obs
+
+        Returns
+        -------
+
+        """
         if subdirs:
             try:
                 os.mkdir(str(self.rank))

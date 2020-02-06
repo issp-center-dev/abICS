@@ -11,6 +11,19 @@ class DFTConfigParams:
 
     @classmethod
     def from_dict(cls, d):
+        """
+        Get information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        params: DFTConfigParams object
+            Parameters for DFT solver
+        """
         if "config" in d:
             d = d["config"]
         params = cls()
@@ -27,12 +40,39 @@ class DFTConfigParams:
 
     @classmethod
     def from_toml(cls, f):
+        """
+
+        Get information from toml file.
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        cls.from_dict: DFTConfigParams object
+            Parameters for DFT solver
+        """
         import toml
 
         return cls.from_dict(toml.load(f))
 
 
 def defect_config(cparam: DFTConfigParams):
+    """
+    Get configuration information
+
+    Parameters
+    ----------
+    cparam: DFTConfigParams object
+        Parameters for DFT solver
+
+    Returns
+    -------
+    spinel_config: config object
+        spinel configure object
+    """
     spinel_config = config(
         cparam.base_structure,
         cparam.defect_sublattices,

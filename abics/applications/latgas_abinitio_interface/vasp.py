@@ -61,17 +61,45 @@ class VASPSolver(SolverBase):
 
         def from_directory(self, base_input_dir):
             """
-            set information of base_input and pos_info from files in base_input_dir
+
+            Parameters
+            ----------
+            base_input_dir : str
+                Path to the directory including base input files.
+            Returns
+            -------
+            base_vasp_input : VaspInput (defined in pymatgen)
+                vasp input object
             """
             self.base_vasp_input = VaspInput.from_directory(base_input_dir)
             self.base_info = self.base_vasp_input.get("INCAR")
             return self.base_vasp_input
 
         def update_info_by_structure(self, structure, seldyn_arr=None):
+            """
+            Update information by structure file
+
+            Parameters
+            ----------
+            structure : pymatgen.Structure
+                Atomic structure
+            seldyn_arr : array
+                Array of selected atoms which move dynamically
+            """
             self.pos_info = Poscar(structure=structure, selective_dynamics=seldyn_arr)
             self.base_vasp_input.update({"POSCAR": self.pos_info})
 
         def update_info_from_files(self, workdir, rerun):
+            """
+            Update information from output files.
+
+            Parameters
+            ----------
+            workdir: str
+                Path to working directory.
+            rerun: int
+                Mode for rerunning (0: not rerun, 1: rerun (base file is replaced by new one))
+            """
             if rerun == 1:
                 info_dict = ["BASE", "POS"]
             elif rerun > 0:
