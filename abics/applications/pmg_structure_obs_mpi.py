@@ -8,6 +8,19 @@ from abics.applications.rhorhocy import rho_autocorr, rho_autocorr_fft
 
 
 def g_r(structure, specie1, specie2, grid_1D):
+    """
+
+    Parameters
+    ----------
+    structure
+    specie1
+    specie2
+    grid_1D
+
+    Returns
+    -------
+
+    """
     X = grid_1D.x
     dr = grid_1D.dx
     assert grid_1D.x[0] == dr
@@ -51,6 +64,18 @@ def g_r(structure, specie1, specie2, grid_1D):
 
 
 def isotropic_gauss_nd(x, xcenter, sigma):
+    """
+
+    Parameters
+    ----------
+    x
+    xcenter
+    sigma
+
+    Returns
+    -------
+
+    """
     return np.prod(
         1.0
         / (np.sqrt(2.0 * np.pi * sigma))
@@ -59,6 +84,18 @@ def isotropic_gauss_nd(x, xcenter, sigma):
 
 
 def gauss_1d(x, center, sigma):
+    """
+
+    Parameters
+    ----------
+    x
+    center
+    sigma
+
+    Returns
+    -------
+
+    """
     return (
         1.0
         / (np.sqrt(2.0 * np.pi) * sigma)
@@ -67,6 +104,20 @@ def gauss_1d(x, center, sigma):
 
 
 def rho_gauss(x, structure, species, sigma, comm=None):
+    """
+
+    Parameters
+    ----------
+    x
+    structure
+    species
+    sigma
+    comm
+
+    Returns
+    -------
+
+    """
     lattice = structure.lattice
     types_of_specie = [element.symbol for element in structure.types_of_specie]
     assert species in types_of_specie
@@ -106,6 +157,20 @@ def rho_gauss(x, structure, species, sigma, comm=None):
 
 
 def write_rho_vasp(structure, species, sigma, mesh, filename):
+    """
+
+    Parameters
+    ----------
+    structure
+    species
+    sigma
+    mesh
+    filename
+
+    Returns
+    -------
+
+    """
     comm = MPI.COMM_WORLD
     size = comm.Get_rank()
 
