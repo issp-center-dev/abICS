@@ -37,3 +37,13 @@ if __name__ == '__main__':
     print("Execute OpenMX.")
     cmd = "openmx {}.dat".format(os.path.join(input_dir, input.base_openmx_input["System.Name"][0]))
     subprocess.call(cmd.split())
+
+    #Check seldyn_arr
+    seldyn_arr = [[False, False, False]] * len(phys.structure.sites)
+    input.update_info_by_structure(phys.structure, seldyn_arr)
+    print("Write input file.")
+    input_dir = "test2"
+    input.write_input(input_dir)
+    print("Execute OpenMX.")
+    cmd = "openmx {}.dat".format(os.path.join(input_dir, input.base_openmx_input["System.Name"][0]))
+    subprocess.call(cmd.split())
