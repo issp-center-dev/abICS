@@ -119,8 +119,6 @@ class OpenMXSolver(SolverBase):
             ----------
             structure: pymatgen.core.Structure
                 Structure for getting atom's species and coordinates
-            seldyn_arr: Array[bool], default=None
-                Selective dynamics array
 
             """
             # Get lattice information
