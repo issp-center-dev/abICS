@@ -77,8 +77,6 @@ class SolverBase(object):
                 Path to the directory including base input files.
             """
             # set information of base_input and pos_info from files in base_input_dir
-            base_info = {}
-            pos_info = {}
             self.base_info = {}
             self.pos_info = {}
 
