@@ -119,8 +119,8 @@ class OpenMXSolver(SolverBase):
             ----------
             structure: pymatgen.core.Structure
                 Structure for getting atom's species and coordinates
-            seldyn_arr:
-
+            seldyn_arr: Array[bool], default=None
+                Selective dynamics array
 
             """
             # Get lattice information
@@ -147,8 +147,11 @@ class OpenMXSolver(SolverBase):
                 electron_number = self.vps_info[[specie[2] for specie in atomic_species if specie[0] == str(site.specie)][0]]
                 self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx+1, site.specie, site.a, site.b, site.c,
                                                                              0.5 * electron_number + mag[idx], 0.5 * electron_number - mag[idx]]
-            #TODO Structure relaxation (issue 24)
-            #Use MD.type, MD.Fixed.XYZ
+            if seldyn_arr is not None:
+                self.base_openmx_input["MD.Fixed.XYZ"] = [[0, int(False), int(False), int(False)]] * nat
+                for idx, dyn_info in enumerate(seldyn_arr):
+                    fix_info = (~np.array(dyn_info)).astype(int)
+                    self.base_openmx_input["MD.Fixed.XYZ"][idx] = [idx+1, fix_info[0], fix_info[1], fix_info[2] ]
 
         def write_input(self, output_dir):
             """
