@@ -206,18 +206,9 @@ class dft_latgas(model):
                     config.structure = calc_history[i][2]
                     return calc_history[i][0]
 
-        if self.selective_dynamics:
-            seldyn_arr = [[True, True, True] for i in range(len(structure))]
-            for specie in self.selective_dynamics:
-                indices = structure.indices_from_symbol(specie)
-                for i in indices:
-                    seldyn_arr[i] = [False, False, False]
-        else:
-            seldyn_arr = None
-
         structure0 = structure
         energy, structure = self.abinitio_run.submit(
-            structure, os.path.join(os.getcwd(), "output"), seldyn_arr
+            structure, os.path.join(os.getcwd(), "output")
         )
         if self.check_ion_move:
             relax_analy = analy.RelaxationAnalyzer(structure0, structure)
