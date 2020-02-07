@@ -267,7 +267,7 @@ class QESolver(SolverBase):
             phys : named_tuple("energy", "structure")
                 Total energy and atomic structure.
                 The energy is measured in the units of eV
-                and coodinates is measured in the units of Angstrom.
+                and coordinates is measured in the units of Angstrom.
             """
             # Read results from files in output_dir and calculate values
             tree = ET.parse(
