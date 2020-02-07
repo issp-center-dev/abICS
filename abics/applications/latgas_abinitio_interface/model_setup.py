@@ -17,6 +17,7 @@ def gauss(x, x0, sigma):
     """
     Gaussian function
 
+
     Parameters
     ----------
     x: float

@@ -17,14 +17,13 @@ class TestAbics(unittest.TestCase):
             filename = os.path.join(str(i), "obs.dat")
             if os.path.exists(filename):
                 os.remove(filename)
-        main_impl("fulltest.toml")
-
+        main_impl("input.toml")
         if MPI.COMM_WORLD.Get_rank() == 0:
             ref_T = np.array([[0.1034076, 0.1034076], [0.086173, 0.086173]])
             ref_E = np.array(
                 [
-                    [-40599.168724329196, -40599.5423773231],
-                    [-40602.057823131414, -40602.057823131414]
+                    [-10407.590808969253, -10407.590808969253],
+                    [-10407.629819355883,  -10407.629819355883]
                 ]
             )
             T = np.zeros((2, 2))

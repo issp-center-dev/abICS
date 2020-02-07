@@ -267,7 +267,7 @@ class run_mpispawn:
         status : int
             Always returns 0
         """
-        solverinput.write_input(output_dir=output_dir)
+        solverinput.write_input(output_dir)
 
         # Barrier so that spawn is atomic between processes.
         # This is to make sure that vasp processes are spawned one by one according to
