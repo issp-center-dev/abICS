@@ -25,7 +25,7 @@ class OpenMXSolver(SolverBase):
         """
         super(OpenMXSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = OpenMXSolver.Input()
+        self.input = OpenMXSolver.Input(self.path_to_solver)
         self.output = OpenMXSolver.Output(self.input)
 
     def name(self):
@@ -40,10 +40,11 @@ class OpenMXSolver(SolverBase):
         return "OpenMX"
 
     class Input(object):
-        def __init__(self):
+        def __init__(self, path_to_solver):
             self.base_info = None
             self.pos_info = None
             self.openmx_vec_list = ["Atoms.UnitVectors", "Atoms.SpeciesAndCoordinates", "MD.Fixed.XYZ"]
+            self.path_to_solver = path_to_solver
 
         def cleanup(self, rundir):
             """
@@ -102,6 +103,7 @@ class OpenMXSolver(SolverBase):
             if "DATA.PATH" in openmx_input:
                 path = openmx_input["DATA.PATH"][0]
             else:
+                print(self.path_to_solver)
                 cmd = "which {}".format(self.path_to_solver)
                 path = os.path.join(subprocess.check_output(cmd.split()).splitlines()[0].decode().rstrip("openmx"), "../DFT_DATA19")
                 openmx_input["DATA.PATH"] = [path]
