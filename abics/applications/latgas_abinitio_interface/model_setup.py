@@ -17,11 +17,14 @@ from abics.util import read_coords
 def gauss(x, x0, sigma):
     """
 
+
     Parameters
     ----------
-    x
-    x0
-    sigma
+    x: float
+
+    x0: float
+
+    sigma: float
 
     Returns
     -------
