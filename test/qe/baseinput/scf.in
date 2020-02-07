@@ -7,7 +7,7 @@
   wf_collect = .false.
 /
 &SYSTEM
-  ecutwfc      =  20.0
+  ecutwfc      =  60.0
   occupations  = "smearing"
   smearing     = "gauss"
   degauss      = 0.01
