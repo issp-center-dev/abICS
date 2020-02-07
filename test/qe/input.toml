@@ -9,7 +9,6 @@ nsteps = 2  # Number of steps for sampling
 RXtrial_frequency = 1
 sample_frequency = 1
 print_frequency = 1
-
 seed = 12345
 
 [solver]
