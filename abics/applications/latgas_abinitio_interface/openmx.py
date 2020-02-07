@@ -102,7 +102,7 @@ class OpenMXSolver(SolverBase):
             if "DATA.PATH" in openmx_input:
                 path = openmx_input["DATA.PATH"][0]
             else:
-                cmd = "which openmx"
+                cmd = "which {}".format(self.path_to_solver)
                 path = os.path.join(subprocess.check_output(cmd.split()).splitlines()[0].decode().rstrip("openmx"), "../DFT_DATA19")
                 openmx_input["DATA.PATH"] = [path]
             with open(os.path.join(path, "vps_info.txt"), "r") as f:
@@ -123,9 +123,6 @@ class OpenMXSolver(SolverBase):
             """
             # Get lattice information
             A = structure.lattice.matrix
-            # Get electron density information
-            electron_info = [[float(info[5]), float(info[6])] for info in self.base_openmx_input["Atoms.SpeciesAndCoordinates"]]
-
             # Update unitvector information
             self.base_openmx_input["Atoms.UnitVectors.Unit"] = ["Ang"]
             self.base_openmx_input["Atoms.UnitVectors"] = A # numpy.ndarray
