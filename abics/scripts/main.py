@@ -106,5 +106,5 @@ def main_impl(tomlfile):
 
 
 def main():
-    tomlfile = sys.argv[1] if len(argv) > 1 else "input.toml"
+    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     main_impl(tomlfile)
