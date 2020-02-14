@@ -16,14 +16,17 @@ class RXParams:
     @classmethod
     def from_dict(cls, d):
         """
+           Read information from dictionary
 
-        Parameters
-        ----------
-        d
+           Parameters
+           ----------
+           d: dict
+               Dictionary
 
-        Returns
-        -------
-
+           Returns
+           -------
+           params: DFTParams object
+               self
         """
         if 'replica' in d:
             d = d['replica']
@@ -43,14 +46,17 @@ class RXParams:
     @classmethod
     def from_toml(cls, fname):
         """
+        Read information from toml file
 
         Parameters
         ----------
-        fname
+        f: str
+            Name of input toml File
 
         Returns
         -------
-
+        oDFTParams: DFTParams object
+            self
         """
         import toml
 
@@ -66,8 +72,9 @@ def RX_MPI_init(rxparams):
 
     Returns
     -------
-
+    comm:
     """
+
     nreplicas = rxparams.nreplicas
     nprocs_per_replica = rxparams.nprocs_per_replica
     commworld = MPI.COMM_WORLD
@@ -104,13 +111,13 @@ class ParallelMC(object):
 
         Parameters
         ----------
-        comm
-        MCalgo
-        model
-        configs
-        kTs
-        grid
-        subdirs
+        comm: MPI communicator
+        MCalgo:
+        model:
+        configs:
+        kTs:
+        grid:
+        subdirs:
         """
         self.comm = comm
         self.rank = self.comm.Get_rank()
@@ -137,9 +144,9 @@ class ParallelMC(object):
 
         Parameters
         ----------
-        nsteps
-        sample_frequency
-        observer
+        nsteps: int
+        sample_frequency:
+        observer:
 
         Returns
         -------
@@ -168,13 +175,13 @@ class TemperatureRX_MPI(ParallelMC):
 
         Parameters
         ----------
-        comm
-        MCalgo
-        model
-        configs
-        kTs
-        grid
-        subdirs
+        comm:
+        MCalgo:
+        model:
+        configs:
+        kTs:
+        grid:
+        subdirs:
         """
         super(TemperatureRX_MPI, self).__init__(
             comm, MCalgo, model, configs, kTs, grid, subdirs
@@ -200,7 +207,7 @@ class TemperatureRX_MPI(ParallelMC):
 
         Parameters
         ----------
-        Trank
+        Trank: int
 
         Returns
         -------
@@ -217,7 +224,7 @@ class TemperatureRX_MPI(ParallelMC):
 
         Parameters
         ----------
-        XCscheme
+        XCscheme:
 
         Returns
         -------
@@ -287,13 +294,13 @@ class TemperatureRX_MPI(ParallelMC):
 
         Parameters
         ----------
-        nsteps
-        RXtrial_frequency
-        sample_frequency
-        print_frequency
-        observer
-        subdirs
-        save_obs
+        nsteps:
+        RXtrial_frequency:
+        sample_frequency:
+        print_frequency:
+        observer:
+        subdirs:
+        save_obs:
 
         Returns
         -------
