@@ -15,21 +15,20 @@ abICSは、拡張アンサンブル法と任意のエネルギー計算ソフト
 サンプリングと低い温度における局所安定配置の探索を共存させることができます。
 
 abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ交換モンテカルロ法に関連したパラメータを指定します。
-入力ファイルで、レプリカの温度の下限を ``kTstart`` 、 上限を ``kTend`` とし、レプリカ数を ``nreplicas`` とすることで、
+レプリカの温度の下限を ``kTstart`` 、 上限を ``kTend`` とし、レプリカ数を ``nreplicas`` とすることで、
 
 .. math::
    
-   T_i = \frac{\verb|kTend|-\verb|kTstart|}{\verb|nreplicas|-1} i + \verb|kTstart|
+   T_i = \frac{\bf|kTend|-\bf|kTstart|}{\bf|nreplicas|-1} i + \bf|kTstart|
 
-として ``nreplicas`` 個の異なる温度に接触しているレプリカ系を用意します(ただし、 :math:`i=0 \cdots \verb|nreplicas|-1` )。なお、プロセス数を ``nprocs_per_replica`` することで各プロセスが担当するレプリカ数を指定することができます。
-モンテカルロステップ数は ``nsteps`` で指定します。 ``RXtrial_frequency`` 毎に交換遷移確率
+として ``nreplicas`` 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 :math:`i=0 \cdots \verb|nreplicas|-1` 。なお、プロセス数を ``nprocs_per_replica`` することで各プロセスが担当するレプリカ数を指定することができます)。
+モンテカルロステップ数は ``nsteps`` で指定し、 ``RXtrial_frequency`` ステップ毎に交換遷移確率
 
 .. math::
 
    R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_i+1}\right)\left(E(X_i)-E(X_{i+1})\right)\right]
 
-を計算し、これよりも大きい確率が出た場合に温度交換 :math:`T_i \leftarrow T_{i+1}` を行います (ただし、 :math:`X_i` はi番目のレプリカ系の状態)。なお、物理量測定を行う頻度については ``sample_frequency`` で指定することができます。
-
+を計算がされます。:math:`R` よりも大きい確率が出た場合に温度交換 :math:`T_i \leftarrow T_{i+1}` が行われます (ただし、 :math:`X_i` はi番目のレプリカ系の状態)。なお、物理量は ``sample_frequency`` ステップ毎に測定が行われます。
 
 - abICSの概要について
 
