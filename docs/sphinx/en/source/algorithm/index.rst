@@ -37,7 +37,7 @@ The number of Monte Carlo steps is specified by ``nsteps``, and the exchange tra
    R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_i+1}\right)\left(E(X_i)-E(X_{i+1})\right)\right],
 
 where  :math:`X_i` is the state for :math:`i` -th replica system.
-The temperature exchange :math:`T_i \rightarrow T_{i+1}` is performed when the accept probability is larger than :math:`R`.
+The temperature exchange :math:`T_i \rightarrow T_{i+1}` is performed with the exchange transition probability :math:`R`.
 The physical quantity is measured at each ``sample_frequency`` step.
 
 
