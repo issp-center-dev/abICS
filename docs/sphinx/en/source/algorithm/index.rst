@@ -21,6 +21,26 @@ energies. This allows an efficient sampling of the global configuration
 space using replicas at higher temperatures and accurate sampling of
 the local energy landscape at lower temperatures.
 
+In abICS, parameters related to the replica exchange Monte Carlo method are specified in the ``[replica]`` section of the input file.
+By setting the lower limit of the replica temperature to ``kTstart`` , the upper limit to ``kTend``, and the number of replicas to ``nreplicas``,
+``nreplicas`` replica systems with different temperatures ( :math:`T_0, T_1, \cdots T_{\verb|nreplicas|-1}`) are provided, where
+
+.. math::
+   
+   T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}.
+
+By setting the number of processes to ``nprocs_per_replica``, the number of replicas that each process is assigned can be specified.
+The number of Monte Carlo steps is specified by ``nsteps``, and the exchange transition probability :math:`R` for each ``RXtrial_frequency`` step is defined as
+
+.. math::
+
+   R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_i+1}\right)\left(E(X_i)-E(X_{i+1})\right)\right],
+
+where  :math:`X_i` is the state for :math:`i` -th replica system.
+The temperature exchange :math:`T_i \leftarrow T_{i+1}` is performed when the accept probability is larger than :math:`R`.
+The physical quantity is measured at each ``sample_frequency`` step.
+
+
 - Overview of abICS
 
   - `S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019) <https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta>`_.
