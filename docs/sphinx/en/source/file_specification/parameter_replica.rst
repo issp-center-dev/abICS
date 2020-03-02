@@ -43,13 +43,6 @@ Keywords
     **Description :**
     Maximum temperature for the replica.
 
-    -  ``nsteps``
-
-    **Format :** int (nature number)
-
-    **Description :** Number of temperature divisions.
-
-
 - About replica 
 
     -  ``nprocs_per_replica``
@@ -67,6 +60,14 @@ Keywords
 
 - Others
 
+
+    -  ``nsteps``
+
+    **Format :** int (nature number)
+
+    **Description :** Number of Monte Carlo steps.
+
+  
     -  ``RXtrial_frequency``
 
     **Format :** int (nature number)

@@ -19,7 +19,7 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
 
 .. math::
    
-   T_i = \frac{\bf|kTend|-\bf|kTstart|}{\bf|nreplicas|-1} i + \bf|kTstart|
+   T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}
 
 として ``nreplicas`` 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 :math:`i=0 \cdots \verb|nreplicas|-1` 。なお、プロセス数を ``nprocs_per_replica`` することで各プロセスが担当するレプリカ数を指定することができます)。
 モンテカルロステップ数は ``nsteps`` で指定し、 ``RXtrial_frequency`` ステップ毎に交換遷移確率
