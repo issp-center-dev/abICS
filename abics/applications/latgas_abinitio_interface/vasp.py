@@ -119,7 +119,7 @@ class VASPSolver(SolverBase):
                     )
                     self.base_vasp_input.update({"POSCAR": self.pos_info})
 
-        def write_input(self, workdir):
+        def write_input(self, output_dir):
             """
             Generate input files of the solver program.
 
@@ -130,7 +130,7 @@ class VASPSolver(SolverBase):
             """
             if self.base_info is None:
                 raise AttributeError("Fail to set base_info.")
-            self.base_vasp_input.write_input(output_dir=workdir)
+            self.base_vasp_input.write_input(output_dir=output_dir)
 
         def cl_args(self, nprocs, nthreads, workdir):
             """
