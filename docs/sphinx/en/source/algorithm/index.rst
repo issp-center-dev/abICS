@@ -1,6 +1,25 @@
 ***************************
-References
+Sampling algorithm
 ***************************
+abICS is designed for combining parallel extended ensemble methods with
+arbitrary energy calculators. At present, only the replica exchange
+Monte Carlo method is implemented.
+
+Replica exchange Monte Carlo method
+------------------------------------
+A disadvantage of the widely-used Metropolis Monte Carlo algorithm is
+that it tends to get stuck in local minima.
+The replica exchange approach aims to overcome this problem by
+considering multiple copies, or replicas, of the system under study.
+The algorithm may be described roughly as follows
+(see references below for more accurate descriptions).
+Monte Carlo sampling is performed on each replica independently at
+varying temperatures. At preset intervals, the temperatures are
+exchanged according to a Metropolis criterion that essentially
+assigns lower temperatures to replicas that happen to have lower
+energies. This allows an efficient sampling of the global configuration
+space using replicas at higher temperatures and accurate sampling of
+the local energy landscape at lower temperatures.
 
 - Overview of abICS
 
