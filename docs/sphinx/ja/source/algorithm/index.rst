@@ -28,7 +28,7 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
 
    R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_i+1}\right)\left(E(X_i)-E(X_{i+1})\right)\right]
 
-を計算がされます。:math:`R` よりも大きい確率が出た場合に温度交換 :math:`T_i \leftarrow T_{i+1}` が行われます (ただし、 :math:`X_i` はi番目のレプリカ系の状態)。なお、物理量は ``sample_frequency`` ステップ毎に測定が行われます。
+を計算がされます。:math:`R` よりも大きい確率が出た場合に温度交換 :math:`T_i \rightarrow T_{i+1}` が行われます (ただし、 :math:`X_i` はi番目のレプリカ系の状態)。なお、物理量は ``sample_frequency`` ステップ毎に測定が行われます。
 
 - abICSの概要について
 
