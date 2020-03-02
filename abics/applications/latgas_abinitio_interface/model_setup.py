@@ -13,22 +13,22 @@ import pymatgen.analysis.structure_analyzer as analy
 from abics.mc import model
 from abics.util import read_coords
 
-
 def gauss(x, x0, sigma):
     """
+    Gaussian function
 
 
     Parameters
     ----------
     x: float
-
+        The position
     x0: float
-
+        The position of the center of the peak
     sigma: float
-
+        The standard deviation
     Returns
     -------
-
+        value: float
     """
     return (
         1.0
@@ -36,18 +36,18 @@ def gauss(x, x0, sigma):
         * np.exp(-np.power((x - x0) / sigma, 2.0) / 2.0)
     )
 
-
 def match_id(lst, obj):
     """
+    Return the index list of lst which matches obj.
 
     Parameters
     ----------
-    lst
-    obj
+    lst: list
+    obj: object
 
     Returns
     -------
-
+        The index list of lst which matches obj.
     """
     mapping = []
     for i in range(len(lst)):
@@ -58,15 +58,16 @@ def match_id(lst, obj):
 
 def nomatch_id(lst, obj):
     """
+    Return the index list of lst which does not match obj.
 
     Parameters
     ----------
-    lst
-    obj
+    lst: list
+    obj: object
 
     Returns
     -------
-
+        The index list of lst which does not match obj.
     """
     mapping = []
     for i in range(len(lst)):
@@ -74,18 +75,18 @@ def nomatch_id(lst, obj):
             mapping.append(i)
     return mapping
 
-
 def match_latgas_group(latgas_rep, group):
     """
+    Return the index list of latgas_rep which matches group.name.
 
     Parameters
     ----------
-    latgas_rep
-    group
-
+    latgas_rep: list
+    group: object
+        group must have name
     Returns
     -------
-
+        The index list of latgas_rep which matches group.name.
     """
     mapping = []
     for i in range(len(latgas_rep)):
@@ -94,64 +95,10 @@ def match_latgas_group(latgas_rep, group):
     return mapping
 
 
-def g_r(structure, specie1, specie2, grid_1D):
-    """
-
-    Parameters
-    ----------
-    structure
-    specie1
-    specie2
-    grid_1D
-
-    Returns
-    -------
-
-    """
-    X = grid_1D.x
-    dr = grid_1D.dx
-
-    lattice = structure.lattice
-    types_of_specie = [element.symbol for element in structure.types_of_specie]
-    assert specie1 in types_of_specie
-    assert specie2 in types_of_specie
-
-    structure1 = structure.copy()
-    structure2 = structure.copy()
-
-    # print(specie1)
-    not_specie1 = copy.copy(types_of_specie)
-    not_specie1.remove(specie1)
-    not_specie2 = types_of_specie
-    not_specie2.remove(specie2)
-    # print(not_specie1,not_specie2)
-
-    structure1.remove_species(not_specie1)
-    structure2.remove_species(not_specie2)
-
-    num_specie1 = structure1.num_sites
-    num_specie2 = structure2.num_sites
-
-    dist = lattice.get_all_distances(structure1.frac_coords, structure2.frac_coords)
-    dist_bin = np.around(dist / dr)
-    # print(num_specie1,num_specie2)
-    g = np.zeros(len(X))
-    for i in range(len(X)):
-        g[i] = np.count_nonzero(dist_bin == i + 1)
-
-    if specie1 == specie2:
-        pref = lattice.volume / (
-            4.0 * np.pi * X * X * dr * num_specie1 * (num_specie1 - 1)
-        )
-    else:
-        pref = lattice.volume / (4.0 * np.pi * X * X * dr * num_specie1 * num_specie2)
-
-    g *= pref
-    return g
-
-
 class dft_latgas(model):
-    """This class defines the DFT lattice gas mapping  model"""
+    """
+    This class defines the DFT lattice gas mapping  model
+    """
 
     model_name = "dft_latgas"
 
@@ -486,7 +433,8 @@ class config:
         perf_structure=None,
         base_structure_seldyn_array=None
     ):
-        """[summary]
+        """
+        [summary]
         
         Parameters
         ----------

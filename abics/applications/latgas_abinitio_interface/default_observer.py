@@ -1,4 +1,5 @@
 from abics.mc import observer_base
+import os
 
 
 class default_observer(observer_base):

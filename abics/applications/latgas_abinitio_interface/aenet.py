@@ -34,57 +34,44 @@ class aenetSolver(SolverBase):
 
         def from_directory(self, base_input_dir):
             """
+            Initialize information from files in base_input_dir.
 
             Parameters
             ----------
-            base_input_dir
-
-            Returns
-            -------
-
+            base_input_dir : str
+                Path to the directory including base input files.
             """
+
             # set information of base_input and pos_info from files in base_input_dir
             self.base_info = os.path.abspath(base_input_dir)
             self.pos_info = open('{}/structure.xsf'.format(base_input_dir), 'r').read()
 
         def update_info_by_structure(self, structure):
             """
+            Update information by atomic structure.
 
             Parameters
             ----------
-            structure
-
-            Returns
-            -------
-
+            structure : pymatgen.Structure
+                Atomic structure
             """
             self.pos_info = structure.to('XSF')
 
         def update_info_from_files(self, output_dir, rerun):
             """
-
-            Parameters
-            ----------
-            output_dir
-            rerun
-
-            Returns
-            -------
-
+               Do nothing.
             """
             print('rerun not implemented. Something has gone wrong')
             sys.exit(1)
             
         def write_input(self, output_dir):
             """
+            Generate input files of the solver program.
 
             Parameters
             ----------
-            output_dir
-
-            Returns
-            -------
-
+            output_dir : str
+                Path to working directory.
             """
             # Write input files
             if self.base_info is None:
@@ -97,16 +84,21 @@ class aenetSolver(SolverBase):
 
         def cl_args(self, nprocs, nthreads, output_dir):
             """
+            Generate command line arguments of the solver program.
 
             Parameters
             ----------
-            nprocs
-            nthreads
-            output_dir
+            nprocs : int
+                The number of processes.
+            nthreads : int
+                The number of threads.
+            output_dir : str
+                Path to the working directory.
 
             Returns
             -------
-
+            args : list[str]
+                Arguments of command
             """
             # Specify command line arguments
             return ['{}/predict.in'.format(output_dir),]
@@ -115,13 +107,19 @@ class aenetSolver(SolverBase):
 
         def get_results(self, output_dir):
             """
+            Get energy and structure obtained by the solver program.
 
             Parameters
             ----------
-            output_dir
+            output_dir: str
+                Path to the working directory.
 
             Returns
             -------
+            phys : named_tuple("energy", "structure")
+                Total energy and atomic structure.
+                The energy is measured in the units of eV
+                and coordinates is measured in the units of Angstrom.
 
             """
             # Read results from files in output_dir and calculate values
