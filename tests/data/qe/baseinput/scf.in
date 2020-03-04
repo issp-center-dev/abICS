@@ -1,27 +1,35 @@
 &CONTROL
-  calculation = 'scf'
+  calculation = "scf"
   tstress = .false.
   tprnfor = .false.
-  pseudo_dir = '~/qe/pot'
-  disk_io = 'low'
+  pseudo_dir = "~/qe/pot"
+  disk_io = "low"
   wf_collect = .false.
+  prefix = "pwscf"
+  outdir = "work"
 /
 &SYSTEM
-  ecutwfc      =  60.0
-  occupations  = "smearing"
-  smearing     = "gauss"
-  degauss      = 0.01
+  ecutwfc = 60.0
+  occupations = "smearing"
+  smearing = "gauss"
+  degauss = 0.01
+  ibrav = 0
+  a = 1.0
+  ntyp = 1
+  nat = 1
 /
-&electrons
+&ELECTRONS
   mixing_beta = 0.7
-  conv_thr = 1.0d-4
+  conv_thr = 0.0001
   electron_maxstep = 3
 /
+CELL_PARAMETERS alat
+ 4.0 0.0 0.0
+ 0.0 4.0 0.0
+ 0.0 0.0 4.0
 ATOMIC_SPECIES
-Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
-Mg 24.305 Mg.pbesol-spnl-kjpaw_psl.1.0.0.UPF
-O  16.000 O.pbesol-n-kjpaw_psl.1.0.0.UPF
+ Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
 ATOMIC_POSITIONS crystal
-
+Al        0.000000      0.000000      0.000000  1 1 1
 K_POINTS automatic
-1 1 1 0 0 0
+ 1 1 1 0 0 0
