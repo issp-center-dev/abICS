@@ -38,3 +38,8 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
 
   - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
   - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
+
+モンテカルロ法について
+---------------------------
+
+abICSでは
