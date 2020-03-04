@@ -8,15 +8,6 @@ Subpackages
 
    abics.applications.latgas_abinitio_interface
 
-Submodules
-----------
-
-.. toctree::
-
-   abics.applications.pmg_structure_obs
-   abics.applications.pmg_structure_obs_mpi
-   abics.applications.rhorhocy
-
 Module contents
 ---------------
 
