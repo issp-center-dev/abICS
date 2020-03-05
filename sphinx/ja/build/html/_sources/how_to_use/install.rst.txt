@@ -1,0 +1,56 @@
+.. highlight:: none
+
+インストール方法
+--------------------------
+
+ダウンロード
+~~~~~~~~~~~~~~~~~~~~~~
+
+ABC-sampling のソースコードは `GitHub page <https://github.com/issp-center-dev/pymc-dev>`_ からダウンロードできます。
+
+``$ git clone https://github.com/issp-center-dev/pymc-dev``
+
+ディレクトリ構成
+~~~~~~~~~~~~~~~~~~~~~~
+
+ABC-samplingのディレクトリ構成は以下のようになっています.
+``examples/standard`` には簡易ファイルで実行可能なサンプルが, 
+``examples/expert`` にはpythonモジュールを直接用いて作成されたサンプルがあります.
+pythonモジュールは``py_mc`` ディレクトリ以下に一式格納されています.
+
+  :: 
+
+     - examples
+        - standard
+            - spinel
+                - QE
+                - vasp
+                - openmx
+            - sub-lattice
+                - QE
+                - vasp
+                - openmx
+        - expert 
+            - ising2D
+            - 2D_hardcore
+            …
+    - make_wheel.sh
+    - py_mc
+        - pymc.py
+        - pythonモジュール
+    - test
+
+インストール
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. wheelファイルを作成します.
+
+``$ ./make_wheel.sh``
+
+2. 作成されたファイルを使用して以下のようにインストールします.
+
+``$ pip install dist/py_mc-*.whl``
+
+インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
+
+``$ pip install --user dist/py_mc-*.whl``
