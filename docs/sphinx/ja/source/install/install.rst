@@ -26,29 +26,30 @@ VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用す�
 abICSのディレクトリ構成は以下のようになっています.
 ``examples/standard`` には簡易ファイルで実行可能なサンプルが, 
 ``examples/expert`` にはpythonモジュールを直接用いて作成されたサンプルがあります.
-pythonモジュールは ``py_mc`` ディレクトリ以下に一式格納されています.
+pythonモジュールは ``abics`` ディレクトリ以下に一式格納されています.
 
-  :: 
+:: 
 
-     - examples
-        - standard
-            - spinel
-                - QE
-                - vasp
-                - openmx
-            - sub-lattice
-                - QE
-                - vasp
-                - openmx
-        - expert 
-            - ising2D
-            - 2D_hardcore
-            …
-    - make_wheel.sh
-    - py_mc
-        - pymc.py
-        - pythonモジュール
-    - test
+ .
+ |-- COPYING
+ |-- README.md
+ |-- abics/
+ |   |-- __init__.py
+ |   |-- applications/
+ |   |-- mc.py
+ |   |-- mc_mpi.py
+ |   |-- scripts/
+ |   `-- util.py
+ |-- docs/
+ |   `-- sphinx/
+ |-- examples/
+ |   |-- expert/
+ |   `-- standard/
+ |-- make_wheel.sh
+ |-- setup.cfg
+ `-- setup.py
+
+
 
 インストール
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,8 +60,8 @@ pythonモジュールは ``py_mc`` ディレクトリ以下に一式格納され
 
 2. 作成されたファイルを使用して以下のようにインストールします.
 
-``$ pip install dist/abics-\*.whl``
+``$ pip install dist/abics-*.whl``
 
 インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
 
-``$ pip install --user dist/abics-\*.whl``
+``$ pip install --user dist/abics-*.whl``
