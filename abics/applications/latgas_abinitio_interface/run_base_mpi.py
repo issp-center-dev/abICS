@@ -93,6 +93,10 @@ class runner(object):
             self.run = run_mpispawn(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
+        elif solver_run_scheme == "mpi_spawn_wrapper":
+            self.run = run_mpispawn_wrapper(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
         elif solver_run_scheme == "subprocess":
             self.run = run_subprocess(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
@@ -501,6 +505,146 @@ class run_mpispawn_ready:
         return 0
 
 
+
+class run_mpispawn_wrapper:
+    """
+    Invoker via mpi_comm_spawn
+
+    Attributes
+    ----------
+    path_to_solver : str
+        Path to solver program
+    nprocs : int
+        Number of process which one solver uses
+    nthreads : int
+        Number of threads which one solver process uses
+    comm : MPI.Comm
+        MPI Communicator
+    commsize : int
+        Size of comm
+    commrank : int
+        My rank in comm
+    worldrank : int
+        My rank in MPI.COMM_WORLD
+    """
+
+    def __init__(self, path_to_solver, nprocs, nthreads, comm):
+        """
+        Parameters
+        ----------
+        path_to_solver : str
+            Path to solver program
+        nprocs : int
+            Number of process which one solver uses
+        nthreads : int
+            Number of threads which one solver process uses
+        comm : MPI.Comm
+            MPI Communicator
+        """
+        self.path_to_solver = path_to_solver
+        self.nprocs = nprocs
+        self.nthreads = nthreads
+        self.comm = comm
+        self.commsize = comm.Get_size()
+        self.commrank = comm.Get_rank()
+        commworld = MPI.COMM_WORLD
+        self.worldrank = commworld.Get_rank()
+
+    def submit(self, solver_name, solverinput, output_dir, rerun=2):
+        """
+        Run solver
+
+        Parameters
+        ----------
+        solver_name : str
+            Name of solver (e.g., VASP)
+        solverinput : Solver.Input
+            Input manager
+        output_dir : str
+            Path to directory where a solver saves output
+        rerun : int, default = 2
+            How many times to restart solver on failed
+
+        Returns
+        -------
+        status : int
+            Always returns 0
+        """
+        solverinput.write_input(output_dir)
+
+        # Barrier so that spawn is atomic between processes.
+        # This is to make sure that vasp processes are spawned one by one according to
+        # MPI policy (hopefully on adjacent nodes)
+        # (might be MPI implementation dependent...)
+
+        # for i in range(self.commsize):
+        #    self.comm.Barrier()
+        #    if i == self.commrank:
+        failed_dir = []
+        cl_argslist = self.comm.gather(
+            solverinput.cl_args(self.nprocs, self.nthreads, output_dir), root=0
+        )
+        solverrundirs = self.comm.gather(output_dir, root=0)
+
+        checkfilename = "abacus_solver_finished"
+
+        if self.commrank == 0:
+
+            wrappers = [
+                "rm -f {checkfile}; {solvername} {cl_args}; echo $? > {checkfile}".format(
+                    checkfile=shlex.quote(
+                        os.path.join(output_dir, checkfilename)
+                    ),
+                    solvername=self.path_to_solver,
+                    cl_args=" ".join(map(shlex.quote, cl_args)),
+                )
+                for cl_args in cl_argslist
+            ]
+
+            start = timer()
+            commspawn = [
+                MPI.COMM_SELF.Spawn(
+                    os.getenv('SHELL'), args=["-c", wrapper], maxprocs=self.nprocs
+                )
+                for wrapper in wrappers
+            ]
+            end = timer()
+            print("rank ", self.worldrank, " took ", end - start, " to spawn")
+            sys.stdout.flush()
+            start = timer()
+            for rundir in solverrundirs:
+                while True:
+                    if os.path.exists(os.path.join(rundir, checkfilename)):
+                        break
+                    time.sleep(1)
+            end = timer()
+            print(
+                "rank ",
+                self.worldrank,
+                " took ",
+                end - start,
+                " for " + solver_name + "execution",
+            )
+
+            # if len(failed_dir) != 0:
+            #     print(
+            #         solver_name + " failed in directories: \n " + "\n".join(failed_dir)
+            #     )
+            #     sys.stdout.flush()
+            #     if rerun == 0:
+            #         MPI.COMM_WORLD.Abort()
+        self.comm.Barrier()
+
+        # Rerun if Solver failed
+        # failed_dir = self.comm.bcast(failed_dir, root=0)
+        # if len(failed_dir) != 0:
+        #     solverinput.update_info_from_files(output_dir, rerun)
+        #     rerun -= 1
+        #     self.submit(solverinput, output_dir, rerun)
+
+        return 0
+
+
 class run_subprocess:
     """
     Invoker via subprocess
@@ -564,9 +708,12 @@ class run_subprocess:
         command = [self.path_to_solver]
         command.extend(args)
         to_rerun = False
+        print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
-                subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
+                # subprocess.run(command, check=True, shell=True)
+                subprocess.run(' '.join(command), check=True, shell=True)
+                # subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
             except subprocess.CalledProcessError as e:
                 if rerun > 0:
                     to_rerun = True

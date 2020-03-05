@@ -11,6 +11,7 @@ Submodules
    abics.applications.latgas_abinitio_interface.default_observer
    abics.applications.latgas_abinitio_interface.defect
    abics.applications.latgas_abinitio_interface.model_setup
+   abics.applications.latgas_abinitio_interface.openmx
    abics.applications.latgas_abinitio_interface.params
    abics.applications.latgas_abinitio_interface.qe
    abics.applications.latgas_abinitio_interface.run_base_mpi
