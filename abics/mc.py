@@ -28,7 +28,8 @@ class model:
 
         Parameters
         ----------
-        config
+        config: config object
+            configuration
 
         Returns
         -------
@@ -44,12 +45,17 @@ class model:
 
         Parameters
         ----------
-        config
-        energy
+        config: config object
+            configuration
 
+        energy: float
+            energy
         Returns
         -------
-
+        dconfig: config object
+            The minimal information for constructing the trial configuration from config to be used in newconfig()
+        dE: float
+            Energy diffence
         """
         dE = 0.0
         dconfig = None
@@ -64,12 +70,15 @@ class model:
 
         Parameters
         ----------
-        config
-        dconfig
+        config: config object
+            Original configuration
+        dconfig: config object
+            Difference of configuration
 
         Returns
         -------
-
+        config: config object
+            updated configuration
         """
         return config
 
@@ -80,9 +89,13 @@ class grid_1D:
 
         Parameters
         ----------
-        dx
-        minx
-        maxx
+        dx: float
+            interval
+        minx: float
+            minimum value of x
+        maxx: float
+            maximum value of x
+
         """
         self.dx = dx
         self.x = np.arange(minx, maxx, dx)
@@ -93,12 +106,15 @@ def binning(x, nlevels):
 
     Parameters
     ----------
-    x
-    nlevels
+    x: list
+        Coordinates
+    nlevels: int
+        Number to determine the number of measurements
 
     Returns
     -------
-
+    error_estimate: list
+        error estimation
     """
     error_estimate = []
     x = np.array(x, dtype=np.float64)
@@ -125,10 +141,11 @@ def obs_encode(*args):
 
     Parameters
     ----------
-    args
+    args: list
 
     Returns
     -------
+    obs_array: numpy array
 
     """
     # nargs = np.array([len(args)])
@@ -150,11 +167,11 @@ def args_info(*args):
 
     Parameters
     ----------
-    args
+    args: list
 
     Returns
     -------
-
+    args_info: numpy array
     """
     nargs = np.array([len(args)])
     args_length_list = []
@@ -173,12 +190,12 @@ def obs_decode(args_info, obs_array):
 
     Parameters
     ----------
-    args_info
-    obs_array
+    args_info: numpy array
+    obs_array: numpy array
 
     Returns
     -------
-
+    args: list
     """
     nargs = args_info[0]
     args_length_array = args_info[1 : nargs + 1]
@@ -194,35 +211,6 @@ def obs_decode(args_info, obs_array):
     return args
 
 
-def make_observefunc(logfunc, *multiDfuncs):
-    def observefunc(calc_state, outputfi):
-        """
-
-        Parameters
-        ----------
-        calc_state
-        outputfi
-
-        Returns
-        -------
-
-        """
-        obs_log = logfunc(calc_state)
-        outputfi.write(str(calc_state.kT) + "\t")
-        if hasattr(obs_log, "__getitem__"):
-            outputfi.write(
-                "\t".join([str(observable) for observable in obs_log]) + "\n"
-            )
-        else:
-            outputfi.write(str(obs_log) + "\n")
-        obs_ND = []
-        for func in multiDfuncs:
-            obs_ND.append(func(calc_state))
-        return obs_encode(*obs_log, *obs_ND)
-
-    return observefunc
-
-
 class observer_base:
     def __init__(self):
         self.lprintcount = 0
@@ -232,10 +220,12 @@ class observer_base:
 
         Parameters
         ----------
-        calc_state
+        calc_state: MonteCarlo algorithm object
+            MonteCarlo algorithm
 
         Returns
         -------
+        args_info: numpy array
 
         """
         obs_log = self.logfunc(calc_state)
@@ -257,11 +247,13 @@ class observer_base:
 
         Parameters
         ----------
-        calc_state
+        calc_state: MonteCarlo algorithm object
+            MonteCarlo algorithm
 
         Returns
         -------
-
+        calc_state.energy: tuple
+            (Energy)
         """
         return (calc_state.energy,)
 
@@ -270,11 +262,11 @@ class observer_base:
 
         Parameters
         ----------
-        calc_state
+        calc_state: MonteCarlo algorithm object
+            MonteCarlo algorithm
 
         Returns
         -------
-
         """
         return None
 
@@ -283,7 +275,8 @@ class observer_base:
 
         Parameters
         ----------
-        calc_state
+        calc_state: MonteCarlo algorithm object
+            MonteCarlo algorithm
 
         Returns
         -------
@@ -296,13 +289,16 @@ class observer_base:
 
         Parameters
         ----------
-        calc_state
-        outputfi
-        lprint
-
+        calc_state: MonteCarlo algorithm object
+            MonteCarlo algorithm
+        outputfi: _io.TextIOWrapper
+            TextIOWrapper for output
+        lprint: boolean
+            if true, log info is outputted to TextIOWrapper
         Returns
         -------
-
+        obs_log: numpy array
+            log information about observation
         """
         obs_log = np.atleast_1d(self.logfunc(calc_state))
         if lprint:
@@ -328,20 +324,21 @@ class observer_base:
 
 
 class CanonicalMonteCarlo:
-    def __init__(self, model, kT, config, grid=0):
+    def __init__(self, model, kT, config):
         """
 
         Parameters
         ----------
-        model
-        kT
-        config
-        grid
+        model: dft_latgas object
+            DFT lattice gas mapping model
+        kT: float
+            Temperature
+        config: config object
+            Configuration
         """
         self.model = model
         self.config = config
         self.kT = kT
-        self.grid = grid
         self.obs_save = []
 
     # @profile
@@ -375,15 +372,18 @@ class CanonicalMonteCarlo:
 
         Parameters
         ----------
-        nsteps
-        sample_frequency
-        print_frequency
-        observer
-        save_obs
+        nsteps: int
+            The number of Monte Carlo steps for running.
+        sample_frequency: int
+            The number of Monte Carlo steps for observation of physical quantities.
+        print_frequency: int
+            The number of Monte Carlo steps for saving physical quantities.
+        observer: observer object
+        save_obs: boolean
 
         Returns
         -------
-
+        obs_decode: list
         """
         observables = 0.0
         nsample = 0
@@ -415,28 +415,28 @@ class CanonicalMonteCarlo:
             return None
 
 
-def swap_configs(MCreplicas, rep, accept_count):
-    """
-
-    Parameters
-    ----------
-    MCreplicas
-    rep
-    accept_count
-
-    Returns
-    -------
-
-    """
-    # swap configs, energy
-    tmp = MCreplicas[rep + 1].config
-    tmpe = MCreplicas[rep + 1].energy
-    MCreplicas[rep + 1].config = MCreplicas[rep].config
-    MCreplicas[rep + 1].energy = MCreplicas[rep].energy
-    MCreplicas[rep].config = tmp
-    MCreplicas[rep].energy = tmpe
-    accept_count += 1
-    return MCreplicas, accept_count
+# def swap_configs(MCreplicas, rep, accept_count):
+#     """
+#
+#     Parameters
+#     ----------
+#     MCreplicas:
+#     rep:
+#     accept_count:
+#
+#     Returns
+#     -------
+#
+#     """
+#     # swap configs, energy
+#     tmp = MCreplicas[rep + 1].config
+#     tmpe = MCreplicas[rep + 1].energy
+#     MCreplicas[rep + 1].config = MCreplicas[rep].config
+#     MCreplicas[rep + 1].energy = MCreplicas[rep].energy
+#     MCreplicas[rep].config = tmp
+#     MCreplicas[rep].energy = tmpe
+#     accept_count += 1
+#     return MCreplicas, accept_count
 
 
 """
