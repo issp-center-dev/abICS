@@ -8,7 +8,7 @@ Contacts
 
 - About Bugs
 
-  Please report all problems and bugs on the github Issues page
+  Please report all problems and bugs on the GitHub Issues page
 
   To resolve bugs early, follow these guidelines when reporting:
 
