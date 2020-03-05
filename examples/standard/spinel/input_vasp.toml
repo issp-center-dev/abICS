@@ -3,9 +3,9 @@ nreplicas = 2
 nprocs_per_replica = 1
 
 kTstart = 1000.0
-kTend = 1100.0
+kTend = 1200.0
 
-nsteps = 3  # Number of steps for sampling
+nsteps = 5  # Number of steps for sampling
 RXtrial_frequency = 1
 sample_frequency = 1
 print_frequency = 1
