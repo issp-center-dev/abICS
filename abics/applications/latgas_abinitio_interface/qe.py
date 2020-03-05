@@ -17,7 +17,7 @@ from ...util import expand_path
 
 
 hartree2eV = spc.value("Hartree energy in eV")
-Bohr2AA = spc.value('Bohr radius') * 1e10
+Bohr2AA = spc.value("Bohr radius") * 1e10
 
 
 class QESolver(SolverBase):
@@ -61,6 +61,7 @@ class QESolver(SolverBase):
         filetocheck : str
             Name of the file to be used for check finished.
         """
+
         def __init__(self):
             self.pwi = None
             self.datadir = "pwscf.save"
@@ -142,7 +143,9 @@ class QESolver(SolverBase):
             if "seldyn" in structure.site_properties:
                 seldyn_arr = structure.site_properties["seldyn"]
                 for idx, dyn_info in enumerate(seldyn_arr):
-                    self.pwi.atomic_positions["fixed_coords"][i] = (~np.array(dyn_info)).tolist()
+                    self.pwi.atomic_positions["fixed_coords"][i] = (
+                        ~np.array(dyn_info)
+                    ).tolist()
 
         def update_info_from_files(self, output_dir, rerun):
             """
@@ -150,19 +153,18 @@ class QESolver(SolverBase):
             """
             pass
 
-
-        def write_input(self, workdir):
+        def write_input(self, output_dir):
             """
             Generate input files of the solver program.
 
             Parameters
             ----------
-            workdir : str
+            output_dir : str
                 Path to working directory.
             """
-            self.pwi.namelists["CONTROL"]["outdir"] = workdir
-            os.makedirs(workdir, exist_ok=True)
-            with open(os.path.join(workdir, "scf.in"), "w") as f:
+            self.pwi.namelists["CONTROL"]["outdir"] = output_dir
+            os.makedirs(output_dir, exist_ok=True)
+            with open(os.path.join(output_dir, "scf.in"), "w") as f:
                 for section in self.pwi.namelists.keys():
                     f.write("&{}\n".format(section))
                     for k, v in self.pwi.namelists[section].items():
@@ -244,6 +246,7 @@ class QESolver(SolverBase):
         """
         Output manager.
         """
+
         def __init__(self, prefix):
             pass
 
@@ -264,9 +267,7 @@ class QESolver(SolverBase):
                 and coordinates is measured in the units of Angstrom.
             """
             # Read results from files in output_dir and calculate values
-            tree = ET.parse(
-                os.path.join(workdir, "pwscf.save", "data-file-schema.xml")
-            )
+            tree = ET.parse(os.path.join(workdir, "pwscf.save", "data-file-schema.xml"))
             root = tree.getroot()
             A = np.zeros((3, 3))
             child = root.find("input").find("atomic_structure").find("cell")
@@ -296,4 +297,5 @@ class QESolver(SolverBase):
         schemes : tuple[str]
             Implemented runner schemes.
         """
-        return ("mpi_spawn",)
+        return ("mpi_spawn")
+

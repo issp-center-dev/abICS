@@ -3,7 +3,7 @@ DOCROOT=`pwd`
 # user's manual
 cd ${DOCROOT}/sphinx/ja
 make html
-cd ${DOCROOT}/sphinx/ja
+cd ${DOCROOT}/sphinx/en
 make html
 
 # api
