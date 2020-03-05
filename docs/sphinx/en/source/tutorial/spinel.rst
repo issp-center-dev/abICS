@@ -4,6 +4,7 @@ Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal MgAl2
 --------------------------------------------------------------------------------------
 
 Input files are available from ``examples/standard/spinel`` .
+Below, examples for QuantumESPRESSO and VASP are described.
 
 Example by using QuantumESPRESSO
 =======================================
@@ -186,6 +187,88 @@ If this directory already exists, the old one is moved to another directory ``Ts
 Next, calculate DOI by using ``calc_DOI.py``::
 
   mpiexec -np 2 python3 ./calc_DOI.py input_qe.toml
+
+The results are stored in ``Tseparate/DOI_T.dat`` .
+
+.. image:: ../../../image/doi_2.*
+   :width: 400px
+   :align: center
+
+
+If you increase the number of replicas, you can calculate at various temperatures.
+You can also get better results by increasing the number of steps.
+The first number of samples to discard in Monte Carlo averaging can be specified by the value of ``throwout`` in the ``calc_DOI.py`` script.
+For example, if you do with 17 replicas and 20 steps, the following result will be obtained
+
+.. image:: ../../../image/doi_17.*
+   :width: 400px
+   :align: center
+
+You can see that DOI increases as the temperature increases.
+
+Example by using VASP
+=====================
+
+Preparing the input files for abICS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The input file of abICS is ``input_vasp.toml`` .
+Below, ``input_vasp.toml`` in ``examples/standard/spinel`` is explained as an example.
+Only the ``[solver]`` section is differnt from that of QuantumESPRESSO.
+The ``[solver]`` section is specified as follows:
+
+::
+
+   [solver]
+   type = 'vasp'
+   path = './vasp'
+   base_input_dir = './baseinput'
+   perturb = 0.0
+   run_scheme = 'mpi_spawn_ready'
+
+This examples set ``type`` as ``vasp`` in order to use VASP.
+``path`` specifies the path to ``vasp``.
+The directory that contains the input parameter files specific to each solver is given as ``./baseinput`` using ``base_input_dir``.
+``perturb`` is a random parameter that shifts atomic positions for structural optimization, but in this example it is set to 0 not to perform structural optimization.
+
+abICS starts ``pw.x`` with ``MPI_Comm_spawn``, so give ``mpi_spawn`` as ``run_scheme``.
+
+abICS starts ``vasp`` with ``MPI_Comm_spawn``, so give ``mpi_spawn_ready`` as ``run_scheme`` .To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` .
+
+Preparing the input file of VASP
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+abICS generates the input files of the solver from the internal atomic structure, but information other than the structure, such as pseudopotential information, must be supplied by the user.
+In the case of VASP, such information is specified by ``INCAR`` 、 ``POSCAR`` 、 ``KPOINTS`` and ``POTCAR`` in  ``base_input_dir``. Here, ``POTCAR`` file is not contained in the ``base_input_dir`` due to the VASP license. Before the calculation, generate  ``PORCAR`` file from the ``O, Al, Mg`` pesudo potential files.
+Based on these files, an input file with unit cells and atomic structure is automatically generated.
+
+- Notes
+  
+  -  The coordinate information of ``POSCAR`` will be overwritten by the input information of abICS, but it must be described.
+
+Execution and analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See "How to use" section for information on setting the number of processes and options for running MPI.
+
+::
+
+   mpiexec -np 2 abics input_vasp.toml
+
+
+After the abICS calculation, the degree of inversion (DOI: ratio of Al atoms where Mg atoms were originally located) is calculated.
+To do this, use the scripts ``separateT.py`` and ``calc_DOI.py`` in the ``examples/standard/spinel`` directory.
+
+First, use ``separateT.py`` to summarize the structure information for each replica by temperature::
+
+  mpiexec -np 2 python3 ./separateT.py input_vasp.toml
+
+The results are stored in the ``Tseparate`` directory.
+If this directory already exists, the old one is moved to another directory ``Tseparate.DATE`` (``DATE`` is the current datetime).
+
+Next, calculate DOI by using ``calc_DOI.py``::
+
+  mpiexec -np 2 python3 ./calc_DOI.py input_vasp.toml
 
 The results are stored in ``Tseparate/DOI_T.dat`` .
 
