@@ -272,7 +272,7 @@ class dft_latgas(model):
 
     def newconfig(self, config, dconfig):
         """
-        Construct the new configuration after the trial step is accepted
+        Update config by the trial step, dconfig
 
         Parameters
         ----------
@@ -458,20 +458,22 @@ class config:
         base_structure_seldyn_array=None
     ):
         """
-        
+
         Parameters
         ----------
         base_structure : pymatgen.Structure
+            Structure of base sites (unsampled sites)
         defect_sublattices : pymatgen.Structure
+            Structure of defect sites (sampled sites)
         num_defects : dict
             {group name: number of defects}
         cellsize : list, optional
             Cell size, by default [1, 1, 1]
-        perf_structure : [], optional
-            [], by default None
-        base_structure_seldyn_array : [], optional
-            [], by default None
-        """        
+        perf_structure : pymatgen.Structure, optional
+            Strucure of all sites (union of base and defect), by default None
+        base_structure_seldyn_array : list[list[boolean]], optional
+            relaxation flags for base structure, by default None
+        """
         try:
             num_defect_sublat = len(defect_sublattices)
         except TypeError:
@@ -489,14 +491,16 @@ class config:
         self.calc_history = []
         self.cellsize = cellsize
         self.base_structure = base_structure
-        if base_structure_seldyn_array != None:
+        if base_structure_seldyn_array is not None:
             if isinstance(base_structure_seldyn_array, np.ndarray):
                 base_structure_seldyn_array.tolist()
             assert(len(base_structure) == len(base_structure_seldyn_array), 
                 "Lengths of base_structure and seldyn_array do not match")
             self.base_structure.add_site_property("seldyn", base_structure_seldyn_array)
         elif len(base_structure) != 0:
-            self.base_structure.add_site_property("seldyn", [[True, True, True] for i in range(len(base_structure))])
+            self.base_structure.add_site_property("seldyn",
+                                                  [[True, True, True]
+                                                      for i in range(len(base_structure))])
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -560,10 +564,6 @@ class config:
         Parameters
         ----------
         defect_sublattices: pymatgen.Structure
-
-        Returns:
-        -------
-
         """
         if defect_sublattices:
             self.defect_sublattices = defect_sublattices
@@ -581,7 +581,7 @@ class config:
                     self.structure.append(
                         group.species[j],
                         group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
-                        properties={"seldyn":[True, True, True]}
+                        properties={"seldyn" : [True, True, True]}
                     )
 
     def shuffle(self):
@@ -647,9 +647,6 @@ class config:
         filledsites = self.matcher_frame.get_mapping(
             self.perf_structure, self.structure
         )
-        # print(self.perf_structure)
-        # print(self.structure)
-        # print(filledsites)
         vac_structure = self.perf_structure.copy()
         vac_structure.remove_sites(filledsites)
         return vac_structure

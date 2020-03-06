@@ -239,7 +239,7 @@ Preparing the input file of VASP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 abICS generates the input files of the solver from the internal atomic structure, but information other than the structure, such as pseudopotential information, must be supplied by the user.
-In the case of VASP, such information is specified by ``INCAR`` 、 ``POSCAR`` 、 ``KPOINTS`` and ``POTCAR`` in  ``base_input_dir``. Here, ``POTCAR`` file is not contained in the ``base_input_dir`` due to the VASP license. Before the calculation, generate  ``PORCAR`` file from the ``O, Al, Mg`` pesudo potential files.
+In the case of VASP, such information is specified by ``INCAR`` 、 ``POSCAR`` 、 ``KPOINTS`` and ``POTCAR`` in  ``base_input_dir``. Here, ``POTCAR`` file is not contained in the ``base_input_dir`` due to the VASP license. Before the calculation, generate  ``POTCAR`` file from the ``O, Al, Mg`` pesudo potential files.
 Based on these files, an input file with unit cells and atomic structure is automatically generated.
 
 - Notes

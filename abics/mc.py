@@ -40,8 +40,8 @@ class model:
     def trialstep(self, config, energy):
         """
         Define a trial step on config. Returns dconfig, which can contain the minimal information for
-        constructing the trial configuration from config to be used in newconfig(). Make sure that
-        config is the same upon entry and exit
+        constructing the trial configuration from config to be used in newconfig().
+        Make sure that config is unchanged.
 
         Parameters
         ----------
@@ -66,12 +66,13 @@ class model:
 
     def newconfig(self, config, dconfig):
         """
-        Build new configuration from config and dconfig
+        Update config by using the trial step, dconfig
 
         Parameters
         ----------
         config: config object
             Original configuration
+            This may be mutated through this function
         dconfig: config object
             Difference of configuration
 
@@ -229,15 +230,14 @@ class observer_base:
 
         """
         obs_log = self.logfunc(calc_state)
-        if isinstance(obs_log, tuple) == False:
+        if not isinstance(obs_log, tuple):
             obs_log = (obs_log,)
         obs_ND = []
         obs_save = self.savefuncs(calc_state)
-        if obs_save != None:
+        if obs_save is not None:
             if isinstance(obs_save, tuple):
                 for obs in obs_save:
                     obs_ND.append(obs)
-
             else:
                 obs_ND.append(obs_save)
         return args_info(*obs_log, *obs_ND)
@@ -295,6 +295,7 @@ class observer_base:
             TextIOWrapper for output
         lprint: boolean
             if true, log info is outputted to TextIOWrapper
+
         Returns
         -------
         obs_log: numpy array
@@ -314,7 +315,7 @@ class observer_base:
             self.writefile(calc_state)
             self.lprintcount += 1
         obs_save = self.savefuncs(calc_state)
-        if obs_save != None:
+        if obs_save is not None:
             obs_save = np.atleast_1d(obs_save)
             obs_save = obs_save.ravel()
             print(obs_log.shape, obs_save.shape)
@@ -351,14 +352,11 @@ class CanonicalMonteCarlo:
         if dE < 0.0:
             self.config = self.model.newconfig(self.config, dconfig)
             self.energy += dE
-            # print "trial accepted"
         else:
             accept_probability = exp(-dE / self.kT)
-            # if sfmt_random.random_sample() <= accept_probability:
             if random() <= accept_probability:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
-                # print "trial accepted"
 
     def run(
         self,
@@ -398,7 +396,7 @@ class CanonicalMonteCarlo:
         for i in range(1, nsteps + 1):
             self.MCstep()
             sys.stdout.flush()
-            if i % sample_frequency == 0 and observe:
+            if observe and i % sample_frequency == 0:
                 obs_step = observer.observe(self, output, i % print_frequency == 0)
                 observables += obs_step
                 nsample += 1
