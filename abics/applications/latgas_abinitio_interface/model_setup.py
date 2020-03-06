@@ -83,7 +83,7 @@ def match_latgas_group(latgas_rep, group):
     ----------
     latgas_rep: list
     group: object
-        group must have name
+        Notes: the group must have name
     Returns
     -------
         The index list of latgas_rep which matches group.name.
@@ -115,12 +115,14 @@ class dft_latgas(model):
 
         Parameters
         ----------
-        abinitio_run
-        selective_dynamics
-        save_history
-        l_update_basestruct
-        check_ion_move
-        ion_move_tol
+        abinitio_run: runner object
+            Runner (manager) of external solver program
+        selective_dynamics: list
+            List of relaxation
+        save_history: boolean
+        l_update_basestruct: boolean
+        check_ion_move: boolean
+        ion_move_tol: float
         """
         self.matcher = StructureMatcher(primitive_cell=False, allow_subset=False)
         self.abinitio_run = abinitio_run
@@ -132,16 +134,17 @@ class dft_latgas(model):
 
     def energy(self, config):
         """
+        Calculate total energy
 
         Parameters
         ----------
-        config
+        config: config object
+            Configurations
 
         Returns
         -------
-
+        energy: float
         """
-        """ Calculate total energy"""
 
         config.structure.sort(key=lambda site: site.species_string)
         structure = config.structure
@@ -190,12 +193,17 @@ class dft_latgas(model):
 
         Parameters
         ----------
-        config
-        energy_now
+        config: config object
+            Configurations
+        energy_now: float
+            Present energy
 
         Returns
         -------
-
+        dconfig: float
+            Difference of configurations
+        dE : float
+            Difference of energies
         """
 
         e0 = energy_now
@@ -264,72 +272,79 @@ class dft_latgas(model):
 
     def newconfig(self, config, dconfig):
         """
+        Update config by the trial step, dconfig
 
         Parameters
         ----------
-        config
-        dconfig
+        config: config object
+            Configuration
+        dconfig: config object
+            Difference of configuration
 
         Returns
         -------
-
+        config: config object
+            New configuration
         """
-        """Construct the new configuration after the trial step is accepted"""
         config.structure, config.defect_sublattices = dconfig
         if self.l_update_basestruct:
             self.update_basestruct(config)
         return config
 
-
-class energy_lst(dft_latgas):
-    def __init__(
-        self,
-        calcode,
-        vasp_run,
-        base_vaspinput,
-        matcher_base,  # matcher, matcher_site,
-        queen,
-        reps,
-        energy_lst,
-        selective_dynamics=None,
-        matcher=None,
-    ):
-        """
-
-        Parameters
-        ----------
-        calcode
-        vasp_run
-        base_vaspinput
-        matcher_base
-        queen
-        reps
-        energy_lst
-        selective_dynamics
-        matcher
-        """
-        super().__init__(
-            calcode,
-            vasp_run,
-            base_vaspinput,
-            matcher_base,  # matcher, matcher_site,
-            queen,
-            selective_dynamics=None,
-            matcher=None,
-        )
-        self.reps = reps
-        self.energy_list = energy_lst
+# class energy_lst(dft_latgas):
+#     def __init__(
+#         self,
+#         calcode,
+#         vasp_run,
+#         base_vaspinput,
+#         matcher_base,  # matcher, matcher_site,
+#         queen,
+#         reps,
+#         energy_lst,
+#         selective_dynamics=None,
+#         matcher=None
+#     ):
+#         """
+#
+#         Parameters
+#         ----------
+#         calcode:
+#         vasp_run: runner object
+#             Runner (manager) of external solver program
+#         base_vaspinput:
+#         matcher_base:
+#         queen:
+#         reps:
+#         energy_lst: list
+#             Energy list
+#         selective_dynamics: list
+#             List of relaxation
+#         matcher:
+#         """
+#         super().__init__(
+#             calcode,
+#             vasp_run,
+#             base_vaspinput,
+#             matcher_base,  # matcher, matcher_site,
+#             queen,
+#             selective_dynamics=None,
+#             matcher=None,
+#         )
+#         self.reps = reps
+#         self.energy_list = energy_lst
 
     def energy(self, config, save_history=False):
         """
 
         Parameters
         ----------
-        config
-        save_history
+        config: config object
+            Configuration
+        save_history: boolean
 
         Returns
         -------
+        energy: float
 
         """
         rep_id = self.reps.index(tuple(config.latgas_rep))
@@ -342,9 +357,12 @@ class group(object):
 
         Parameters
         ----------
-        name
-        species
-        coords
+        name: str
+            The name of atomic group
+        species: str
+            The atomic species belonging to the atom group
+        coords: numpy array
+            The coordinates of each atom in the atom group.
         """
         self.name = name
         self.species = species
@@ -361,8 +379,10 @@ class defect_sublattice(object):
 
         Parameters
         ----------
-        site_centers
-        groups
+        site_centers: list
+            Center coordinates at each groups
+        groups: list
+            List of groups
         """
         self.site_centers = np.array(site_centers)
         self.groups = groups
@@ -379,11 +399,14 @@ class defect_sublattice(object):
 
         Parameters
         ----------
-        d
+        d: dict
 
         Returns
         -------
-
+        site_centers: list
+            Center coordinates at each groups
+        groups: list
+            List of groups
         """
         site_centers = read_coords(d["coords"])
         groups = []
@@ -400,12 +423,13 @@ def base_structure(lat, dict_str):
 
     Parameters
     ----------
-    lat
-    dict_str
+    lat: pymatgen.Lattice
+    dict_str: dict
+        Dictionary of base structure
 
     Returns
     -------
-
+    st: pymatgen.Structure
     """
     st = Structure(lat, [], [])
     if dict_str[0] == {}:
@@ -434,23 +458,22 @@ class config:
         base_structure_seldyn_array=None
     ):
         """
-        [summary]
-        
+
         Parameters
         ----------
-        base_structure : [type]
-            [description]
-        defect_sublattices : [type]
-            [description]
-        num_defects : [type]
-            [description]
+        base_structure : pymatgen.Structure
+            Structure of base sites (unsampled sites)
+        defect_sublattices : pymatgen.Structure
+            Structure of defect sites (sampled sites)
+        num_defects : dict
+            {group name: number of defects}
         cellsize : list, optional
-            [description], by default [1, 1, 1]
-        perf_structure : [type], optional
-            [description], by default None
-        base_structure_seldyn_array : [type], optional
-            [description], by default None
-        """        
+            Cell size, by default [1, 1, 1]
+        perf_structure : pymatgen.Structure, optional
+            Strucure of all sites (union of base and defect), by default None
+        base_structure_seldyn_array : list[list[boolean]], optional
+            relaxation flags for base structure, by default None
+        """
         try:
             num_defect_sublat = len(defect_sublattices)
         except TypeError:
@@ -468,14 +491,16 @@ class config:
         self.calc_history = []
         self.cellsize = cellsize
         self.base_structure = base_structure
-        if base_structure_seldyn_array != None:
+        if base_structure_seldyn_array is not None:
             if isinstance(base_structure_seldyn_array, np.ndarray):
                 base_structure_seldyn_array.tolist()
             assert(len(base_structure) == len(base_structure_seldyn_array), 
                 "Lengths of base_structure and seldyn_array do not match")
             self.base_structure.add_site_property("seldyn", base_structure_seldyn_array)
         elif len(base_structure) != 0:
-            self.base_structure.add_site_property("seldyn", [[True, True, True] for i in range(len(base_structure))])
+            self.base_structure.add_site_property("seldyn",
+                                                  [[True, True, True]
+                                                      for i in range(len(base_structure))])
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -538,11 +563,7 @@ class config:
 
         Parameters
         ----------
-        defect_sublattices
-
-        Returns
-        -------
-
+        defect_sublattices: pymatgen.Structure
         """
         if defect_sublattices:
             self.defect_sublattices = defect_sublattices
@@ -560,7 +581,7 @@ class config:
                     self.structure.append(
                         group.species[j],
                         group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
-                        properties={"seldyn":[True, True, True]}
+                        properties={"seldyn" : [True, True, True]}
                     )
 
     def shuffle(self):
@@ -571,7 +592,6 @@ class config:
                 group = defect_sublattice.group_dict[site[0]]
                 norr = group.orientations
                 site[1] = rand.randrange(norr)
-            # print(latgas_rep)
         self.set_latgas()
 
     def count(self, group_name, orientation):
@@ -580,7 +600,7 @@ class config:
         Parameters
         ----------
         group_name: str
-
+            The name of the group
         orientation:
 
         Returns
@@ -627,9 +647,6 @@ class config:
         filledsites = self.matcher_frame.get_mapping(
             self.perf_structure, self.structure
         )
-        # print(self.perf_structure)
-        # print(self.structure)
-        # print(filledsites)
         vac_structure = self.perf_structure.copy()
         vac_structure.remove_sites(filledsites)
         return vac_structure

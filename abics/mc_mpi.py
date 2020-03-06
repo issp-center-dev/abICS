@@ -1,17 +1,56 @@
 import os
-import sys
-import numpy as np
-from mpi4py import MPI
-import pickle
 import random as rand
+import sys
 
-from abics.mc import *
+from mpi4py import MPI
+
+import numpy as np
+
+from abics.mc import observer_base, verylargeint
+# from abics.mc import *
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
 class RXParams:
+    """ Parameter set for replica exchange Monte Carlo
+
+    Attributes
+    ----------
+    nreplicas : int
+        The number of replicas
+    nprocs_per_replica : int
+        The number of processes which a replica uses
+    kTstart : float
+        The lower bound of temperature range
+    kTend : float
+        The upper bound of temperature range
+    nsteps : int
+        The number of MC steps
+    RXtrial_frequency :
+        The number of MC steps between replica exchange operations
+    sample_frequency :
+        The number of MC steps between measurements observables
+    print_frequency :
+        The number of MC steps between show information
+    reload : bool
+        Whether to restart simulation or not
+    seed : int
+        The seed of the random number generator
+        If 0, some random number is used (e.g., system time or some random noise).
+
+    """
+
     def __init__(self):
-        pass
+        self.nreplicas = None
+        self.nprocs_per_replica = 1
+        self.kTstart = None
+        self.kTend = None
+        self.nsteps = None
+        self.RXtrial_frequency = 1
+        self.sample_frequency = 1
+        self.print_frequency = 1
+        self.reload = False
+        self.seed = 0
 
     @classmethod
     def from_dict(cls, d):
@@ -21,7 +60,7 @@ class RXParams:
            Parameters
            ----------
            d: dict
-               Dictionary
+               Dictionary including parameters for replica exchange Monte Carlo method
 
            Returns
            -------
@@ -51,11 +90,11 @@ class RXParams:
         Parameters
         ----------
         f: str
-            Name of input toml File
+            The name of input toml File
 
         Returns
         -------
-        oDFTParams: DFTParams object
+        DFTParams: DFTParams object
             self
         """
         import toml
@@ -68,15 +107,16 @@ def RX_MPI_init(rxparams):
 
     Parameters
     ----------
-    rxparams
+    rxparams: RXParams
+        Parameters for replica exchange Monte Carlo method.
 
-    Returns
+    Returns:
     -------
-    comm:
+    comm: comm world
+        MPI communicator
     """
 
     nreplicas = rxparams.nreplicas
-    nprocs_per_replica = rxparams.nprocs_per_replica
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
@@ -106,18 +146,23 @@ def RX_MPI_init(rxparams):
 
 
 class ParallelMC(object):
-    def __init__(self, comm, MCalgo, model, configs, kTs, grid=None, subdirs=True):
+    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True):
         """
 
         Parameters
         ----------
-        comm: MPI communicator
-        MCalgo:
-        model:
-        configs:
-        kTs:
-        grid:
-        subdirs:
+        comm: comm world
+            MPI communicator
+        MCalgo: object for MonteCarlo algorithm
+            MonteCarlo algorithm
+        model: dft_latgas object
+            DFT lattice gas mapping model
+        configs: config object
+            Configurations
+        kTs: list
+            Temperature list
+        subdirs: boolean
+            if true,  working directory for this rank is made
         """
         self.comm = comm
         self.rank = self.comm.Get_rank()
@@ -137,7 +182,7 @@ class ParallelMC(object):
 
         myconfig = configs[self.rank]
         mytemp = kTs[self.rank]
-        self.mycalc = MCalgo(model, mytemp, myconfig, grid)
+        self.mycalc = MCalgo(model, mytemp, myconfig)
 
     def run(self, nsteps, sample_frequency, observer=observer_base()):
         """
@@ -145,12 +190,15 @@ class ParallelMC(object):
         Parameters
         ----------
         nsteps: int
-        sample_frequency:
-        observer:
+            Number of Monte Carlo steps for running.
+        sample_frequency: int
+            Number of Monte Carlo steps for running.
+        observer: observer object
 
         Returns
         -------
-
+        obs_buffer: numpy array
+            Observables
         """
         if self.subdirs:
             # make working directory for this rank
@@ -170,21 +218,26 @@ class ParallelMC(object):
 
 
 class TemperatureRX_MPI(ParallelMC):
-    def __init__(self, comm, MCalgo, model, configs, kTs, grid=None, subdirs=True):
+    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True):
         """
 
         Parameters
         ----------
-        comm:
-        MCalgo:
-        model:
-        configs:
-        kTs:
-        grid:
-        subdirs:
+        comm: comm world
+            MPI communicator
+        MCalgo: object for MonteCarlo algorithm
+            MonteCarlo algorithm
+        model: dft_latgas
+            DFT lattice gas mapping  model
+        configs: config object
+            Configuration
+        kTs: list
+            Temperature list
+        subdirs: boolean
+            If true, working directory for this rank is made
         """
         super(TemperatureRX_MPI, self).__init__(
-            comm, MCalgo, model, configs, kTs, grid, subdirs
+            comm, MCalgo, model, configs, kTs, subdirs
         )
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int)
@@ -208,10 +261,10 @@ class TemperatureRX_MPI(ParallelMC):
         Parameters
         ----------
         Trank: int
-
+            Temperature rank
         Returns
         -------
-
+        procrank: int
         """
         i = np.argwhere(self.rank_to_T == Trank)
         if i is None:
@@ -224,9 +277,8 @@ class TemperatureRX_MPI(ParallelMC):
 
         Parameters
         ----------
-        XCscheme:
-
-        Returns
+        XCscheme: int
+        Returns:
         -------
 
         """
@@ -254,9 +306,9 @@ class TemperatureRX_MPI(ParallelMC):
 
                 self.rank_to_T[self.rank] = myTrankp1
             else:
-                accept_probability = exp(-delta)
+                accept_probability = np.exp(-delta)
                 # print accept_probability, "accept prob"
-                if random() <= accept_probability:
+                if rand.random() <= accept_probability:
                     self.comm.Send(
                         [self.rank_to_T[self.rank], 1, MPI.INT],
                         dest=exchange_rank,
@@ -294,17 +346,23 @@ class TemperatureRX_MPI(ParallelMC):
 
         Parameters
         ----------
-        nsteps:
-        RXtrial_frequency:
-        sample_frequency:
-        print_frequency:
-        observer:
-        subdirs:
-        save_obs:
+        nsteps: int
+            The number of Monte Carlo steps for running.
+        RXtrial_frequency: int
+            The number of Monte Carlo steps for replica exchange.
+        sample_frequency: int
+            The number of Monte Carlo steps for observation of physical quantities.
+        print_frequency: int
+            The number of Monte Carlo steps for saving physical quantities.
+        observer: observer object
+        subdirs: boolean
+            If true, working directory for this rank is made
+        save_obs: boolean
 
         Returns
         -------
-
+        obs_list: list
+            Observation list
         """
         if subdirs:
             try:
@@ -331,7 +389,7 @@ class TemperatureRX_MPI(ParallelMC):
                 if i % RXtrial_frequency == 0:
                     self.Xtrial(XCscheme)
                     XCscheme = (XCscheme + 1) % 2
-                if i % sample_frequency == 0 and observe:
+                if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
                         self.mycalc, output, i % print_frequency == 0
                     )

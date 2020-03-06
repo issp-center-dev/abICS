@@ -13,7 +13,7 @@ import numpy as np
 
 class runner(object):
     """
-    Base class of runner (manager) of exteranal solver program
+    Base class of runner (manager) of external solver program
 
     Attributes
     ----------
