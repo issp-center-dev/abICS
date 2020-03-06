@@ -1,14 +1,56 @@
-import numpy as np
-from mpi4py import MPI
+import os
 import random as rand
+import sys
 
-from abics.mc import *
+from mpi4py import MPI
+
+import numpy as np
+
+from abics.mc import observer_base, verylargeint
+# from abics.mc import *
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
 class RXParams:
+    """ Parameter set for replica exchange Monte Carlo
+
+    Attributes
+    ----------
+    nreplicas : int
+        The number of replicas
+    nprocs_per_replica : int
+        The number of processes which a replica uses
+    kTstart : float
+        The lower bound of temperature range
+    kTend : float
+        The upper bound of temperature range
+    nsteps : int
+        The number of MC steps
+    RXtrial_frequency :
+        The number of MC steps between replica exchange operations
+    sample_frequency :
+        The number of MC steps between measurements observables
+    print_frequency :
+        The number of MC steps between show information
+    reload : bool
+        Whether to restart simulation or not
+    seed : int
+        The seed of the random number generator
+        If 0, some random number is used (e.g., system time or some random noise).
+
+    """
+
     def __init__(self):
-        pass
+        self.nreplicas = None
+        self.nprocs_per_replica = 1
+        self.kTstart = None
+        self.kTend = None
+        self.nsteps = None
+        self.RXtrial_frequency = 1
+        self.sample_frequency = 1
+        self.print_frequency = 1
+        self.reload = False
+        self.seed = 0
 
     @classmethod
     def from_dict(cls, d):
@@ -52,7 +94,7 @@ class RXParams:
 
         Returns
         -------
-        oDFTParams: DFTParams object
+        DFTParams: DFTParams object
             self
         """
         import toml
@@ -264,9 +306,9 @@ class TemperatureRX_MPI(ParallelMC):
 
                 self.rank_to_T[self.rank] = myTrankp1
             else:
-                accept_probability = exp(-delta)
+                accept_probability = np.exp(-delta)
                 # print accept_probability, "accept prob"
-                if random() <= accept_probability:
+                if rand.random() <= accept_probability:
                     self.comm.Send(
                         [self.rank_to_T[self.rank], 1, MPI.INT],
                         dest=exchange_rank,
@@ -347,7 +389,7 @@ class TemperatureRX_MPI(ParallelMC):
                 if i % RXtrial_frequency == 0:
                     self.Xtrial(XCscheme)
                     XCscheme = (XCscheme + 1) % 2
-                if i % sample_frequency == 0 and observe:
+                if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
                         self.mycalc, output, i % print_frequency == 0
                     )
