@@ -12,14 +12,19 @@ from qe_tools.parsers import PwInputFile
 
 
 class TestQE(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        rootdir = os.path.dirname(__file__)
+        workdir = os.path.join(rootdir, "res", "qe")
+        if os.path.exists(workdir):
+            shutil.rmtree(workdir)
+        os.makedirs(workdir)
+
     def setUp(self):
         self.solver = QESolver(".")
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "qe")
         self.workdir = os.path.join(self.rootdir, "res", "qe")
-        if os.path.exists(self.workdir):
-            shutil.rmtree(self.workdir)
-        os.makedirs(self.workdir)
 
     def test_get_results(self):
         res = self.solver.output.get_results(self.datadir)
@@ -33,7 +38,13 @@ class TestQE(unittest.TestCase):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
         A = 4.0*np.eye(3)
         r = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        st = Structure(A, ["Al", "Al"], r, coords_are_cartesian=False)
+        st = Structure(
+            A,
+            ["Al", "Al"],
+            r,
+            coords_are_cartesian=False,
+            site_properties={"seldyn": [[True, True, False], [True, False, True]]},
+        )
 
         self.solver.input.update_info_by_structure(st)
         self.solver.input.write_input(self.workdir)
@@ -47,6 +58,8 @@ class TestQE(unittest.TestCase):
 
         self.assertTrue(np.allclose(res.cell_parameters["cell"], ref.cell_parameters["cell"]))
         self.assertTrue(np.allclose(res.atomic_positions["positions"], ref.atomic_positions["positions"]))
+        self.assertEqual(res.atomic_positions["fixed_coords"], ref.atomic_positions["fixed_coords"])
+
 
     def test_cl_algs(self):
         nprocs = 2

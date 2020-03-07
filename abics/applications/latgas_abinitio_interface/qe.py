@@ -5,6 +5,7 @@ To deal with QuantumESPRESSO
 
 from collections import namedtuple
 import xml.etree.ElementTree as ET
+import operator
 import os.path
 
 import numpy as np
@@ -143,9 +144,9 @@ class QESolver(SolverBase):
             if "seldyn" in structure.site_properties:
                 seldyn_arr = structure.site_properties["seldyn"]
                 for idx, dyn_info in enumerate(seldyn_arr):
-                    self.pwi.atomic_positions["fixed_coords"][i] = (
-                        ~np.array(dyn_info)
-                    ).tolist()
+                    self.pwi.atomic_positions["fixed_coords"][idx] = list(
+                        map(operator.not_, dyn_info)
+                    )
 
         def update_info_from_files(self, output_dir, rerun):
             """
@@ -297,5 +298,5 @@ class QESolver(SolverBase):
         schemes : tuple[str]
             Implemented runner schemes.
         """
-        return ("mpi_spawn")
+        return "mpi_spawn"
 
