@@ -19,8 +19,8 @@ class TestQE(unittest.TestCase):
 
     def test_get_results(self):
         res = self.solver.output.get_results(self.datadir)
-        ref = Structure.from_file(os.path.join(self.datadir, "pos.vasp"))
         res.structure.to("POSCAR", os.path.join(self.workdir, "pos.vasp"))
+        ref = Structure.from_file(os.path.join(self.datadir, "..", "pos.vasp"))
         ref_energy = -1039.9018832347706
         self.assertTrue(res.structure.matches(ref))
         self.assertTrue(np.isclose(res.energy, ref_energy))
