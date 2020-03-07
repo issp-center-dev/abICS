@@ -11,14 +11,19 @@ from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 
 
 class TestVASP(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        rootdir = os.path.dirname(__file__)
+        workdir = os.path.join(rootdir, "res", "vasp")
+        if os.path.exists(workdir):
+            shutil.rmtree(workdir)
+        os.makedirs(workdir)
+
     def setUp(self):
         self.solver = VASPSolver(".")
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "vasp")
         self.workdir = os.path.join(self.rootdir, "res", "vasp")
-        if os.path.exists(self.workdir):
-            shutil.rmtree(self.workdir)
-        os.makedirs(self.workdir)
 
     def test_get_results(self):
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
@@ -37,7 +42,7 @@ class TestVASP(unittest.TestCase):
             ["Al", "Al"],
             r,
             coords_are_cartesian=False,
-            site_properties={"seldyn": [[True, True, True], [True, True, True]]},
+            site_properties={"seldyn": [[True, True, False], [True, False, True]]},
         )
         self.solver.input.update_info_by_structure(st)
         self.solver.input.write_input(self.workdir)
@@ -47,6 +52,10 @@ class TestVASP(unittest.TestCase):
 
         self.assertEqual(res["INCAR"], ref["INCAR"])
         self.assertTrue(res["POSCAR"].structure.matches(ref["POSCAR"].structure))
+        self.assertEqual(
+            res["POSCAR"].structure.site_properties,
+            ref["POSCAR"].structure.site_properties,
+        )
 
     def test_cl_algs(self):
         nprocs = 2
