@@ -1,13 +1,63 @@
 from .base_solver import SolverBase
 from collections import namedtuple
 import numpy as np
-import os.path
+import os
 import scipy.constants as spc
 import subprocess
 from pymatgen import Structure
 
 hartree2eV = spc.value("Hartree energy in eV")
 Bohr2AA = spc.value("Bohr radius") * 1e10
+
+
+class OpenMXInputFile(dict):
+    """ OpenMX Input
+
+    This is a dictionary storing OpenMX input parameters
+    with additionary information, vec_list
+
+    Attributes
+    ----------
+    vec_list: list
+        vectors
+    """
+
+    def __init__(self, input_file):
+        """
+
+        Parameters
+        ----------
+        input_file: str
+            inputfile
+        """
+        super().__init__(self)
+        self.vec_list = [
+            "Atoms.UnitVectors",
+            "Atoms.SpeciesAndCoordinates",
+            "MD.Fixed.XYZ",
+        ]
+        with open(input_file, "r") as f:
+            lines = f.readlines()
+            # delete comment out
+            list_flag = False
+            vals = []
+            for line in lines:
+                line = line.strip().split("#")[0]
+                if len(line) >= 2 or line != "":
+                    words = line.split()
+                    if words[0][0] == "<":
+                        list_flag = True
+                        vals = []
+                    elif words[0][-1:] == ">":
+                        self[line[:-1]] = vals
+                        self.vec_list.append(line[:-1])
+                        list_flag = False
+                    else:
+                        if list_flag:
+                            vals.append(words)
+                        else:
+                            self[words[0]] = words[1:]
+                    self.vec_list = list(set(self.vec_list))
 
 
 class OpenMXSolver(SolverBase):
@@ -44,11 +94,7 @@ class OpenMXSolver(SolverBase):
         def __init__(self, path_to_solver):
             self.base_info = None
             self.pos_info = None
-            self.openmx_vec_list = [
-                "Atoms.UnitVectors",
-                "Atoms.SpeciesAndCoordinates",
-                "MD.Fixed.XYZ",
-            ]
+            self.base_openmx_input = None
             self.path_to_solver = path_to_solver
 
         def cleanup(self, rundir):
@@ -79,12 +125,11 @@ class OpenMXSolver(SolverBase):
 
             Returns
             -------
-            self.base_openmx_input:  dict
-                        Dictionary for base information of the solver.
+            self.base_openmx_input:  OpenMXInput
             """
             # TODO
             # check the base input file name (now, set "base.dat")
-            self.base_openmx_input = self.OpenMXInputFile(
+            self.base_openmx_input = OpenMXInputFile(
                 os.path.join(os.getcwd(), base_input_dir, "base.dat")
             )
             self.vps_info = self._get_vps_info(self.base_openmx_input)
@@ -198,7 +243,7 @@ class OpenMXSolver(SolverBase):
             )
             with open(output_file, "w") as f:
                 for key, values in self.base_openmx_input.items():
-                    if key in self.openmx_vec_list:
+                    if key in self.base_openmx_input.vec_list:
                         print_stamp = "<{}\n".format(key)
                         for value_list in values:
                             for value in value_list:
@@ -238,46 +283,6 @@ class OpenMXSolver(SolverBase):
                 )
             ]
             return clargs
-
-        def OpenMXInputFile(self, input_file):
-            """
-
-            Read base input file for setting initial conditions.
-
-            Parameters
-            ----------
-            input_file: str
-            Full path of input file
-
-            Returns
-            -------
-            OpenMX_dict: dict
-
-
-            """
-            OpenMX_dict = {}
-            with open(input_file, "r") as f:
-                lines = f.readlines()
-                # delete comment out
-                list_flag = False
-                for line in lines:
-                    line = line.strip().split("#")[0]
-                    if len(line) >= 2 or line != "":
-                        words = line.split()
-                        if words[0][0] == "<":
-                            list_flag = True
-                            vec_list = []
-                        elif words[0][-1:] == ">":
-                            OpenMX_dict[line[:-1]] = vec_list
-                            self.openmx_vec_list.append(line[:-1])
-                            list_flag = False
-                        else:
-                            if list_flag is False:
-                                OpenMX_dict[words[0]] = words[1:]
-                            else:
-                                vec_list.append(words)
-                        self.openmx_vec_list = list(set(self.openmx_vec_list))
-                return OpenMX_dict
 
         # def submit: Use submit defined in run_base_mpi.py
 
