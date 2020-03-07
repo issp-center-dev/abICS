@@ -19,7 +19,7 @@ class TestVASP(unittest.TestCase):
     def test_get_results(self):
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
         res.structure.to("POSCAR", os.path.join(self.workdir, "pos.vasp"))
-        ref = Structure.from_file(os.path.join(self.datadir, "pos.vasp"))
+        ref = Structure.from_file(os.path.join(self.datadir, "..", "pos.vasp"))
         ref_energy = 0.54083824
         self.assertTrue(np.isclose(res.energy, ref_energy))
         self.assertTrue(res.structure.matches(ref))

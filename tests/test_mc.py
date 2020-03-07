@@ -12,18 +12,15 @@ class TestMC(unittest.TestCase):
         def energy(self, config):
             return config[0] * config[1]
 
-
         def newconfig(self, config, dconfig):
             ret = config[:]
             ret[dconfig] *= -1.0
             return ret
 
-
         def trialstep(self, config, energy):
             dconfig = random.randint(0, 1)
             dE = self.energy(self.newconfig(config, dconfig)) - energy
             return dconfig, dE
-
 
     def test_mc(self):
         self.mc = CanonicalMonteCarlo(TestMC.model(), 1.0, [1.0,1.0])
