@@ -6,18 +6,23 @@ import numpy as np
 
 from pymatgen import Structure
 
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+from abics.applications.latgas_abinitio_interface.openmx import OpenMXInputFile, OpenMXSolver
 
 
 class TestOpenMX(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        rootdir = os.path.dirname(__file__)
+        workdir = os.path.join(rootdir, "res", "openmx")
+        if os.path.exists(workdir):
+            shutil.rmtree(workdir)
+        os.makedirs(workdir)
+
     def setUp(self):
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "openmx")
         self.workdir = os.path.join(self.rootdir, "res", "openmx")
         self.solver = OpenMXSolver(os.path.join(self.datadir, "bin", "openmx.dummy"))
-        if os.path.exists(self.workdir):
-            shutil.rmtree(self.workdir)
-        os.makedirs(self.workdir)
 
     def test_get_results(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
@@ -32,20 +37,21 @@ class TestOpenMX(unittest.TestCase):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
         A = 4.0*np.eye(3)
         r = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
-        st = Structure(A, ["Al", "Al"], r, coords_are_cartesian=False)
+        st = Structure(
+            A,
+            ["Al", "Al"],
+            r,
+            coords_are_cartesian=False,
+            site_properties={"seldyn": [[True, True, False], [True, False, True]]},
+        )
 
         self.solver.input.update_info_by_structure(st)
         self.solver.input.write_input(self.workdir)
-        # res = PwInputFile(os.path.join(self.workdir, "scf.in"))
-        # ref = PwInputFile(os.path.join(self.datadir, "scf.in"))
-        #
-        # res.namelists["CONTROL"]["pseudo_dir"] = ref.namelists["CONTROL"]["pseudo_dir"]
-        # res.namelists["CONTROL"]["outdir"] = ref.namelists["CONTROL"]["outdir"]
-        #
-        # self.assertEqual(res.namelists, ref.namelists)
-        #
-        # self.assertTrue(np.allclose(res.cell_parameters["cell"], ref.cell_parameters["cell"]))
-        # self.assertTrue(np.allclose(res.atomic_positions["positions"], ref.atomic_positions["positions"]))
+        res = OpenMXInputFile(os.path.join(self.workdir, "Al.dat"))
+        ref = OpenMXInputFile(os.path.join(self.datadir, "input", "Al.dat"))
+
+        self.assertEqual(res, ref)
+
 
     def test_cl_algs(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
