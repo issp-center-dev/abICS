@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 
 import numpy as np
@@ -16,6 +17,9 @@ class TestQE(unittest.TestCase):
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "qe")
         self.workdir = os.path.join(self.rootdir, "res", "qe")
+        if os.path.exists(self.workdir):
+            shutil.rmtree(self.workdir)
+        os.makedirs(self.workdir)
 
     def test_get_results(self):
         res = self.solver.output.get_results(self.datadir)

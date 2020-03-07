@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 
 import numpy as np
@@ -15,6 +16,9 @@ class TestVASP(unittest.TestCase):
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "vasp")
         self.workdir = os.path.join(self.rootdir, "res", "vasp")
+        if os.path.exists(self.workdir):
+            shutil.rmtree(self.workdir)
+        os.makedirs(self.workdir)
 
     def test_get_results(self):
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
