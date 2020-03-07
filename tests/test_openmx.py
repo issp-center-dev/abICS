@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 
 import numpy as np
@@ -14,6 +15,9 @@ class TestOpenMX(unittest.TestCase):
         self.datadir = os.path.join(self.rootdir, "data", "openmx")
         self.workdir = os.path.join(self.rootdir, "res", "openmx")
         self.solver = OpenMXSolver(os.path.join(self.datadir, "bin", "openmx.dummy"))
+        if os.path.exists(self.workdir):
+            shutil.rmtree(self.workdir)
+        os.makedirs(self.workdir)
 
     def test_get_results(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
