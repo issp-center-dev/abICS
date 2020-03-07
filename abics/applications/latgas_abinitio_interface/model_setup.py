@@ -454,7 +454,7 @@ class config:
         defect_sublattices,
         num_defects,
         cellsize=[1, 1, 1],
-        perf_structure=None,
+        perfect_structure=None,
         base_structure_seldyn_array=None
     ):
         """
@@ -469,10 +469,11 @@ class config:
             {group name: number of defects}
         cellsize : list, optional
             Cell size, by default [1, 1, 1]
-        perf_structure : pymatgen.Structure, optional
+        perfect_structure : pymatgen.Structure, optional
             Strucure of all sites (union of base and defect), by default None
         base_structure_seldyn_array : list[list[boolean]], optional
-            relaxation flags for base structure, by default None
+            relaxation flags for base structure
+            default: all True (allow relaxation)
         """
         try:
             num_defect_sublat = len(defect_sublattices)
@@ -494,8 +495,7 @@ class config:
         if base_structure_seldyn_array is not None:
             if isinstance(base_structure_seldyn_array, np.ndarray):
                 base_structure_seldyn_array.tolist()
-            assert(len(base_structure) == len(base_structure_seldyn_array), 
-                "Lengths of base_structure and seldyn_array do not match")
+            assert len(base_structure) == len(base_structure_seldyn_array), "Lengths of base_structure and seldyn_array do not match"
             self.base_structure.add_site_property("seldyn", base_structure_seldyn_array)
         elif len(base_structure) != 0:
             self.base_structure.add_site_property("seldyn",
@@ -508,9 +508,9 @@ class config:
             self.base_structure.remove_sites(range(self.base_structure.num_sites))
         else:
             self.base_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
-        if perf_structure:
-            self.perf_structure = perf_structure
-            self.perf_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
+        if perfect_structure:
+            self.perfect_structure = perfect_structure
+            self.perfect_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
         self.supercell = self.base_structure.lattice.matrix
         self.n_sublat = num_defect_sublat
         invSuper = np.linalg.inv(self.supercell)
@@ -645,9 +645,9 @@ class config:
     @property
     def vacancy_structure(self):
         filledsites = self.matcher_frame.get_mapping(
-            self.perf_structure, self.structure
+            self.perfect_structure, self.structure
         )
-        vac_structure = self.perf_structure.copy()
+        vac_structure = self.perfect_structure.copy()
         vac_structure.remove_sites(filledsites)
         return vac_structure
 
