@@ -30,7 +30,7 @@ CELL_PARAMETERS alat
 ATOMIC_SPECIES
  Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
 ATOMIC_POSITIONS crystal
-Al        0.000000      0.000000      0.000000  1 1 1
-Al        0.500000      0.500000      0.500000  1 1 1
+Al        0.000000      0.000000      0.000000  1 1 0
+Al        0.500000      0.500000      0.500000  1 0 1
 K_POINTS automatic
  1 1 1 0 0 0
