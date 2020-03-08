@@ -292,47 +292,47 @@ class dft_latgas(model):
             self.update_basestruct(config)
         return config
 
-# class energy_lst(dft_latgas):
-#     def __init__(
-#         self,
-#         calcode,
-#         vasp_run,
-#         base_vaspinput,
-#         matcher_base,  # matcher, matcher_site,
-#         queen,
-#         reps,
-#         energy_lst,
-#         selective_dynamics=None,
-#         matcher=None
-#     ):
-#         """
-#
-#         Parameters
-#         ----------
-#         calcode:
-#         vasp_run: runner object
-#             Runner (manager) of external solver program
-#         base_vaspinput:
-#         matcher_base:
-#         queen:
-#         reps:
-#         energy_lst: list
-#             Energy list
-#         selective_dynamics: list
-#             List of relaxation
-#         matcher:
-#         """
-#         super().__init__(
-#             calcode,
-#             vasp_run,
-#             base_vaspinput,
-#             matcher_base,  # matcher, matcher_site,
-#             queen,
-#             selective_dynamics=None,
-#             matcher=None,
-#         )
-#         self.reps = reps
-#         self.energy_list = energy_lst
+class energy_lst(dft_latgas):
+    def __init__(
+        self,
+        calcode,
+        vasp_run,
+        base_vaspinput,
+        matcher_base,  # matcher, matcher_site,
+        queen,
+        reps,
+        energy_lst,
+        selective_dynamics=None,
+        matcher=None
+    ):
+        """
+
+        Parameters
+        ----------
+        calcode:
+        vasp_run: runner object
+            Runner (manager) of external solver program
+        base_vaspinput:
+        matcher_base:
+        queen:
+        reps:
+        energy_lst: list
+            Energy list
+        selective_dynamics: list
+            List of relaxation
+        matcher:
+        """
+        super().__init__(
+            calcode,
+            vasp_run,
+            base_vaspinput,
+            matcher_base,  # matcher, matcher_site,
+            queen,
+            selective_dynamics=None,
+            matcher=None,
+        )
+        self.reps = reps
+        self.energy_list = energy_lst
 
     def energy(self, config, save_history=False):
         """
