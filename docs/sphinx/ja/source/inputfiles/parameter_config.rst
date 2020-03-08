@@ -22,6 +22,12 @@
         ## 中略
         [0.262599975, 0.262599975, 0.762599945],
         ]
+    relaxation = [
+      [true, true, true],
+        ## 中略
+      [false, false, false],
+      ]
+    magnetization = [0.0, 0.5, ...中略..., 0.0]
 
     [[config.defect_structure]]
     coords = [
@@ -30,15 +36,21 @@
         ## 中略
         [0.124999993, 0.624999940, 0.124999993],
         ]
+
     [[config.defect_structure.groups]]
     name = 'Al'
     # species = ['Al']    # default
     # coords = [[[0,0,0]]]  # default
+    # relaxation = [[true, true, true]]  # default
+    # magnetization = [0.0]  # default
     num = 16
+
     [[config.defect_structure.groups]]
     name = 'Mg'
     # species = ['Mg']    # default
     # coords = [[[0,0,0]]]  # default
+    # relaxation = [[true, true, true]]  # default
+    # magnetization = [0.0]  # default
     num = 8
 
 入力形式
@@ -84,6 +96,20 @@
     **説明 :**  座標を指定します.
     3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 座標を N 行 3列に並べた文字列で指定します.
 
+    - ``relaxation``
+
+    **形式 :** listのlist もしくは 文字列
+
+    **説明 :**  原子・空間次元ごとに、構造最適化を行うかどうかを指定します.
+    真偽値("true" or "false")を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 真偽値を N 行 3列に並べた文字列で指定します.
+    デフォルトはすべて "true" です。
+
+    - ``magnetization``
+
+    **形式 :** list
+
+    **説明 :**  原子ごとに磁化（up/down 電子個数差）を指定します.
+    デフォルトはすべて 0.0 です。
 
 - [[config.defect_structure]] セクション
 
@@ -125,6 +151,21 @@
             3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 座標を N 行 3列に並べた文字列で指定します.
             デフォルト値は `[[0.0, 0.0, 0.0]]` です。
 
+        - ``relaxation``
+
+        **形式 :** listのlist もしくは 文字列
+
+        **説明 :**  原子・空間次元ごとに、構造最適化を行うかどうかを指定します.
+        真偽値("true" or "false")を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 真偽値を N 行 3列に並べた文字列で指定します.
+        デフォルトはすべて "true" です。
+
+        - ``magnetization``
+
+        **形式 :** list
+
+        **説明 :**  原子ごとに磁化（up/down 電子個数差）を指定します.
+        デフォルトはすべて 0.0 です。
+  
         -  ``num``
 
             **形式 :** int型
