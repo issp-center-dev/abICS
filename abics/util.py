@@ -3,25 +3,74 @@ import pickle
 
 import numpy as np
 
+from .exception import InputError
 
-def read_coords(v):
+def read_matrix(v, *, dtype=np.float):
     """
-    Read coordinates
+    Read matrix
 
     Parameters
     ----------
-    v: str or numpy array
-        coordinates information
+    v: str or list of list or np.ndarray
+        matrix
+
+    dtype: type
+        type of elements, default: np.float
 
     Returns
     -------
     v: numpy array
-        coordinates information
+        matrix
     """
+
+    def parse(x, dtype):
+        if dtype == bool:
+            if isinstance(x, str):
+                xx = x.lower()
+                if xx == "t" or xx == "true":
+                    return True
+                if xx == "f" or xx == "false":
+                    return False
+                n = int(x)
+                return bool(n)
+        else:
+            return dtype(x)
+
     if isinstance(v, str):
-        return np.array([[float(x) for x in line.split()] for line in v.splitlines()])
+        ret = []
+        m0 = -1
+        for line in v.splitlines():
+            try:
+                row = [parse(x, dtype) for x in line.strip().split()]
+            except ValueError as e:
+                raise InputError(str(e))
+
+            if not row:
+                continue
+            m = len(row)
+            if m0 == -1:
+                m0 = m
+            if m != m0:
+                raise InputError("Dimension mismatch in {}".format(v))
+            ret.append(row)
+        if not ret:
+            return np.zeros((0,0), dtype=dtype)
+        return np.array(ret, dtype=dtype)
+    elif isinstance(v, list):
+        if not v:
+            return np.zeros((0,0), dtype=dtype)
+        m0 = -1
+        for vv in v:
+            if not isinstance(vv, list):
+                raise InputError("{} is not list of list".format(v))
+            m = len(vv)
+            if m0 < 0:
+                m0 = m
+            if m != m0:
+                raise InputError("Dimension mismatch in {}".format(v))
+        return np.array(v, dtype=dtype)
     else:
-        return np.array(v)
+        return np.array(v, dtype=dtype)
 
 
 def expand_path(path, basedir):

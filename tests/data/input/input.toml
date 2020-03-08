@@ -27,9 +27,13 @@ supercell = [2,1,1]
 [[config.base_structure]]
 type = "O"
 coords = [
-     [0.0, 0.0, 0.0],
-     [0.5, 0.5, 0.5],
-     ]
+  [0.0, 0.0, 0.0],
+  [0.5, 0.5, 0.5],
+]
+relaxation = [
+  [true, true, false],
+  [true, false, true],
+]
 
 [[config.base_structure]]
 type = "Se"
@@ -37,6 +41,11 @@ coords = """
 0.0 0.5 0.5
 0.5 0.0 0.5
 0.5 0.5 0.0
+"""
+relaxation = """
+1 0 1
+0 0 0
+1 1 1
 """
 
 [[config.defect_structure]]

@@ -58,7 +58,25 @@ class TestInput(unittest.TestCase):
         r[4, :] = [0.5, 0.5, 0.0]
         st = Structure(A, ["O", "O", "Se", "Se", "Se"], r)
 
+        seldyns = np.array(
+            [
+                [True, True, False],
+                [True, True, False],
+                [True, False, True],
+                [True, False, True],
+                [True, False, True],
+                [True, False, True],
+                [False, False, False],
+                [False, False, False],
+                [True, True, True],
+                [True, True, True],
+            ]
+        )
+
         self.assertTrue(spinel_config.base_structure.matches(st))
+        self.assertTrue(
+            (spinel_config.base_structure.site_properties["seldyn"] == seldyns).all()
+        )
 
         gs = [
             group("Al", ["Al"], [[0.0, 0.0, 0.0]]),
@@ -70,4 +88,4 @@ class TestInput(unittest.TestCase):
             self.assertEqual(gs[i].name, g.name)
             self.assertEqual(gs[i].species, g.species)
             self.assertEqual(gs[i].natoms, g.natoms)
-            self.assertTrue(np.allclose(np.dot(gs[i].coords,invB), g.coords))
+            self.assertTrue(np.allclose(np.dot(gs[i].coords, invB), g.coords))
