@@ -1,3 +1,4 @@
+from itertools import product
 import numpy as np
 import random as rand
 import sys
@@ -525,14 +526,12 @@ class config:
                 (np.prod(cellsize) * site_centers.shape[0], 3), dtype=float
             )
             idx = 0
-            for i in range(cellsize[0]):
-                for j in range(cellsize[1]):
-                    for k in range(cellsize[2]):
-                        for l in range(site_centers.shape[0]):
-                            defect_sublattice.site_centers_sc[idx] = site_centers[
-                                l
-                            ] + np.array([i, j, k])
-                            idx += 1
+            for (idx, (i, j, k, l)) in enumerate(product(range(cellsize[0]),
+                                                         range(cellsize[1]),
+                                                         range(cellsize[2]),
+                                                         range(site_centers.shape[0]))):
+                defect_sublattice.site_centers_sc[idx] = site_centers[l] + np.array([i, j, k])
+                idx += 1
             defect_sublattice.site_centers_sc /= np.array(cellsize)
             num_sites += len(defect_sublattice.site_centers_sc)
 
