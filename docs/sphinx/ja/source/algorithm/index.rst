@@ -50,5 +50,6 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
 
 .. figure:: ../../../image/alg_sampling.png
      :name: alg_sampling
-
+     :scale: 15%
+	    
      (a)-(e)abICSでの格子の定義と(f)モンテカルロ法の概要。詳細は本文に記載。
