@@ -193,7 +193,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 
 結果が ``Tseparate/DOI_T.dat`` に出力されます。
 
-.. image:: ../../../image/doi_2.*
+.. image:: ../../../image/doi_2.png
    :width: 400px
    :align: center
 
@@ -203,7 +203,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 モンテカルロ平均で最初に捨てるサンプル数は ``calc_DOI.py`` スクリプトにある ``throwout`` の値で指定できます。
 例えば、17 レプリカ、20 ステップで計算をすると
 
-.. image:: ../../../image/doi_17.*
+.. image:: ../../../image/doi_17.png
    :width: 400px
    :align: center
 
@@ -276,7 +276,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 
 結果が ``Tseparate/DOI_T.dat`` に出力されます。
 
-.. image:: ../../../image/doi_2.*
+.. image:: ../../../image/doi_2.png
    :width: 400px
    :align: center
 
@@ -286,7 +286,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 モンテカルロ平均で最初に捨てるサンプル数は ``calc_DOI.py`` スクリプトにある ``throwout`` の値で指定できます。
 例えば、17 レプリカ、20 ステップで計算をすると
 
-.. image:: ../../../image/doi_17.*
+.. image:: ../../../image/doi_17.png
    :width: 400px
    :align: center
 
