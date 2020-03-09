@@ -5,14 +5,23 @@ import numpy as np
 
 from .exception import InputError
 
+
+def read_vector(v, *, dtype=np.float):
+    return read_tensor(v, rank=1, dtype=dtype)
+
+
 def read_matrix(v, *, dtype=np.float):
+    return read_tensor(v, rank=2, dtype=dtype)
+
+
+def read_tensor(v, *, rank=2, dtype=np.float):
     """
-    Read matrix
+    Read tensor
 
     Parameters
     ----------
-    v: str or list of list or np.ndarray
-        matrix
+    v: str or list or np.ndarray
+        tensor
 
     dtype: type
         type of elements, default: np.float
@@ -20,7 +29,7 @@ def read_matrix(v, *, dtype=np.float):
     Returns
     -------
     v: numpy array
-        matrix
+        tensor
     """
 
     def parse(x, dtype):
@@ -37,38 +46,51 @@ def read_matrix(v, *, dtype=np.float):
             return dtype(x)
 
     if isinstance(v, str):
-        ret = []
-        m0 = -1
-        for line in v.splitlines():
-            try:
-                row = [parse(x, dtype) for x in line.strip().split()]
-            except ValueError as e:
-                raise InputError(str(e))
+        if rank == 1:
+            ret = []
+            lines = list(filter(lambda l: bool(l.strip()), v.splitlines()))
+            n = len(lines)
+            if n > 1:
+                ret = [parse(x, dtype) for x in lines]
+            else:
+                ret = [parse(x, dtype) for x in lines[0].split()]
+            return ret
+        elif rank == 2:
+            ret = []
+            m0 = -1
+            for line in v.splitlines():
+                try:
+                    row = [parse(x, dtype) for x in line.strip().split()]
+                except ValueError as e:
+                    raise InputError(str(e))
 
-            if not row:
-                continue
-            m = len(row)
-            if m0 == -1:
-                m0 = m
-            if m != m0:
-                raise InputError("Dimension mismatch in {}".format(v))
-            ret.append(row)
-        if not ret:
-            return np.zeros((0,0), dtype=dtype)
-        return np.array(ret, dtype=dtype)
+                if not row:
+                    continue
+                m = len(row)
+                if m0 == -1:
+                    m0 = m
+                if m != m0:
+                    raise InputError("Dimension mismatch in {}".format(v))
+                ret.append(row)
+            if not ret:
+                return np.zeros((0, 0), dtype=dtype)
+            return np.array(ret, dtype=dtype)
+        else:
+            raise InputError("read_tensor(rank>2) requires list-type argument")
     elif isinstance(v, list):
-        if not v:
-            return np.zeros((0,0), dtype=dtype)
+        if rank == 1:
+            return np.array(v, dtype=dtype)
         m0 = -1
+        ret = []
         for vv in v:
-            if not isinstance(vv, list):
-                raise InputError("{} is not list of list".format(v))
-            m = len(vv)
+            child = read_tensor(vv, rank=rank-1, dtype=dtype)
+            m = child.shape[0]
             if m0 < 0:
                 m0 = m
             if m != m0:
                 raise InputError("Dimension mismatch in {}".format(v))
-        return np.array(v, dtype=dtype)
+            ret.append(child)
+        return np.array(ret, dtype=dtype)
     else:
         return np.array(v, dtype=dtype)
 

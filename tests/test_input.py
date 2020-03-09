@@ -79,8 +79,8 @@ class TestInput(unittest.TestCase):
         )
 
         gs = [
-            group("Al", ["Al"], [[0.0, 0.0, 0.0]]),
-            group("OH", ["O", "H"], [[0.0, 0.0, 0.0], [0.1, 0.1, 0.1]]),
+            group("Al", ["Al"], coords=[[[0.0, 0.0, 0.0]]]),
+            group("OH", ["O", "H"], coords=[[[0.0, 0.0, 0.0], [0.1, 0.1, 0.1]]]),
         ]
 
         for i in range(2):

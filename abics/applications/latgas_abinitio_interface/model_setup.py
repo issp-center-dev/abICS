@@ -13,7 +13,7 @@ import pymatgen.analysis.structure_analyzer as analy
 
 from abics.exception import InputError
 from abics.mc import model
-from abics.util import read_matrix
+from abics.util import read_vector, read_matrix, read_tensor
 
 
 def gauss(x, x0, sigma):
@@ -422,19 +422,17 @@ class defect_sublattice(object):
             species = g.get("species", [name])
             n = len(species)
 
-            coords = np.array(g.get("coords", [[[0.0, 0.0, 0.0]]]))
-            m = coords.shape[0]
+            coords = read_tensor(g.get("coords", [[[0,0,0]]]), rank=3)
+            m = coords.shape[1]
             if m != n:
                 raise InputError(
                     'number of atoms mismatch in group [{}]: "species"={}, "coords"={}'.format(
                         name, n, m
                     )
                 )
-            if "relaxation" in g:
-                relaxation = read_matrix(g["relaxation"], dtype=bool)
-            else:
-                relaxation = np.ones((n,3), dtype=bool)
-            m = coords.shape[0]
+
+            relaxation = read_matrix(g.get("relaxation", np.ones((n, 3))), dtype=bool)
+            m = relaxation.shape[0]
             if m != n:
                 raise InputError(
                     'number of atoms mismatch in group [{}]: "species"={}, "relaxation"={}'.format(
@@ -442,17 +440,7 @@ class defect_sublattice(object):
                     )
                 )
 
-            if "magnetization" in g:
-                mag = g["magnetization"]
-                if not isinstance(mag, list):
-                    raise InputError('"magnetization" should be a list of floats')
-                try:
-                    mag = [float(x) for x in mag]
-                except ValueError:
-                    raise InputError('"magnetization" should be a list of floats')
-            else:
-                mag = np.zeros(n)
-
+            mag = read_vector(g.get("magnetization", np.zeros(n)))
             m = len(mag)
             if m != n:
                 raise InputError(

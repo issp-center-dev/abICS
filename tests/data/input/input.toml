@@ -63,7 +63,12 @@ num = 4
 [[config.defect_structure.groups]]
 name = 'OH'
 species = ['O', 'H']
-coords = [[[0,0,0], [0.1, 0.1, 0.1]]]
+coords = [
+  [
+    [0,0,0],
+    [0.1,0.1,0.1]
+  ]
+]
 num = 2
 
 
