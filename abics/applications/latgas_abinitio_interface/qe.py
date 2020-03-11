@@ -6,6 +6,7 @@ To deal with QuantumESPRESSO
 from collections import namedtuple
 import xml.etree.ElementTree as ET
 import operator
+import os
 import os.path
 
 import numpy as np
@@ -15,6 +16,7 @@ from qe_tools.parsers import PwInputFile
 
 from .base_solver import SolverBase
 from ...util import expand_path
+from ...exception import InputError
 
 
 hartree2eV = spc.value("Hartree energy in eV")
@@ -109,7 +111,14 @@ class QESolver(SolverBase):
                 Path to the directory including base input files.
             """
 
-            self.pwi = PwInputFile(os.path.join(os.getcwd(), base_input_dir, "scf.in"))
+            inputfile = os.path.join(os.getcwd(), base_input_dir, "scf.in")
+            self.pwi = PwInputFile(inputfile)
+            for name in ['CONTROL', 'SYSTEM']:
+                if name not in self.pwi.namelists:
+                    raise InputError("{} cannot found in {}".format(name, inputfile))
+            for name in ['ELECTRONS', 'IONS', 'CELL']:
+                if name not in self.pwi.namelists:
+                    self.pwi.namelists[name] = {}
             self.pwi.namelists["CONTROL"]["prefix"] = "pwscf"
             self.pwi.namelists["CONTROL"]["pseudo_dir"] = expand_path(
                 self.pwi.namelists["CONTROL"]["pseudo_dir"], os.getcwd()
@@ -278,14 +287,15 @@ class QESolver(SolverBase):
 
             species = []
             positions = []
-            child = root.find("input").find("atomic_structure").find("atomic_positions")
+            output = root.find("output")
+            child = output.find("atomic_structure").find("atomic_positions")
             for itr in child.iter("atom"):
                 species.append(itr.attrib["name"])
                 pos = list(map(lambda x: float(x) * Bohr2AA, itr.text.split()))
                 positions.append(pos)
 
             structure = Structure(A, species, positions, coords_are_cartesian=True)
-            child = root.find("output").find("total_energy").find("etot")
+            child = output.find("total_energy").find("etot")
             ene = hartree2eV * float(child.text)
 
             Phys = namedtuple("PhysValues", ("energy", "structure"))
