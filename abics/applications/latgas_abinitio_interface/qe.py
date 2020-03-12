@@ -96,10 +96,25 @@ class QESolver(SolverBase):
             if not os.path.exists(f):
                 return False
             try:
-                ET.parse(f)
+                tree = ET.parse(f)
             except ET.ParseError:
                 return False
-            return True
+
+            root = tree.getroot()
+            control = root.find("input").find("control_variables")
+            calculation = control.find("calculation").text
+            if calculation == "scf":
+                return True
+            elif calculation == "relax":
+                maxstep = int(control.find("nstep").text)
+                opt_conv = root.find("output").find("convergence_info").find("opt_conv")
+                convergenced = opt_conv.find("convergence_achieved").text.lower() == "true"
+                if convergenced:
+                    return True
+                nstep = int(opt_conv.find("n_opt_steps").text)
+                return nstep == maxstep
+            else:
+                raise InputError("calculation is {}, but this is not yet supported".format(calculation))
 
         def from_directory(self, base_input_dir):
             """
@@ -116,6 +131,9 @@ class QESolver(SolverBase):
             for name in ['CONTROL', 'SYSTEM']:
                 if name not in self.pwi.namelists:
                     raise InputError("{} cannot found in {}".format(name, inputfile))
+            calculation = self.pwi.namelists["CONTROL"]["calculation"]
+            if calculation not in ("scf", "relax"):
+                raise InputError("Sorry, {} is not yet supported".format(calculation))
             for name in ['ELECTRONS', 'IONS', 'CELL']:
                 if name not in self.pwi.namelists:
                     self.pwi.namelists[name] = {}
