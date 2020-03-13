@@ -471,7 +471,7 @@ def base_structure(lat, dict_str):
             species=[],
             coords=[],
             site_properties={"seldyn": np.zeros((0, 3), dtype=bool),
-                             "magnetization": np.zeros((0, 1))}
+                             "magnetization": np.zeros(0)}
         )
     elems = []
     coords = []
@@ -512,7 +512,7 @@ def base_structure(lat, dict_str):
                     )
                 )
         else:
-            mag = np.zeros((n, 1))
+            mag = np.zeros(n)
 
         elems.append([sp] * n)
         coords.append(crds)
