@@ -241,11 +241,12 @@ class QESolver(SolverBase):
                     f.write("\n")
 
                 f.write("K_POINTS {}\n".format(self.pwi.k_points["type"]))
-                for kp in self.pwi.k_points["points"]:
-                    f.write(" {}".format(kp))
-                for offset in self.pwi.k_points["offset"]:
-                    f.write(" {}".format(int(2 * offset)))
-                f.write("\n")
+                if "points" in self.pwi.k_points:
+                    for kp in self.pwi.k_points["points"]:
+                        f.write(" {}".format(kp))
+                    for offset in self.pwi.k_points["offset"]:
+                        f.write(" {}".format(int(2 * offset)))
+                    f.write("\n")
 
         def file_for_check_finished(self, workdir):
             return os.path.join(workdir, self.datadir, self.filetocheck)
