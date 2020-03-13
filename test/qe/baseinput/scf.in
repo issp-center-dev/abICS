@@ -23,5 +23,4 @@ Mg 24.305 Mg.pbesol-spnl-kjpaw_psl.1.0.0.UPF
 O  16.000 O.pbesol-n-kjpaw_psl.1.0.0.UPF
 ATOMIC_POSITIONS crystal
 
-K_POINTS automatic
-1 1 1 0 0 0
+K_POINTS gamma
