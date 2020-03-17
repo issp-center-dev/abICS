@@ -13,10 +13,12 @@ from abics.scripts.main import main_impl
 
 class TestAbics(unittest.TestCase):
     def test_hoge(self):
-        for i in (0, 1):
-            filename = os.path.join(str(i), "obs.dat")
-            if os.path.exists(filename):
-                os.remove(filename)
+        if MPI.COMM_WORLD.Get_rank() == 0:
+            for i in (0, 1):
+                filename = os.path.join(str(i), "obs.dat")
+                if os.path.exists(filename):
+                    os.remove(filename)
+        MPI.COMM_WORLD.Barrier()
         main_impl("input.toml")
         if MPI.COMM_WORLD.Get_rank() == 0:
             ref_T = np.array([[0.1034076, 0.1034076], [0.086173, 0.086173]])
