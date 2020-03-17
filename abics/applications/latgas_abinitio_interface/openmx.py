@@ -241,6 +241,7 @@ class OpenMXSolver(SolverBase):
             output_file = os.path.join(
                 output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])
             )
+            self.base_openmx_input['System.CurrrentDirectory'] = [output_dir + '/./']
             with open(output_file, "w") as f:
                 for key, values in self.base_openmx_input.items():
                     if key in self.base_openmx_input.vec_list:
@@ -375,4 +376,3 @@ class OpenMXSolver(SolverBase):
 
     def solver_run_schemes(self):
         return ("mpi_spawn_ready", "mpi_spawn_wrapper")
-
