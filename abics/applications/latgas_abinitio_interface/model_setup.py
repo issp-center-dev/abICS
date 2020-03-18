@@ -292,7 +292,6 @@ class dft_latgas(model):
             self.update_basestruct(config)
         return config
 
-
 class energy_lst(dft_latgas):
     def __init__(
         self,
