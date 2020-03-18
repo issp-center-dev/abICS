@@ -15,7 +15,7 @@ seed = 12345
 type = 'qe'
 path= '~/qe/bin/pw.x'
 base_input_dir = './baseinput'
-perturb = 0.0
+perturb = 0.1
 run_scheme = 'mpi_spawn'
 
 [config]

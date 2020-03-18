@@ -268,7 +268,7 @@ class OpenMXSolver(SolverBase):
                 Number of processes (not used).
 
             nthreads: int
-                Number of threads (not used).
+                Number of threads.
 
             output_dir: str
                 Output directory.
@@ -281,7 +281,9 @@ class OpenMXSolver(SolverBase):
             clargs = [
                 "{}.dat".format(
                     os.path.join(output_dir, self.base_openmx_input["System.Name"][0])
-                )
+                ),
+                "-nt",
+                str(nthreads),
             ]
             return clargs
 
