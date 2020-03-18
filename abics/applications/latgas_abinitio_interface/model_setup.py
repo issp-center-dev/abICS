@@ -11,8 +11,10 @@ from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import pymatgen.analysis.structure_analyzer as analy
 
+from abics.exception import InputError
 from abics.mc import model
-from abics.util import read_coords
+from abics.util import read_vector, read_matrix, read_tensor
+
 
 def gauss(x, x0, sigma):
     """
@@ -36,6 +38,7 @@ def gauss(x, x0, sigma):
         / (np.sqrt(2.0 * np.pi) * sigma)
         * np.exp(-np.power((x - x0) / sigma, 2.0) / 2.0)
     )
+
 
 def match_id(lst, obj):
     """
@@ -76,6 +79,7 @@ def nomatch_id(lst, obj):
             mapping.append(i)
     return mapping
 
+
 def match_latgas_group(latgas_rep, group):
     """
     Return the index list of latgas_rep which matches group.name.
@@ -106,7 +110,6 @@ class dft_latgas(model):
     def __init__(
         self,
         abinitio_run,
-        selective_dynamics=None,
         save_history=True,
         l_update_basestruct=False,
         check_ion_move=False,
@@ -118,8 +121,6 @@ class dft_latgas(model):
         ----------
         abinitio_run: runner object
             Runner (manager) of external solver program
-        selective_dynamics: list
-            List of relaxation
         save_history: boolean
         l_update_basestruct: boolean
         check_ion_move: boolean
@@ -127,7 +128,6 @@ class dft_latgas(model):
         """
         self.matcher = StructureMatcher(primitive_cell=False, allow_subset=False)
         self.abinitio_run = abinitio_run
-        self.selective_dynamics = selective_dynamics
         self.save_history = save_history
         self.l_update_basestruct = l_update_basestruct
         self.check_ion_move = check_ion_move
@@ -302,7 +302,6 @@ class energy_lst(dft_latgas):
         queen,
         reps,
         energy_lst,
-        selective_dynamics=None,
         matcher=None
     ):
         """
@@ -318,8 +317,6 @@ class energy_lst(dft_latgas):
         reps:
         energy_lst: list
             Energy list
-        selective_dynamics: list
-            List of relaxation
         matcher:
         """
         super().__init__(
@@ -328,7 +325,6 @@ class energy_lst(dft_latgas):
             base_vaspinput,
             matcher_base,  # matcher, matcher_site,
             queen,
-            selective_dynamics=None,
             matcher=None,
         )
         self.reps = reps
@@ -353,7 +349,10 @@ class energy_lst(dft_latgas):
 
 
 class group(object):
-    def __init__(self, name, species, coords=np.array([[[0.0, 0.0, 0.0]]])):
+    def __init__(self, name, species, *,
+            coords=None,
+            relaxations=None,
+            magnetizations=None):
         """
 
         Parameters
@@ -364,10 +363,16 @@ class group(object):
             The atomic species belonging to the atom group
         coords: numpy array
             The coordinates of each atom in the atom group.
+        relaxations: numpy array
+            Whether to perform structure optimization or not
+        magnetization: numpy array
+            Magnetizations (inbalance of up/down spins)
         """
         self.name = name
         self.species = species
-        self.coords = np.array(coords)
+        self.coords = np.array(coords) if coords is not None else np.zeros((1, 3))
+        self.relaxations = np.array(relaxations) if relaxations is not None else np.ones((1, 3), dtype=bool)
+        self.magnetizations = np.array(magnetizations) if magnetizations is not None else np.zeros(1)
         self.orientations = len(coords)
         if self.orientations == 0:
             self.orientations = 1
@@ -409,13 +414,40 @@ class defect_sublattice(object):
         groups: list
             List of groups
         """
-        site_centers = read_coords(d["coords"])
+        site_centers = read_matrix(d["coords"])
         groups = []
         for g in d["groups"]:
             name = g["name"]
             species = g.get("species", [name])
-            coords = np.array(g.get("coords", [[[0.0, 0.0, 0.0]]]))
-            groups.append(group(name, species, coords))
+            n = len(species)
+
+            coords = read_tensor(g.get("coords", [[[0,0,0]]]), rank=3)
+            m = coords.shape[1]
+            if m != n:
+                raise InputError(
+                    'number of atoms mismatch in group [{}]: "species"={}, "coords"={}'.format(
+                        name, n, m
+                    )
+                )
+
+            relaxation = read_matrix(g.get("relaxation", np.ones((n, 3))), dtype=bool)
+            m = relaxation.shape[0]
+            if m != n:
+                raise InputError(
+                    'number of atoms mismatch in group [{}]: "species"={}, "relaxation"={}'.format(
+                        name, n, m
+                    )
+                )
+
+            mag = read_vector(g.get("magnetization", np.zeros(n)))
+            m = len(mag)
+            if m != n:
+                raise InputError(
+                    'number of atoms mismatch in group [{}]: "species"={}, "magnetization"={}'.format(
+                        name, n, m
+                    )
+                )
+            groups.append(group(name, species, coords=coords, relaxations=relaxation, magnetizations=mag))
         return cls(site_centers, groups)
 
 
@@ -432,18 +464,70 @@ def base_structure(lat, dict_str):
     -------
     st: pymatgen.Structure
     """
-    st = Structure(lat, [], [])
-    if dict_str[0] == {}:
-        return st
+    if len(dict_str) == 1 and not dict_str[0]:
+        return Structure(
+            lattice=lat,
+            species=[],
+            coords=[],
+            site_properties={"seldyn": np.zeros((0, 3), dtype=bool),
+                             "magnetization": np.zeros(0)}
+        )
+    elems = []
+    coords = []
+    relaxations = []
+    magnetizations = []
     for tc in dict_str:
+        if "type" not in tc:
+            raise InputError('"type" is not found in "base_structure"')
         sp = tc["type"]
-        coords = read_coords(tc["coords"])
-        if len(coords.shape) == 1:
-            coords = np.reshape(coords, (1, 3))
-        n = coords.shape[0]
-        for i in range(n):
-            st.append(sp, coords[i, :])
-    return st
+        crds = read_matrix(tc["coords"])
+        n = crds.shape[0]
+
+        if "relaxation" in tc:
+            relax = read_matrix(tc["relaxation"], dtype=bool)
+            m = relax.shape[0]
+            if m != n:
+                raise InputError(
+                    'number of base atoms mismatch: "coords"={}, "relaxation"={}'.format(
+                        n, m
+                    )
+                )
+        else:
+            relax = np.ones((n, 3), dtype=bool)  # all True
+
+        if "magnetization" in tc:
+            mag = tc["magnetization"]
+            if not isinstance(mag, list):
+                raise InputError('"magnetization" should be a list of floats')
+            try:
+                mag = [float(x) for x in mag]
+            except ValueError:
+                raise InputError('"magnetization" should be a list of floats')
+            m = len(mag)
+            if m != n:
+                raise InputError(
+                    'number of base atoms mismatch: "coords"={}, "magnetization"={}'.format(
+                        n, m
+                    )
+                )
+        else:
+            mag = np.zeros(n)
+
+        elems.append([sp] * n)
+        coords.append(crds)
+        relaxations.append(relax)
+        magnetizations.append(mag)
+    elems = sum(elems, [])
+    coords = np.concatenate(coords, axis=0)
+    relaxations = np.concatenate(relaxations, axis=0)
+    magnetizations = np.concatenate(magnetizations, axis=0)
+
+    return Structure(
+        lattice=lat,
+        species=elems,
+        coords=coords,
+        site_properties={"seldyn": relaxations, "magnetization": magnetizations},
+    )
 
 
 class config:
@@ -456,7 +540,6 @@ class config:
         num_defects,
         cellsize=[1, 1, 1],
         perfect_structure=None,
-        base_structure_seldyn_array=None
     ):
         """
 
@@ -464,17 +547,14 @@ class config:
         ----------
         base_structure : pymatgen.Structure
             Structure of base sites (unsampled sites)
-        defect_sublattices : pymatgen.Structure
-            Structure of defect sites (sampled sites)
+        defect_sublattices : defect_sublattice
+            Structure of defects (sampled sites)
         num_defects : dict
             {group name: number of defects}
         cellsize : list, optional
             Cell size, by default [1, 1, 1]
         perfect_structure : pymatgen.Structure, optional
             Strucure of all sites (union of base and defect), by default None
-        base_structure_seldyn_array : list[list[boolean]], optional
-            relaxation flags for base structure
-            default: all True (allow relaxation)
         """
         try:
             num_defect_sublat = len(defect_sublattices)
@@ -493,15 +573,6 @@ class config:
         self.calc_history = []
         self.cellsize = cellsize
         self.base_structure = base_structure
-        if base_structure_seldyn_array is not None:
-            if isinstance(base_structure_seldyn_array, np.ndarray):
-                base_structure_seldyn_array.tolist()
-            assert len(base_structure) == len(base_structure_seldyn_array), "Lengths of base_structure and seldyn_array do not match"
-            self.base_structure.add_site_property("seldyn", base_structure_seldyn_array)
-        elif len(base_structure) != 0:
-            self.base_structure.add_site_property("seldyn",
-                                                  [[True, True, True]
-                                                      for i in range(len(base_structure))])
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -511,7 +582,9 @@ class config:
             self.base_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
         if perfect_structure:
             self.perfect_structure = perfect_structure
-            self.perfect_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
+            self.perfect_structure.make_supercell(
+                [cellsize[0], cellsize[1], cellsize[2]]
+            )
         self.supercell = self.base_structure.lattice.matrix
         self.n_sublat = num_defect_sublat
         invSuper = np.linalg.inv(self.supercell)
@@ -580,7 +653,8 @@ class config:
                     self.structure.append(
                         group.species[j],
                         group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
-                        properties={"seldyn" : [True, True, True]}
+                        properties={"seldyn": group.relaxations[j, :],
+                                    "magnetization": group.magnetizations[j]},
                     )
 
     def shuffle(self):

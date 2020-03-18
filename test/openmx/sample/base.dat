@@ -59,4 +59,5 @@ MD.Type                     nomd       # Nomd|Opt|NVE|NVT_VS|NVT_NH
 MD.maxIter                    1        # default=1
 MD.TimeStep                 1.0        # default=0.5 (fs)
 MD.Opt.criterion         1.0e-4        # default=1.0e-4 (Hartree/bohr)
-#DATA.PATH /Users/k-yoshimi/mylib/openmx3.9/DFT_DATA19
+DATA.PATH /Users/yomichi/build/openmx3.9/DFT_DATA19
+
