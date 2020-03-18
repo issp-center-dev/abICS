@@ -241,6 +241,7 @@ class OpenMXSolver(SolverBase):
             output_file = os.path.join(
                 output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])
             )
+            self.base_openmx_input['System.CurrrentDirectory'] = [output_dir + '/']
             with open(output_file, "w") as f:
                 for key, values in self.base_openmx_input.items():
                     if key in self.base_openmx_input.vec_list:
@@ -267,7 +268,7 @@ class OpenMXSolver(SolverBase):
                 Number of processes (not used).
 
             nthreads: int
-                Number of threads (not used).
+                Number of threads.
 
             output_dir: str
                 Output directory.
@@ -280,7 +281,9 @@ class OpenMXSolver(SolverBase):
             clargs = [
                 "{}.dat".format(
                     os.path.join(output_dir, self.base_openmx_input["System.Name"][0])
-                )
+                ),
+                "-nt",
+                str(nthreads),
             ]
             return clargs
 
@@ -374,5 +377,4 @@ class OpenMXSolver(SolverBase):
             return Phys(np.float64(Utot), structure)
 
     def solver_run_schemes(self):
-        return ("mpi_spawn_ready", "subprocess")
-
+        return ("mpi_spawn_ready", "mpi_spawn_wrapper")
