@@ -106,13 +106,22 @@ class QESolver(SolverBase):
             if calculation == "scf":
                 return True
             elif calculation == "relax":
-                maxstep = int(control.find("nstep").text)
-                opt_conv = root.find("output").find("convergence_info").find("opt_conv")
-                convergenced = opt_conv.find("convergence_achieved").text.lower() == "true"
-                if convergenced:
+                scf_conv = root.find("output").find("convergence_info").find("scf_conv")
+                scf_converged = scf_conv.find("convergence_achieved").text.lower() == "true"
+                # scf_maxstep = int(root.find("input").find("electron_control").find("max_nstep").text)
+                # scf_nstep = int(scf_conv.find("n_scf_steps").text)
+
+                if not scf_converged:
+                    # scf does not converged and QE stopped
                     return True
-                nstep = int(opt_conv.find("n_opt_steps").text)
-                return nstep == maxstep
+
+                opt_maxstep = int(control.find("nstep").text)
+                opt_conv = root.find("output").find("convergence_info").find("opt_conv")
+                opt_converged = opt_conv.find("convergence_achieved").text.lower() == "true"
+                if opt_converged:
+                    return True
+                opt_nstep = int(opt_conv.find("n_opt_steps").text)
+                return opt_nstep == opt_maxstep
             else:
                 raise InputError("calculation is {}, but this is not yet supported".format(calculation))
 

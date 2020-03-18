@@ -1,5 +1,5 @@
 &CONTROL
-  calculation = 'scf'
+  calculation = 'relax'
   tstress = .false.
   tprnfor = .false.
   pseudo_dir = '~/qe/pot'
@@ -15,7 +15,10 @@
 &electrons
   mixing_beta = 0.7
   conv_thr = 1.0d-4
-  electron_maxstep = 3
+  electron_maxstep = 100
+  scf_must_converge = .false.
+/
+&IONS
 /
 ATOMIC_SPECIES
 Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
