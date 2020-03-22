@@ -39,14 +39,14 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
   - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
   - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
 
-モンテカルロ法について
+配置と更新について
 ---------------------------
 
-ここでは、 :numref:`alg_sampling` を例にabICSでの格子の定義とモンテカルロ法の概要を説明します。
+ここでは、 :numref:`alg_sampling` を例にabICSでの格子配置の定義とモンテカルロ法での更新の概要を説明します。
 (a)-(c)は ``unitcell`` 、 ``base_structure`` 、 ``defect_structure`` の概念図で、青丸、緑丸、黒丸はそれぞれ ``base_structure`` で定義される原子種、星印は ``defect_structure`` で定義される欠陥が入る位置を表します。
 (d)は  ``base_structure`` で原子種を指定する場合の概念図です。ここでは、blue, green, blackの3原子種を定義しています。各原子がどのように配置されるかは、各原子種ごとに ``coords`` で定義します。
 (e)は ``defect_structure`` で欠陥位置に入るグループを指定する場合の概念図です。orange では2種の原子種から構成される4原子で構成されるグループを定義し、 purple では3種の原子種から構成される3原子のグループを構成しています。各グループでの原子の配置は ``defect_structure.groups`` セクション内の ``coords`` で指定することができます。
-(f) はモンテカルロ法のアップデートに関する概念図です。 アップデートでは欠陥の位置に入るグループを入れ替えるパターンと、配置は変えずに配位を変える2つのパターンがあります(どちらのアップデートを行うかは半分の確率で自動で選択されます)。提案された配置 :math:`X_{trial}` から採択率 :math:`P(X_i \rightarrow X_{trial})` を計算します。エネルギー :math:`E_{trial} \le E_i` の場合には :math:`P(X_i \rightarrow X_{trial}) \ge 1` となるため、 提案された配置を採用します。それ以外の場合には、採択率の確率で提案された配置を採用するかどうかを決定します。
+(f) はモンテカルロ法のアップデートに関する概念図です。 アップデートでは欠陥の位置に入るグループを入れ替えるパターンと、配置は変えずに配位を変える2つのパターンがあります(どちらのアップデートを行うかは半分の確率で自動で選択されます)。提案された配置 :math:`X_{trial}` から指定されたソルバーでエネルギーを計算し、採択率 :math:`P(X_i \rightarrow X_{trial})` を計算します。
 
 .. figure:: ../../../image/alg_sampling.png
      :name: alg_sampling
