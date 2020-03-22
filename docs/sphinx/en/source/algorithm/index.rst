@@ -40,15 +40,34 @@ where  :math:`X_i` is the state for :math:`i` -th replica system.
 The temperature exchange :math:`T_i \rightarrow T_{i+1}` is performed with the exchange transition probability :math:`R`.
 The physical quantity is measured at each ``sample_frequency`` step.
 
+- About Exchange Monte Carlo method
+
+  - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
+  - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
+
+
+About configuration and update
+------------------------------------
+
+Here, the outline of the definition of the configuration in abICS and the update by the Monte Carlo method are explained using :numref:`alg_sampling` as an example.
+
+(a)-(c) are schematic figures of ``unitcell``, ``base_structure``, and ``defect_structure``, where blue, green, and black circles are the atomic types defined by ``base_structure``, respectively. , The asterisk indicates the location of the defects defined by ``defect_structure``.
+(d) is a schematic figure for specifying the atomic species in ``base_structure``. Here, three atomic species of blue, green, and black are defined. How each atom is arranged is defined by ``coords`` for each atom type.
+(e) is a schematic figure for specifying the group of atoms to be located at the defect position with ``defect_structure``. orange defines a group consisting of four atoms composed of two types of atoms, and purple forms a group of three atoms composed of three types of atoms. The arrangement of atoms in each group can be specified by ``coords`` in the ``defect_structure.groups`` section.
+(f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that replaces the atoms to be located at the defect position, and the other that changes the orientation without changing the arrangement. The type of updates is automatically selected with half the probability. The energy is calculated with the specified solver from the proposed configuration :math:`X_ {trial}` and then the adoption rate :math:`P (X_i \rightarrow X_ {trial})` is calculated.
+
+.. figure:: ../../../image/alg_sampling.png
+     :name: alg_sampling
+     :scale: 15%
+	    
+     (a)-(e) Definition of lattice in abICS. (f) A schematic of MonteCarlo method. Details are described in the text.
+
+
 
 - Overview of abICS
 
   - `S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019) <https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta>`_.
 
-- About Exchange Monte Carlo method
-
-  - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
-  - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
 
 
 
