@@ -1,4 +1,5 @@
 import os
+import shutil
 import unittest
 
 import numpy as np
@@ -10,6 +11,14 @@ from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 
 
 class TestVASP(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        rootdir = os.path.dirname(__file__)
+        workdir = os.path.join(rootdir, "res", "vasp")
+        if os.path.exists(workdir):
+            shutil.rmtree(workdir)
+        os.makedirs(workdir)
+
     def setUp(self):
         self.solver = VASPSolver(".")
         self.rootdir = os.path.dirname(__file__)
@@ -19,7 +28,7 @@ class TestVASP(unittest.TestCase):
     def test_get_results(self):
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
         res.structure.to("POSCAR", os.path.join(self.workdir, "pos.vasp"))
-        ref = Structure.from_file(os.path.join(self.datadir, "pos.vasp"))
+        ref = Structure.from_file(os.path.join(self.datadir, "..", "pos.vasp"))
         ref_energy = 0.54083824
         self.assertTrue(np.isclose(res.energy, ref_energy))
         self.assertTrue(res.structure.matches(ref))
@@ -33,7 +42,7 @@ class TestVASP(unittest.TestCase):
             ["Al", "Al"],
             r,
             coords_are_cartesian=False,
-            site_properties={"seldyn": [[True, True, True], [True, True, True]]},
+            site_properties={"seldyn": [[True, True, False], [True, False, True]]},
         )
         self.solver.input.update_info_by_structure(st)
         self.solver.input.write_input(self.workdir)
@@ -43,6 +52,10 @@ class TestVASP(unittest.TestCase):
 
         self.assertEqual(res["INCAR"], ref["INCAR"])
         self.assertTrue(res["POSCAR"].structure.matches(ref["POSCAR"].structure))
+        self.assertEqual(
+            res["POSCAR"].structure.site_properties,
+            ref["POSCAR"].structure.site_properties,
+        )
 
     def test_cl_algs(self):
         nprocs = 2

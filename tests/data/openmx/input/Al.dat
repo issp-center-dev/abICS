@@ -1,0 +1,44 @@
+System.CurrrentDirectory ./
+System.Name Al
+level.of.stdout 1
+level.of.fileout 1
+Species.Number 1
+<Definition.of.Atomic.Species
+ Al Al7.0-s3p3d2 Al_PBE19
+Definition.of.Atomic.Species>
+Atoms.Number 2
+Atoms.SpeciesAndCoordinates.Unit FRAC
+<Atoms.SpeciesAndCoordinates
+ 1 Al 0.0 0.0 0.0 1.5 1.5
+ 2 Al 0.5 0.5 0.5 1.5 1.5
+Atoms.SpeciesAndCoordinates>
+scf.XcType GGA-PBE
+scf.SpinPolarization off
+scf.ElectronicTemperature 300.0
+scf.energycutoff 120.0
+scf.maxIter 100
+scf.EigenvalueSolver cluster
+scf.Kgrid 1 1 1
+scf.Mixing.Type rmm-diis
+scf.Init.Mixing.Weight 0.200
+scf.Min.Mixing.Weight 0.001
+scf.Max.Mixing.Weight 0.200
+scf.Mixing.History 7
+scf.Mixing.StartPulay 4
+scf.criterion 1.0e-10
+scf.lapack.dste dstevx
+MD.Type nomd
+MD.maxIter 1
+MD.TimeStep 1.0
+MD.Opt.criterion 1.0e-4
+DATA.PATH /Users/yomichi/Dropbox/source/github.com/issp-center-dev/abICS/tests/data/openmx/bin/../DFT_DATA19
+Atoms.UnitVectors.Unit Ang
+<Atoms.UnitVectors
+ 4.0 0.0 0.0
+ 0.0 4.0 0.0
+ 0.0 0.0 4.0
+Atoms.UnitVectors>
+<MD.Fixed.XYZ
+ 1 0 0 1
+ 2 0 1 0
+MD.Fixed.XYZ>

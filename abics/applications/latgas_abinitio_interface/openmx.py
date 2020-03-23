@@ -1,13 +1,64 @@
 from .base_solver import SolverBase
 from collections import namedtuple
 import numpy as np
-import os.path
+import os
 import scipy.constants as spc
 import subprocess
 from pymatgen import Structure
 
 hartree2eV = spc.value("Hartree energy in eV")
-Bohr2AA = spc.value('Bohr radius') * 1e10
+Bohr2AA = spc.value("Bohr radius") * 1e10
+
+
+class OpenMXInputFile(dict):
+    """ OpenMX Input
+
+    This is a dictionary storing OpenMX input parameters
+    with additionary information, vec_list
+
+    Attributes
+    ----------
+    vec_list: list
+        vectors
+    """
+
+    def __init__(self, input_file):
+        """
+
+        Parameters
+        ----------
+        input_file: str
+            inputfile
+        """
+        super().__init__(self)
+        self.vec_list = [
+            "Atoms.UnitVectors",
+            "Atoms.SpeciesAndCoordinates",
+            "MD.Fixed.XYZ",
+        ]
+        with open(input_file, "r") as f:
+            lines = f.readlines()
+            # delete comment out
+            list_flag = False
+            vals = []
+            for line in lines:
+                line = line.strip().split("#")[0]
+                if len(line) >= 2 or line != "":
+                    words = line.split()
+                    if words[0][0] == "<":
+                        list_flag = True
+                        vals = []
+                    elif words[0][-1:] == ">":
+                        self[line[:-1]] = vals
+                        self.vec_list.append(line[:-1])
+                        list_flag = False
+                    else:
+                        if list_flag:
+                            vals.append(words)
+                        else:
+                            self[words[0]] = words[1:]
+                    self.vec_list = list(set(self.vec_list))
+
 
 class OpenMXSolver(SolverBase):
     """
@@ -43,7 +94,7 @@ class OpenMXSolver(SolverBase):
         def __init__(self, path_to_solver):
             self.base_info = None
             self.pos_info = None
-            self.openmx_vec_list = ["Atoms.UnitVectors", "Atoms.SpeciesAndCoordinates", "MD.Fixed.XYZ"]
+            self.base_openmx_input = None
             self.path_to_solver = path_to_solver
 
         def cleanup(self, rundir):
@@ -74,12 +125,13 @@ class OpenMXSolver(SolverBase):
 
             Returns
             -------
-            self.base_openmx_input:  dict
-                        Dictionary for base information of the solver.
+            self.base_openmx_input:  OpenMXInput
             """
-            #TODO
+            # TODO
             # check the base input file name (now, set "base.dat")
-            self.base_openmx_input = self.OpenMXInputFile(os.path.join(os.getcwd(), base_input_dir, "base.dat"))
+            self.base_openmx_input = OpenMXInputFile(
+                os.path.join(os.getcwd(), base_input_dir, "base.dat")
+            )
             self.vps_info = self._get_vps_info(self.base_openmx_input)
 
             return self.base_openmx_input
@@ -103,9 +155,9 @@ class OpenMXSolver(SolverBase):
             if "DATA.PATH" in openmx_input:
                 path = openmx_input["DATA.PATH"][0]
             else:
-                print(self.path_to_solver)
                 cmd = "which {}".format(self.path_to_solver)
-                path = os.path.join(subprocess.check_output(cmd.split()).splitlines()[0].decode().rstrip("openmx"), "../DFT_DATA19")
+                fullpath = subprocess.check_output(cmd.split()).splitlines()[0].decode()
+                path = os.path.join(os.path.dirname(fullpath), "..", "DFT_DATA19")
                 openmx_input["DATA.PATH"] = [path]
             with open(os.path.join(path, "vps_info.txt"), "r") as f:
                 lines = f.readlines()
@@ -127,29 +179,51 @@ class OpenMXSolver(SolverBase):
             A = structure.lattice.matrix
             # Update unitvector information
             self.base_openmx_input["Atoms.UnitVectors.Unit"] = ["Ang"]
-            self.base_openmx_input["Atoms.UnitVectors"] = A # numpy.ndarray
+            self.base_openmx_input["Atoms.UnitVectors"] = A  # numpy.ndarray
             nat = len(structure.sites)
             # For write_input, Atoms.Number must be list format.
             self.base_openmx_input["Atoms.Number"] = [nat]
             self.base_openmx_input["Atoms.SpeciesAndCoordinates.Unit"] = ["FRAC"]
-            self.base_openmx_input["Atoms.SpeciesAndCoordinates"] = [[0, "", 0.0, 0.0, 0.0, 0.0, 0.0]]*nat
+            self.base_openmx_input["Atoms.SpeciesAndCoordinates"] = [
+                [0, "", 0.0, 0.0, 0.0, 0.0, 0.0]
+            ] * nat
 
             mag = [0.0] * nat
             if "magnetization" in structure.site_properties:
                 mag = structure.site_properties["magnetization"]
 
-            #Get electron_info
+            # Get electron_info
             atomic_species = self.base_openmx_input["Definition.of.Atomic.Species"]
             for idx, site in enumerate(structure.sites):
-                electron_number = self.vps_info[[specie[2] for specie in atomic_species if specie[0] == str(site.specie)][0]]
-                self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] =[idx+1, site.specie, site.a, site.b, site.c,
-                                                                             0.5 * electron_number + mag[idx], 0.5 * electron_number - mag[idx]]
+                electron_number = self.vps_info[
+                    [
+                        specie[2]
+                        for specie in atomic_species
+                        if specie[0] == str(site.specie)
+                    ][0]
+                ]
+                self.base_openmx_input["Atoms.SpeciesAndCoordinates"][idx] = [
+                    idx + 1,
+                    site.specie,
+                    site.a,
+                    site.b,
+                    site.c,
+                    0.5 * electron_number + mag[idx],
+                    0.5 * electron_number - mag[idx],
+                ]
             if "seldyn" in structure.site_properties:
                 seldyn_arr = structure.site_properties["seldyn"]
-                self.base_openmx_input["MD.Fixed.XYZ"] = [[0, int(False), int(False), int(False)]] * nat
+                self.base_openmx_input["MD.Fixed.XYZ"] = [
+                    [0, int(False), int(False), int(False)]
+                ] * nat
                 for idx, dyn_info in enumerate(seldyn_arr):
                     fix_info = (~np.array(dyn_info)).astype(int)
-                    self.base_openmx_input["MD.Fixed.XYZ"][idx] = [idx+1, fix_info[0], fix_info[1], fix_info[2] ]
+                    self.base_openmx_input["MD.Fixed.XYZ"][idx] = [
+                        idx + 1,
+                        fix_info[0],
+                        fix_info[1],
+                        fix_info[2],
+                    ]
 
         def write_input(self, output_dir):
             """
@@ -160,15 +234,17 @@ class OpenMXSolver(SolverBase):
             output_dir: str
                 Path to the output directory
             """
-            self.output_inputfile_dir = output_dir
             try:
                 os.makedirs(output_dir)
             except:
                 pass
-            output_file = os.path.join(output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0]))
+            output_file = os.path.join(
+                output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])
+            )
+            self.base_openmx_input['System.CurrrentDirectory'] = [output_dir + '/']
             with open(output_file, "w") as f:
                 for key, values in self.base_openmx_input.items():
-                    if key in self.openmx_vec_list:
+                    if key in self.base_openmx_input.vec_list:
                         print_stamp = "<{}\n".format(key)
                         for value_list in values:
                             for value in value_list:
@@ -192,7 +268,7 @@ class OpenMXSolver(SolverBase):
                 Number of processes (not used).
 
             nthreads: int
-                Number of threads (not used).
+                Number of threads.
 
             output_dir: str
                 Output directory.
@@ -202,50 +278,16 @@ class OpenMXSolver(SolverBase):
             clargs: dict
                 command line arguments
             """
-            clargs = ["{}.dat".format(os.path.join(output_dir, self.base_openmx_input["System.Name"][0]))]
+            clargs = [
+                "{}.dat".format(
+                    os.path.join(output_dir, self.base_openmx_input["System.Name"][0])
+                ),
+                "-nt",
+                str(nthreads),
+            ]
             return clargs
 
-        def OpenMXInputFile(self, input_file):
-            """
-
-            Read base input file for setting initial conditions.
-
-            Parameters
-            ----------
-            input_file: str
-            Full path of input file
-
-            Returns
-            -------
-            OpenMX_dict: dict
-
-
-            """
-            OpenMX_dict = {}
-            with open(input_file, "r") as f:
-                lines = f.readlines()
-                # delete comment out
-                list_flag = False
-                for line in lines:
-                    line = line.strip().split("#")[0]
-                    if len(line) >= 2 or line != "":
-                        words = line.split()
-                        if words[0][0] == "<":
-                            list_flag = True
-                            vec_list = []
-                        elif words[0][-1:] == ">":
-                            OpenMX_dict[line[:-1]] = vec_list
-                            self.openmx_vec_list.append(line[:-1])
-                            list_flag = False
-                        else:
-                            if list_flag is False:
-                                OpenMX_dict[words[0]] = words[1:]
-                            else:
-                                vec_list.append(words)
-                        self.openmx_vec_list = list( set(self.openmx_vec_list) )
-                return OpenMX_dict
-
-        #def submit: Use submit defined in run_base_mpi.py
+        # def submit: Use submit defined in run_base_mpi.py
 
     class Output(object):
         def __init__(self, input):
@@ -268,29 +310,48 @@ class OpenMXSolver(SolverBase):
 
             """
             # Read results from files in output_dir and calculate values
-            output_file = os.path.join(output_dir, "{}.out".format(self.input.base_openmx_input["System.Name"][0]))
+            output_file = os.path.join(
+                output_dir,
+                "{}.out".format(self.input.base_openmx_input["System.Name"][0]),
+            )
             with open(output_file, "r") as fi:
                 lines = fi.readlines()
                 lines_strip = [line.strip() for line in lines]
                 # Get total energy
-                Utot = float([line for line in lines_strip if 'Utot.' in line][0].split()[1])
+                Utot = float(
+                    [line for line in lines_strip if "Utot." in line][0].split()[1]
+                )
                 # Change energy unit from Hartree to eV
                 Utot *= hartree2eV
 
             # Get Cell information from dat# file
             A = np.zeros((3, 3))
-            output_file = os.path.join(self.input.output_inputfile_dir, "{}.dat#".format(self.input.base_openmx_input["System.Name"][0]))
+            output_file = os.path.join(
+                output_dir,
+                "{}.dat#".format(self.input.base_openmx_input["System.Name"][0]),
+            )
             with open(output_file, "r") as fi:
                 lines = fi.readlines()
                 lines_strip = [line.strip() for line in lines]
                 # Get Cell information
                 # Read Atoms.UnitVectors.Unit
-                Atoms_UnitVectors_Unit = [line.split()[1] for line in lines_strip if 'Atoms.UnitVectors.Unit' in line][
-                    0]
-                line_number_unit_vector_start = \
-                [i for i, line in enumerate(lines_strip) if '<Atoms.UnitVectors' in line][0]
+                Atoms_UnitVectors_Unit = [
+                    line.split()[1]
+                    for line in lines_strip
+                    if "Atoms.UnitVectors.Unit" in line
+                ][0]
+                line_number_unit_vector_start = [
+                    i
+                    for i, line in enumerate(lines_strip)
+                    if "<Atoms.UnitVectors" in line
+                ][0]
                 for i, line in enumerate(
-                        lines_strip[line_number_unit_vector_start + 1: line_number_unit_vector_start + 4]):
+                    lines_strip[
+                        line_number_unit_vector_start
+                        + 1 : line_number_unit_vector_start
+                        + 4
+                    ]
+                ):
                     A[:, i] = list(line.split())
                 if Atoms_UnitVectors_Unit == "AU":
                     A *= Bohr2AA
@@ -298,7 +359,10 @@ class OpenMXSolver(SolverBase):
             # Note:
             # Since xyz format of OpenMX is not correct (3 columns are added at each line).
             # pymatgen.io.xyz can not work.
-            output_file = os.path.join(output_dir, "{}.xyz".format(self.input.base_openmx_input["System.Name"][0]))
+            output_file = os.path.join(
+                output_dir,
+                "{}.xyz".format(self.input.base_openmx_input["System.Name"][0]),
+            )
             species = []
             positions = []
             with open(output_file, "r") as fi:
@@ -313,4 +377,4 @@ class OpenMXSolver(SolverBase):
             return Phys(np.float64(Utot), structure)
 
     def solver_run_schemes(self):
-        return ('mpi_spawn_ready', "subprocess",)
+        return ("mpi_spawn_ready", "mpi_spawn_wrapper")

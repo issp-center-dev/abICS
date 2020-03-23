@@ -5,6 +5,8 @@ To deal with QuantumESPRESSO
 
 from collections import namedtuple
 import xml.etree.ElementTree as ET
+import operator
+import os
 import os.path
 
 import numpy as np
@@ -14,6 +16,7 @@ from qe_tools.parsers import PwInputFile
 
 from .base_solver import SolverBase
 from ...util import expand_path
+from ...exception import InputError
 
 
 hartree2eV = spc.value("Hartree energy in eV")
@@ -93,10 +96,34 @@ class QESolver(SolverBase):
             if not os.path.exists(f):
                 return False
             try:
-                ET.parse(f)
+                tree = ET.parse(f)
             except ET.ParseError:
                 return False
-            return True
+
+            root = tree.getroot()
+            control = root.find("input").find("control_variables")
+            calculation = control.find("calculation").text
+            if calculation == "scf":
+                return True
+            elif calculation == "relax":
+                scf_conv = root.find("output").find("convergence_info").find("scf_conv")
+                scf_converged = scf_conv.find("convergence_achieved").text.lower() == "true"
+                # scf_maxstep = int(root.find("input").find("electron_control").find("max_nstep").text)
+                # scf_nstep = int(scf_conv.find("n_scf_steps").text)
+
+                if not scf_converged:
+                    # scf does not converged and QE stopped
+                    return True
+
+                opt_maxstep = int(control.find("nstep").text)
+                opt_conv = root.find("output").find("convergence_info").find("opt_conv")
+                opt_converged = opt_conv.find("convergence_achieved").text.lower() == "true"
+                if opt_converged:
+                    return True
+                opt_nstep = int(opt_conv.find("n_opt_steps").text)
+                return opt_nstep == opt_maxstep
+            else:
+                raise InputError("calculation is {}, but this is not yet supported".format(calculation))
 
         def from_directory(self, base_input_dir):
             """
@@ -108,7 +135,17 @@ class QESolver(SolverBase):
                 Path to the directory including base input files.
             """
 
-            self.pwi = PwInputFile(os.path.join(os.getcwd(), base_input_dir, "scf.in"))
+            inputfile = os.path.join(os.getcwd(), base_input_dir, "scf.in")
+            self.pwi = PwInputFile(inputfile)
+            for name in ['CONTROL', 'SYSTEM']:
+                if name not in self.pwi.namelists:
+                    raise InputError("{} cannot found in {}".format(name, inputfile))
+            calculation = self.pwi.namelists["CONTROL"]["calculation"]
+            if calculation not in ("scf", "relax"):
+                raise InputError("Sorry, {} is not yet supported".format(calculation))
+            for name in ['ELECTRONS', 'IONS', 'CELL']:
+                if name not in self.pwi.namelists:
+                    self.pwi.namelists[name] = {}
             self.pwi.namelists["CONTROL"]["prefix"] = "pwscf"
             self.pwi.namelists["CONTROL"]["pseudo_dir"] = expand_path(
                 self.pwi.namelists["CONTROL"]["pseudo_dir"], os.getcwd()
@@ -143,9 +180,9 @@ class QESolver(SolverBase):
             if "seldyn" in structure.site_properties:
                 seldyn_arr = structure.site_properties["seldyn"]
                 for idx, dyn_info in enumerate(seldyn_arr):
-                    self.pwi.atomic_positions["fixed_coords"][i] = (
-                        ~np.array(dyn_info)
-                    ).tolist()
+                    self.pwi.atomic_positions["fixed_coords"][idx] = list(
+                        map(operator.not_, dyn_info)
+                    )
 
         def update_info_from_files(self, output_dir, rerun):
             """
@@ -213,11 +250,12 @@ class QESolver(SolverBase):
                     f.write("\n")
 
                 f.write("K_POINTS {}\n".format(self.pwi.k_points["type"]))
-                for kp in self.pwi.k_points["points"]:
-                    f.write(" {}".format(kp))
-                for offset in self.pwi.k_points["offset"]:
-                    f.write(" {}".format(int(2 * offset)))
-                f.write("\n")
+                if "points" in self.pwi.k_points:
+                    for kp in self.pwi.k_points["points"]:
+                        f.write(" {}".format(kp))
+                    for offset in self.pwi.k_points["offset"]:
+                        f.write(" {}".format(int(2 * offset)))
+                    f.write("\n")
 
         def file_for_check_finished(self, workdir):
             return os.path.join(workdir, self.datadir, self.filetocheck)
@@ -277,14 +315,15 @@ class QESolver(SolverBase):
 
             species = []
             positions = []
-            child = root.find("input").find("atomic_structure").find("atomic_positions")
+            output = root.find("output")
+            child = output.find("atomic_structure").find("atomic_positions")
             for itr in child.iter("atom"):
                 species.append(itr.attrib["name"])
                 pos = list(map(lambda x: float(x) * Bohr2AA, itr.text.split()))
                 positions.append(pos)
 
             structure = Structure(A, species, positions, coords_are_cartesian=True)
-            child = root.find("output").find("total_energy").find("etot")
+            child = output.find("total_energy").find("etot")
             ene = hartree2eV * float(child.text)
 
             Phys = namedtuple("PhysValues", ("energy", "structure"))
@@ -297,5 +336,5 @@ class QESolver(SolverBase):
         schemes : tuple[str]
             Implemented runner schemes.
         """
-        return ("mpi_spawn")
+        return "mpi_spawn"
 

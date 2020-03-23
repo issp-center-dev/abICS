@@ -2,15 +2,19 @@ import subprocess
 import sys
 import os
 
+
+
 if __name__ == '__main__':
     sys.path.append('../../')
     from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver    
     #Set solver
-    path_to_solver = "openmx"
+    # path_to_solver = "openmx"
+    path_to_solver = os.path.expanduser("~/build/openmx3.9/work/openmx")
     solver = OpenMXSolver(path_to_solver)
     print ("solver name is {}. ".format(solver.name()))
 
-    base_dir = "/Users/k-yoshimi/Dropbox/PycharmProjects/abICS/test/openmx/sample"
+    #base_dir = "/Users/k-yoshimi/Dropbox/PycharmProjects/abICS/test/openmx/sample"
+    base_dir =  os.path.join(os.path.abspath(os.path.dirname(__file__)), "sample")
     #Read base file
     print("Read base file.")
     input = solver.input
@@ -21,7 +25,7 @@ if __name__ == '__main__':
     input.write_input(input_dir)
     print("Execute OpenMX.")
     cmd = "{} {}.dat".format(path_to_solver, os.path.join(input_dir, input.base_openmx_input["System.Name"][0]))
-    subprocess.call(cmd.split())
+    # subprocess.call(cmd.split())
 
     #Read Output file
     print("Read Output file.")
@@ -33,8 +37,8 @@ if __name__ == '__main__':
     input_dir = "test1"
     input.write_input(input_dir)
     print("Execute OpenMX.")
-    cmd = "openmx {}.dat".format(os.path.join(input_dir, input.base_openmx_input["System.Name"][0]))
-    subprocess.call(cmd.split())
+    cmd = "{} {}.dat".format(path_to_solver, os.path.join(input_dir, input.base_openmx_input["System.Name"][0]))
+    # subprocess.call(cmd.split())
     #Check the results of test/met.dat# and test1/met.dat# are almost same.
 
     #Check seldyn_arr
@@ -50,8 +54,10 @@ if __name__ == '__main__':
         Solver=solver,
         nprocs_per_solver=nprocs_per_replica,
         comm=MPI.COMM_SELF,
-        solver_run_scheme = "subprocess"
+        solver_run_scheme = "mpi_spawn_wrapper"
     )
-    output_base_dir = "/Users/k-yoshimi/Dropbox/PycharmProjects/abICS/test/openmx"
+    # output_base_dir = "/Users/k-yoshimi/Dropbox/PycharmProjects/abICS/test/openmx"
+    output_base_dir = os.path.abspath(os.path.dirname(__file__))
+    print(output_base_dir)
     energy_calculator.submit(structure=phys.structure, output_dir=os.path.join(output_base_dir, "test2"))
     # Check the coordinates of test1/met.dat# and test2/met.dat# are same.
