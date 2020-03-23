@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    abics.scripts.main
+   abics.scripts.struct_translator
 
 Module contents
 ---------------

@@ -44,7 +44,7 @@ Keywords
 
     -  ``nsteps``
 
-    **Format :** int (nature number)
+    **Format :** int (natural number)
 
     **Description :** Number of temperature divisions.
 
@@ -53,13 +53,13 @@ Keywords
 
     -  ``nprocs_per_replica``
 
-    **Format :** int (nature number)
+    **Format :** int (natural number)
 
     **Description :** The number of processes for the replica. Default value = 1.
 
     -  ``nreplicas``
 
-    **Format :** int
+    **Format :** int (natural number)
 
     **Description :** The number of replicas.
 
@@ -68,19 +68,25 @@ Keywords
 
     -  ``RXtrial_frequency``
 
-    **Format :** int (nature number)
+    **Format :** int (natural number)
 
     **Description :** The number of Monte Carlo steps for replica exchange. Default = 1.
 
 
     -  ``sample_frequency``
 
-    **Format :** int (nature number)
+    **Format :** int (natural number)
 
     **Description :**     The number of Monte Carlo steps for observation of physical quantities. Default value = 1.
 
     -  ``print_frequency``
 
-    **Format :** int (nature number)
+    **Format :** int (natural number)
 
     **Description :**     The number of Monte Carlo steps for saving physical quantities. Default value = 1.
+
+    -  ``reload``
+
+    **Format :** bool ("true" or "false")
+
+    **Description :**     Whether to restart the calculation from the last step finished last time. Default value = false.
