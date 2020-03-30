@@ -23,24 +23,24 @@ the local energy landscape at lower temperatures.
 
 In abICS, parameters related to the replica exchange Monte Carlo method are specified in the ``[replica]`` section of the input file.
 By setting the lower limit of the replica temperature to ``kTstart`` , the upper limit to ``kTend``, and the number of replicas to ``nreplicas``,
-``nreplicas`` replica systems with different temperatures ( :math:`T_0, T_1, \cdots T_{\verb|nreplicas|-1}`) are provided, where
+``nreplicas`` replica systems with different temperatures ( :math:`T_0, T_1, \cdots T_{\verb|nreplicas|-1}`) are sampled, where
 
 .. math::
    
    T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}.
 
-By setting the number of processes to ``nprocs_per_replica``, the number of replicas that each process is assigned can be specified.
+In abICS, using ``nprocs_per_replica``, the number of parallel solver processes that performs the calculation on each replica can be specified.
 The number of Monte Carlo steps is specified by ``nsteps``, and the exchange transition probability :math:`R` for each ``RXtrial_frequency`` step is defined as
 
 .. math::
 
-   R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{i+1}}\right)\left(E(X_i)-E(X_{i+1})\right)\right],
+   R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{k}}\right)\left(E(X_i)-E(X_{k})\right)\right],
 
-where  :math:`X_i` is the state for :math:`i` -th replica system.
-The temperature exchange :math:`T_i \rightarrow T_{i+1}` is performed with the exchange transition probability :math:`R`.
-The physical quantity is measured at each ``sample_frequency`` step.
+where  :math:`X_i` is the state for :math:`i` -th replica system. In abICS, the exchange transition is tried between replicas with adjacent temperatures.
+The temperature exchange :math:`T_i \leftrightarrow T_{k}` is performed with the exchange transition probability :math:`R`.
+Physical quantities such as the total energy is measured at each ``sample_frequency`` step.
 
-- About Exchange Monte Carlo method
+- About replica exchange Monte Carlo method
 
   - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
   - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
@@ -51,10 +51,11 @@ About configuration and update
 
 Here, the outline of the definition of the configuration in abICS and the update by the Monte Carlo method are explained using :numref:`alg_sampling` as an example.
 
-(a)-(c) are schematic figures of ``unitcell``, ``base_structure``, and ``defect_structure``, where blue, green, and black circles are the atomic types defined by ``base_structure``, respectively. The asterisk indicates the location of the defects defined by ``defect_structure``.
+(a)-(c) are schematic figures of ``unitcell``, ``base_structure``, and ``defect_structure``, where blue, green, and black circles are the atomic types defined by ``base_structure``, respectively. The star symbol indicates the location of the defects defined by ``defect_structure``.
 (d) is a schematic figure for specifying the atomic species in ``base_structure``. Here, three atomic species of blue, green, and black are defined. How each atom is arranged is defined by ``coords`` for each atom type.
 (e) is a schematic figure for specifying the group of atoms to be located at the defect position with ``defect_structure``. orange defines a group consisting of four atoms composed of two types of atoms, and purple forms a group of three atoms composed of three types of atoms. The arrangement of atoms in each group can be specified by ``coords`` in the ``defect_structure.groups`` section.
-(f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that replaces the atoms to be located at the defect position, and the other that changes the orientation without changing the arrangement. The type of updates is automatically selected with half the probability. The energy is calculated with the specified solver from the proposed configuration :math:`X_ {trial}` and then the adoption rate :math:`P (X_i \rightarrow X_ {trial})` is calculated.
+(f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that swaps two atom groups of different type
+, and the other that changes the orientation within the atom group without changing the arrangement. The type of updates is automatically selected with 1/2 probability. The energy is calculated with the specified solver from the proposed configuration :math:`X_ {trial}` and then the adoption rate :math:`P (X_i \rightarrow X_ {trial})` is calculated.
 
 .. figure:: ../../../image/alg_sampling.png
      :name: alg_sampling

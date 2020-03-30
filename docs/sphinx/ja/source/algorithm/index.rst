@@ -21,20 +21,20 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
    
    T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}
 
-として ``nreplicas`` 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 :math:`i=0 \cdots \verb|nreplicas|-1` 。なお、プロセス数を ``nprocs_per_replica`` することで各プロセスが担当するレプリカ数を指定することができます)。
+として ``nreplicas`` 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 :math:`i=0 \cdots \verb|nreplicas|-1` 。abICSでは、「nprocs_per_replica」を使用して、各レプリカで計算を実行する並列ソルバープロセスの数を指定できます)。
 モンテカルロステップ数は ``nsteps`` で指定し、 ``RXtrial_frequency`` ステップ毎に交換遷移確率
 
 .. math::
 
-   R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{i+1}}\right)\left(E(X_i)-E(X_{i+1})\right)\right]
+   R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{k}}\right)\left(E(X_i)-E(X_{k})\right)\right]
 
-が計算されます。:math:`R` の確率で温度交換 :math:`T_i \rightarrow T_{i+1}` が行われます (ただし、 :math:`X_i` はi番目のレプリカ系の状態)。なお、物理量は ``sample_frequency`` ステップ毎に測定が行われます。
+が計算されます。:math:`R` の確率で温度交換 :math:`T_i \leftrightarrow T_{k}` が行われます (ただし、 :math:`X_i` はi番目のレプリカ系の状態です。また、abICSでは隣接する温度を持ったレプリカ同士で交換試行をしています)。なお、物理量は ``sample_frequency`` ステップ毎に測定が行われます。
 
 - abICSの概要について
 
   - `S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019) <https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta>`_.
 
-- 交換モンテカルロ法について
+- レプリカ交換モンテカルロ法について
 
   - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
   - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
