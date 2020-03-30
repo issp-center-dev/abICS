@@ -121,7 +121,23 @@ Key words
 
          **Description :**  The coordinates of each atom in the atom group.
          A list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
-	 Default value is  `[[0.0, 0.0, 0.0]]`.
+	 Default value is  ``[[0.0, 0.0, 0.0]]``.
+
+      - ``relaxation``
+
+	**Format :** list of lists or str
+
+	**Description :**  Whether to optimize structure (coordinates) or not for each atom and dimension.
+        A list of N elements (number of atoms) with 3 booleans ("true" or "false"), or a string of "true" or "false" arranged in N rows and 3 columns.
+        Default is ``["true", "true", "true"]`` for all the atoms.
+
+      - ``magnetization``
+
+	**Format :** list
+	
+	**Description :**  Magnetization (the difference between the number of up and down electrons) for each atom.
+        Default is 0.0 for all the atoms.
+  
 
       -  ``num``
 
