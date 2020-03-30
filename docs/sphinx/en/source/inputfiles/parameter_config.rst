@@ -3,8 +3,8 @@
 [config] section
 -------------------------------
 
-Specify alloy coordination, etc.
-The example is shown as follows:
+This section specifies alloy coordination, etc.
+An example is shown as follows:
 
   ::
 
@@ -43,7 +43,7 @@ The example is shown as follows:
 
 Input Format
 ^^^^^^^^^^^^
-Specify a keyword and its value in the form ``keyword = value``.
+Keywords and their values are specified by a keyword and its value in the form ``keyword = value``.
 Comments can also be entered by adding # (Subsequent characters are ignored).
 
 Key words
@@ -53,18 +53,18 @@ Key words
 
     -  ``unitcell``
 
-    **Format :** list
+       **Format :** list
 
-    **Description :**
-    Specify lattice vector :math:`\bf{a}, \bf{b}, \bf{c}` by
-    the list format [ :math:`\bf{a}, \bf{b}, \bf{c}` ] .
+       **Description :**
+       Lattice vector :math:`\bf{a}, \bf{b}, \bf{c}` by
+       the list format [ :math:`\bf{a}, \bf{b}, \bf{c}` ] .
 
     -  ``supercell``
 
-    **Format :** list
+       **Format :** list
 
-    **Description :**
-    Specify the size of super lattice by the list format[ :math:`\bf{a}, \bf{b}, \bf{c}` ].
+       **Description :**
+       The size of super lattice by the list format[ :math:`\bf{a}, \bf{b}, \bf{c}` ].
 
 - [[config.base_structure]] section
 
@@ -73,60 +73,59 @@ Key words
 
     - ``type``
 
-    **Format :** str
+      **Format :** str
 
-    **Description :**  Specify atomic specie.
+      **Description :**  Atomic specie.
 
     - ``coords``
 
-    **Format :** list of lists or str
+      **Format :** list of lists or str
 
-    **Description :**
-    Specify coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
+      **Description :**
+      Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
 
 
 - [[config.defect_structure]] section
 
-    Specify the coordinates (coords) and atoms (group) that can enter the atoms to be updated in Monte Carlo.
-    In Ver. 1.0, conversion tools from POSCAR and cif will be available.
+    This sections specifies the lattice coordinates (coords) and atoms (or atom groups) (groups) that can reside on those lattice sites. Monte Carlo sampling is performed on the lattice specified in this section. In Ver. 1.0, conversion tools from POSCAR and cif will be available.
   
     - ``coords``
 
-    **Format :** list of lists or str
+      **Format :** list of lists or str
 
-    **Description :**  Specify the coordinates where the atom enter.
-    Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
+      **Description :**  The coordinates of the lattice sites where atoms reside.
+      A list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
 
     - [[config.defect_structure.groups]] section
 
-        Specify the atom group information to be updated by Monte Carlo.
+      The atom group information to be updated by Monte Carlo.
 
-        -  ``name``
+      -  ``name``
 
-            **Format :** str
+         **Format :** str
 
-            **Description :**
-            Specify the name of atomic group.
+         **Description :**
+         The name of atomic group.
 
 
-        -  ``species``
+      -  ``species``
 
-            **Format :** list
+         **Format :** list
 
-            **Description :**
-	    Specify the atomic species belonging to the atom group. The default value is a list containing only one specified by ``name``.
+         **Description :**
+	 The atomic species belonging to the atom group. The default value is a list containing only one specified by ``name``.
 
-        -  ``coords``
+      -  ``coords``
 
-            **Format :** list of lists or str
+	 **Format :** list of lists or str
 
-            **Description :**  Specify the coordinates of each atom in the atom group.
-            Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
-	    Default value is  `[[0.0, 0.0, 0.0]]`.
+         **Description :**  The coordinates of each atom in the atom group.
+         A list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
+	 Default value is  `[[0.0, 0.0, 0.0]]`.
 
-        -  ``num``
+      -  ``num``
 
-            **Format :** int
+         **Format :** int
 
-            **Description :**
-            Specify the number of this atom group.
+         **Description :**
+         The number of atom groups of the type specified in this section.

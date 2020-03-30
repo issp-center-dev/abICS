@@ -3,8 +3,8 @@
 [observer] section
 -------------------------------
 
-Specify the type of physical quantity to be acquired.
-The example is shown as follows:
+This section specifies the type of physical quantity to be acquired.
+An example is shown as follows:
 
   ::
      
@@ -13,7 +13,8 @@ The example is shown as follows:
 
 Input Format
 ^^^^^^^^^^^^^
-Specify a keyword and its value in the form ``keyword = value``.
+
+Keywords and their values are specified by a keyword and its value in the form ``keyword = value``.
 Comments can also be entered by adding # (Subsequent characters are ignored).
 
 Key words
@@ -24,8 +25,5 @@ Key words
     **Format :** str 
 
     **Description :**
-    Specify a physical quantity set.
+    A physical quantity set.
     
-    - "default"
-        
-        - Default setting. Get the energy and the atom group in each coordinate.
