@@ -56,12 +56,12 @@ pythonモジュールは ``abics`` ディレクトリ以下に一式格納され
 
 1. wheelファイルを作成します.
 
-``$ ./make_wheel.sh``
+   ``$ ./make_wheel.sh``
 
 2. 作成されたファイルを使用して以下のようにインストールします.
 
-``$ pip install dist/abics-*.whl``
+   ``$ pip install dist/abics-*.whl``
 
-インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
+   インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
 
-``$ pip install --user dist/abics-*.whl``
+   ``$ pip install --user dist/abics-*.whl``

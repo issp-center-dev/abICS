@@ -28,65 +28,65 @@ Keywords
 
 - About temperatures
 
-    -  ``kTstart``
+   - ``kTstart``
 
-    **Format :** float (>0)
+       **Format :** float (>0)
 
-    **Description :**
-    Minimum temperature for the replica.
+       **Description :**
+       Minimum temperature for the replica.
 
-    -  ``kTend``
+   - ``kTend``
 
-    **Format :** float (>0)
+       **Format :** float (>0)
 
-    **Description :**
-    Maximum temperature for the replica.
-
-    -  ``nsteps``
-
-    **Format :** int (natural number)
-
-    **Description :** Number of temperature divisions.
-
+       **Description :**
+       Maximum temperature for the replica.
 
 - About replica 
 
-    -  ``nprocs_per_replica``
+    - ``nprocs_per_replica``
 
-    **Format :** int (natural number)
+       **Format :** int (natural number)
 
-    **Description :** The number of processes for the replica. Default value = 1.
+       **Description :** The number of processes for the replica. Default value = 1.
 
-    -  ``nreplicas``
+    - ``nreplicas``
 
-    **Format :** int (natural number)
+       **Format :** int (natural number)
 
-    **Description :** The number of replicas.
+       **Description :** The number of replicas.
 
 
 - Others
 
-    -  ``RXtrial_frequency``
+   - ``nsteps``
 
-    **Format :** int (natural number)
+       **Format :** int (natural number)
 
-    **Description :** The number of Monte Carlo steps for replica exchange. Default = 1.
+       **Description :** Number of Monte Carlo steps.
+
+  
+   - ``RXtrial_frequency``
+
+       **Format :** int (natural number)
+
+       **Description :** The interval for performing replica exchange trials. For example, setting this value to 1 means that replica exchange is attempted at every Monte Carlo step, while setting this to 2 means that exchange is attempted at every second step. Default = 1.
 
 
-    -  ``sample_frequency``
+   - ``sample_frequency``
 
-    **Format :** int (natural number)
+       **Format :** int (natural number)
 
-    **Description :**     The number of Monte Carlo steps for observation of physical quantities. Default value = 1.
+       **Description :**     The interval for observation of physical quantities. Default value = 1.
 
-    -  ``print_frequency``
+   - ``print_frequency``
 
-    **Format :** int (natural number)
+       **Format :** int (natural number)
 
-    **Description :**     The number of Monte Carlo steps for saving physical quantities. Default value = 1.
+       **Description :**     The interval for saving physical quantities. Default value = 1.
 
-    -  ``reload``
+   - ``reload``
 
-    **Format :** bool ("true" or "false")
+       **Format :** bool ("true" or "false")
 
-    **Description :**     Whether to restart the calculation from the last step finished last time. Default value = false.
+       **Description :**     Whether to restart a prior calculation from the last step finished last time. Default value = false.
