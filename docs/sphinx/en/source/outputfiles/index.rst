@@ -4,12 +4,12 @@
 Output Files Format
 ***************************
 
-The calculation results are output below each replica directory.
+The calculation results are output in each replica directory.
 
 ``structure.XXX.vasp``
 =========================
-The atomic position for each step in the POSCAR file format of VASP is saved.
-``XXX`` in the filename means the index of the step.
+The atomic coordinates for each step are saved in the POSCAR file format of VASP.
+``XXX`` in the filename corresponds to the index of the step.
 
 Example::
 
@@ -29,11 +29,11 @@ Example::
 
 ``minE.vasp``
 ====================
-The atomic position minimizing the total energy in the POSCAR file format of VASP is saved.
+The lowest-energy structure among the samples in this replica.
 
 ``obs.dat``
 ===================
-The temperature and the total energy for each step in units of eV is saved.
+The temperature and the total energy for each step in units of eV.
 
 Example::
 
@@ -45,7 +45,7 @@ Example::
 
 ``obs_save.npy``
 ==================
-The total energy for each step in units of eV in the Numpy binary format is saved.
+The total energy for each step in units of eV in the Numpy binary format.
 Users can load it as ``darray`` by using ``numpy.load('obs_save.npy')``.
 
 Example::
@@ -59,7 +59,7 @@ Example::
 
 ``kT_hist.npy``
 ==================
-The temperature for each step in units of eV in the Numpy binary format is saved.
+The temperature for each step in units of eV in the Numpy binary format.
 Users can load it as ``darray`` by using ``numpy.load('kT_hist.npy')``.
 
 Example::
@@ -70,7 +70,7 @@ Example::
 
 ``Trank_hist.npy``
 ==================
-The rank (index) of the temperature for each step in the Numpy binary format is saved.
+The rank (index) of the temperature for each step in the Numpy binary format.
 Users can load it as ``darray`` by using ``numpy.load('Trank_hist.npy')``.
 
 Example::
