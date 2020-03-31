@@ -1,7 +1,7 @@
 .. highlight:: none
 
 多元系イオン結晶 MgAl :math:`_2` O :math:`_4` の, Mg, Al 原子の反転度計算
-------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 このチュートリアルの入力ファイルは examples/standard/spinel にあります。
 以下、QuantumESPRESSOおよびVASPでの例について順に記載します。
@@ -193,7 +193,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 
 結果が ``Tseparate/DOI_T.dat`` に出力されます。
 
-.. image:: ../../../image/doi_2.png
+.. image:: ../../../image/doi_2.*
    :width: 400px
    :align: center
 
@@ -203,7 +203,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 モンテカルロ平均で最初に捨てるサンプル数は ``calc_DOI.py`` スクリプトにある ``throwout`` の値で指定できます。
 例えば、17 レプリカ、20 ステップで計算をすると
 
-.. image:: ../../../image/doi_17.png
+.. image:: ../../../image/doi_17.*
    :width: 400px
    :align: center
 
@@ -277,7 +277,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 
 結果が ``Tseparate/DOI_T.dat`` に出力されます。
 
-.. image:: ../../../image/doi_2.png
+.. image:: ../../../image/doi_2.*
    :width: 400px
    :align: center
 
@@ -285,9 +285,9 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 レプリカ数を増やすと様々な温度で計算ができます。
 また、ステップ数を増やすことでよりきれいな結果を得られます。
 モンテカルロ平均で最初に捨てるサンプル数は ``calc_DOI.py`` スクリプトにある ``throwout`` の値で指定できます。
-例えば、17 レプリカ、20 ステップで計算をすると
+例えば、17 レプリカ、1000 ステップで計算をすると
 
-.. image:: ../../../image/doi_17.png
+.. image:: ../../../image/doi_vasp.*
    :width: 400px
    :align: center
 

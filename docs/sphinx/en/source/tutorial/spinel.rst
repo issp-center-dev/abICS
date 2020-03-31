@@ -1,7 +1,7 @@
 .. highlight:: none
 
 Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal MgAl :math:`_2` O :math:`_4`
------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
 
 Input files are provided in ``examples/standard/spinel`` .
 Below, examples for QuantumESPRESSO and VASP are described.
@@ -267,9 +267,9 @@ The results are stored in ``Tseparate/DOI_T.dat`` .
 If you increase the number of replicas, you can calculate at various temperatures.
 You can also get better results by increasing the number of steps.
 The first number of samples to discard in Monte Carlo averaging can be specified by the value of ``throwout`` in the ``calc_DOI.py`` script.
-For example, if you do with 17 replicas and 20 steps, the following result will be obtained
+For example, if you do with 17 replicas and 1000 steps, the following result will be obtained
 
-.. image:: ../../../image/doi_17.*
+.. image:: ../../../image/doi_vasp.*
    :width: 400px
    :align: center
 
