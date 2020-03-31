@@ -253,43 +253,11 @@ abICS では、内部で保持した原子座標をもとに VASP の入力フ�
 実行・解析
 ~~~~~~~~~~~~~~~~~~
 
-MPI 実行におけるプロセス数やオプションの設定については「実行方法」を参照してください。
-
-::
-
-   mpiexec -np 2 abics input_vasp.toml
-
-
-abics 計算終了後、反転度（もともと Mg 原子があった位置にAl 原子が占めている割合）を計算します。
-そのために ``examples/standard/spinel`` ディレクトリにある ``separateT.py`` と ``calc_DOI.py`` スクリプトを用います。
-
-まず、 ``separateT.py`` を使い、レプリカごとに分かれていた構造情報を温度ごとにまとめます::
-
-  mpiexec -np 2 python3 ./separateT.py input_vasp.toml
-
-結果が ``Tseparate`` ディレクトリに格納されます。
-このディレクトリが既にあった場合は、 ``Tseparate.DATE`` というディレクトリに退避されます(``DATE`` は現在時刻)。
-
-
-つぎに、 ``calc_DOI.py`` スクリプトで、反転度を計算します::
-
-  mpiexec -np 2 python3 ./calc_DOI.py input_vasp.toml
-
-結果が ``Tseparate/DOI_T.dat`` に出力されます。
-
-.. image:: ../../../image/doi_2.*
-   :width: 400px
-   :align: center
-
-
-レプリカ数を増やすと様々な温度で計算ができます。
-また、ステップ数を増やすことでよりきれいな結果を得られます。
-モンテカルロ平均で最初に捨てるサンプル数は ``calc_DOI.py`` スクリプトにある ``throwout`` の値で指定できます。
-例えば、17 レプリカ、1000 ステップで計算をすると
+実行・解析の手順はQEの場合と同様です.
+QEの例と同じように、17 レプリカ、1000 ステップで計算をすると
 
 .. image:: ../../../image/doi_vasp.*
    :width: 400px
    :align: center
 
-といった結果が得られます。
-温度を上げるほど反転度が上がっていくのがわかります。
+といった結果が得られ、同様の結果が得られることがわかります。

@@ -249,28 +249,11 @@ Based on these files, an input file with unit cells and atomic structure is auto
 Execution and analysis
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The procedures are same as those of QE.
-The results are stored in the ``Tseparate`` directory.
-If this directory already exists, the old one is moved to another directory ``Tseparate.DATE`` (``DATE`` is the current datetime).
-
-Next, calculate DOI by using ``calc_DOI.py``::
-
-  mpiexec -np 2 python3 ./calc_DOI.py input_vasp.toml
-
-The results are stored in ``Tseparate/DOI_T.dat`` .
-
-.. image:: ../../../image/doi_2.*
-   :width: 400px
-   :align: center
-
-
-If you increase the number of replicas, you can calculate at various temperatures.
-You can also get better results by increasing the number of steps.
-The first number of samples to discard in Monte Carlo averaging can be specified by the value of ``throwout`` in the ``calc_DOI.py`` script.
-For example, if you do with 17 replicas and 1000 steps, the following result will be obtained
+The procedures of execution and analysis are same as those of QE.
+If you do with 17 replicas and 1000 steps same as the exapmle of QE, the following result will be obtained
 
 .. image:: ../../../image/doi_vasp.*
    :width: 400px
    :align: center
 
-You can see that DOI increases as the temperature increases.
+You can see that the similar tendency is obtained.
