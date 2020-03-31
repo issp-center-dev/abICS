@@ -26,12 +26,52 @@ from abics.applications.latgas_abinitio_interface.model_setup import (
     group,
     defect_sublattice,
     config,
-    dft_latgas,
-    g_r,
+    dft_latgas
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 
+def g_r(structure, specie1, specie2, grid_1D):
+    X = grid_1D.x
+    dr = grid_1D.dx
+
+    lattice = structure.lattice
+    types_of_specie = [element.symbol for element in structure.types_of_specie]
+    assert specie1 in types_of_specie
+    assert specie2 in types_of_specie
+
+    structure1 = structure.copy()
+    structure2 = structure.copy()
+
+    # print(specie1)
+    not_specie1 = copy.copy(types_of_specie)
+    not_specie1.remove(specie1)
+    not_specie2 = types_of_specie
+    not_specie2.remove(specie2)
+    # print(not_specie1,not_specie2)
+
+    structure1.remove_species(not_specie1)
+    structure2.remove_species(not_specie2)
+
+    num_specie1 = structure1.num_sites
+    num_specie2 = structure2.num_sites
+
+    dist = lattice.get_all_distances(structure1.frac_coords, structure2.frac_coords)
+    dist_bin = np.around(dist / dr)
+    # print(num_specie1,num_specie2)
+    g = np.zeros(len(X))
+    for i in range(len(X)):
+        g[i] = np.count_nonzero(dist_bin == i + 1)
+
+    if specie1 == specie2:
+        pref = lattice.volume / (
+            4.0 * np.pi * X * X * dr * num_specie1 * (num_specie1 - 1)
+        )
+    else:
+        pref = lattice.volume / (4.0 * np.pi * X * X * dr * num_specie1 * num_specie2)
+
+    g *= pref
+    return g
 
 def observables(MCcalc, outputfi):
     energy = MCcalc.energy
