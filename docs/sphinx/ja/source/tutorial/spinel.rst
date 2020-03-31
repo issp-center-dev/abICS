@@ -1,6 +1,6 @@
 .. highlight:: none
 
-多元系イオン結晶 MgAl :math:`_2` O :math:`_4` の, Mg, Al 原子の反転度計算
+多元系イオン結晶 :math:`{\rm Mg}{\rm Al}_2 {\rm O}_4` の, Mg, Al 原子の反転度計算
 -----------------------------------------------------------------------------
 
 このチュートリアルの入力ファイルは examples/standard/spinel にあります。
@@ -193,7 +193,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 
 結果が ``Tseparate/DOI_T.dat`` に出力されます。
 
-.. image:: ../../../image/doi_2.*
+.. image:: ../../../image/doi_2.png
    :width: 400px
    :align: center
 
@@ -203,7 +203,7 @@ abics 計算終了後、反転度（もともと Mg 原子があった位置にA
 モンテカルロ平均で最初に捨てるサンプル数は ``calc_DOI.py`` スクリプトにある ``throwout`` の値で指定できます。
 例えば、17 レプリカ、20 ステップで計算をすると
 
-.. image:: ../../../image/doi_17.*
+.. image:: ../../../image/doi_17.png
    :width: 400px
    :align: center
 
@@ -256,7 +256,7 @@ abICS では、内部で保持した原子座標をもとに VASP の入力フ�
 実行・解析の手順はQEの場合と同様です.
 QEの例と同じように、17 レプリカ、1000 ステップで計算をすると
 
-.. image:: ../../../image/doi_vasp.*
+.. image:: ../../../image/doi_vasp.png
    :width: 400px
    :align: center
 
