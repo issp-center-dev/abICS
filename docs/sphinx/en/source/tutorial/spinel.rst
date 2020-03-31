@@ -1,6 +1,6 @@
 .. highlight:: none
 
-Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal MgAl :math:`_2` O :math:`_4`
+Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal :math:`{\rm Mg}{\rm Al}_2 {\rm O}_4`
 ---------------------------------------------------------------------------------------------------------------
 
 Input files are provided in ``examples/standard/spinel`` .
@@ -191,7 +191,7 @@ Next, calculate DOI by using ``calc_DOI.py``::
 
 The results are stored in ``Tseparate/DOI_T.dat`` .
 
-.. image:: ../../../image/doi_2.*
+.. image:: ../../../image/doi_2.png
    :width: 400px
    :align: center
 
@@ -201,7 +201,7 @@ You can also get better results by increasing the number of steps.
 The first number of samples to discard in Monte Carlo averaging can be specified by the value of ``throwout`` in the ``calc_DOI.py`` script.
 For example, if you perform this calculation with 17 replicas and 20 steps, the following result will be obtained
 
-.. image:: ../../../image/doi_17.*
+.. image:: ../../../image/doi_17.png
    :width: 400px
    :align: center
 
@@ -252,8 +252,8 @@ Execution and analysis
 The procedures of execution and analysis are same as those of QE.
 If you do with 17 replicas and 1000 steps same as the exapmle of QE, the following result will be obtained
 
-.. image:: ../../../image/doi_vasp.*
+.. image:: ../../../image/doi_vasp.png
    :width: 400px
    :align: center
 
-You can see that the similar tendency is obtained.
+You can see that DOI increases as the temperature increases.
