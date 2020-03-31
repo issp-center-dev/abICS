@@ -1,26 +1,35 @@
-import numpy as np
-import random as rand
-import sys, os
-import copy
-import pickle
-from mpi4py import MPI
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
 
-from pymatgen import Lattice, Structure, Element, PeriodicSite
-from pymatgen.io.vasp import Poscar, VaspInput
-from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
-from py_mc.mc import CanonicalMonteCarlo, grid_1D, obs_encode, obs_decode
-from py_mc.mc_mpi import RX_MPI_init, TemperatureRX_MPI
-from py_mc.applications.latgas_abinitio_interface.model_setup import (
+import numpy as np
+import os
+import copy
+
+from pymatgen import Structure
+from abics.mc import CanonicalMonteCarlo, grid_1D, obs_encode, obs_decode
+from abics.mc_mpi import RX_MPI_init, TemperatureRX_MPI
+from abics.applications.latgas_abinitio_interface.model_setup import (
     group,
     defect_sublattice,
     config,
     dft_latgas,
     g_r,
 )
-from py_mc.applications.latgas_abinitio_interface.run_vasp_mpi import (
-    test_runner,
-    vasp_runner,
-)
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 
 
 def observables(MCcalc, outputfi):
@@ -105,7 +114,7 @@ for i in range(nreplicas):
 #                                path_to_vasp="/home/i0009/i000900/src/vasp.5.3/vasp.spawnready.gamma",
 #                                nprocs_per_vasp=nprocs_per_replica,
 #                                comm=MPI.COMM_SELF, perturb=0.1)
-energy_calculator = test_runner()
+energy_calculator = SolverBase()
 model = dft_latgas(energy_calculator, save_history=True)
 ##############################################################
 
