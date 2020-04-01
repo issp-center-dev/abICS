@@ -3,8 +3,8 @@
 [solver] section
 -------------------------------
 
-Specify solver parameters (first-principles calculation) such as solver type (VASP, QE, ...), path to solver, directory with invariant input file.
-The example is shown as follows:
+This section specifies solver parameters such as solver type (VASP, QE, ...), path to solver, directory with solver-specific input file(s).
+An example is shown as follows:
 
   :: 
   
@@ -16,7 +16,7 @@ The example is shown as follows:
 
 Input Format
 ^^^^^^^^^^^^
-Specify a keyword and its value in the form ``keyword = value``.
+Keywords and their values are specified by a keyword and its value in the form ``keyword = value``.
 Comments can also be entered by adding # (Subsequent characters are ignored).
 
 Keywords
@@ -24,29 +24,29 @@ Keywords
 
     -  ``type``
 
-    **Format :** str
+       **Format :** str
 
-    **Description :**
-    Specify the solver type (``OpenMX, QE, VASP``).
+       **Description :**
+       The solver type (``OpenMX, QE, VASP``).
 
     -  ``path``
 
-    **Format :** str
+       **Format :** str
 
-    **Description :**
-    Specify the path to the solver.
+       **Description :**
+       The path to the solver.
 
     -  ``base_input_dir``
 
-    **Format :** str
+       **Format :** str
 
-    **Description :**
-    Specify the path to the base input file.
+       **Description :**
+       The path to the base input file.
 
     -  ``perturb``
 
-    **Format :** float
+       **Format :** float
 
-    **Description :**
-    If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.
+       **Description :**
+       If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.
 
