@@ -729,7 +729,7 @@ class run_subprocess:
             try:
                 # subprocess.run(command, check=True, shell=True)
                 #subprocess.run(' '.join(command), check=True, shell=True)
-                subprocess.run(' '.join(command), stdout=fi, stderr=subprocess.STDOUT, check=True)
+                subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
             except subprocess.CalledProcessError as e:
                 if rerun > 0:
                     to_rerun = True
