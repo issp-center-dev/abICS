@@ -724,7 +724,7 @@ class run_subprocess:
         command = [self.path_to_solver]
         command.extend(args)
         to_rerun = False
-        print(' '.join(command))
+        #print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 # subprocess.run(command, check=True, shell=True)
