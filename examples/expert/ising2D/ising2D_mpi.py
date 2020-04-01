@@ -1,13 +1,6 @@
-import numpy as np
-import random as rand
 import copy
-import sys
-import pickle
-
-from py_mc.mc import *
-from py_mc.mc_mpi import *
-
-from mpi4py import MPI
+from abics.mc import *
+from abics.mc_mpi import *
 from ising2D import ising2D, ising2D_config, observer
 
 

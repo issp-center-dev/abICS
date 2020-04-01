@@ -1,3 +1,19 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
 import copy
 import sys
 
@@ -18,11 +34,12 @@ from abics.applications.latgas_abinitio_interface.defect import (
 from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
+from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
+from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
-def main():
-    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+def main_impl(tomlfile):
     rxparams = RXParams.from_toml(tomlfile)
     nreplicas = rxparams.nreplicas
     nprocs_per_replica = rxparams.nprocs_per_replica
@@ -51,6 +68,10 @@ def main():
         solver = VASPSolver(dftparams.path)
     elif dftparams.solver == 'qe':
         solver = QESolver(dftparams.path)
+    elif dftparams.solver == 'aenet':
+        solver = aenetSolver(dftparams.path)
+    elif dftparams.solver == 'openmx':
+        solver = OpenMXSolver(dftparams.path)
     else:
         print('unknown solver: {}'.format(dftparams.solver))
         sys.exit(1)
@@ -98,3 +119,8 @@ def main():
 
     if comm.Get_rank() == 0:
         print(obs)
+
+
+def main():
+    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+    main_impl(tomlfile)

@@ -1,0 +1,57 @@
+#
+# File Name      
+#
+
+System.CurrrentDirectory         ./    # default=./
+System.Name                      Al
+level.of.stdout                   1    # default=1 (1-3)
+level.of.fileout                  1    # default=1 (0-2)
+
+#
+# Definition of Atomic Species
+#
+
+Species.Number       1
+<Definition.of.Atomic.Species
+ Al   Al7.0-s3p3d2    Al_PBE19
+Definition.of.Atomic.Species>
+
+#
+# Atoms
+#
+
+Atoms.Number         2
+Atoms.SpeciesAndCoordinates.Unit   Ang # Ang|AU
+<Atoms.SpeciesAndCoordinates  
+ 1  Al  0.0 0.0 0.0   1.5 1.5
+ 2  Al  0.5 0.5 0.5   1.5 1.5
+Atoms.SpeciesAndCoordinates>
+#
+# SCF or Electronic System
+#
+
+scf.XcType                 GGA-PBE     # LDA|LSDA-CA|LSDA-PW|GGA-PBE
+scf.SpinPolarization        off        # On|Off|NC
+scf.ElectronicTemperature  300.0       # default=300 (K)
+scf.energycutoff           120.0       # default=150 (Ry)
+scf.maxIter                 100        # default=40
+scf.EigenvalueSolver        cluster    # DC|GDC|Cluster|Band
+scf.Kgrid                  1 1 1       # means n1 x n2 x n3
+scf.Mixing.Type           rmm-diis     # Simple|Rmm-Diis|Gr-Pulay|Kerker|Rmm-Diisk
+scf.Init.Mixing.Weight     0.200        # default=0.30 
+scf.Min.Mixing.Weight      0.001       # default=0.001 
+scf.Max.Mixing.Weight      0.200       # default=0.40 
+scf.Mixing.History          7          # default=5
+scf.Mixing.StartPulay       4          # default=6
+scf.criterion             1.0e-10      # default=1.0e-6 (Hartree) 
+scf.lapack.dste            dstevx      # dstevx|dstedc|dstegr,default=dstevx
+
+#
+# MD or Geometry Optimization
+#
+
+MD.Type                     nomd       # Nomd|Opt|NVE|NVT_VS|NVT_NH
+                                       # Constraint_Opt|DIIS
+MD.maxIter                    1        # default=1
+MD.TimeStep                 1.0        # default=0.5 (fs)
+MD.Opt.criterion         1.0e-4        # default=1.0e-4 (Hartree/bohr)

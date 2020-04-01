@@ -2,7 +2,7 @@ import numpy as np
 import random as rand
 import sys
 
-from py_mc.mc import model, CanonicalMonteCarlo, binning, observer_base
+from abics.mc import model, CanonicalMonteCarlo, binning, observer_base
 
 
 class ising2D(model):
