@@ -25,32 +25,32 @@ Directory structure
 
 The directory structure of abICS is given as follows:
 
-  :: 
+:: 
 
-     - examples
-        - standard
-            - spinel
-                - QE
-                - vasp
-                - openmx
-            - sub-lattice
-                - QE
-                - vasp
-                - openmx
-        - expert 
-            - ising2D
-            - 2D_hardcore
-            …
-    - make_wheel.sh
-    - py_mc
-        - pymc.py
-        - python module
-    - test
+ .
+ |-- COPYING
+ |-- README.md
+ |-- abics/
+ |   |-- __init__.py
+ |   |-- applications/
+ |   |-- mc.py
+ |   |-- mc_mpi.py
+ |   |-- scripts/
+ |   `-- util.py
+ |-- docs/
+ |   `-- sphinx/
+ |-- examples/
+ |   |-- expert/
+ |   `-- standard/
+ |-- make_wheel.sh
+ |-- setup.cfg
+ `-- setup.py
+ 
 
 ``examples/standard`` contains samples that can be run by simple files.
 ``examples/expert`` contains examples by using python module.
 
-A set of python modules are located in the ``py_mc`` directory.
+A set of python modules are located in the ``abics`` directory.
 
 
       
@@ -59,13 +59,13 @@ Install
 
 1. Make wheel file by typing following command:
 
-``$ ./make_wheel.sh``
+   ``$ ./make_wheel.sh``
 
 2. Install using the created file as follows:
 
-``$ pip install dist/abics-\*.whl``
+   ``$ pip install dist/abics-*.whl``
 
-If you want to change the install directory, use
-``--user`` option or ``--prefix = DIRECTORY`` ( ``DIRECTORY`` is the path to the directory where you want to install) option. In the following, the case for using ``--user`` option is shown:
+   If you want to change the install directory, use
+   ``--user`` option or ``--prefix = DIRECTORY`` ( ``DIRECTORY`` is the path to the directory where you want to install) option. In the following, the case for using ``--user`` option is shown:
 
-``$ pip install --user dist/abics-\*.whl``
+   ``$ pip install --user dist/abics-*.whl``

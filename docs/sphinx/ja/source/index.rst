@@ -16,7 +16,9 @@ Contents
    about/index
    install/index
    how_to_use/index
-   file_specification/index
+   tutorial/index
+   inputfiles/index
+   outputfiles/index
    algorithm/index
    acknowledge/index
    contact/index
