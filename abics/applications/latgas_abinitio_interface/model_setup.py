@@ -439,7 +439,7 @@ class defect_sublattice(object):
 
             coords = read_tensor(g.get("coords", [[[0,0,0]]]), rank=3)
             m = coords.shape[1]
-            if m != n:
+            if n !=0 and m != n:
                 raise InputError(
                     'number of atoms mismatch in group [{}]: "species"={}, "coords"={}'.format(
                         name, n, m
@@ -448,7 +448,7 @@ class defect_sublattice(object):
 
             relaxation = read_matrix(g.get("relaxation", np.ones((n, 3))), dtype=bool)
             m = relaxation.shape[0]
-            if m != n:
+            if n != 0 and m != n:
                 raise InputError(
                     'number of atoms mismatch in group [{}]: "species"={}, "relaxation"={}'.format(
                         name, n, m
@@ -457,7 +457,7 @@ class defect_sublattice(object):
 
             mag = read_vector(g.get("magnetization", np.zeros(n)))
             m = len(mag)
-            if m != n:
+            if n != 0 and m != n:
                 raise InputError(
                     'number of atoms mismatch in group [{}]: "species"={}, "magnetization"={}'.format(
                         name, n, m
