@@ -724,12 +724,12 @@ class run_subprocess:
         command = [self.path_to_solver]
         command.extend(args)
         to_rerun = False
-        print(' '.join(command))
+        #print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 # subprocess.run(command, check=True, shell=True)
-                subprocess.run(' '.join(command), check=True, shell=True)
-                # subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
+                #subprocess.run(' '.join(command), check=True, shell=True)
+                subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
             except subprocess.CalledProcessError as e:
                 if rerun > 0:
                     to_rerun = True
