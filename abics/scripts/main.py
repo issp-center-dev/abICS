@@ -114,6 +114,7 @@ def main_impl(tomlfile):
         print_frequency,
         observer=default_observer(comm, Lreload),
         subdirs=True,
+        reload=Lreload,
     )
 
 

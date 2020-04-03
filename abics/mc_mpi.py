@@ -268,6 +268,7 @@ class TemperatureRX_MPI(ParallelMC):
         self.mycalc.kT = self.kTs[self.rank_to_T[self.rank]]
         self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
         self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
+        self.mycalc.energy = self.obs_save0[-1,0]
         self.Trank_hist0 = numpy_load(os.path.join(str(self.rank), "Trank_hist.npy"))
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
@@ -359,6 +360,7 @@ class TemperatureRX_MPI(ParallelMC):
         observer=observer_base(),
         subdirs=True,
         save_obs=True,
+        reload=False,
     ):
         """
 
@@ -389,7 +391,8 @@ class TemperatureRX_MPI(ParallelMC):
                 pass
             os.chdir(str(self.rank))
         self.accept_count = 0
-        self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
+        if not reload:
+            self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
         if hasattr(test_observe, "__iter__"):
