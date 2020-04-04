@@ -262,6 +262,7 @@ class TemperatureRX_MPI(ParallelMC):
         self.obs_save = []
         self.Trank_hist = []
         self.kT_hist = []
+        self.Lreload = False
 
     def reload(self):
         self.rank_to_T = pickle_load("rank_to_T.pickle")
@@ -273,6 +274,7 @@ class TemperatureRX_MPI(ParallelMC):
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
         rand.setstate(rand_state)
+        self.Lreload = True
 
     def find_procrank_from_Trank(self, Trank):
         """
@@ -360,7 +362,6 @@ class TemperatureRX_MPI(ParallelMC):
         observer=observer_base(),
         subdirs=True,
         save_obs=True,
-        reload=False,
     ):
         """
 
@@ -391,7 +392,7 @@ class TemperatureRX_MPI(ParallelMC):
                 pass
             os.chdir(str(self.rank))
         self.accept_count = 0
-        if not reload:
+        if not self.Lreload:
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
