@@ -428,6 +428,11 @@ class CanonicalMonteCarlo:
         else:
             return None
 
+class RandomSampling(CanonicalMonteCarlo):
+    def MCstep(self):
+        self.config.shuffle()
+        self.energy = self.model.energy(self.config)
+
 
 # def swap_configs(MCreplicas, rep, accept_count):
 #     """
