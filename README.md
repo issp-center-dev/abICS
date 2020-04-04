@@ -3,7 +3,7 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 
 ## Requirement
 
-- python3
+- python3 (>=3.6)
 - numpy
 - scipy
 - toml (for parsing input files)
@@ -11,51 +11,22 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 - pymatgen (for parsing vasp I/O)
 - qe-tools (for parsing QE I/O)
 
-## Get abICS
-
-### With Git (recommended)
-
-``` bash
-$ git clone https://github.com/issp-center-dev/abics
-```
-
-### Without Git
-
-``` bash
-$ wget https://github.com/issp-center-dev/abics/archive/master.zip
-$ unzip master.zip
-```
-
 ## Install abICS
 
-### With `pip`
-
-Make a wheel file by
-
 ``` bash
-$ ./make_wheel.sh
-```
-
-and install this as
-
-``` bash
-$ pip install dist/abics-*.whl
+$ pip3 install abics
 ```
 
 If you want to change the directory where installed,
 add `--user` option or `--prefix=DIRECTORY` option into the above command as
 
 ``` bash
-$ pip install --user dist/abics-*.whl
+$ pip3 install --user abics
 ```
 
-For details, see the manual of `pip` by `pip help install`
+For details of `pip` , see the manual of `pip` by `pip3 help install`
 
-### Without `pip`
-
-``` bash
-$ export PYTHONPATH=$Path_To_abics:$PYTHONPATH
-```
+If you want to install abICS from source, see [wiki page](https://github.com/issp-center-dev/abICS/wiki/Install)
 
 ## License
 

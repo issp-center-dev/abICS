@@ -20,8 +20,15 @@ import sys
 from mpi4py import MPI
 import numpy as np
 
-from abics.mc import CanonicalMonteCarlo
-from abics.mc_mpi import RX_MPI_init, TemperatureRX_MPI, RXParams
+from abics.mc import CanonicalMonteCarlo, RandomSampling
+from abics.mc_mpi import (
+    RX_MPI_init,
+    TemperatureRX_MPI,
+    RXParams,
+    SamplerParams,
+    ParallelRandomParams,
+    EmbarrassinglyParallelSampling,
+)
 from abics.applications.latgas_abinitio_interface import default_observer
 from abics.applications.latgas_abinitio_interface.model_setup import (
     dft_latgas,
@@ -40,27 +47,69 @@ from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
 def main_impl(tomlfile):
-    rxparams = RXParams.from_toml(tomlfile)
-    nreplicas = rxparams.nreplicas
-    nprocs_per_replica = rxparams.nprocs_per_replica
+    samplerparams = SamplerParams.from_toml(tomlfile)
+    if samplerparams.sampler == 'RXMC':
+        rxparams = RXParams.from_toml(tomlfile)
+        nreplicas = rxparams.nreplicas
+        nprocs_per_replica = rxparams.nprocs_per_replica
 
-    kB = 8.6173e-5
+        kB = 8.6173e-5
 
-    comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams)
 
-    # RXMC parameters
-    # specify temperatures for each replica, number of steps, etc.
-    kTstart = rxparams.kTstart
-    kTend = rxparams.kTend
-    kTs = kB * np.linspace(kTstart, kTend, nreplicas)
+        # RXMC parameters
+        # specify temperatures for each replica, number of steps, etc.
+        kTstart = rxparams.kTstart
+        kTend = rxparams.kTend
+        kTs = kB * np.linspace(kTstart, kTend, nreplicas)
 
-    # Set Lreload to True when restarting
-    Lreload = rxparams.reload
+        # Set Lreload to True when restarting
+        Lreload = rxparams.reload
 
-    nsteps = rxparams.nsteps
-    RXtrial_frequency = rxparams.RXtrial_frequency
-    sample_frequency = rxparams.sample_frequency
-    print_frequency = rxparams.print_frequency
+        nsteps = rxparams.nsteps
+        RXtrial_frequency = rxparams.RXtrial_frequency
+        sample_frequency = rxparams.sample_frequency
+        print_frequency = rxparams.print_frequency
+        
+    elif samplerparams.sampler == 'parallelRand':
+        rxparams = ParallelRandomParams.from_toml(tomlfile)
+        nreplicas = rxparams.nreplicas
+        nprocs_per_replica = rxparams.nprocs_per_replica
+        comm = RX_MPI_init(rxparams)
+
+        # Set Lreload to True when restarting
+        Lreload = rxparams.reload
+
+        nsteps = rxparams.nsteps
+        sample_frequency = rxparams.sample_frequency
+        print_frequency = rxparams.print_frequency
+
+        
+    elif samplerparams.sampler == 'parallelMC':
+        rxparams = RXParams.from_toml(tomlfile)
+        nreplicas = rxparams.nreplicas
+        nprocs_per_replica = rxparams.nprocs_per_replica
+
+        kB = 8.6173e-5
+
+        comm = RX_MPI_init(rxparams)
+
+        # RXMC parameters
+        # specify temperatures for each replica, number of steps, etc.
+        kTstart = rxparams.kTstart
+        kTend = rxparams.kTend
+        kTs = kB * np.linspace(kTstart, kTend, nreplicas)
+
+        # Set Lreload to True when restarting
+        Lreload = rxparams.reload
+
+        nsteps = rxparams.nsteps
+        sample_frequency = rxparams.sample_frequency
+        print_frequency = rxparams.print_frequency
+
+    else:
+        print('Unknown sampler. Exiting...')
+        sys.exit(1)
 
     dftparams = DFTParams.from_toml(tomlfile)
 
@@ -103,22 +152,56 @@ def main_impl(tomlfile):
 
     obsparams = ObserverParams.from_toml(tomlfile)
 
-    # RXMC calculation
-    RXcalc = TemperatureRX_MPI(comm, CanonicalMonteCarlo, model, configs, kTs)
-    if Lreload:
-        RXcalc.reload()
-    obs = RXcalc.run(
-        nsteps,
-        RXtrial_frequency,
-        sample_frequency,
-        print_frequency,
-        observer=default_observer(comm, Lreload),
-        subdirs=True,
-    )
+    if samplerparams.sampler == 'RXMC':
+        # RXMC calculation
+        RXcalc = TemperatureRX_MPI(comm, CanonicalMonteCarlo, model, configs, kTs)
+        if Lreload:
+            RXcalc.reload()
+        obs = RXcalc.run(
+            nsteps,
+            RXtrial_frequency,
+            sample_frequency,
+            print_frequency,
+            observer=default_observer(comm, Lreload),
+            subdirs=True,
+        )
 
 
-    if comm.Get_rank() == 0:
-        print(obs)
+        if comm.Get_rank() == 0:
+            print(obs)
+
+    elif samplerparams.sampler == 'parallelRand':
+        calc = EmbarrassinglyParallelSampling(comm, RandomSampling, model, configs)
+        if Lreload:
+            calc.reload()
+        obs = calc.run(
+            nsteps,
+            sample_frequency,
+            print_frequency,
+            observer=default_observer(comm, Lreload),
+            subdirs=True,
+        )
+
+
+        if comm.Get_rank() == 0:
+            print(obs)
+
+    elif samplerparams.sampler == 'parallelMC':
+        calc = EmbarrassinglyParallelSampling(comm, CanonicalMonteCarlo, model, configs, kTs)
+        if Lreload:
+            calc.reload()
+        obs = calc.run(
+            nsteps,
+            sample_frequency,
+            print_frequency,
+            observer=default_observer(comm, Lreload),
+            subdirs=True,
+        )
+
+
+        if comm.Get_rank() == 0:
+            print(obs)
+
 
 
 def main():
