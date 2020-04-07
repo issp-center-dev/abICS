@@ -27,7 +27,7 @@ Adapted from pymatgen.io.xcrysden distributed under the MIT License
 # Copyright (c) Pymatgen Development Team.
 # Distributed under the terms of the MIT License.
 """
-def to_XSF(structure):
+def to_XSF(structure, write_force_zero=False):
     """
         Returns a string with the structure in XSF format
         See http://www.xcrysden.org/doc/XSF.html
@@ -47,9 +47,15 @@ def to_XSF(structure):
     app("PRIMCOORD")
     app(" %d 1" % len(cart_coords))
 
-    for a in range(len(cart_coords)):
-        sp = str(structure.species[a])
-        app(sp + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a]))
+    if write_force_zero:
+        for a in range(len(cart_coords)):
+            sp = str(structure.species[a])
+            app(sp + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a])
+                + ' 0.0 0.0 0.0')
+    else:
+        for a in range(len(cart_coords)):
+            sp = str(structure.species[a])
+            app(sp + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a]))
 
     return "\n".join(lines)
 
