@@ -116,7 +116,7 @@ class aenetSolver(SolverBase):
     This class defines the aenet solver.
     """
 
-    def __init__(self, path_to_solver):
+    def __init__(self, path_to_solver, ignore_species = None):
         """
         Initialize the solver.
 
@@ -127,16 +127,17 @@ class aenetSolver(SolverBase):
         """
         super(aenetSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = aenetSolver.Input()
+        self.input = aenetSolver.Input(ignore_species)
         self.output = aenetSolver.Output()
 
     def name(self):
         return "aenet"
 
     class Input(object):
-        def __init__(self):
+        def __init__(self, ignore_species):
             self.base_info = None
             self.pos_info = None
+            self.ignore_species = ignore_species
 
         def from_directory(self, base_input_dir):
             """
@@ -161,6 +162,9 @@ class aenetSolver(SolverBase):
             structure : pymatgen.Structure
                 Atomic structure
             """
+            if self.ignore_species != None:
+                structure = structure.copy()
+                structure.remove_species(self.ignore_species)
             self.pos_info = to_XSF(structure)
 
         def update_info_from_files(self, output_dir, rerun):

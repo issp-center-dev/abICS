@@ -118,7 +118,7 @@ def main_impl(tomlfile):
     elif dftparams.solver == 'qe':
         solver = QESolver(dftparams.path)
     elif dftparams.solver == 'aenet':
-        solver = aenetSolver(dftparams.path)
+        solver = aenetSolver(dftparams.path, dftparams.ignore_species)
     elif dftparams.solver == 'openmx':
         solver = OpenMXSolver(dftparams.path)
     else:
