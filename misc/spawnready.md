@@ -85,7 +85,7 @@ IF (mpi_comm_parent .NE. MPI_COMM_NULL) THEN
     OPEN(UNIT=0,FILE='stderr',STATUS='UNKNOWN')
 ENDIF
 ```
-Note that the unit number for stdout is usually 6 and stderr is 0 including gfortran and ifort in Linux systems. However, this is not specified by the Fortran standard, so there can be exceptions. In those cases, we need to specify the correct unit number for that environment.
+Note that the unit number for stdout is usually 6 and stderr is 0. This means that writes to UNIT * will get redirected to 'stdout'. However, this is not specified by the Fortran standard, so there can be exceptions. In those cases, we need to specify the correct unit number for that environment. Also the default behavior for the Intel Compiler is that UNIT 6 and * are treated differently, which actually goes against the Fortran 2003 standard. To get the proper behavior when using the Intel Compiler, it is necessary to set the compiler option "-assume noold_unit_star".
 
 ### Communicating termination of the program
 In abICS, we require that the child processes returns an exit code through the parent-child intercommunicator using MPI_BCAST. We also require an MPI_COMM_DISCONNECT call to free up the communicator.
