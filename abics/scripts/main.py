@@ -118,7 +118,7 @@ def main_impl(tomlfile):
     elif dftparams.solver == 'qe':
         solver = QESolver(dftparams.path)
     elif dftparams.solver == 'aenet':
-        solver = aenetSolver(dftparams.path, dftparams.ignore_species)
+        solver = aenetSolver(dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme)
     elif dftparams.solver == 'openmx':
         solver = OpenMXSolver(dftparams.path)
     else:
@@ -145,10 +145,10 @@ def main_impl(tomlfile):
 
     spinel_config = defect_config(configparams)
 
-    configs = []
-    for i in range(nreplicas):
-        configs.append(copy.deepcopy(spinel_config))
-
+    #configs = []
+    #for i in range(nreplicas):
+    #    configs.append(copy.deepcopy(spinel_config))
+    configs = [spinel_config]*nreplicas
 
     obsparams = ObserverParams.from_toml(tomlfile)
 

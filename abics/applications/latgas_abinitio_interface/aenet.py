@@ -46,16 +46,14 @@ def to_XSF(structure, write_force_zero=False):
     app("# Cartesian coordinates in Angstrom.")
     app("PRIMCOORD")
     app(" %d 1" % len(cart_coords))
-
+    species = structure.species
     if write_force_zero:
         for a in range(len(cart_coords)):
-            sp = str(structure.species[a])
-            app(sp + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a])
+            app(str(species[a]) + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a])
                 + ' 0.0 0.0 0.0')
     else:
         for a in range(len(cart_coords)):
-            sp = str(structure.species[a])
-            app(sp + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a]))
+            app(str(species[a]) + ' %20.14f %20.14f %20.14f' % tuple(cart_coords[a]))
 
     return "\n".join(lines)
 
@@ -116,7 +114,7 @@ class aenetSolver(SolverBase):
     This class defines the aenet solver.
     """
 
-    def __init__(self, path_to_solver, ignore_species = None):
+    def __init__(self, path_to_solver, ignore_species = None, run_scheme = 'subprocess'):
         """
         Initialize the solver.
 
@@ -127,17 +125,18 @@ class aenetSolver(SolverBase):
         """
         super(aenetSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = aenetSolver.Input(ignore_species)
+        self.input = aenetSolver.Input(ignore_species, run_scheme)
         self.output = aenetSolver.Output()
 
     def name(self):
         return "aenet"
 
     class Input(object):
-        def __init__(self, ignore_species):
+        def __init__(self, ignore_species, run_scheme = 'subprocess'):
             self.base_info = None
             self.pos_info = None
             self.ignore_species = ignore_species
+            self.run_scheme = run_scheme
 
         def from_directory(self, base_input_dir):
             """
@@ -211,7 +210,13 @@ class aenetSolver(SolverBase):
                 Arguments of command
             """
             # Specify command line arguments
-            return ['{}/predict.in'.format(output_dir),]
+            if self.run_scheme == 'mpi_spawn_ready':
+                return [os.path.join(output_dir, 'predict.in'),
+                        os.path.join(output_dir, 'structure.xsf'),
+                        output_dir]
+            elif self.run_scheme == 'subprocess':
+                return [os.path.join(output_dir, 'predict.in'),
+                        os.path.join(output_dir, 'structure.xsf')]
 
     class Output(object):
 
@@ -254,5 +259,5 @@ class aenetSolver(SolverBase):
             return Phys(np.float64(energy), structure)
 
     def solver_run_schemes(self):
-        return ('subprocess')
+        return ('subprocess', 'mpi_spawn_ready')
 
