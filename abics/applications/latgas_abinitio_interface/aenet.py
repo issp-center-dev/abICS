@@ -150,7 +150,7 @@ class aenetSolver(SolverBase):
 
             # set information of base_input and pos_info from files in base_input_dir
             self.base_info = os.path.abspath(base_input_dir)
-            self.pos_info = open('{}/structure.xsf'.format(base_input_dir), 'r').read()
+            #self.pos_info = open('{}/structure.xsf'.format(base_input_dir), 'r').read()
 
         def update_info_by_structure(self, structure):
             """
