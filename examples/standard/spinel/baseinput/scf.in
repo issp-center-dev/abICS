@@ -1,5 +1,5 @@
 &CONTROL
-  calculation = 'scf'
+  calculation = 'relax'
   tstress = .false.
   tprnfor = .false.
   pseudo_dir = '~/qe/pot'
@@ -17,11 +17,12 @@
   conv_thr = 1.0d-8
   electron_maxstep = 100
 /
+&ions
+/
 ATOMIC_SPECIES
-Al 26.981 Al.pbesol-nl-kjpaw_psl.1.0.0.UPF
-Mg 24.305 Mg.pbesol-spnl-kjpaw_psl.1.0.0.UPF
-O  16.000 O.pbesol-n-kjpaw_psl.1.0.0.UPF
+Al 26.981 Al.pbe-nl-kjpaw_psl.1.0.0.UPF
+Mg 24.305 Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
+O  16.000 O.pbe-n-kjpaw_psl.1.0.0.UPF
 ATOMIC_POSITIONS crystal
 
-K_POINTS automatic
-1 1 1 0 0 0
+K_POINTS gamma

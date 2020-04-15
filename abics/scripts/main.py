@@ -116,7 +116,8 @@ def main_impl(tomlfile):
     if dftparams.solver == 'vasp':
         solver = VASPSolver(dftparams.path)
     elif dftparams.solver == 'qe':
-        solver = QESolver(dftparams.path)
+        parallel_level = dftparams.properties.get('parallel_level', {})
+        solver = QESolver(dftparams.path, parallel_level=parallel_level)
     elif dftparams.solver == 'aenet':
         solver = aenetSolver(dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme)
     elif dftparams.solver == 'openmx':

@@ -44,7 +44,7 @@ class QESolver(SolverBase):
     Solver class dealing with QuantumESPRESSO (with new XML format).
     """
 
-    def __init__(self, path_to_solver):
+    def __init__(self, path_to_solver, *, parallel_level=None):
         """
         Initialize the solver.
 
@@ -52,10 +52,12 @@ class QESolver(SolverBase):
         ----------
         path_to_solver : str
             Path to the solver.
+        parallel_level : dict
+            Parallelization levels
         """
         super(QESolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = QESolver.Input()
+        self.input = QESolver.Input(parallel_level=parallel_level)
         self.output = QESolver.Output("pwscf")
 
     def name(self):
@@ -79,12 +81,18 @@ class QESolver(SolverBase):
             Path to the data directory of QE.
         filetocheck : str
             Name of the file to be used for check finished.
+        parallel_level : dict
+            Parallelization levels
         """
 
-        def __init__(self):
+        def __init__(self, *, parallel_level=None):
             self.pwi = None
             self.datadir = "pwscf.save"
             self.filetocheck = "data-file-schema.xml"
+            if parallel_level:
+                self.parallel_level = parallel_level
+            else:
+                self.parallel_level = {}
 
         def cleanup(self, workdir):
             """
@@ -123,7 +131,9 @@ class QESolver(SolverBase):
                 return True
             elif calculation == "relax":
                 scf_conv = root.find("output").find("convergence_info").find("scf_conv")
-                scf_converged = scf_conv.find("convergence_achieved").text.lower() == "true"
+                scf_converged = (
+                    scf_conv.find("convergence_achieved").text.lower() == "true"
+                )
                 # scf_maxstep = int(root.find("input").find("electron_control").find("max_nstep").text)
                 # scf_nstep = int(scf_conv.find("n_scf_steps").text)
 
@@ -133,13 +143,19 @@ class QESolver(SolverBase):
 
                 opt_maxstep = int(control.find("nstep").text)
                 opt_conv = root.find("output").find("convergence_info").find("opt_conv")
-                opt_converged = opt_conv.find("convergence_achieved").text.lower() == "true"
+                opt_converged = (
+                    opt_conv.find("convergence_achieved").text.lower() == "true"
+                )
                 if opt_converged:
                     return True
                 opt_nstep = int(opt_conv.find("n_opt_steps").text)
                 return opt_nstep == opt_maxstep
             else:
-                raise InputError("calculation is {}, but this is not yet supported".format(calculation))
+                raise InputError(
+                    "calculation is {}, but this is not yet supported".format(
+                        calculation
+                    )
+                )
 
         def from_directory(self, base_input_dir):
             """
@@ -153,13 +169,13 @@ class QESolver(SolverBase):
 
             inputfile = os.path.join(os.getcwd(), base_input_dir, "scf.in")
             self.pwi = PwInputFile(inputfile)
-            for name in ['CONTROL', 'SYSTEM']:
+            for name in ["CONTROL", "SYSTEM"]:
                 if name not in self.pwi.namelists:
                     raise InputError("{} cannot found in {}".format(name, inputfile))
             calculation = self.pwi.namelists["CONTROL"]["calculation"]
             if calculation not in ("scf", "relax"):
                 raise InputError("Sorry, {} is not yet supported".format(calculation))
-            for name in ['ELECTRONS', 'IONS', 'CELL']:
+            for name in ["ELECTRONS", "IONS", "CELL"]:
                 if name not in self.pwi.namelists:
                     self.pwi.namelists[name] = {}
             self.pwi.namelists["CONTROL"]["prefix"] = "pwscf"
@@ -294,7 +310,65 @@ class QESolver(SolverBase):
             args : list[str]
                 Arguments of command
             """
-            return ["-in", os.path.join(workdir, "scf.in")]
+            ret = []
+            nprocs_per_image = nprocs
+            nprocs_per_pool = nprocs
+            pl = []
+            for name in ("nimage", "npools", "nband", "ntg", "ndiag"):
+                if name in self.parallel_level:
+                    v = self.parallel_level[name]
+                    pl.append(v)
+                    ret.append("-{}".format(name))
+                    ret.append(str(v))
+                else:
+                    pl.append(1)
+            ret.append("-in")
+            ret.append(os.path.join(workdir, "scf.in"))
+
+            # check for each parallel level
+            # image
+            if pl[0] > nprocs:
+                raise InputError(
+                    "Too many parallel images, {} is given but {} is available".format(
+                        pl[0], nprocs
+                    )
+                )
+            nprocs_per_image = nprocs // pl[0]
+
+            # pool
+            if pl[1] > nprocs_per_image:
+                raise InputError(
+                    "Too many parallel pools, {} is given but {} is available".format(
+                        pl[1], nprocs_per_image
+                    )
+                )
+            nprocs_per_pool = nprocs_per_image // pl[1]
+
+            # band
+            if pl[2] > nprocs_per_pool:
+                raise InputError(
+                    "Too many parallel band groups, {} is given but {} is available".format(
+                        pl[2], nprocs_per_pool
+                    )
+                )
+
+            # task
+            if pl[3] > nprocs_per_pool:
+                raise InputError(
+                    "Too many parallel FFT task groups, {} is given but {} is available".format(
+                        pl[3], nprocs_per_pool
+                    )
+                )
+
+            # diag
+            if pl[4] > nprocs:
+                raise InputError(
+                    "Too many parallel linear-algebra groups, {} is given but {} is available".format(
+                        pl[4], nprocs
+                    )
+                )
+
+            return ret
 
     class Output(object):
         """
