@@ -13,8 +13,12 @@ site_center_species = ['Mg', 'Al']
 
 #[[defect_structure.groups]]
 #name = 'Mg'
+#species = ['Mg']
+#coords = [[[0,0,0]]]
 #num = 64
 
 #[[defect_structure.groups]]
 #name = 'Al'
+#species = ['Al']
+#coords = [[[0,0,0]]]
 #num = 128
