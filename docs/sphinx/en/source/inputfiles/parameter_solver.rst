@@ -50,3 +50,13 @@ Keywords
        **Description :**
        If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.
 
+    -  ``parallel_level`` (Only for QuantumESPRESSO)
+
+       **Format :** dict
+
+       **Description :** 
+       How to split parallel cpu resources, i.e., `Parallelization levels <https://www.quantum-espresso.org/Doc/user_guide/node18.html>`_ .
+       Key names are long-form command-line options (without the leading hyphen), that is, ``nimage``, ``npools``, ``nband``, ``ntg``, and ``ndiag``.
+       Values are the number of parallelization.
+       Only the specified elements will be passed to `` pw.x`` as command-line options.
+
