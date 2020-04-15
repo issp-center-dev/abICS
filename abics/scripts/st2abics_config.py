@@ -48,9 +48,9 @@ def main():
     }
     for sp in base_structure.symbol_set:
         if fix:
-            relaxations = [[True, True, True]]*int(base_structure.composition[sp])
-        else:
             relaxations = [[False, False, False]]*int(base_structure.composition[sp])
+        else:
+            relaxations = [[True, True, True]]*int(base_structure.composition[sp])
         abics_input_dict['config']['base_structure'] = [
             {
             'type': sp,
