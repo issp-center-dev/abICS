@@ -1,0 +1,20 @@
+supercell = [2,2,2]
+
+[base_structure]
+species = ['O']
+fix = false
+
+[[defect_structure]]
+site_center_species = ['Mg', 'Al']
+
+
+# atom groups residing on site centers are determined from input
+# structure by default, although they can be controlled as follows
+
+#[[defect_structure.groups]]
+#name = 'Mg'
+#num = 64
+
+#[[defect_structure.groups]]
+#name = 'Al'
+#num = 128
