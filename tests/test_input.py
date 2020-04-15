@@ -23,7 +23,7 @@ from numpy.linalg import inv
 from pymatgen import Structure
 
 from abics.mc_mpi import RXParams
-from abics.applications.latgas_abinitio_interface.model_setup import group
+from abics.applications.latgas_abinitio_interface.model_setup import group, perturb_structure
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -93,6 +93,10 @@ class TestInput(unittest.TestCase):
         self.assertTrue(
             (spinel_config.base_structure.site_properties["seldyn"] == seldyns).all()
         )
+
+        perturb_structure(spinel_config.base_structure, 0.1)
+        self.assertNotEqual(spinel_config.base_structure.sites[0].coords[0], 0.0)
+        self.assertEqual(spinel_config.base_structure.sites[0].coords[2], 0.0)
 
         gs = [
             group("Al", ["Al"], coords=[[[0.0, 0.0, 0.0]]]),
