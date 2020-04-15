@@ -57,7 +57,7 @@ def main():
             'coords': base_structure.frac_coords[
                 base_structure.indices_from_symbol(sp),:
                 ].tolist(),
-            'relaxations': relaxations
+            'relaxation': relaxations
             }
         ]
 
