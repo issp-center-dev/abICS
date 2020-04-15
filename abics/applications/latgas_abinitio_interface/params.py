@@ -47,6 +47,8 @@ class DFTParams:
         params.solver_run_scheme = d.get('run_scheme',
                                          'mpi_spawn_ready')
         params.ignore_species = d.get('ignore_species', None)
+        params.properties = d
+
         return params
 
     @classmethod
