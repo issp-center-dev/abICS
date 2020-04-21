@@ -105,3 +105,8 @@ On large supercomputers, the vendor may provide a dedicated MPI execution script
 In this case, please refer to the manuals provided by the supercomputer site.
 On the ISSP supercomputer systems, Sekirei and Enaga, for example, ``mpijob -spawn`` sets ``MPI_UNIVERSE_SIZE`` properly.
 
+
+.. _solver_specific_notes:
+
+Solver specific Notes
+===========================
