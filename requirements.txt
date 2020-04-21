@@ -1,3 +1,4 @@
+Cython
 mpi4py
 numpy
 pymatgen
