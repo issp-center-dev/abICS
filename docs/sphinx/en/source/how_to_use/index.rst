@@ -109,4 +109,61 @@ On the ISSP supercomputer systems, Sekirei and Enaga, for example, ``mpijob -spa
 .. _solver_specific_notes:
 
 Solver specific Notes
-===========================
+----------------------------
+
+In abICS, the coordinates of atoms are updated. Other settings are basically specified on the reference file for each solver. However, the specification of atoms to be relaxed can be controlled by abICS. To enable the structural optimization option, please set the option to do structural optimization in the reference file of the solver, and also specify the related parameters such as the total number of steps for relaxation. Furthremore, in abICS, a reference file name, a rule of a reference file, and an executable format ``run_scheme`` in the input file of abICS must be set on a solver-by-solver basis. We'll explain them below.
+
+VASP
+=====
+
+- URL : https://www.vasp.at
+
+- Rules of a reference file
+   
+  - Please prepare INCAR, POTCAR, KPOINTS files.
+
+    - In POTCAR file, please arrange the atoms in alphabetical order.
+    - The POSCAR file is basically not needed, but may be needed depending on the version of ``pymatgen``. 
+      In that case, please prepare a suitable file.
+
+- A rule of an input file of abICS 
+
+  - Specifying ``run_scheme`` 
+    
+    Please set ``mpi_spawn_ready`` .
+    To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. 
+    If you wish to use VASP, please contact us (the e-mail address is written in :doc:`../contact/index` ).
+
+
+Quantum Espresso
+================
+
+- URL : https://www.quantum-espresso.org
+
+- Rules of a reference file
+  
+  - Please set a reference file name as ``scf.in`` .
+  - ``calculation`` option must be ``scf`` or ``relax`` .
+  - If the calculation is done only at :math:`\Gamma` point, the calculation becomes fast if you set ``Gamma`` in ``kpoints``.
+
+- A rule of an input file of abICS
+
+  - Specifying ``run_scheme``
+    
+    Please set ``mpi_spawn`` .
+
+OpenMX
+======
+
+- URL : http://www.openmx-square.org
+
+- A rule of reference file
+  
+  - Please set a reference file name as ``base.dat`` .
+
+- A rule of an input file of abICS
+
+  - Specifying ``run_scheme``
+    
+    Please set ``mpi_spawn_wrapper``.
+
