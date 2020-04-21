@@ -13,6 +13,7 @@
     path = './vasp'
     base_input_dir = './baseinput'
     perturb = 0.1
+    run_scheme = 'mpi_spawn_ready'
 
 入力形式
 ^^^^^^^^^^^^
@@ -42,6 +43,14 @@
 
        **説明 :** 
        ベースとなる入力ファイルへのパスを指定します.
+
+    -  ``run_scheme``
+
+       **形式 :** str型
+
+       **説明 :**
+       ソルバーを起動する方法を指定します.
+       詳細は :ref:`solver_specific_notes` を参照してください。
 
     -  ``perturb``
 

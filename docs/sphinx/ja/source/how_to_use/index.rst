@@ -112,6 +112,8 @@ HPE (SGI) MPT
 
 例として、 物性研スパコン sekirei, enaga では、 ``mpijob -spawn`` とすることで、 ``MPI_UNIVERSE_SIZE`` が自動的に設定されます。
 
+.. solver_specific_notes:
+
 ソルバー利用時の注意点
 ----------------------------
 
@@ -122,15 +124,17 @@ VASP
 
 - 参照ファイル
    
-  - 参照ファイル名はxxxxにしてください。
-  - POTCARファイルは元素をアルファベット順に並べてください。
+  - INCAR, POTCAR, KPOINTS ファイルを用意してください。
+
+    - POTCARファイルは元素をアルファベット順に並べてください。
+    - POSCARファイルは不要ですが、依存パッケージである ``pymatgen`` のバージョンによっては必要になります。その場合、なにか適当なファイルを用意してください。
 
 - abICS 入力ファイル
 
   - ``run_scheme`` の指定
     
-    ``xxxxxxxxxx`` に設定してください。
-    なお、VASPをソルバーとして利用する際には、 ``MPI_COMM_SPAWN`` を利用するためのパッチをあてる必要があります。
+    ``mpi_spawn_ready`` に設定してください。
+    なお、VASPをソルバーとして利用する際には、 ``MPI_Comm_spawn`` を利用するためのパッチをあてる必要があります。
     利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
 
 
@@ -139,7 +143,7 @@ Quantum Espresso
 
 - 参照ファイル
   
-  - 参照ファイル名はxxxxにしてください。
+  - 参照ファイル名は ``scf.in`` にしてください。
   - :math:`\Gamma` 点のみで計算する場合には、 ``kpoints`` を ``Gamma`` に指定すると高速化します。
 
 - abICS 入力ファイル
@@ -154,11 +158,11 @@ OpenMX
 
 - 参照ファイル
   
-  - 参照ファイル名はxxxxにしてください。
+  - 参照ファイル名は ``base.dat`` にしてください。
 
 - abICS 入力ファイル
 
   - ``run_scheme`` の指定
     
-    ``xxxxxxxxxx`` に設定してください。
+    ``mpi_spawn_wrapper`` に設定してください。
 
