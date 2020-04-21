@@ -13,6 +13,7 @@ An example is shown as follows:
     path = './vasp'
     base_input_dir = './baseinput'
     perturb = 0.1
+    run_scheme = 'mpi_spawn_ready'
 
 Input Format
 ^^^^^^^^^^^^
@@ -49,4 +50,22 @@ Keywords
 
        **Description :**
        If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.
+
+    - ``run_scheme``
+
+       **Format :** str
+
+       **Description :**
+       Way to invoke the solver program.
+       For details, please see :ref:`solver_specific_notes`
+
+    -  ``parallel_level`` (Only for QuantumESPRESSO)
+
+       **Format :** dict
+
+       **Description :** 
+       How to split parallel cpu resources, i.e., `Parallelization levels <https://www.quantum-espresso.org/Doc/user_guide/node18.html>`_ .
+       Key names are long-form command-line options (without the leading hyphen), that is, ``nimage``, ``npools``, ``nband``, ``ntg``, and ``ndiag``.
+       Values are the number of parallelization.
+       Only the specified elements will be passed to `` pw.x`` as command-line options.
 

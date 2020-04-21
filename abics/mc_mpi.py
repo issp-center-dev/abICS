@@ -262,16 +262,19 @@ class TemperatureRX_MPI(ParallelMC):
         self.obs_save = []
         self.Trank_hist = []
         self.kT_hist = []
+        self.Lreload = False
 
     def reload(self):
         self.rank_to_T = pickle_load("rank_to_T.pickle")
         self.mycalc.kT = self.kTs[self.rank_to_T[self.rank]]
         self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
         self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
+        self.mycalc.energy = self.obs_save0[-1,0]
         self.Trank_hist0 = numpy_load(os.path.join(str(self.rank), "Trank_hist.npy"))
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
         rand.setstate(rand_state)
+        self.Lreload = True
 
     def find_procrank_from_Trank(self, Trank):
         """
@@ -389,7 +392,8 @@ class TemperatureRX_MPI(ParallelMC):
                 pass
             os.chdir(str(self.rank))
         self.accept_count = 0
-        self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
+        if not self.Lreload:
+            self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
         if hasattr(test_observe, "__iter__"):
@@ -418,35 +422,35 @@ class TemperatureRX_MPI(ParallelMC):
                         self.kT_hist.append(self.mycalc.kT)
                     nsample += 1
 
-                self.comm.Barrier()
+                    self.comm.Barrier()
 
-                # save information for restart
-                pickle_dump(self.mycalc.config, "calc.pickle")
-                rand_state = rand.getstate()
-                pickle_dump(rand_state, "rand_state.pickle")
-                if save_obs:
-                    if hasattr(self, "obs_save0"):
-                        obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
-                        Trank_hist_ = np.concatenate(
-                            (self.Trank_hist0, np.array(self.Trank_hist))
-                        )
-                        kT_hist_ = np.concatenate((self.kT_hist0, np.array(self.kT_hist)))
-                    else:
-                        obs_save_ = np.array(self.obs_save)
-                        Trank_hist_ = np.array(self.Trank_hist)
-                        kT_hist_ = np.array(self.kT_hist)
+                    # save information for restart
+                    pickle_dump(self.mycalc.config, "calc.pickle")
+                    rand_state = rand.getstate()
+                    pickle_dump(rand_state, "rand_state.pickle")
+                    if save_obs:
+                        if hasattr(self, "obs_save0"):
+                            obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
+                            Trank_hist_ = np.concatenate(
+                                (self.Trank_hist0, np.array(self.Trank_hist))
+                            )
+                            kT_hist_ = np.concatenate((self.kT_hist0, np.array(self.kT_hist)))
+                        else:
+                            obs_save_ = np.array(self.obs_save)
+                            Trank_hist_ = np.array(self.Trank_hist)
+                            kT_hist_ = np.array(self.kT_hist)
 
-                    numpy_save(obs_save_, "obs_save.npy")
-                    numpy_save(Trank_hist_, "Trank_hist.npy")
-                    numpy_save(kT_hist_, "kT_hist.npy")
+                        numpy_save(obs_save_, "obs_save.npy")
+                        numpy_save(Trank_hist_, "Trank_hist.npy")
+                        numpy_save(kT_hist_, "kT_hist.npy")
 
-                if subdirs:
-                    os.chdir("../")
-                if self.rank == 0:
-                    pickle_dump(self.rank_to_T, "rank_to_T.pickle")
-                    numpy_save(self.kTs, "kTs.npy")
-                if subdirs:
-                    os.chdir(str(self.rank))
+                    if subdirs:
+                        os.chdir("../")
+                    if self.rank == 0:
+                        pickle_dump(self.rank_to_T, "rank_to_T.pickle")
+                        numpy_save(self.kTs, "kTs.npy")
+                    if subdirs:
+                        os.chdir(str(self.rank))
 
 
 

@@ -26,6 +26,8 @@ from mpi4py import MPI
 
 import numpy as np
 
+from .model_setup import perturb_structure
+
 
 class runner(object):
     """
@@ -141,7 +143,7 @@ class runner(object):
             Structure of compounds after optimization
         """
         if self.perturb:
-            structure.perturb(self.perturb)
+            perturb_structure(structure, self.perturb)
         solverinput = self.base_solver_input
         solverinput.update_info_by_structure(structure)
         self.run.submit(self.solver_name, solverinput, output_dir)
@@ -724,12 +726,12 @@ class run_subprocess:
         command = [self.path_to_solver]
         command.extend(args)
         to_rerun = False
-        print(' '.join(command))
+        #print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 # subprocess.run(command, check=True, shell=True)
-                subprocess.run(' '.join(command), check=True, shell=True)
-                # subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
+                #subprocess.run(' '.join(command), check=True, shell=True)
+                subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
             except subprocess.CalledProcessError as e:
                 if rerun > 0:
                     to_rerun = True

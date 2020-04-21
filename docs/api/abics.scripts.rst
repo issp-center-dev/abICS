@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    abics.scripts.main
    abics.scripts.struct_translator

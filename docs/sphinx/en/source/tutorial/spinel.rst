@@ -162,6 +162,7 @@ Based on this file, an input file with unit cells and atomic structure is automa
 - Notes
   
   - The pseudopotential directory ``pseudo_dir`` must be passed as an absolute path. ``~`` expands to the user's home directory.
+  - For ``calculation``,  SCF calculation ``scf`` and structure optimization ``relax`` are available.
   - ``disk_io`` must not be ``none`` .
 
 
@@ -199,9 +200,10 @@ The results are stored in ``Tseparate/DOI_T.dat`` .
 If you increase the number of replicas, you can calculate at various temperatures.
 You can also get better results by increasing the number of steps.
 The first number of samples to discard in Monte Carlo averaging can be specified by the value of ``throwout`` in the ``calc_DOI.py`` script.
-For example, if you perform this calculation with 17 replicas and 20 steps, the following result will be obtained
+In practical simulation, moreover, a structure optimization process is required.
+For example, if you perform this calculation with 17 replicas, 1000 steps, and ``perturb = 0.1``, the following result will be obtained
 
-.. image:: ../../../image/doi_17.png
+.. image:: ../../../image/doi_qe.png
    :width: 400px
    :align: center
 
