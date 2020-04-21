@@ -360,6 +360,11 @@ def RX_MPI_init(rxparams):
         rand_seeds = [rand.random() for i in range(worldprocs)]
         rand.seed(rand_seeds[worldrank])
 
+    if worldprocs < nreplicas:
+        if worldrank == 0:
+            print("ERROR! Please run with at least as many MPI processes as the number of replicas")
+        sys.exit(1)
+
     if worldprocs > nreplicas:
         if worldrank == 0:
             print(
