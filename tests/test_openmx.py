@@ -66,6 +66,7 @@ class TestOpenMX(unittest.TestCase):
         res = OpenMXInputFile(os.path.join(self.workdir, "Al.dat"))
         ref = OpenMXInputFile(os.path.join(self.datadir, "input", "Al.dat"))
         ref["System.CurrrentDirectory"] = [self.workdir + "/"]
+        ref["DATA.PATH"] = [os.path.join(self.datadir, "bin", "..", "DFT_DATA19")]
 
         self.assertEqual(res, ref)
 
@@ -77,4 +78,3 @@ class TestOpenMX(unittest.TestCase):
         workdir = "work"
         res = self.solver.input.cl_args(nprocs, nthreads, workdir)
         self.assertEqual(res, [os.path.join(workdir, "Al.dat"), "-nt", str(nthreads)])
-

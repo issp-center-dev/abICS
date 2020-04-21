@@ -1,0 +1,7 @@
+Cython
+mpi4py
+numpy
+pymatgen
+qe-tools
+scipy
+toml
