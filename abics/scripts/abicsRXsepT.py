@@ -34,8 +34,15 @@ def main():
         "inputfi", help="toml input file used for abICS run",
     )
 
+    parser.add_argument('skipsteps', nargs='?', type=int,
+                        default=0,
+                        help='number of steps to skip in energy averaging.' + \
+                        ' Default: 0',
+    )
+
     args = parser.parse_args()
     inputfi = args.inputfi
+    nskip = args.skipsteps
     rxparams = RXParams.from_toml(inputfi)
     nreplicas = rxparams.nreplicas
     comm = RX_MPI_init(rxparams)
@@ -82,7 +89,7 @@ def main():
             Ts = kTs / constants.value(u"Boltzmann constant in eV/K")
             for Tid in range(nreplicas):
                 energy_mean = np.mean(
-                    np.loadtxt(os.path.join(str(Tid), "energies.dat"))
+                    np.loadtxt(os.path.join(str(Tid), "energies.dat"))[nskip:]
                 )
                 fi.write("{}\t{}\n".format(Ts[Tid], energy_mean))
 
