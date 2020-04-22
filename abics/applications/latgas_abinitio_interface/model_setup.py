@@ -116,6 +116,28 @@ def match_latgas_group(latgas_rep, group):
     return mapping
 
 
+def perturb_structure(st: Structure, distance: float) -> None:
+    """
+    Perform random perturbation of the atomic coordinates.
+
+    Which components will be perturbed is specified by a boolean array stored as st.site_properties["seldyn"].
+    If not stored, all the components will be perturbed.
+    Argument st will be mutated.
+
+    Parameters
+    ----------
+    st: Structure
+    distance: float
+        strength of perturb
+    """
+    N = st.num_sites
+    seldyn = np.array(st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float)
+    assert seldyn.shape == (N, 3)
+    seldyn *= distance * np.random.randn(N, 3)
+    for i in range(N):
+        st.sites[i].coords += seldyn[i, :]
+
+
 class dft_latgas(model):
     """
     This class defines the DFT lattice gas mapping  model
@@ -308,6 +330,7 @@ class dft_latgas(model):
             self.update_basestruct(config)
         return config
 
+
 class energy_lst(dft_latgas):
     def __init__(
         self,
@@ -318,7 +341,7 @@ class energy_lst(dft_latgas):
         queen,
         reps,
         energy_lst,
-        matcher=None
+        matcher=None,
     ):
         """
 
@@ -365,10 +388,9 @@ class energy_lst(dft_latgas):
 
 
 class group(object):
-    def __init__(self, name, species, *,
-            coords=None,
-            relaxations=None,
-            magnetizations=None):
+    def __init__(
+        self, name, species, *, coords=None, relaxations=None, magnetizations=None
+    ):
         """
 
         Parameters
@@ -387,8 +409,14 @@ class group(object):
         self.name = name
         self.species = species
         self.coords = np.array(coords) if coords is not None else np.zeros((1, 3))
-        self.relaxations = np.array(relaxations) if relaxations is not None else np.ones((1, 3), dtype=bool)
-        self.magnetizations = np.array(magnetizations) if magnetizations is not None else np.zeros(1)
+        self.relaxations = (
+            np.array(relaxations)
+            if relaxations is not None
+            else np.ones((1, 3), dtype=bool)
+        )
+        self.magnetizations = (
+            np.array(magnetizations) if magnetizations is not None else np.zeros(1)
+        )
         self.orientations = len(coords)
         if self.orientations == 0:
             self.orientations = 1
@@ -437,9 +465,9 @@ class defect_sublattice(object):
             species = g.get("species", [name])
             n = len(species)
 
-            coords = read_tensor(g.get("coords", [[[0,0,0]]]), rank=3)
+            coords = read_tensor(g.get("coords", [[[0, 0, 0]]]), rank=3)
             m = coords.shape[1]
-            if n !=0 and m != n:
+            if n != 0 and m != n:
                 raise InputError(
                     'number of atoms mismatch in group [{}]: "species"={}, "coords"={}'.format(
                         name, n, m
@@ -463,7 +491,15 @@ class defect_sublattice(object):
                         name, n, m
                     )
                 )
-            groups.append(group(name, species, coords=coords, relaxations=relaxation, magnetizations=mag))
+            groups.append(
+                group(
+                    name,
+                    species,
+                    coords=coords,
+                    relaxations=relaxation,
+                    magnetizations=mag,
+                )
+            )
         return cls(site_centers, groups)
 
 
@@ -485,8 +521,10 @@ def base_structure(lat, dict_str):
             lattice=lat,
             species=[],
             coords=[],
-            site_properties={"seldyn": np.zeros((0, 3), dtype=bool),
-                             "magnetization": np.zeros(0)}
+            site_properties={
+                "seldyn": np.zeros((0, 3), dtype=bool),
+                "magnetization": np.zeros(0),
+            },
         )
     elems = []
     coords = []
@@ -615,11 +653,17 @@ class config:
                 (np.prod(cellsize) * site_centers.shape[0], 3), dtype=float
             )
             idx = 0
-            for (idx, (i, j, k, l)) in enumerate(product(range(cellsize[0]),
-                                                         range(cellsize[1]),
-                                                         range(cellsize[2]),
-                                                         range(site_centers.shape[0]))):
-                defect_sublattice.site_centers_sc[idx] = site_centers[l] + np.array([i, j, k])
+            for (idx, (i, j, k, l)) in enumerate(
+                product(
+                    range(cellsize[0]),
+                    range(cellsize[1]),
+                    range(cellsize[2]),
+                    range(site_centers.shape[0]),
+                )
+            ):
+                defect_sublattice.site_centers_sc[idx] = site_centers[l] + np.array(
+                    [i, j, k]
+                )
                 idx += 1
             defect_sublattice.site_centers_sc /= np.array(cellsize)
             num_sites += len(defect_sublattice.site_centers_sc)
@@ -669,8 +713,10 @@ class config:
                     self.structure.append(
                         group.species[j],
                         group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
-                        properties={"seldyn": group.relaxations[j, :],
-                                    "magnetization": group.magnetizations[j]},
+                        properties={
+                            "seldyn": group.relaxations[j, :],
+                            "magnetization": group.magnetizations[j],
+                        },
                     )
 
     def shuffle(self):

@@ -46,6 +46,7 @@ class DFTParams:
         params.perturb = d.get('perturb', 0.1)
         params.solver_run_scheme = d.get('run_scheme',
                                          'mpi_spawn_ready')
+        params.properties = d
         return params
 
     @classmethod

@@ -26,6 +26,8 @@ from mpi4py import MPI
 
 import numpy as np
 
+from .model_setup import perturb_structure
+
 
 class runner(object):
     """
@@ -141,7 +143,7 @@ class runner(object):
             Structure of compounds after optimization
         """
         if self.perturb:
-            structure.perturb(self.perturb)
+            perturb_structure(structure, self.perturb)
         solverinput = self.base_solver_input
         solverinput.update_info_by_structure(structure)
         self.run.submit(self.solver_name, solverinput, output_dir)
