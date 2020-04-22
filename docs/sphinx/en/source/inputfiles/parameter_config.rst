@@ -1,5 +1,6 @@
-.. _config_section:
+.. include:: <isonum.txt>
 .. highlight:: none
+.. _config-section:
 
 [config] section
 -------------------------------
@@ -114,15 +115,34 @@ Key words
          **Format :** list
 
          **Description :**
-	 The atomic species belonging to the atom group. The default value is a list containing only one specified by ``name``.
+	       The atomic species belonging to the atom group. The default value is a list containing only one specified by ``name``.
+
+      .. _coords-orr:
 
       -  ``coords``
 
-	 **Format :** list of lists or str
+      	 **Format :** list of lists of lists or str
 
-         **Description :**  The coordinates of each atom in the atom group.
-         A list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
-	 Default value is  ``[[0.0, 0.0, 0.0]]``.
+         **Description :**  The coordinates of each atom in the atom group in each direction of local orientation. 
+         *N* (number of atoms) three-element lists, each of which is a list of three elements representing 
+         three-dimensional coordinates, is specified as a three-fold list, arranged by orientation. For example, 
+         if there are two atoms in the atom group and there are three different orientations, x,y,z, then ``coords``
+         can be specified as::
+
+          
+            coords = [
+            [ # dir-1
+            [0.0, 0.0, 0.0], [0.5, 0.0, 0.0]
+            ],
+            [ # dir-2
+            [0.0, 0.0, 0.0], [0.0, 0.5, 0.0]
+            ],
+            [ # dir-3
+            [0.0, 0.0, 0.0], [0.0, 0.0, 0.5]
+            ],
+            ]
+         
+         The default value is  ``[[0.0, 0.0, 0.0]]``, so this keyword can be omitted if there is only one atom in the atom group.
 
       - ``relaxation``
 
