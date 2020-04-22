@@ -3,11 +3,11 @@
 st2abics
 -------------------------------
 
-It is sometimes quite tedious to prepare the :ref:`[config] section<config_section>` in abICS :ref:`input files<input_format>`.
+It is sometimes quite tedious to prepare the :ref:`[config] section<config-section>` in abICS :ref:`input files<input_format>`.
 To facilitate this, we provide the ``st2abics`` tool, which takes a structure file readable by pymatgen
 and converts it to an abICS input template with the ``[config]`` section filled in. An additional control file is required to
 tell ``st2abics`` how to break down the original structure file into ``config.base_structure`` and ``config.defect_structure``
-(see :ref:`config_section` for definitions). The tool is used as follows::
+(see :ref:`config-section` for definitions). The tool is used as follows::
 
     $ st2abics -h
     usage: st2abics [-h] inputfi structurefi [outfi]
@@ -100,7 +100,7 @@ Keywords
          **Format :** list of lists of lists or str
          
          **Description :** The coordinates of each atom in the atom group for 
-         each orientation that the atom group can take (**link to coords definition in input files**). 
+         each orientation that the atom group can take (see description for coords :ref:`here<coords-orr>`). 
          Default value is  ``[[[0.0, 0.0, 0.0]]]``.
 
       -  ``num``
