@@ -46,12 +46,16 @@ def main():
         'unitcell': base_structure.lattice.matrix.tolist(),
         'supercell': [1,1,1],
     }
+    if len(base_structure.symbol_set) == 0:
+        abics_input_dict['config']['base_structure'] = [{}]
+    else:
+        abics_input_dict['config']['base_structure'] = []
     for sp in base_structure.symbol_set:
         if fix:
             relaxations = [[False, False, False]]*int(base_structure.composition[sp])
         else:
             relaxations = [[True, True, True]]*int(base_structure.composition[sp])
-        abics_input_dict['config']['base_structure'] = [
+        abics_input_dict['config']['base_structure'].append(
             {
             'type': sp,
             'coords': base_structure.frac_coords[
@@ -59,7 +63,7 @@ def main():
                 ].tolist(),
             'relaxation': relaxations
             }
-        ]
+        )
 
     # Make defect structures
     abics_input_dict['config']['defect_structure'] = []
@@ -77,7 +81,7 @@ def main():
             for group in defect_sublattice['groups']:
                 groups.append(
                     {'name': group['name'],
-                     'species': group.get('species', group['name']),
+                     'species': group.get('species', [group['name']]),
                      'coords': group.get('coords', [[[0,0,0]]]),
                      'num': int(group['num']),
                      }
