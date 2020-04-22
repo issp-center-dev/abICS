@@ -17,6 +17,7 @@ Welcome to abICS's documentation!
    tutorial/index
    inputfiles/index
    outputfiles/index
+   tools/index
    algorithm/index
    acknowledge/index
    contact/index

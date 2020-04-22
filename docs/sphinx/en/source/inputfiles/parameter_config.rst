@@ -1,4 +1,5 @@
 .. highlight:: none
+.. _config_section:
 
 [config] section
 -------------------------------
@@ -69,20 +70,20 @@ Key words
 - [[config.base_structure]] section
 
   ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
-    If there are multiple atomic species, specify multiple [[config.base_structure]] sections.
+  If there are multiple atomic species, specify multiple [[config.base_structure]] sections.
 
-    - ``type``
+  - ``type``
 
-      **Format :** str
+    **Format :** str
 
-      **Description :**  Atomic specie.
+    **Description :**  Atomic specie.
 
-    - ``coords``
+  - ``coords``
 
-      **Format :** list of lists or str
+    **Format :** list of lists or str
 
-      **Description :**
-      Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
+    **Description :**
+    Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
 
 
 - [[config.defect_structure]] section
