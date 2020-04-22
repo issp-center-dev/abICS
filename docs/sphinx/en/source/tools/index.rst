@@ -14,8 +14,6 @@ The following sections describe how to use each of these tools.
    :maxdepth: 1
 
    tools_st2abics
-   
-..
    tools_abicsRXsepT
 
    
