@@ -81,7 +81,7 @@ def main():
             for group in defect_sublattice['groups']:
                 groups.append(
                     {'name': group['name'],
-                     'species': group.get('species', group['name']),
+                     'species': group.get('species', [group['name']]),
                      'coords': group.get('coords', [[[0,0,0]]]),
                      'num': int(group['num']),
                      }
