@@ -1,3 +1,4 @@
+.. _config_section:
 .. highlight:: none
 
 [config] セクション
