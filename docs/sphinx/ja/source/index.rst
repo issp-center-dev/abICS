@@ -19,6 +19,7 @@ Contents
    tutorial/index
    inputfiles/index
    outputfiles/index
+   tools/index
    algorithm/index
    acknowledge/index
    contact/index
