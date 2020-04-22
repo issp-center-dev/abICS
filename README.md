@@ -8,14 +8,35 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 - scipy
 - toml (for parsing input files)
 - mpi4py (for parallel tempering)
+  - This requires one of the MPI implementation
 - pymatgen (for parsing vasp I/O)
+  - This requires Cython
 - qe-tools (for parsing QE I/O)
 
 ## Install abICS
 
+Pymatgen requires Cython but Cython will not be installed automatically,
+please make sure that this is installed,
+
+``` bash
+$ pip3 install Cython
+```
+
+mpi4py requires one of the MPI implementations such as OpenMPI,
+please make sure that this is also installed.
+In the case of using homebrew on macOS, for example,
+
+``` bash
+$ brew install open-mpi
+```
+
+After installing Cython and MPI,
+
 ``` bash
 $ pip3 install abics
 ```
+
+will install abICS and dependencies.
 
 If you want to change the directory where installed,
 add `--user` option or `--prefix=DIRECTORY` option into the above command as
