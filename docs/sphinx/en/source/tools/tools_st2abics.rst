@@ -92,8 +92,12 @@ Keywords
          
          **Format :** list of str 
          
-         **Description :** The atom species belonging to the atom group. The default value is a list containing
+         **Description :**
+         The atom species belonging to the atom group. The default value is a list containing
          only one species specified by ``name``.
+         Elements that do not appear in the original structure file can also be specified.
+         A vacancy can be represented by an empty list ``[]``.
+         As an example, see ``st2abics_BZY.toml`` in the example directory.
 
       -  ``coords``
       
