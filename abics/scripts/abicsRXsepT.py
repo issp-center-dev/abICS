@@ -82,6 +82,8 @@ def main():
                 T_energies_rcvbuf,
             )
 
+    comm.Barrier()
+
     if myreplica == 0:
         os.chdir(os.path.join(os.pardir, "Tseparate"))
         with open("energies_T.dat", "w") as fi:
