@@ -30,14 +30,14 @@ def main():
         description="Reorganize abICS RXMC results by temperature"
     )
 
-    parser.add_argument(
-        "inputfi", help="toml input file used for abICS run",
-    )
+    parser.add_argument("inputfi", help="toml input file used for abICS run")
 
-    parser.add_argument('skipsteps', nargs='?', type=int,
-                        default=0,
-                        help='number of steps to skip in energy averaging.' + \
-                        ' Default: 0',
+    parser.add_argument(
+        "skipsteps",
+        nargs="?",
+        type=int,
+        default=0,
+        help="number of steps to skip in energy averaging." + " Default: 0",
     )
 
     args = parser.parse_args()
@@ -78,7 +78,7 @@ def main():
         )
         if myreplica == Tid:
             np.savetxt(
-                os.path.join(os.pardir, "Tseparate", str(Tid), "energies.dat",),
+                os.path.join(os.pardir, "Tseparate", str(Tid), "energies.dat"),
                 T_energies_rcvbuf,
             )
 
