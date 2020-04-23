@@ -106,12 +106,62 @@ def main():
             {"coords": coords, "groups": groups}
         )
 
-    config = toml.dumps(abics_input_dict)
+    config = ["[config]"]
+    config.append("unitcell = [")
+    for i in range(3):
+        r = abics_input_dict["config"]["unitcell"][i]
+        config.append("[{}, {}, {}],".format(r[0], r[1], r[2]))
+    config.append("]")
+    config.append("supercell = [1, 1, 1]")
+    config.append("")
+    for base in abics_input_dict["config"]["base_structure"]:
+        config.append("[[config.base_structure]]")
+        config.append('type = "{}"'.format(base["type"]))
+        config.append('coords = """')
+        for r in base["coords"]:
+            config.append("{} {} {}".format(r[0], r[1], r[2]))
+        config.append('"""')
+        config.append('relaxation = """')
+        for r in base["relaxation"]:
+            r = list(map(lambda x: str(x).lower(), r))
+            config.append("{} {} {}".format(r[0], r[1], r[2]))
+        config.append('"""')
+        config.append("")
+    for defect in abics_input_dict["config"]["defect_structure"]:
+        config.append("[[config.defect_structure]]")
+        config.append('coords = """')
+        for r in defect["coords"]:
+            config.append("{} {} {}".format(r[0], r[1], r[2]))
+        config.append('"""')
+        config.append("")
+        for group in defect["groups"]:
+            config.append("[[config.defect_structure.groups]]")
+            config.append('name = "{}"'.format(group["name"]))
+            config.append("species = {}".format(group["species"]))
+            config.append("coords = [")
+            for coord in group["coords"]:
+                if len(coord) == 1:
+                    c = coord[0]
+                    config.append('"{} {} {}"'.format(c[0], c[1], c[2]))
+                else:
+                    config.append('"""')
+                    for c in coord:
+                        config.append("{} {} {}".format(c[0], c[1], c[2]))
+                    config.append('""",')
+            config.append("]")
+            config.append("num = {}".format(group["num"]))
+            config.append("")
+
+    # config = toml.dumps(abics_input_dict)
     with open(
         os.path.join(os.path.dirname(__file__), "input_template.toml"), "r"
     ) as fi:
         template = fi.read()
-    args.outfi.write(template + config)
+    # args.outfi.write(template + config)
+    args.outfi.write(template)
+    for c in config:
+        args.outfi.write(c)
+        args.outfi.write("\n")
 
 
 if __name__ == "__main__":
