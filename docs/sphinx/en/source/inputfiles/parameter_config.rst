@@ -115,7 +115,9 @@ Key words
          **Format :** list
 
          **Description :**
-	       The atomic species belonging to the atom group. The default value is a list containing only one specified by ``name``.
+         The atomic species belonging to the atom group.
+         The default value is a list containing only one specified by ``name``.
+         A vacancy can be represented by an empty list ``[]``.
 
       .. _coords-orr:
 
