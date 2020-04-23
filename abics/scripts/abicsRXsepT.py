@@ -37,7 +37,7 @@ def main():
         nargs="?",
         type=int,
         default=0,
-        help="number of steps to skip in energy averaging." + " Default: 0",
+        help="number of thermalization steps to skip in energy averaging." + " Default: 0",
     )
 
     args = parser.parse_args()
