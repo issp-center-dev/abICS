@@ -119,6 +119,7 @@ def match_latgas_group(latgas_rep, group):
 def perturb_structure(st: Structure, distance: float) -> None:
     """
     Perform random perturbation of the atomic coordinates.
+    All atoms will be moved at the same distance.
 
     Which components will be perturbed is specified by a boolean array stored as st.site_properties["seldyn"].
     If not stored, all the components will be perturbed.
@@ -133,9 +134,12 @@ def perturb_structure(st: Structure, distance: float) -> None:
     N = st.num_sites
     seldyn = np.array(st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float)
     assert seldyn.shape == (N, 3)
-    seldyn *= distance * np.random.randn(N, 3)
+    seldyn *= np.random.randn(N, 3)
     for i in range(N):
-        st.sites[i].coords += seldyn[i, :]
+        r = seldyn[i, :]
+        norm = np.linalg.norm(r)
+        if norm != 0.0:
+            st.sites[i].coords += seldyn[i, :] / norm * distance
 
 
 class dft_latgas(model):

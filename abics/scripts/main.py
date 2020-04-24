@@ -19,6 +19,7 @@ import sys
 
 from mpi4py import MPI
 import numpy as np
+import scipy.constants as constants
 
 from abics.mc import CanonicalMonteCarlo
 from abics.mc_mpi import RX_MPI_init, TemperatureRX_MPI, RXParams
@@ -44,7 +45,7 @@ def main_impl(tomlfile):
     nreplicas = rxparams.nreplicas
     nprocs_per_replica = rxparams.nprocs_per_replica
 
-    kB = 8.6173e-5
+    kB = constants.value(u"Boltzmann constant in eV/K")
 
     comm = RX_MPI_init(rxparams)
 

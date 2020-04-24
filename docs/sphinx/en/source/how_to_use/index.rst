@@ -32,7 +32,7 @@ The input file of abICS is constructed by the following four sections:
 
 1. [replica] section specifies the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps.
   
-2. [solver] section specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,...), the path to the solver, and the directory containing reference input files (see :ref:`subsec_basic_reference` ).
+2. [solver] section specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE, OpenMX), the path to the solver, and the directory containing reference input files (see :ref:`subsec_basic_reference` ).
    
 3. [observer] section specifies the type of physical quantity to be calculated.
 
@@ -111,7 +111,10 @@ On the ISSP supercomputer systems, Sekirei and Enaga, for example, ``mpijob -spa
 Solver specific Notes
 ----------------------------
 
-In abICS, the coordinates of atoms are updated. Other settings are basically specified on the reference file for each solver. However, the specification of atoms to be relaxed can be controlled by abICS. To enable the structural optimization option, please set the option to do structural optimization in the reference file of the solver, and also specify the related parameters such as the total number of steps for relaxation. Furthremore, in abICS, a reference file name, a rule of a reference file, and an executable format ``run_scheme`` in the input file of abICS must be set on a solver-by-solver basis. We'll explain them below.
+In abICS, the coordinates of atoms are updated. Other settings are basically specified on the reference file for each solver.
+However, the specification of atoms to be relaxed can be controlled by abICS.
+To enable the structural optimization option, please set the option to do structural optimization in the reference file of the solver, and also specify the related parameters such as the total number of steps for relaxation.
+Furthermore, in abICS, a reference file name, a rule of a reference file, and an executable format ``run_scheme`` in the input file of abICS must be set on a solver-by-solver basis. We'll explain them below.
 
 VASP
 =====
@@ -123,7 +126,7 @@ VASP
   - Please prepare INCAR, POTCAR, KPOINTS files.
 
     - In POTCAR file, please arrange the atoms in alphabetical order.
-    - The POSCAR file is basically not needed, but may be needed depending on the version of ``pymatgen``. 
+    - The POSCAR file is basically not needed, but maybe needed depending on the version of ``pymatgen``. 
       In that case, please prepare a suitable file.
 
 - A rule of an input file of abICS 
