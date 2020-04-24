@@ -225,6 +225,7 @@ class runner_multistep(object):
             energy, newstructure = self.runners[i].submit(
                 newstructure, output_dir
             )
+            newstructure = newstructure.copy(site_properties)
         return energy, newstructure
 
 class run_mpispawn:
