@@ -32,7 +32,7 @@ The input file of abICS is constructed by the following four sections:
 
 1. [replica] section specifies the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps.
   
-2. [solver] section specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,...), the path to the solver, and the directory containing reference input files (see :ref:`subsec_basic_reference` ).
+2. [solver] section specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE, OpenMX), the path to the solver, and the directory containing reference input files (see :ref:`subsec_basic_reference` ).
    
 3. [observer] section specifies the type of physical quantity to be calculated.
 
