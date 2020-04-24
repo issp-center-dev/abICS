@@ -218,7 +218,9 @@ class runner_multistep(object):
             )
 
     def submit(self, structure, output_dir):
+        site_properties = structure.site_properties
         energy, newstructure = self.runners[0].submit(structure, output_dir)
+        newstructure = newstructure.copy(site_properties)
         for i in range(1, len(self.runners)):
             energy, newstructure = self.runners[i].submit(
                 newstructure, output_dir
