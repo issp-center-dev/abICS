@@ -114,19 +114,22 @@ def main():
     config.append("]")
     config.append("supercell = [1, 1, 1]")
     config.append("")
-    for base in abics_input_dict["config"]["base_structure"]:
+    if abics_input_dict["config"]["base_structure"] == [{}]:
         config.append("[[config.base_structure]]")
-        config.append('type = "{}"'.format(base["type"]))
-        config.append('coords = """')
-        for r in base["coords"]:
-            config.append("{} {} {}".format(r[0], r[1], r[2]))
-        config.append('"""')
-        config.append('relaxation = """')
-        for r in base["relaxation"]:
-            r = list(map(lambda x: str(x).lower(), r))
-            config.append("{} {} {}".format(r[0], r[1], r[2]))
-        config.append('"""')
-        config.append("")
+    else:
+        for base in abics_input_dict["config"]["base_structure"]:
+            config.append("[[config.base_structure]]")
+            config.append('type = "{}"'.format(base["type"]))
+            config.append('coords = """')
+            for r in base["coords"]:
+                config.append("{} {} {}".format(r[0], r[1], r[2]))
+            config.append('"""')
+            config.append('relaxation = """')
+            for r in base["relaxation"]:
+                r = list(map(lambda x: str(x).lower(), r))
+                config.append("{} {} {}".format(r[0], r[1], r[2]))
+            config.append('"""')
+            config.append("")
     for defect in abics_input_dict["config"]["defect_structure"]:
         config.append("[[config.defect_structure]]")
         config.append('coords = """')
