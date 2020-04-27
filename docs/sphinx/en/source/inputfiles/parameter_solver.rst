@@ -43,7 +43,7 @@ Keywords
 
        **Description :**
        The path to the base input file.
-       When more than one directories are specified, they will be executed in sequence during one Monte Carlo step.
+       When more than one directory is specified, they will be executed in sequence during one Monte Carlo step.
 
     -  ``perturb``
 
