@@ -39,10 +39,11 @@ Keywords
 
     -  ``base_input_dir``
 
-       **Format :** str
+       **Format :** str or list of str
 
        **Description :**
        The path to the base input file.
+       When more than one directories are specified, they will be executed in sequence during one Monte Carlo step.
 
     -  ``perturb``
 
