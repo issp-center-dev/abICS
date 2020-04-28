@@ -1,0 +1,61 @@
+[replica]
+nreplicas = 2
+nprocs_per_replica = 1
+
+kTstart = 1000.0
+kTend = 1200.0
+
+nsteps = 4  # Number of steps for sampling
+RXtrial_frequency = 1
+sample_frequency = 1
+print_frequency = 1
+seed = 12345
+
+reload = false
+
+[solver]
+type = 'qe'
+path= '~/qe/bin/pw.x'
+base_input_dir = './baseinput'
+perturb = 0.0
+run_scheme = 'mpi_spawn'
+
+[config]
+unitcell = """
+4.056800 4.056800 0.000000
+4.056800 0.000000 -4.056800
+0.000000 4.056800 -4.056800
+"""
+supercell = [1,1,1]
+
+[[config.base_structure]]
+type = "O"
+coords = """
+0.712200 0.762600 0.762600
+0.287800 0.237400 0.237400
+0.262600 0.762600 0.762600
+0.737400 0.237400 0.237400
+0.262600 0.762600 0.212200
+0.737400 0.237400 0.787800
+0.262600 0.212200 0.762600
+0.737400 0.787800 0.237400
+"""
+
+[[config.defect_structure]]
+coords = """
+1.000000 0.000000 0.000000
+0.500000 0.000000 0.000000
+0.500000 0.000000 0.500000
+0.500000 0.500000 0.000000
+0.125000 0.625000 0.625000
+0.875000 0.375000 0.375000
+"""
+[[config.defect_structure.groups]]
+name = 'Al'
+num = 4
+[[config.defect_structure.groups]]
+name = 'Mg'
+num = 2
+
+[observer]
+ignored_species = ['O']
