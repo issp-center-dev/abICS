@@ -143,6 +143,10 @@ Quantum Espresso
 
 - URL : https://www.quantum-espresso.org
 
+- Available version: 6.2 or higher
+
+  - "Old XML" format is not available
+
 - Rules of a reference file
   
   - Please set a reference file name as ``scf.in`` .
@@ -159,6 +163,8 @@ OpenMX
 ======
 
 - URL : http://www.openmx-square.org
+
+- Available version: 3.9
 
 - A rule of reference file
   
