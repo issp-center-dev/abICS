@@ -11,6 +11,7 @@ Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
 O.pbe-n-kjpaw_psl.1.0.0.UPF
 ```
 and put them into `~/opt/qe/pot`
+
 3. Invoke `do_openmpi.sh` or `do_mpich.sh`
 
 ## OpenMX
