@@ -15,13 +15,13 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 import os
-import random as rand
 from shutil import move
 import sys
 
 from mpi4py import MPI
 
 import numpy as np
+import numpy.random as rand
 
 from abics.mc import observer_base, obs_decode, verylargeint
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
@@ -278,7 +278,7 @@ class TemperatureRX_MPI(ParallelMC):
         self.Trank_hist0 = numpy_load(os.path.join(str(self.rank), "Trank_hist.npy"))
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
-        rand.setstate(rand_state)
+        rand.set_state(rand_state)
         self.Lreload = True
 
     def find_procrank_from_Trank(self, Trank):
@@ -431,7 +431,7 @@ class TemperatureRX_MPI(ParallelMC):
 
                     # save information for restart
                     pickle_dump(self.mycalc.config, "calc.pickle")
-                    rand_state = rand.getstate()
+                    rand_state = rand.get_state()
                     pickle_dump(rand_state, "rand_state.pickle")
                     if save_obs:
                         if hasattr(self, "obs_save0"):
