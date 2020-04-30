@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    abics.applications.latgas_abinitio_interface.aenet
    abics.applications.latgas_abinitio_interface.base_solver
