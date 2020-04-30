@@ -2,6 +2,14 @@
 
 These take ten or more minutes to finish.
 
+## version information
+
+- QE : ver.6.5
+- OpenMX : ver.3.9
+
+- python package
+    - scipy : ver.1.4.1 (Caution: values in ``constants`` are changed from ver.1.4)
+
 ## QE and QE-restart
 1. Put binary `pw.x` into `~/opt/qe/bin`
 2. Get the following pseudopotentials
