@@ -20,7 +20,12 @@ from ...util import expand_path
 
 class DFTParams:
     def __init__(self):
-        pass
+        self.base_input_dir = []
+        self.solver = ""
+        self.path = ""
+        self.perturb = 0.0
+        self.solver_run_scheme = ""
+        self.properties = {}
 
     @classmethod
     def from_dict(cls, d):
@@ -40,7 +45,10 @@ class DFTParams:
         if 'solver' in d:
             d = d['solver']
         params = cls()
-        params.base_input_dir = expand_path(d.get('base_input_dir', './baseinput'), os.getcwd())
+        base_input_dir = d.get('base_input_dir', ['./baseinput'])
+        if isinstance(base_input_dir, str):
+            base_input_dir = [base_input_dir]
+        params.base_input_dir = base_input_dir = list(map(lambda x: expand_path(x, os.getcwd()), base_input_dir))
         params.solver = d['type']
         params.path = expand_path(d['path'], os.getcwd())
         params.perturb = d.get('perturb', 0.1)
