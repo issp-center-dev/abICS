@@ -5,9 +5,10 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
+   abics.scripts.abicsRXsepT
    abics.scripts.main
+   abics.scripts.st2abics_config
    abics.scripts.struct_translator
 
 Module contents
