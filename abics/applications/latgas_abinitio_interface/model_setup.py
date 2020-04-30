@@ -15,11 +15,12 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from itertools import product
-import numpy as np
-import random as rand
 import sys
 import os
 import copy
+
+import numpy as np
+import numpy.random as rand
 
 # from mpi4py import MPI
 
@@ -134,7 +135,7 @@ def perturb_structure(st: Structure, distance: float) -> None:
     N = st.num_sites
     seldyn = np.array(st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float)
     assert seldyn.shape == (N, 3)
-    seldyn *= np.random.randn(N, 3)
+    seldyn *= rand.randn(N, 3)
     for i in range(N):
         r = seldyn[i, :]
         norm = np.linalg.norm(r)
@@ -267,7 +268,7 @@ class dft_latgas(model):
             random_divide = 0.5
         else:
             random_divide = 2.0
-        if defect_sublattice.groups_orr and rand.random() < random_divide:
+        if defect_sublattice.groups_orr and rand.rand() < random_divide:
             # Change orientation of one group with orientation attributes
             # Let's first locate sites that have such groups
             rot_ids = []
@@ -285,7 +286,7 @@ class dft_latgas(model):
 
         else:
             # Exchange different groups between sites
-            ex1_group, ex2_group = rand.sample(defect_sublattice.groups, 2)
+            ex1_group, ex2_group = rand.choice(defect_sublattice.groups, 2, replace=False)
             ex1_id = rand.choice(match_latgas_group(latgas_rep, ex1_group))
             ex2_id = rand.choice(match_latgas_group(latgas_rep, ex2_group))
             latgas_rep[ex1_id], latgas_rep[ex2_id] = (
@@ -730,7 +731,7 @@ class config:
             for site in latgas_rep:
                 group = defect_sublattice.group_dict[site[0]]
                 norr = group.orientations
-                site[1] = rand.randrange(norr)
+                site[1] = rand.randint(norr)
         self.set_latgas()
 
     def count(self, group_name, orientation):

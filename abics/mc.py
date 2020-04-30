@@ -15,13 +15,13 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from math import exp
-from random import random
 
 # import SFMT_cython.sfmt_random as sfmt_random
 # from multiprocessing import Process, Queue, Pool, TimeoutError
 import os
 import sys
 import numpy as np
+import numpy.random as rand
 
 verylargeint = sys.maxsize
 
@@ -370,7 +370,7 @@ class CanonicalMonteCarlo:
             self.energy += dE
         else:
             accept_probability = exp(-dE / self.kT)
-            if random() <= accept_probability:
+            if rand.random() <= accept_probability:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
 
@@ -485,7 +485,7 @@ class TemperatureReplicaExchange:
         else:
             accept_probability = exp(-delta)
             #print accept_probability, "accept prob"
-            if random() <= accept_probability:
+            if rand.random() <= accept_probability:
                 self.MCreplicas, self.accept_count = self.swap_algo(self.MCreplicas,
                                                            rep, self.accept_count)
                 print("RXtrial accepted")
