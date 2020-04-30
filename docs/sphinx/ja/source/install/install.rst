@@ -1,66 +1,97 @@
 .. highlight:: none
 
-ダウンロード
+必要なライブラリ・環境
 ~~~~~~~~~~~~~~~~~~~~~~
+
+abICS をインストール・実行するには、 バージョン3.6 以上の Python が必要です。
+また、以下の Python パッケージが必要です。
+
+- numpy
+- scipy
+- toml
+- mpi4py
+- pymatgen (>=2019.12.3)
+- qe-tools
+
+これらのライブラリは自動でインストールされますが、 mpi4py と pymatgen はあらかじめ関連ソフトウェアが必要です。
+
+- mpi4py をインストールするには、なんらかのMPI 環境をあらかじめインストールしておく必要があります。
+- pymatgen をインストールするには、 Cython をインストールしておく必要があります。::
+
+   $ pip3 install cython
+
+VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
+
+
+PyPI からインストールする
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+abICS は PyPI に登録されているため、 ``pip`` コマンドで簡単にインストールできます。::
+
+   ``$ pip3 install abics``
+
+書き込み権限がないなどで、ユーザローカルのディレクトリにインストールする場合には ``--user`` オプションを追加してください。
+この場合、 ``~/.local/`` 以下に実行可能スクリプトやライブラリがインストールされます。
+また、インストールディレクトリを指定したい場合には、 ``--prefix=DIRECTORY`` ( ``DIRECTORY`` はインストールしたいディレクトリ) オプションを指定してください:
+
+   ``$ pip3 install --user abics``
+
+
+ソースからインストールする
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+多くの場合には PyPI からインストールすれば良いですが、機能追加する場合などはソースからインストールしてください。
+
+ダウンロード
+..................
 
 abICS のソースコードは `GitHub page <https://github.com/issp-center-dev/abICS>`_ からダウンロードできます。
 
 ``$ git clone https://github.com/issp-center-dev/abICS``
 
-必要なライブラリ・環境
-~~~~~~~~~~~~~~~~~~~~~~
-
-- python3
-- numpy
-- scipy
-- toml (for parsing input files)
-- mpi4py (for parallel tempering)
-- pymatgen (for parsing vasp I/O)
-- qe-tools (for parsing QE I/O)
-
-VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
 
 ディレクトリ構成
-~~~~~~~~~~~~~~~~~~~~~~
+.......................
 
 abICSのディレクトリ構成は以下のようになっています.
 ``examples/standard`` には簡易ファイルで実行可能なサンプルが, 
 ``examples/expert`` にはpythonモジュールを直接用いて作成されたサンプルがあります.
-pythonモジュールは ``py_mc`` ディレクトリ以下に一式格納されています.
+pythonモジュールは ``abics`` ディレクトリ以下に一式格納されています.
 
-  :: 
+:: 
 
-     - examples
-        - standard
-            - spinel
-                - QE
-                - vasp
-                - openmx
-            - sub-lattice
-                - QE
-                - vasp
-                - openmx
-        - expert 
-            - ising2D
-            - 2D_hardcore
-            …
-    - make_wheel.sh
-    - py_mc
-        - pymc.py
-        - pythonモジュール
-    - test
+ .
+ |-- COPYING
+ |-- README.md
+ |-- abics/
+ |   |-- __init__.py
+ |   |-- applications/
+ |   |-- mc.py
+ |   |-- mc_mpi.py
+ |   |-- scripts/
+ |   `-- util.py
+ |-- docs/
+ |   `-- sphinx/
+ |-- examples/
+ |   |-- expert/
+ |   `-- standard/
+ |-- make_wheel.sh
+ |-- setup.cfg
+ `-- setup.py
+
+
 
 インストール
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+.................
 
-1. wheelファイルを作成します.
+- wheelファイルを作成します. ::
 
-``$ ./make_wheel.sh``
+   $ ./make_wheel.sh
 
-2. 作成されたファイルを使用して以下のようにインストールします.
+- 作成されたファイルを使用して以下のようにインストールします. ::
 
-``$ pip install dist/abics-\*.whl``
+   $ pip3 install dist/abics-*.whl
 
-インストールディレクトリを変更したい場合には, ``--user`` オプションもしくは ``--prefix = DIRECTORY`` ( ``DIRECTORY`` にインストールしたいディレクトリを指定) オプションを指定してください:
+- すでにより新しいバージョン番号の abICS がインストールされているときに再インストールする場合は以下のようにします。 ::
 
-``$ pip install --user dist/abics-\*.whl``
+   $ pip3 install --no-deps --force-reinstall dist/abics-*.whl

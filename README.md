@@ -3,59 +3,51 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 
 ## Requirement
 
-- python3
+- python3 (>=3.6)
 - numpy
 - scipy
 - toml (for parsing input files)
 - mpi4py (for parallel tempering)
-- pymatgen (for parsing vasp I/O)
+  - This requires one of the MPI implementation
+- pymatgen (>=2019.12.3) (for using Structure as a configuration)
+  - This requires Cython
 - qe-tools (for parsing QE I/O)
-
-## Get abICS
-
-### With Git (recommended)
-
-``` bash
-$ git clone https://github.com/issp-center-dev/abics
-```
-
-### Without Git
-
-``` bash
-$ wget https://github.com/issp-center-dev/abics/archive/master.zip
-$ unzip master.zip
-```
 
 ## Install abICS
 
-### With `pip`
-
-Make a wheel file by
-
-``` bash
-$ ./make_wheel.sh
-```
-
-and install this as
+Pymatgen requires Cython but Cython will not be installed automatically,
+please make sure that this is installed,
 
 ``` bash
-$ pip install dist/abics-*.whl
+$ pip3 install Cython
 ```
+
+mpi4py requires one of the MPI implementations such as OpenMPI,
+please make sure that this is also installed.
+In the case of using homebrew on macOS, for example,
+
+``` bash
+$ brew install open-mpi
+```
+
+After installing Cython and MPI,
+
+``` bash
+$ pip3 install abics
+```
+
+will install abICS and dependencies.
 
 If you want to change the directory where installed,
 add `--user` option or `--prefix=DIRECTORY` option into the above command as
 
 ``` bash
-$ pip install --user dist/abics-*.whl
+$ pip3 install --user abics
 ```
 
-For details, see the manual of `pip` by `pip help install`
+For details of `pip` , see the manual of `pip` by `pip3 help install`
 
-### Without `pip`
-
-``` bash
-$ export PYTHONPATH=$Path_To_abics:$PYTHONPATH
-```
+If you want to install abICS from source, see [wiki page](https://github.com/issp-center-dev/abICS/wiki/Install)
 
 ## License
 

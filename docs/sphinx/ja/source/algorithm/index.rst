@@ -1,10 +1,56 @@
-***************************
-参考文献
-***************************
+***************
+アルゴリズム
+***************
+abICSは、拡張アンサンブル法と任意のエネルギー計算ソフトウェアを組み合わせるために設計されています。現在は、
+レプリカ交換モンテカルロ法のみが実装されています。
+
+レプリカ交換モンテカルロ法
+---------------------------
+広く使用されているメトロポリスモンテカルロ法は、局所安定配置に捕まりやすく、そこでサンプリングが行き詰まる
+傾向があります。レプリカ交換法は、計算対象の系のコピー（レプリカ）を使って、この問題を克服することを目的としています。
+レプリカ交換法は、大まかに次のように説明できます（より正確な説明については、下記の文献を参照してください）。
+まず、各レプリカに対して異なる温度におけるモンテカルロサンプリングを個別に実行します。事前に設定された任意の間隔で、
+メトロポリス基準に従ってレプリカ間で温度を交換し、サンプリングを再開します。メトロポリス基準によって、大まかには、
+エネルギーが低いレプリカに低い温度が割り当てられることになります。これにより、高い温度のレプリカによる大域的な
+サンプリングと低い温度における局所安定配置の探索を共存させることができます。
+
+abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ交換モンテカルロ法に関連したパラメータを指定します。
+レプリカの温度の下限を ``kTstart`` 、 上限を ``kTend`` とし、レプリカ数を ``nreplicas`` とすることで、
+
+.. math::
+   
+   T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}
+
+として ``nreplicas`` 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 :math:`i=0 \cdots \verb|nreplicas|-1` 。abICSでは、「nprocs_per_replica」を使用して、各レプリカで計算を実行する並列ソルバープロセスの数を指定できます)。
+モンテカルロステップ数は ``nsteps`` で指定し、 ``RXtrial_frequency`` ステップ毎に交換遷移確率
+
+.. math::
+
+   R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{k}}\right)\left(E(X_i)-E(X_{k})\right)\right]
+
+が計算されます。:math:`R` の確率で温度交換 :math:`T_i \leftrightarrow T_{k}` が行われます (ただし、 :math:`X_i` はi番目のレプリカ系の状態です。また、abICSでは隣接する温度を持ったレプリカ同士で交換試行をしています)。なお、物理量は ``sample_frequency`` ステップ毎に測定が行われます。
 
 - abICSの概要について
-    - Shusuke Kasamatsu and Osamu Sugino 2019 J. Phys.: Condens. Matter *31* 085901
 
-- 交換モンテカルロ法について
-    - Hukushima K and Nemoto K 1996 J. Phys. Soc. Japan *65* 1604–8
-    - Swendsen R and Wang J 1986 Phys. Rev. Lett. *57* 2607–9
+  - `S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019) <https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta>`_.
+
+- レプリカ交換モンテカルロ法について
+
+  - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
+  - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
+
+配置と更新について
+---------------------------
+
+ここでは、 :numref:`alg_sampling` を例にabICSでの格子配置の定義とモンテカルロ法での更新の概要を説明します。
+(a)-(c)は ``unitcell`` 、 ``base_structure`` 、 ``defect_structure`` の概念図で、青丸、緑丸、黒丸はそれぞれ ``base_structure`` で定義される原子種、星印は ``defect_structure`` で定義される欠陥が入る位置を表します。
+(d)は  ``base_structure`` で原子種を指定する場合の概念図です。ここでは、blue, green, blackの3原子種を定義しています。各原子がどのように配置されるかは、各原子種ごとに ``coords`` で定義します。
+(e)は ``defect_structure`` で欠陥位置に入るグループを指定する場合の概念図です。orange は2種の原子種から構成される4原子で構成されるグループを定義し、 purple は3種の原子種から構成される3原子のグループを構成しています。 ``defect_structure.coords`` で指定される欠陥位置にこれらのグループが配置されます。 各グループ内での原子の配置は ``defect_structure.groups`` セクション内の ``coords`` で指定することができます。
+``defect_structure`` を複数定義した場合は、それぞれの欠陥座標にそれぞれの原子グループが配置されます。
+(f) はモンテカルロ法のアップデートに関する概念図です。 アップデートでは欠陥の位置に入るグループを入れ替えるパターンと、配置は変えずに配位を変える2つのパターンがあります(どちらのアップデートを行うかは半分の確率で自動で選択されます)。提案された配置 :math:`X_{trial}` から指定されたソルバーでエネルギーを計算し、採択率 :math:`P(X_i \rightarrow X_{trial})` を計算します。
+
+.. figure:: ../../../image/alg_sampling.png
+     :name: alg_sampling
+     :scale: 15%
+	    
+     (a)-(e)abICSでの格子の定義と(f)モンテカルロ法の概要。詳細は本文に記載。

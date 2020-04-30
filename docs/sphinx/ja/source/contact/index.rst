@@ -10,7 +10,7 @@ abICS に関するお問い合わせはこちらにお寄せください。
 
 - バグ報告
 
-  abICS のバグ関連の報告はGitHubのIssuesで受け付けています。
+  abICS のバグ関連の報告は `GitHubのIssues <https://github.com/issp-center-dev/abICS/releases>`_ で受け付けています。
 
   バグを早期に解決するため、報告時には次のガイドラインに従ってください。
      
