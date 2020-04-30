@@ -1,8 +1,26 @@
-import numpy as np
-import random as rand
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
+from itertools import product
 import sys
 import os
 import copy
+
+import numpy as np
+import numpy.random as rand
 
 # from mpi4py import MPI
 
@@ -10,11 +28,28 @@ from pymatgen import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import pymatgen.analysis.structure_analyzer as analy
 
+from abics.exception import InputError
 from abics.mc import model
-from abics.util import read_coords
+from abics.util import read_vector, read_matrix, read_tensor
 
 
 def gauss(x, x0, sigma):
+    """
+    Gaussian function
+
+
+    Parameters
+    ----------
+    x: float
+        The position
+    x0: float
+        The position of the center of the peak
+    sigma: float
+        The standard deviation
+    Returns
+    -------
+        value: float
+    """
     return (
         1.0
         / (np.sqrt(2.0 * np.pi) * sigma)
@@ -23,6 +58,18 @@ def gauss(x, x0, sigma):
 
 
 def match_id(lst, obj):
+    """
+    Return the index list of lst which matches obj.
+
+    Parameters
+    ----------
+    lst: list
+    obj: object
+
+    Returns
+    -------
+        The index list of lst which matches obj.
+    """
     mapping = []
     for i in range(len(lst)):
         if lst[i] == obj:
@@ -31,6 +78,18 @@ def match_id(lst, obj):
 
 
 def nomatch_id(lst, obj):
+    """
+    Return the index list of lst which does not match obj.
+
+    Parameters
+    ----------
+    lst: list
+    obj: object
+
+    Returns
+    -------
+        The index list of lst which does not match obj.
+    """
     mapping = []
     for i in range(len(lst)):
         if lst[i] != obj:
@@ -39,6 +98,18 @@ def nomatch_id(lst, obj):
 
 
 def match_latgas_group(latgas_rep, group):
+    """
+    Return the index list of latgas_rep which matches group.name.
+
+    Parameters
+    ----------
+    latgas_rep: list
+    group: object
+        Notes: the group must have name
+    Returns
+    -------
+        The index list of latgas_rep which matches group.name.
+    """
     mapping = []
     for i in range(len(latgas_rep)):
         if latgas_rep[i][0] == group.name:
@@ -46,73 +117,78 @@ def match_latgas_group(latgas_rep, group):
     return mapping
 
 
-def g_r(structure, specie1, specie2, grid_1D):
-    X = grid_1D.x
-    dr = grid_1D.dx
+def perturb_structure(st: Structure, distance: float) -> None:
+    """
+    Perform random perturbation of the atomic coordinates.
+    All atoms will be moved at the same distance.
 
-    lattice = structure.lattice
-    types_of_specie = [element.symbol for element in structure.types_of_specie]
-    assert specie1 in types_of_specie
-    assert specie2 in types_of_specie
+    Which components will be perturbed is specified by a boolean array stored as st.site_properties["seldyn"].
+    If not stored, all the components will be perturbed.
+    Argument st will be mutated.
 
-    structure1 = structure.copy()
-    structure2 = structure.copy()
-
-    # print(specie1)
-    not_specie1 = copy.copy(types_of_specie)
-    not_specie1.remove(specie1)
-    not_specie2 = types_of_specie
-    not_specie2.remove(specie2)
-    # print(not_specie1,not_specie2)
-
-    structure1.remove_species(not_specie1)
-    structure2.remove_species(not_specie2)
-
-    num_specie1 = structure1.num_sites
-    num_specie2 = structure2.num_sites
-
-    dist = lattice.get_all_distances(structure1.frac_coords, structure2.frac_coords)
-    dist_bin = np.around(dist / dr)
-    # print(num_specie1,num_specie2)
-    g = np.zeros(len(X))
-    for i in range(len(X)):
-        g[i] = np.count_nonzero(dist_bin == i + 1)
-
-    if specie1 == specie2:
-        pref = lattice.volume / (
-            4.0 * np.pi * X * X * dr * num_specie1 * (num_specie1 - 1)
-        )
-    else:
-        pref = lattice.volume / (4.0 * np.pi * X * X * dr * num_specie1 * num_specie2)
-
-    g *= pref
-    return g
+    Parameters
+    ----------
+    st: Structure
+    distance: float
+        strength of perturb
+    """
+    N = st.num_sites
+    seldyn = np.array(st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float)
+    assert seldyn.shape == (N, 3)
+    seldyn *= rand.randn(N, 3)
+    for i in range(N):
+        r = seldyn[i, :]
+        norm = np.linalg.norm(r)
+        if norm != 0.0:
+            st.sites[i].coords += seldyn[i, :] / norm * distance
 
 
 class dft_latgas(model):
-    """This class defines the DFT lattice gas mapping  model"""
+    """
+    This class defines the DFT lattice gas mapping  model
+    """
 
     model_name = "dft_latgas"
 
     def __init__(
         self,
         abinitio_run,
-        selective_dynamics=None,
         save_history=True,
         l_update_basestruct=False,
         check_ion_move=False,
         ion_move_tol=0.7,
     ):
+        """
+
+        Parameters
+        ----------
+        abinitio_run: runner object
+            Runner (manager) of external solver program
+        save_history: boolean
+        l_update_basestruct: boolean
+        check_ion_move: boolean
+        ion_move_tol: float
+        """
         self.matcher = StructureMatcher(primitive_cell=False, allow_subset=False)
         self.abinitio_run = abinitio_run
-        self.selective_dynamics = selective_dynamics
         self.save_history = save_history
         self.l_update_basestruct = l_update_basestruct
         self.check_ion_move = check_ion_move
         self.ion_move_tol = ion_move_tol
 
     def energy(self, config):
-        """ Calculate total energy"""
+        """
+        Calculate total energy
+
+        Parameters
+        ----------
+        config: config object
+            Configurations
+
+        Returns
+        -------
+        energy: float
+        """
 
         config.structure.sort(key=lambda site: site.species_string)
         structure = config.structure
@@ -127,18 +203,9 @@ class dft_latgas(model):
                     config.structure = calc_history[i][2]
                     return calc_history[i][0]
 
-        if self.selective_dynamics:
-            seldyn_arr = [[True, True, True] for i in range(len(structure))]
-            for specie in self.selective_dynamics:
-                indices = structure.indices_from_symbol(specie)
-                for i in indices:
-                    seldyn_arr[i] = [False, False, False]
-        else:
-            seldyn_arr = None
-
         structure0 = structure
         energy, structure = self.abinitio_run.submit(
-            structure, os.path.join(os.getcwd(), "output"), seldyn_arr
+            structure, os.path.join(os.getcwd(), "output")
         )
         if self.check_ion_move:
             relax_analy = analy.RelaxationAnalyzer(structure0, structure)
@@ -166,6 +233,22 @@ class dft_latgas(model):
         return np.float64(energy)
 
     def trialstep(self, config, energy_now):
+        """
+
+        Parameters
+        ----------
+        config: config object
+            Configurations
+        energy_now: float
+            Present energy
+
+        Returns
+        -------
+        dconfig: float
+            Difference of configurations
+        dE : float
+            Difference of energies
+        """
 
         e0 = energy_now
 
@@ -185,7 +268,7 @@ class dft_latgas(model):
             random_divide = 0.5
         else:
             random_divide = 2.0
-        if defect_sublattice.groups_orr and rand.random() < random_divide:
+        if defect_sublattice.groups_orr and rand.rand() < random_divide:
             # Change orientation of one group with orientation attributes
             # Let's first locate sites that have such groups
             rot_ids = []
@@ -203,7 +286,7 @@ class dft_latgas(model):
 
         else:
             # Exchange different groups between sites
-            ex1_group, ex2_group = rand.sample(defect_sublattice.groups, 2)
+            ex1_group, ex2_group = rand.choice(defect_sublattice.groups, 2, replace=False)
             ex1_id = rand.choice(match_latgas_group(latgas_rep, ex1_group))
             ex2_id = rand.choice(match_latgas_group(latgas_rep, ex2_group))
             latgas_rep[ex1_id], latgas_rep[ex2_id] = (
@@ -232,7 +315,21 @@ class dft_latgas(model):
         return dconfig, dE
 
     def newconfig(self, config, dconfig):
-        """Construct the new configuration after the trial step is accepted"""
+        """
+        Update config by the trial step, dconfig
+
+        Parameters
+        ----------
+        config: config object
+            Configuration
+        dconfig: config object
+            Difference of configuration
+
+        Returns
+        -------
+        config: config object
+            New configuration
+        """
         config.structure, config.defect_sublattices = dconfig
         if self.l_update_basestruct:
             self.update_basestruct(config)
@@ -249,31 +346,82 @@ class energy_lst(dft_latgas):
         queen,
         reps,
         energy_lst,
-        selective_dynamics=None,
         matcher=None,
     ):
+        """
+
+        Parameters
+        ----------
+        calcode:
+        vasp_run: runner object
+            Runner (manager) of external solver program
+        base_vaspinput:
+        matcher_base:
+        queen:
+        reps:
+        energy_lst: list
+            Energy list
+        matcher:
+        """
         super().__init__(
             calcode,
             vasp_run,
             base_vaspinput,
             matcher_base,  # matcher, matcher_site,
             queen,
-            selective_dynamics=None,
             matcher=None,
         )
         self.reps = reps
         self.energy_list = energy_lst
 
     def energy(self, config, save_history=False):
+        """
+
+        Parameters
+        ----------
+        config: config object
+            Configuration
+        save_history: boolean
+
+        Returns
+        -------
+        energy: float
+
+        """
         rep_id = self.reps.index(tuple(config.latgas_rep))
         return np.float64(self.energy_list[rep_id])
 
 
 class group(object):
-    def __init__(self, name, species, coords=np.array([[[0.0, 0.0, 0.0]]])):
+    def __init__(
+        self, name, species, *, coords=None, relaxations=None, magnetizations=None
+    ):
+        """
+
+        Parameters
+        ----------
+        name: str
+            The name of atomic group
+        species: str
+            The atomic species belonging to the atom group
+        coords: numpy array
+            The coordinates of each atom in the atom group.
+        relaxations: numpy array
+            Whether to perform structure optimization or not
+        magnetization: numpy array
+            Magnetizations (inbalance of up/down spins)
+        """
         self.name = name
         self.species = species
-        self.coords = np.array(coords)
+        self.coords = np.array(coords) if coords is not None else np.zeros((1, 3))
+        self.relaxations = (
+            np.array(relaxations)
+            if relaxations is not None
+            else np.ones((1, 3), dtype=bool)
+        )
+        self.magnetizations = (
+            np.array(magnetizations) if magnetizations is not None else np.zeros(1)
+        )
         self.orientations = len(coords)
         if self.orientations == 0:
             self.orientations = 1
@@ -282,6 +430,15 @@ class group(object):
 
 class defect_sublattice(object):
     def __init__(self, site_centers, groups):
+        """
+
+        Parameters
+        ----------
+        site_centers: list
+            Center coordinates at each groups
+        groups: list
+            List of groups
+        """
         self.site_centers = np.array(site_centers)
         self.groups = groups
         self.groups_orr = []
@@ -293,29 +450,143 @@ class defect_sublattice(object):
 
     @classmethod
     def from_dict(cls, d):
-        site_centers = read_coords(d["coords"])
+        """
+
+        Parameters
+        ----------
+        d: dict
+
+        Returns
+        -------
+        site_centers: list
+            Center coordinates at each groups
+        groups: list
+            List of groups
+        """
+        site_centers = read_matrix(d["coords"])
         groups = []
         for g in d["groups"]:
             name = g["name"]
             species = g.get("species", [name])
-            coords = np.array(g.get("coords", [[[0.0, 0.0, 0.0]]]))
-            groups.append(group(name, species, coords))
+            n = len(species)
+
+            coords = read_tensor(g.get("coords", [[[0, 0, 0]]]), rank=3)
+            m = coords.shape[1]
+            if n != 0 and m != n:
+                raise InputError(
+                    'number of atoms mismatch in group [{}]: "species"={}, "coords"={}'.format(
+                        name, n, m
+                    )
+                )
+
+            relaxation = read_matrix(g.get("relaxation", np.ones((n, 3))), dtype=bool)
+            m = relaxation.shape[0]
+            if n != 0 and m != n:
+                raise InputError(
+                    'number of atoms mismatch in group [{}]: "species"={}, "relaxation"={}'.format(
+                        name, n, m
+                    )
+                )
+
+            mag = read_vector(g.get("magnetization", np.zeros(n)))
+            m = len(mag)
+            if n != 0 and m != n:
+                raise InputError(
+                    'number of atoms mismatch in group [{}]: "species"={}, "magnetization"={}'.format(
+                        name, n, m
+                    )
+                )
+            groups.append(
+                group(
+                    name,
+                    species,
+                    coords=coords,
+                    relaxations=relaxation,
+                    magnetizations=mag,
+                )
+            )
         return cls(site_centers, groups)
 
 
 def base_structure(lat, dict_str):
-    st = Structure(lat, [], [])
-    if dict_str[0] == {}:
-        return st
+    """
+
+    Parameters
+    ----------
+    lat: pymatgen.Lattice
+    dict_str: dict
+        Dictionary of base structure
+
+    Returns
+    -------
+    st: pymatgen.Structure
+    """
+    if len(dict_str) == 1 and not dict_str[0]:
+        return Structure(
+            lattice=lat,
+            species=[],
+            coords=[],
+            site_properties={
+                "seldyn": np.zeros((0, 3), dtype=bool),
+                "magnetization": np.zeros(0),
+            },
+        )
+    elems = []
+    coords = []
+    relaxations = []
+    magnetizations = []
     for tc in dict_str:
+        if "type" not in tc:
+            raise InputError('"type" is not found in "base_structure"')
         sp = tc["type"]
-        coords = read_coords(tc["coords"])
-        if len(coords.shape) == 1:
-            coords = np.reshape(coords, (1, 3))
-        n = coords.shape[0]
-        for i in range(n):
-            st.append(sp, coords[i, :])
-    return st
+        crds = read_matrix(tc["coords"])
+        n = crds.shape[0]
+
+        if "relaxation" in tc:
+            relax = read_matrix(tc["relaxation"], dtype=bool)
+            m = relax.shape[0]
+            if m != n:
+                raise InputError(
+                    'number of base atoms mismatch: "coords"={}, "relaxation"={}'.format(
+                        n, m
+                    )
+                )
+        else:
+            relax = np.ones((n, 3), dtype=bool)  # all True
+
+        if "magnetization" in tc:
+            mag = tc["magnetization"]
+            if not isinstance(mag, list):
+                raise InputError('"magnetization" should be a list of floats')
+            try:
+                mag = [float(x) for x in mag]
+            except ValueError:
+                raise InputError('"magnetization" should be a list of floats')
+            m = len(mag)
+            if m != n:
+                raise InputError(
+                    'number of base atoms mismatch: "coords"={}, "magnetization"={}'.format(
+                        n, m
+                    )
+                )
+        else:
+            mag = np.zeros(n)
+
+        elems.append([sp] * n)
+        coords.append(crds)
+        relaxations.append(relax)
+        magnetizations.append(mag)
+    elems = sum(elems, [])
+    coords = np.concatenate(coords, axis=0)
+    relaxations = np.concatenate(relaxations, axis=0)
+    magnetizations = np.concatenate(magnetizations, axis=0)
+
+    return Structure(
+        lattice=lat,
+        species=elems,
+        coords=coords,
+        site_properties={"seldyn": relaxations, "magnetization": magnetizations},
+    )
 
 
 class config:
@@ -327,8 +598,23 @@ class config:
         defect_sublattices,
         num_defects,
         cellsize=[1, 1, 1],
-        perf_structure=None,
+        perfect_structure=None,
     ):
+        """
+
+        Parameters
+        ----------
+        base_structure : pymatgen.Structure
+            Structure of base sites (unsampled sites)
+        defect_sublattices : defect_sublattice
+            Structure of defects (sampled sites)
+        num_defects : dict
+            {group name: number of defects}
+        cellsize : list, optional
+            Cell size, by default [1, 1, 1]
+        perfect_structure : pymatgen.Structure, optional
+            Strucure of all sites (union of base and defect), by default None
+        """
         try:
             num_defect_sublat = len(defect_sublattices)
         except TypeError:
@@ -353,9 +639,11 @@ class config:
             self.base_structure.remove_sites(range(self.base_structure.num_sites))
         else:
             self.base_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
-        if perf_structure:
-            self.perf_structure = perf_structure
-            self.perf_structure.make_supercell([cellsize[0], cellsize[1], cellsize[2]])
+        if perfect_structure:
+            self.perfect_structure = perfect_structure
+            self.perfect_structure.make_supercell(
+                [cellsize[0], cellsize[1], cellsize[2]]
+            )
         self.supercell = self.base_structure.lattice.matrix
         self.n_sublat = num_defect_sublat
         invSuper = np.linalg.inv(self.supercell)
@@ -370,14 +658,18 @@ class config:
                 (np.prod(cellsize) * site_centers.shape[0], 3), dtype=float
             )
             idx = 0
-            for i in range(cellsize[0]):
-                for j in range(cellsize[1]):
-                    for k in range(cellsize[2]):
-                        for l in range(site_centers.shape[0]):
-                            defect_sublattice.site_centers_sc[idx] = site_centers[
-                                l
-                            ] + np.array([i, j, k])
-                            idx += 1
+            for (idx, (i, j, k, l)) in enumerate(
+                product(
+                    range(cellsize[0]),
+                    range(cellsize[1]),
+                    range(cellsize[2]),
+                    range(site_centers.shape[0]),
+                )
+            ):
+                defect_sublattice.site_centers_sc[idx] = site_centers[l] + np.array(
+                    [i, j, k]
+                )
+                idx += 1
             defect_sublattice.site_centers_sc /= np.array(cellsize)
             num_sites += len(defect_sublattice.site_centers_sc)
 
@@ -404,6 +696,12 @@ class config:
         self.set_latgas()
 
     def set_latgas(self, defect_sublattices=False):
+        """
+
+        Parameters
+        ----------
+        defect_sublattices: pymatgen.Structure
+        """
         if defect_sublattices:
             self.defect_sublattices = defect_sublattices
         assert len(self.defect_sublattices) == self.n_sublat
@@ -419,8 +717,11 @@ class config:
                 for j in range(group.natoms):
                     self.structure.append(
                         group.species[j],
-                        group.coords[orr][j] + defect_sublattice.site_centers_sc[isite]
-                        # properties={"velocities":[0,0,0]}
+                        group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
+                        properties={
+                            "seldyn": group.relaxations[j, :],
+                            "magnetization": group.magnetizations[j],
+                        },
                     )
 
     def shuffle(self):
@@ -430,11 +731,22 @@ class config:
             for site in latgas_rep:
                 group = defect_sublattice.group_dict[site[0]]
                 norr = group.orientations
-                site[1] = rand.randrange(norr)
-            # print(latgas_rep)
+                site[1] = rand.randint(norr)
         self.set_latgas()
 
     def count(self, group_name, orientation):
+        """
+
+        Parameters
+        ----------
+        group_name: str
+            The name of the group
+        orientation:
+
+        Returns
+        -------
+
+        """
         num_grp = []
 
         for defect_sublattice in self.defect_sublattices:
@@ -451,6 +763,19 @@ class config:
             idx += 1
 
     def defect_sublattice_structure(self, sublat_id):
+        """
+
+        Parameters
+        ----------
+        sublat_id: int
+            index of sublattice
+
+        Returns
+        -------
+        sublattice_structure: pymatgen.Structure
+            sublattice structure object
+
+        """
         assert sublat_id < self.n_sublat
         sublattice_structure = self.structure.copy()
         base_sites = self.matcher_base.get_mapping(self.structure, self.base_structure)
@@ -460,12 +785,9 @@ class config:
     @property
     def vacancy_structure(self):
         filledsites = self.matcher_frame.get_mapping(
-            self.perf_structure, self.structure
+            self.perfect_structure, self.structure
         )
-        # print(self.perf_structure)
-        # print(self.structure)
-        # print(filledsites)
-        vac_structure = self.perf_structure.copy()
+        vac_structure = self.perfect_structure.copy()
         vac_structure.remove_sites(filledsites)
         return vac_structure
 
@@ -476,6 +798,18 @@ class ObserverParams:
 
     @classmethod
     def from_dict(cls, d):
+        """
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        oparams: ObserverParams
+            self
+        """
         if "observer" in d:
             d = d["observer"]
         params = cls()
@@ -484,6 +818,18 @@ class ObserverParams:
 
     @classmethod
     def from_toml(cls, f):
+        """
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oparams : ObserverParams
+            self
+        """
         import toml
 
         return cls.from_dict(toml.load(f))

@@ -1,28 +1,77 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
 import numpy as np
-import random as rand
-import sys
 import os
 import copy
-import pickle
 from mpi4py import MPI
 
-from pymatgen import Lattice, Structure, Element, PeriodicSite
-from pymatgen.io.vasp import Poscar, VaspInput
-from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
-from py_mc.mc import CanonicalMonteCarlo, grid_1D, obs_encode, obs_decode
-from py_mc.mc_mpi import RX_MPI_init, TemperatureRX_MPI
-from py_mc.applications.latgas_abinitio_interface.model_setup import (
+from pymatgen import Structure
+from abics.mc import CanonicalMonteCarlo, grid_1D, obs_encode, obs_decode
+from abics.mc_mpi import RX_MPI_init, TemperatureRX_MPI
+from abics.applications.latgas_abinitio_interface.model_setup import (
     group,
     defect_sublattice,
     config,
-    dft_latgas,
-    g_r,
+    dft_latgas
 )
-from py_mc.applications.latgas_abinitio_interface.run_vasp_mpi import (
-    test_runner,
-    vasp_runner,
-)
+from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
+from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 
+def g_r(structure, specie1, specie2, grid_1D):
+    X = grid_1D.x
+    dr = grid_1D.dx
+
+    lattice = structure.lattice
+    types_of_specie = [element.symbol for element in structure.types_of_specie]
+    assert specie1 in types_of_specie
+    assert specie2 in types_of_specie
+
+    structure1 = structure.copy()
+    structure2 = structure.copy()
+
+    # print(specie1)
+    not_specie1 = copy.copy(types_of_specie)
+    not_specie1.remove(specie1)
+    not_specie2 = types_of_specie
+    not_specie2.remove(specie2)
+    # print(not_specie1,not_specie2)
+
+    structure1.remove_species(not_specie1)
+    structure2.remove_species(not_specie2)
+
+    num_specie1 = structure1.num_sites
+    num_specie2 = structure2.num_sites
+
+    dist = lattice.get_all_distances(structure1.frac_coords, structure2.frac_coords)
+    dist_bin = np.around(dist / dr)
+    # print(num_specie1,num_specie2)
+    g = np.zeros(len(X))
+    for i in range(len(X)):
+        g[i] = np.count_nonzero(dist_bin == i + 1)
+
+    if specie1 == specie2:
+        pref = lattice.volume / (
+            4.0 * np.pi * X * X * dr * num_specie1 * (num_specie1 - 1)
+        )
+    else:
+        pref = lattice.volume / (4.0 * np.pi * X * X * dr * num_specie1 * num_specie2)
+
+    g *= pref
+    return g
 
 def observables(MCcalc, outputfi):
     energy = MCcalc.energy
@@ -94,12 +143,14 @@ for i in range(nreplicas):
 
 ################### model setup ###############################
 # baseinput = VaspInput.from_directory("baseinput")
-energy_calculator = vasp_runner(
+path_to_vasp="/home/i0009/i000900/src/vasp.5.3/vasp.spawnready.gamma"
+solver = VASPSolver(path_to_vasp)
+energy_calculator = runner(
     base_input_dir="./baseinput",
-    path_to_vasp="/home/i0009/i000900/src/vasp.5.3/vasp.spawnready.gamma",
-    nprocs_per_vasp=nprocs_per_replica,
+    Solver=solver,
+    nprocs_per_solver=nprocs_per_replica,
     comm=MPI.COMM_SELF,
-    perturb=0.1,
+    perturb=0.1
 )
 # energy_calculator = test_runner()
 model = dft_latgas(energy_calculator, save_history=True)

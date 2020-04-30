@@ -1,24 +1,36 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
 import numpy as np
 import copy
 from mpi4py import MPI
 
-from pymatgen import Lattice, Structure, Element, PeriodicSite
-from pymatgen.io.vasp import Poscar, VaspInput
+from pymatgen import Structure, Element
+from pymatgen.io.vasp import VaspInput
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
-from py_mc.mc import CanonicalMonteCarlo, grid_1D, observer_base
-from py_mc.mc_mpi import RX_MPI_init, TemperatureRX_MPI
-from py_mc.applications.latgas_abinitio_interface.model_setup import (
+from abics.mc import CanonicalMonteCarlo, observer_base
+from abics.mc_mpi import RX_MPI_init, TemperatureRX_MPI
+from abics.applications.latgas_abinitio_interface.model_setup import (
     group,
     defect_sublattice,
     config,
-    dft_latgas,
-    g_r,
+    dft_latgas
 )
-from py_mc.applications.latgas_abinitio_interface.run_vasp_mpi import (
-    test_runner,
-    vasp_runner,
-)
-
+from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
+from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
 
 kB = 8.6173e-5
 comm, nreplicas, nprocs_per_replica = RX_MPI_init()
@@ -50,10 +62,12 @@ print_frequency = 1
 # we first choose a "model" defining how to perform energy calculations and trial steps
 # on the "configuration" defined below
 baseinput = VaspInput.from_directory("baseinput")
-energy_calculator = vasp_runner(
+path_to_vasp="/home/i0009/i000900/src/vasp.5.3/vasp.spawnready.gamma"
+solver = VASPSolver(path_to_vasp)
+energy_calculator = runner(
     base_input_dir="./baseinput",
-    path_to_vasp="/home/i0009/i000900/src/vasp.5.3/vasp.spawnready.gamma",
-    nprocs_per_vasp=nprocs_per_replica,
+    Solver=solver,
+    nprocs_per_solver=nprocs_per_replica,
     comm=MPI.COMM_SELF,
     perturb=0.1,
 )
