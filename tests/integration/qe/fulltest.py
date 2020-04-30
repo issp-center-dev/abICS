@@ -21,7 +21,7 @@ class TestAbics(unittest.TestCase):
         MPI.COMM_WORLD.Barrier()
         main_impl("input.toml")
         if MPI.COMM_WORLD.Get_rank() == 0:
-            ref_T = np.array([[0.103407999144, 0.103407999144], [08617333262, 08617333262]])
+            ref_T = np.array([[0.103407999144, 0.103407999144], [0.08617333262, 0.08617333262]])
             ref_E = np.array(
                 [[-10523.995551536314, -10523.995551536314], [-10523.756844217527, -10523.710990099398]]
             )
