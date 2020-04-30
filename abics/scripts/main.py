@@ -32,7 +32,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
+from abics.applications.latgas_abinitio_interface.run_base_mpi import runner, runner_multistep
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
@@ -81,14 +81,25 @@ def main_impl(tomlfile):
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
-    energy_calculator = runner(
-        base_input_dir=dftparams.base_input_dir,
-        Solver=solver,
-        nprocs_per_solver=nprocs_per_replica,
-        comm=MPI.COMM_SELF,
-        perturb=dftparams.perturb,
-        solver_run_scheme=dftparams.solver_run_scheme
-    )
+    if len(dftparams.base_input_dir) == 1:
+        energy_calculator = runner(
+            base_input_dir=dftparams.base_input_dir[0],
+            Solver=solver,
+            nprocs_per_solver=nprocs_per_replica,
+            comm=MPI.COMM_SELF,
+            perturb=dftparams.perturb,
+            solver_run_scheme=dftparams.solver_run_scheme
+        )
+    else:
+        energy_calculator = runner_multistep(
+            base_input_dirs=dftparams.base_input_dir,
+            Solver=solver,
+            runner=runner,
+            nprocs_per_solver=nprocs_per_replica,
+            comm=MPI.COMM_SELF,
+            perturb=dftparams.perturb,
+            solver_run_scheme=dftparams.solver_run_scheme
+        )
     model = dft_latgas(energy_calculator, save_history=False)
 
 
