@@ -63,6 +63,8 @@ Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi
 
 ## Manual
 
-[English online manual](https://issp-center-dev.github.io/abICS/docs/sphinx/en/build/html/index.html)
+[English online manual](https://issp-center-dev.github.io/abICS/docs/master/en/html/index.html)
 
-[Japnese online manual](https://issp-center-dev.github.io/abICS/docs/sphinx/ja/build/html/index.html)
+[Japnese online manual](https://issp-center-dev.github.io/abICS/docs/master/ja/html/index.html)
+
+[API reference](https://issp-center-dev.github.io/abICS/docs/api/master/html/index.html)
