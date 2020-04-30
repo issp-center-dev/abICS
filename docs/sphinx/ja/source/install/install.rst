@@ -10,7 +10,7 @@ abICS をインストール・実行するには、 バージョン3.6 以上の
 - scipy
 - toml
 - mpi4py
-- pymatgen
+- pymatgen (>=2019.12.3)
 - qe-tools
 
 これらのライブラリは自動でインストールされますが、 mpi4py と pymatgen はあらかじめ関連ソフトウェアが必要です。

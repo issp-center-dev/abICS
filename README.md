@@ -9,7 +9,7 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 - toml (for parsing input files)
 - mpi4py (for parallel tempering)
   - This requires one of the MPI implementation
-- pymatgen (for parsing vasp I/O)
+- pymatgen (>=2019.12.3) (for using Structure as a configuration)
   - This requires Cython
 - qe-tools (for parsing QE I/O)
 

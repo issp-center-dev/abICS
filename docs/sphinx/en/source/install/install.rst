@@ -11,7 +11,7 @@ The following Python packages are required.
 - scipy
 - toml
 - mpi4py
-- pymatgen
+- pymatgen (>=2019.12.3)
 - qe-tools
 
 These are installed automatically but mpi4py and pymatgen need extra software-packages before installing them.
