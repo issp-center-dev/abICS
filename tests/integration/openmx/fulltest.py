@@ -12,7 +12,7 @@ from abics.scripts.main import main_impl
 
 class TestAbics(unittest.TestCase):
     def test_hoge(self):
-        #main_impl("input.toml")
+        main_impl("input.toml")
         if MPI.COMM_WORLD.Get_rank() == 0:
             ref_T = np.array([[0.103407999144, 0.103407999144], [0.08617333262, 0.08617333262]])
             ref_E = np.array(
@@ -29,13 +29,13 @@ class TestAbics(unittest.TestCase):
                         if j == 1:
                             break
 
-            print()
-            print(T)
-            print(E)
-            print()
-            print(ref_T)
-            print(ref_E)
-            print()
+            # print()
+            # print(T)
+            # print(E)
+            # print()
+            # print(ref_T)
+            # print(ref_E)
+            # print()
 
             self.assertTrue(np.allclose(T, ref_T))
             self.assertTrue(np.allclose(E, ref_E))
