@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.mc module &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.mc_mpi module" href="abics.mc_mpi.html" />
+    <link rel="prev" title="abics.exception module" href="abics.exception.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abics.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abics.exception.html">abics.exception module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">abics.mc module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mc_mpi.html">abics.mc_mpi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.util.html">abics.util module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="abics.html">abics package</a> &raquo;</li>
+        
+      <li>abics.mc module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/abics.mc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-abics.mc">
+<span id="abics-mc-module"></span><h1>abics.mc module<a class="headerlink" href="#module-abics.mc" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="abics.mc.CanonicalMonteCarlo">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">CanonicalMonteCarlo</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">kT</em>, <em class="sig-param">config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#CanonicalMonteCarlo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.CanonicalMonteCarlo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>dft_latgas object</em>) – DFT lattice gas mapping model</p></li>
+<li><p><strong>kT</strong> (<em>float</em>) – Temperature</p></li>
+<li><p><strong>config</strong> (<em>config object</em>) – Configuration</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="abics.mc.CanonicalMonteCarlo.MCstep">
+<code class="sig-name descname">MCstep</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#CanonicalMonteCarlo.MCstep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.CanonicalMonteCarlo.MCstep" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.CanonicalMonteCarlo.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">model</em>, <em class="sig-param">kT</em>, <em class="sig-param">config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#CanonicalMonteCarlo.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.CanonicalMonteCarlo.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>dft_latgas object</em>) – DFT lattice gas mapping model</p></li>
+<li><p><strong>kT</strong> (<em>float</em>) – Temperature</p></li>
+<li><p><strong>config</strong> (<em>config object</em>) – Configuration</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.CanonicalMonteCarlo.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">nsteps</em>, <em class="sig-param">sample_frequency=9223372036854775807</em>, <em class="sig-param">print_frequency=9223372036854775807</em>, <em class="sig-param">observer=&lt;abics.mc.observer_base object&gt;</em>, <em class="sig-param">save_obs=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#CanonicalMonteCarlo.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.CanonicalMonteCarlo.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsteps</strong> (<em>int</em>) – The number of Monte Carlo steps for running.</p></li>
+<li><p><strong>sample_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for observation of physical quantities.</p></li>
+<li><p><strong>print_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for saving physical quantities.</p></li>
+<li><p><strong>observer</strong> (<em>observer object</em>) – </p></li>
+<li><p><strong>save_obs</strong> (<em>boolean</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>obs_decode</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abics.mc.args_info">
+<code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">args_info</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#args_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.args_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>list</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>args_info</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="abics.mc.binning">
+<code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">binning</code><span class="sig-paren">(</span><em class="sig-param">x</em>, <em class="sig-param">nlevels</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#binning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.binning" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>list</em>) – Coordinates</p></li>
+<li><p><strong>nlevels</strong> (<em>int</em>) – Number to determine the number of measurements</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>error_estimate</strong> – error estimation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="abics.mc.grid_1D">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">grid_1D</code><span class="sig-paren">(</span><em class="sig-param">dx</em>, <em class="sig-param">minx</em>, <em class="sig-param">maxx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#grid_1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.grid_1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dx</strong> (<em>float</em>) – interval</p></li>
+<li><p><strong>minx</strong> (<em>float</em>) – minimum value of x</p></li>
+<li><p><strong>maxx</strong> (<em>float</em>) – maximum value of x</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="abics.mc.grid_1D.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">dx</em>, <em class="sig-param">minx</em>, <em class="sig-param">maxx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#grid_1D.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.grid_1D.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dx</strong> (<em>float</em>) – interval</p></li>
+<li><p><strong>minx</strong> (<em>float</em>) – minimum value of x</p></li>
+<li><p><strong>maxx</strong> (<em>float</em>) – maximum value of x</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abics.mc.model">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">model</code><a class="reference internal" href="_modules/abics/mc.html#model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class defines a model whose energy equals 0 no matter the configuration, and the configuration
+never changes.
+This is a base template for building useful models.</p>
+<dl class="method">
+<dt id="abics.mc.model.energy">
+<code class="sig-name descname">energy</code><span class="sig-paren">(</span><em class="sig-param">config</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#model.energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.model.energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate energy of configuration: input: config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>config object</em>) – configuration</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc.model.model_name">
+<code class="sig-name descname">model_name</code><em class="property"> = None</em><a class="headerlink" href="#abics.mc.model.model_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.model.newconfig">
+<code class="sig-name descname">newconfig</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">dconfig</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#model.newconfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.model.newconfig" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update config by using the trial step, dconfig</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>config object</em>) – Original configuration
+This may be mutated through this function</p></li>
+<li><p><strong>dconfig</strong> (<em>config object</em>) – Difference of configuration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>config</strong> – updated configuration</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>config object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.model.trialstep">
+<code class="sig-name descname">trialstep</code><span class="sig-paren">(</span><em class="sig-param">config</em>, <em class="sig-param">energy</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#model.trialstep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.model.trialstep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define a trial step on config. Returns dconfig, which can contain the minimal information for
+constructing the trial configuration from config to be used in newconfig().
+Make sure that config is unchanged.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>config object</em>) – configuration</p></li>
+<li><p><strong>energy</strong> (<em>float</em>) – energy</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>dconfig</strong> (<em>config object</em>) – The minimal information for constructing the trial configuration from config to be used in newconfig()</p></li>
+<li><p><strong>dE</strong> (<em>float</em>) – Energy diffence</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abics.mc.obs_decode">
+<code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">obs_decode</code><span class="sig-paren">(</span><em class="sig-param">args_info</em>, <em class="sig-param">obs_array</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#obs_decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.obs_decode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>args_info</strong> (<em>numpy array</em>) – </p></li>
+<li><p><strong>obs_array</strong> (<em>numpy array</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>args</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="abics.mc.obs_encode">
+<code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">obs_encode</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#obs_encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.obs_encode" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>args</strong> (<em>list</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>obs_array</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="abics.mc.observer_base">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">observer_base</code><a class="reference internal" href="_modules/abics/mc.html#observer_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.observer_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="abics.mc.observer_base.logfunc">
+<code class="sig-name descname">logfunc</code><span class="sig-paren">(</span><em class="sig-param">calc_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#observer_base.logfunc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.observer_base.logfunc" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc_state</strong> (<em>MonteCarlo algorithm object</em>) – MonteCarlo algorithm</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>calc_state.energy</strong> – (Energy)</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.observer_base.obs_info">
+<code class="sig-name descname">obs_info</code><span class="sig-paren">(</span><em class="sig-param">calc_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#observer_base.obs_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.observer_base.obs_info" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc_state</strong> (<em>MonteCarlo algorithm object</em>) – MonteCarlo algorithm</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>args_info</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.observer_base.observe">
+<code class="sig-name descname">observe</code><span class="sig-paren">(</span><em class="sig-param">calc_state</em>, <em class="sig-param">outputfi</em>, <em class="sig-param">lprint=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#observer_base.observe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.observer_base.observe" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calc_state</strong> (<em>MonteCarlo algorithm object</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>outputfi</strong> (<em>_io.TextIOWrapper</em>) – TextIOWrapper for output</p></li>
+<li><p><strong>lprint</strong> (<em>boolean</em>) – if true, log info is outputted to TextIOWrapper</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>obs_log</strong> – log information about observation</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.observer_base.savefuncs">
+<code class="sig-name descname">savefuncs</code><span class="sig-paren">(</span><em class="sig-param">calc_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#observer_base.savefuncs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.observer_base.savefuncs" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc_state</strong> (<em>MonteCarlo algorithm object</em>) – MonteCarlo algorithm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc.observer_base.writefile">
+<code class="sig-name descname">writefile</code><span class="sig-paren">(</span><em class="sig-param">calc_state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc.html#observer_base.writefile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc.observer_base.writefile" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>calc_state</strong> (<em>MonteCarlo algorithm object</em>) – MonteCarlo algorithm</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="data">
+<dt id="abics.mc.verylargeint">
+<code class="sig-prename descclassname">abics.mc.</code><code class="sig-name descname">verylargeint</code><em class="property"> = 9223372036854775807</em><a class="headerlink" href="#abics.mc.verylargeint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines base classes for Monte Carlo simulations</p>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="abics.mc_mpi.html" class="btn btn-neutral float-right" title="abics.mc_mpi module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="abics.exception.html" class="btn btn-neutral float-left" title="abics.exception module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

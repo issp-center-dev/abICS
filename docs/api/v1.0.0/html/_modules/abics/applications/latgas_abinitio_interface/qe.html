@@ -1,0 +1,618 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.applications.latgas_abinitio_interface.qe &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abics.applications.latgas_abinitio_interface.qe</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abics.applications.latgas_abinitio_interface.qe</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">To deal with QuantumESPRESSO</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">spc</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">qe_tools.parsers</span> <span class="kn">import</span> <span class="n">PwInputFile</span>
+
+<span class="kn">from</span> <span class="nn">.base_solver</span> <span class="kn">import</span> <span class="n">SolverBase</span>
+<span class="kn">from</span> <span class="nn">...util</span> <span class="kn">import</span> <span class="n">expand_path</span>
+<span class="kn">from</span> <span class="nn">...exception</span> <span class="kn">import</span> <span class="n">InputError</span>
+
+
+<span class="n">hartree2eV</span> <span class="o">=</span> <span class="n">spc</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Hartree energy in eV&quot;</span><span class="p">)</span>
+<span class="n">Bohr2AA</span> <span class="o">=</span> <span class="n">spc</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Bohr radius&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e10</span>
+
+
+<div class="viewcode-block" id="QESolver"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver">[docs]</a><span class="k">class</span> <span class="nc">QESolver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Solver class dealing with QuantumESPRESSO (with new XML format).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="QESolver.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">parallel_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the solver.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">            Path to the solver.</span>
+<span class="sd">        parallel_level : dict</span>
+<span class="sd">            Parallelization levels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">QESolver</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path_to_solver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">=</span> <span class="n">QESolver</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">parallel_level</span><span class="o">=</span><span class="n">parallel_level</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">QESolver</span><span class="o">.</span><span class="n">Output</span><span class="p">(</span><span class="s2">&quot;pwscf&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.name"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            Name of solver, &quot;QuantumESPRESSO&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;QuantumESPRESSO&quot;</span></div>
+
+<div class="viewcode-block" id="QESolver.Input"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input">[docs]</a>    <span class="k">class</span> <span class="nc">Input</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QE input files manager.</span>
+
+<span class="sd">        Attributes</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pwi : qe_tools.parsers.PwInputFile</span>
+<span class="sd">            QE input.</span>
+<span class="sd">        datadir : str</span>
+<span class="sd">            Path to the data directory of QE.</span>
+<span class="sd">        filetocheck : str</span>
+<span class="sd">            Name of the file to be used for check finished.</span>
+<span class="sd">        parallel_level : dict</span>
+<span class="sd">            Parallelization levels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">parallel_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span> <span class="o">=</span> <span class="s2">&quot;pwscf.save&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">filetocheck</span> <span class="o">=</span> <span class="s2">&quot;data-file-schema.xml&quot;</span>
+            <span class="k">if</span> <span class="n">parallel_level</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parallel_level</span> <span class="o">=</span> <span class="n">parallel_level</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parallel_level</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="QESolver.Input.cleanup"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.cleanup">[docs]</a>        <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Remove file for check finished.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            workdir : str</span>
+<span class="sd">                Path to the working directory.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">checkfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetocheck</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">checkfile</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">checkfile</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.check_finished"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.check_finished">[docs]</a>        <span class="k">def</span> <span class="nf">check_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Check if the solver program has finished or not.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            workdir : str</span>
+<span class="sd">                Path to the working directory.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetocheck</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ET</span><span class="o">.</span><span class="n">ParseError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+            <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+            <span class="n">control</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;control_variables&quot;</span><span class="p">)</span>
+            <span class="n">calculation</span> <span class="o">=</span> <span class="n">control</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;calculation&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span>
+            <span class="k">if</span> <span class="n">calculation</span> <span class="o">==</span> <span class="s2">&quot;scf&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">elif</span> <span class="n">calculation</span> <span class="o">==</span> <span class="s2">&quot;relax&quot;</span><span class="p">:</span>
+                <span class="n">scf_conv</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;convergence_info&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;scf_conv&quot;</span><span class="p">)</span>
+                <span class="n">scf_converged</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">scf_conv</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;convergence_achieved&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+                <span class="p">)</span>
+                <span class="c1"># scf_maxstep = int(root.find(&quot;input&quot;).find(&quot;electron_control&quot;).find(&quot;max_nstep&quot;).text)</span>
+                <span class="c1"># scf_nstep = int(scf_conv.find(&quot;n_scf_steps&quot;).text)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">scf_converged</span><span class="p">:</span>
+                    <span class="c1"># scf does not converged and QE stopped</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+
+                <span class="n">opt_maxstep</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">control</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;nstep&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="n">opt_conv</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;convergence_info&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;opt_conv&quot;</span><span class="p">)</span>
+                <span class="n">opt_converged</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">opt_conv</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;convergence_achieved&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;true&quot;</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">opt_converged</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+                <span class="n">opt_nstep</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">opt_conv</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;n_opt_steps&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">opt_nstep</span> <span class="o">==</span> <span class="n">opt_maxstep</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s2">&quot;calculation is </span><span class="si">{}</span><span class="s2">, but this is not yet supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">calculation</span>
+                    <span class="p">)</span>
+                <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.from_directory"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.from_directory">[docs]</a>        <span class="k">def</span> <span class="nf">from_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_input_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Initialize information from files in base_input_dir.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            base_input_dir : str</span>
+<span class="sd">                Path to the directory including base input files.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="n">inputfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">base_input_dir</span><span class="p">,</span> <span class="s2">&quot;scf.in&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span> <span class="o">=</span> <span class="n">PwInputFile</span><span class="p">(</span><span class="n">inputfile</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;CONTROL&quot;</span><span class="p">,</span> <span class="s2">&quot;SYSTEM&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> cannot found in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">inputfile</span><span class="p">))</span>
+            <span class="n">calculation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;CONTROL&quot;</span><span class="p">][</span><span class="s2">&quot;calculation&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">calculation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;scf&quot;</span><span class="p">,</span> <span class="s2">&quot;relax&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span><span class="s2">&quot;Sorry, </span><span class="si">{}</span><span class="s2"> is not yet supported&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">calculation</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ELECTRONS&quot;</span><span class="p">,</span> <span class="s2">&quot;IONS&quot;</span><span class="p">,</span> <span class="s2">&quot;CELL&quot;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;CONTROL&quot;</span><span class="p">][</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;pwscf&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;CONTROL&quot;</span><span class="p">][</span><span class="s2">&quot;pseudo_dir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">expand_path</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;CONTROL&quot;</span><span class="p">][</span><span class="s2">&quot;pseudo_dir&quot;</span><span class="p">],</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.update_info_by_structure"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.update_info_by_structure">[docs]</a>        <span class="k">def</span> <span class="nf">update_info_by_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Update information by atomic structure.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            structure : pymatgen.Structure</span>
+<span class="sd">                Atomic structure</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">cell_parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;units&quot;</span><span class="p">:</span> <span class="s2">&quot;alat&quot;</span><span class="p">,</span> <span class="s2">&quot;cell&quot;</span><span class="p">:</span> <span class="n">A</span><span class="p">}</span>
+
+            <span class="n">nat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;SYSTEM&quot;</span><span class="p">][</span><span class="s2">&quot;ibrav&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;SYSTEM&quot;</span><span class="p">][</span><span class="s2">&quot;a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;SYSTEM&quot;</span><span class="p">][</span><span class="s2">&quot;ntyp&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">composition</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;SYSTEM&quot;</span><span class="p">][</span><span class="s2">&quot;nat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">nat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">nat</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;fixed_coords&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]]</span> <span class="o">*</span> <span class="n">nat</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">site</span><span class="o">.</span><span class="n">specie</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">site</span><span class="o">.</span><span class="n">a</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="n">site</span><span class="o">.</span><span class="n">c</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;fixed_coords&quot;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="s2">&quot;seldyn&quot;</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span><span class="p">:</span>
+                <span class="n">seldyn_arr</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span><span class="p">[</span><span class="s2">&quot;seldyn&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">dyn_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seldyn_arr</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;fixed_coords&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                        <span class="nb">map</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">not_</span><span class="p">,</span> <span class="n">dyn_info</span><span class="p">)</span>
+                    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.update_info_from_files"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.update_info_from_files">[docs]</a>        <span class="k">def</span> <span class="nf">update_info_from_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Do nothing.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.write_input"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.write_input">[docs]</a>        <span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generate input files of the solver program.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            output_dir : str</span>
+<span class="sd">                Path to working directory.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="s2">&quot;CONTROL&quot;</span><span class="p">][</span><span class="s2">&quot;outdir&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">output_dir</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;scf.in&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&amp;</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">section</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">namelists</span><span class="p">[</span><span class="n">section</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;  </span><span class="si">{}</span><span class="s1"> = &quot;</span><span class="si">{}</span><span class="s1">&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                                <span class="s2">&quot;  </span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="s2">&quot;.true.&quot;</span> <span class="k">if</span> <span class="n">v</span> <span class="k">else</span> <span class="s2">&quot;.false.&quot;</span><span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">{}</span><span class="s2"> = </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                    <span class="s2">&quot;CELL_PARAMETERS </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">cell_parameters</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">])</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">cell_parameters</span><span class="p">[</span><span class="s2">&quot;cell&quot;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">elem</span><span class="p">))</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;ATOMIC_SPECIES</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">pfile</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_species</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_species</span><span class="p">[</span><span class="s2">&quot;masses&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_species</span><span class="p">[</span><span class="s2">&quot;pseudo_file_names&quot;</span><span class="p">],</span>
+                <span class="p">):</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">pfile</span><span class="p">))</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+                    <span class="s2">&quot;ATOMIC_POSITIONS </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;units&quot;</span><span class="p">])</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">if_pos</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;names&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;positions&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">atomic_positions</span><span class="p">[</span><span class="s2">&quot;fixed_coords&quot;</span><span class="p">],</span>
+                <span class="p">):</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">if_pos</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">p</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; 0&quot;</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; 1&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;K_POINTS </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">k_points</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="s2">&quot;points&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">k_points</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">kp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">k_points</span><span class="p">[</span><span class="s2">&quot;points&quot;</span><span class="p">]:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kp</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pwi</span><span class="o">.</span><span class="n">k_points</span><span class="p">[</span><span class="s2">&quot;offset&quot;</span><span class="p">]:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">offset</span><span class="p">)))</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.file_for_check_finished"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.file_for_check_finished">[docs]</a>        <span class="k">def</span> <span class="nf">file_for_check_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetocheck</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QESolver.Input.cl_args"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.cl_args">[docs]</a>        <span class="k">def</span> <span class="nf">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generate command line arguments of the solver program.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            nprocs : int</span>
+<span class="sd">                The number of processes.</span>
+<span class="sd">            nthreads : int</span>
+<span class="sd">                The number of threads.</span>
+<span class="sd">            workdir : str</span>
+<span class="sd">                Path to the working directory.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            args : list[str]</span>
+<span class="sd">                Arguments of command</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">nprocs_per_image</span> <span class="o">=</span> <span class="n">nprocs</span>
+            <span class="n">nprocs_per_pool</span> <span class="o">=</span> <span class="n">nprocs</span>
+            <span class="n">pl</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;nimage&quot;</span><span class="p">,</span> <span class="s2">&quot;npools&quot;</span><span class="p">,</span> <span class="s2">&quot;nband&quot;</span><span class="p">,</span> <span class="s2">&quot;ntg&quot;</span><span class="p">,</span> <span class="s2">&quot;ndiag&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_level</span><span class="p">:</span>
+                    <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parallel_level</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+                    <span class="n">pl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+                    <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+                    <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">pl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-in&quot;</span><span class="p">)</span>
+            <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;scf.in&quot;</span><span class="p">))</span>
+
+            <span class="c1"># check for each parallel level</span>
+            <span class="c1"># image</span>
+            <span class="k">if</span> <span class="n">pl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">nprocs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Too many parallel images, </span><span class="si">{}</span><span class="s2"> is given but </span><span class="si">{}</span><span class="s2"> is available&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">pl</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nprocs</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">nprocs_per_image</span> <span class="o">=</span> <span class="n">nprocs</span> <span class="o">//</span> <span class="n">pl</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># pool</span>
+            <span class="k">if</span> <span class="n">pl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">nprocs_per_image</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Too many parallel pools, </span><span class="si">{}</span><span class="s2"> is given but </span><span class="si">{}</span><span class="s2"> is available&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">pl</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nprocs_per_image</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">nprocs_per_pool</span> <span class="o">=</span> <span class="n">nprocs_per_image</span> <span class="o">//</span> <span class="n">pl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># band</span>
+            <span class="k">if</span> <span class="n">pl</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">nprocs_per_pool</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Too many parallel band groups, </span><span class="si">{}</span><span class="s2"> is given but </span><span class="si">{}</span><span class="s2"> is available&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">pl</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">nprocs_per_pool</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="c1"># task</span>
+            <span class="k">if</span> <span class="n">pl</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">nprocs_per_pool</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Too many parallel FFT task groups, </span><span class="si">{}</span><span class="s2"> is given but </span><span class="si">{}</span><span class="s2"> is available&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">pl</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">nprocs_per_pool</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="c1"># diag</span>
+            <span class="k">if</span> <span class="n">pl</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">nprocs</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s2">&quot;Too many parallel linear-algebra groups, </span><span class="si">{}</span><span class="s2"> is given but </span><span class="si">{}</span><span class="s2"> is available&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">pl</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">nprocs</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">ret</span></div></div>
+
+<div class="viewcode-block" id="QESolver.Output"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Output">[docs]</a>    <span class="k">class</span> <span class="nc">Output</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Output manager.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
+            <span class="k">pass</span>
+
+<div class="viewcode-block" id="QESolver.Output.get_results"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Output.get_results">[docs]</a>        <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workdir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Get energy and structure obtained by the solver program.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            workdir : str</span>
+<span class="sd">                Path to the working directory.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            phys : named_tuple(&quot;energy&quot;, &quot;structure&quot;)</span>
+<span class="sd">                Total energy and atomic structure.</span>
+<span class="sd">                The energy is measured in the units of eV</span>
+<span class="sd">                and coordinates is measured in the units of Angstrom.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Read results from files in output_dir and calculate values</span>
+            <span class="n">tree</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="s2">&quot;pwscf.save&quot;</span><span class="p">,</span> <span class="s2">&quot;data-file-schema.xml&quot;</span><span class="p">))</span>
+            <span class="n">root</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">child</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;atomic_structure&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                <span class="n">A</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">child</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;a</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
+            <span class="n">A</span> <span class="o">*=</span> <span class="n">Bohr2AA</span>
+
+            <span class="n">species</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">positions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;output&quot;</span><span class="p">)</span>
+            <span class="n">child</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;atomic_structure&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;atomic_positions&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">itr</span> <span class="ow">in</span> <span class="n">child</span><span class="o">.</span><span class="n">iter</span><span class="p">(</span><span class="s2">&quot;atom&quot;</span><span class="p">):</span>
+                <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">itr</span><span class="o">.</span><span class="n">attrib</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">])</span>
+                <span class="n">pos</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">Bohr2AA</span><span class="p">,</span> <span class="n">itr</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">()))</span>
+                <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
+
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">child</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;total_energy&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;etot&quot;</span><span class="p">)</span>
+            <span class="n">ene</span> <span class="o">=</span> <span class="n">hartree2eV</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">child</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+            <span class="n">Phys</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;PhysValues&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">Phys</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">ene</span><span class="p">),</span> <span class="n">structure</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="QESolver.solver_run_schemes"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.solver_run_schemes">[docs]</a>    <span class="k">def</span> <span class="nf">solver_run_schemes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        schemes : tuple[str]</span>
+<span class="sd">            Implemented runner schemes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;mpi_spawn&quot;</span></div></div>
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

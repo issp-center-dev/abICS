@@ -1,0 +1,10 @@
+abics.structure package
+=======================
+
+Module contents
+---------------
+
+.. automodule:: abics.structure
+   :members:
+   :undoc-members:
+   :show-inheritance:

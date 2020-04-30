@@ -1,0 +1,327 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.scripts.main &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../abics.html">abics package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abics.scripts.main</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abics.scripts.main</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">constants</span>
+
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">CanonicalMonteCarlo</span>
+<span class="kn">from</span> <span class="nn">abics.mc_mpi</span> <span class="kn">import</span> <span class="n">RX_MPI_init</span><span class="p">,</span> <span class="n">TemperatureRX_MPI</span><span class="p">,</span> <span class="n">RXParams</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface</span> <span class="kn">import</span> <span class="n">default_observer</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.model_setup</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">dft_latgas</span><span class="p">,</span>
+    <span class="n">ObserverParams</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.defect</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">defect_config</span><span class="p">,</span>
+    <span class="n">DFTConfigParams</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.run_base_mpi</span> <span class="kn">import</span> <span class="n">runner</span><span class="p">,</span> <span class="n">runner_multistep</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.vasp</span> <span class="kn">import</span> <span class="n">VASPSolver</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.qe</span> <span class="kn">import</span> <span class="n">QESolver</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.aenet</span> <span class="kn">import</span> <span class="n">aenetSolver</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.openmx</span> <span class="kn">import</span> <span class="n">OpenMXSolver</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.params</span> <span class="kn">import</span> <span class="n">DFTParams</span>
+
+
+<div class="viewcode-block" id="main_impl"><a class="viewcode-back" href="../../../abics.scripts.main.html#abics.scripts.main.main_impl">[docs]</a><span class="k">def</span> <span class="nf">main_impl</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">):</span>
+    <span class="n">rxparams</span> <span class="o">=</span> <span class="n">RXParams</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">)</span>
+    <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+    <span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nprocs_per_replica</span>
+
+    <span class="n">kB</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;Boltzmann constant in eV/K&quot;</span><span class="p">)</span>
+
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="p">)</span>
+
+    <span class="c1"># RXMC parameters</span>
+    <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+    <span class="n">kTstart</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTstart</span>
+    <span class="n">kTend</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTend</span>
+    <span class="n">kTs</span> <span class="o">=</span> <span class="n">kB</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">kTstart</span><span class="p">,</span> <span class="n">kTend</span><span class="p">,</span> <span class="n">nreplicas</span><span class="p">)</span>
+
+    <span class="c1"># Set Lreload to True when restarting</span>
+    <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+    <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+    <span class="n">RXtrial_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">RXtrial_frequency</span>
+    <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+    <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+
+    <span class="n">dftparams</span> <span class="o">=</span> <span class="n">DFTParams</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span> <span class="o">==</span> <span class="s1">&#39;vasp&#39;</span><span class="p">:</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">VASPSolver</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span> <span class="o">==</span> <span class="s1">&#39;qe&#39;</span><span class="p">:</span>
+        <span class="n">parallel_level</span> <span class="o">=</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parallel_level&#39;</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">QESolver</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">parallel_level</span><span class="o">=</span><span class="n">parallel_level</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span> <span class="o">==</span> <span class="s1">&#39;aenet&#39;</span><span class="p">:</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">aenetSolver</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span> <span class="o">==</span> <span class="s1">&#39;openmx&#39;</span><span class="p">:</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">OpenMXSolver</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;unknown solver: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># model setup</span>
+    <span class="c1"># we first choose a &quot;model&quot; defining how to perform energy calculations and trial steps</span>
+    <span class="c1"># on the &quot;configuration&quot; defined below</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">energy_calculator</span> <span class="o">=</span> <span class="n">runner</span><span class="p">(</span>
+            <span class="n">base_input_dir</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">Solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+            <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="n">nprocs_per_replica</span><span class="p">,</span>
+            <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="p">,</span>
+            <span class="n">perturb</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">perturb</span><span class="p">,</span>
+            <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver_run_scheme</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">energy_calculator</span> <span class="o">=</span> <span class="n">runner_multistep</span><span class="p">(</span>
+            <span class="n">base_input_dirs</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">,</span>
+            <span class="n">Solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+            <span class="n">runner</span><span class="o">=</span><span class="n">runner</span><span class="p">,</span>
+            <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="n">nprocs_per_replica</span><span class="p">,</span>
+            <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="p">,</span>
+            <span class="n">perturb</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">perturb</span><span class="p">,</span>
+            <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver_run_scheme</span>
+        <span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">dft_latgas</span><span class="p">(</span><span class="n">energy_calculator</span><span class="p">,</span> <span class="n">save_history</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+    <span class="c1"># defect sublattice setup</span>
+
+    <span class="n">configparams</span> <span class="o">=</span> <span class="n">DFTConfigParams</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">)</span>
+
+    <span class="n">spinel_config</span> <span class="o">=</span> <span class="n">defect_config</span><span class="p">(</span><span class="n">configparams</span><span class="p">)</span>
+
+    <span class="n">configs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nreplicas</span><span class="p">):</span>
+        <span class="n">configs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">spinel_config</span><span class="p">))</span>
+
+
+    <span class="n">obsparams</span> <span class="o">=</span> <span class="n">ObserverParams</span><span class="o">.</span><span class="n">from_toml</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">)</span>
+
+    <span class="c1"># RXMC calculation</span>
+    <span class="n">RXcalc</span> <span class="o">=</span> <span class="n">TemperatureRX_MPI</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">CanonicalMonteCarlo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+        <span class="n">RXcalc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+    <span class="n">obs</span> <span class="o">=</span> <span class="n">RXcalc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+        <span class="n">nsteps</span><span class="p">,</span>
+        <span class="n">RXtrial_frequency</span><span class="p">,</span>
+        <span class="n">sample_frequency</span><span class="p">,</span>
+        <span class="n">print_frequency</span><span class="p">,</span>
+        <span class="n">observer</span><span class="o">=</span><span class="n">default_observer</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">),</span>
+        <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../abics.scripts.main.html#abics.scripts.main.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">tomlfile</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;input.toml&quot;</span>
+    <span class="n">main_impl</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
