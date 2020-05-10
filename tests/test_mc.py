@@ -14,13 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-import random
 import unittest
 
 import numpy as np
+import numpy.random as random
 
 
 from abics.mc import model, CanonicalMonteCarlo
+
+random.seed(12345)
 
 
 class TestMC(unittest.TestCase):

@@ -37,7 +37,7 @@ abICSの入力ファイルは, 以下の４つのセクションから構成さ�
 
 2. [solver] セクション
 
-   ソルバーの種類 (VASP, QE, ...)、ソルバーへのパス、参照用入力ファイル( :ref:`subsec_basic_reference` )のあるディレクトリなど、ソルバーのパラメータを指定します.
+   ソルバーの種類 (VASP, QE, OpenMX)、ソルバーへのパス、参照用入力ファイル( :ref:`subsec_basic_reference` )のあるディレクトリなど、ソルバーのパラメータを指定します.
 
 3. [observer] セクション
 
@@ -145,6 +145,10 @@ Quantum Espresso
 
 - URL : https://www.quantum-espresso.org
 
+- バージョンは 6.2 以上を利用してください。
+
+  - いわゆる旧形式 XML バージョンは利用できません。
+
 - 参照ファイル
   
   - 参照ファイル名は ``scf.in`` にしてください。
@@ -161,6 +165,8 @@ OpenMX
 ======
 
 - URL : http://www.openmx-square.org
+
+- バージョンは 3.9 を利用してください。
 
 - 参照ファイル
   

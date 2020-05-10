@@ -1,0 +1,31 @@
+&CONTROL
+  calculation = 'relax'
+  tstress = .false.
+  tprnfor = .false.
+  pseudo_dir = '~/opt/qe/pot'
+  disk_io = 'low'
+  wf_collect = .false.
+  etot_conv_thr = 0.01
+  forc_conv_thr = 0.1
+/
+&SYSTEM
+  ecutwfc      =  30.0
+  occupations  = "smearing"
+  smearing     = "gauss"
+  degauss      = 0.01
+/
+&electrons
+  mixing_beta = 0.7
+  conv_thr = 1.0d-3
+  electron_maxstep = 100
+  scf_must_converge = .false.
+/
+&IONS
+/
+ATOMIC_SPECIES
+Al 26.981 Al.pbe-nl-kjpaw_psl.1.0.0.UPF
+Mg 24.305 Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
+O  16.000 O.pbe-n-kjpaw_psl.1.0.0.UPF
+ATOMIC_POSITIONS crystal
+
+K_POINTS gamma
