@@ -435,7 +435,7 @@ class EmbarrassinglyParallelSampling():
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         self.mycalc.kT = self.kT_hist0[-1]
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
-        rand.setstate(rand_state)
+        rand.set_state(rand_state)
         self.Lreload = True
 
     def run(
@@ -503,7 +503,7 @@ class EmbarrassinglyParallelSampling():
 
                 # save information for restart
                 pickle_dump(self.mycalc.config, "calc.pickle")
-                rand_state = rand.getstate()
+                rand_state = rand.get_state()
                 pickle_dump(rand_state, "rand_state.pickle")
                 if save_obs:
                     if hasattr(self, "obs_save0"):
