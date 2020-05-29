@@ -100,7 +100,10 @@ class VASPSolver(SolverBase):
             structure : pymatgen.Structure
                 Atomic structure
             """
-            self.pos_info = Poscar(structure=structure, selective_dynamics=structure.site_properties["seldyn"])
+            if "seldyn" in structure.site_properties.keys():
+                self.pos_info = Poscar(structure=structure, selective_dynamics=structure.site_properties["seldyn"])
+            else:
+                self.pos_info = Poscar(structure=structure)
             self.base_vasp_input.update({"POSCAR": self.pos_info})
 
         def update_info_from_files(self, workdir, rerun):
