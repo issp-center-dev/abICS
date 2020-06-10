@@ -139,7 +139,7 @@ def RX_MPI_init(rxparams):
     if rxparams.seed > 0:
         rand.seed(rxparams.seed + worldrank * 137)
     else:
-        rand_seeds = [rand.random() for i in range(worldprocs)]
+        rand_seeds = [rand.randint(10000) for i in range(worldprocs)]
         rand.seed(rand_seeds[worldrank])
 
     if worldprocs < nreplicas:
