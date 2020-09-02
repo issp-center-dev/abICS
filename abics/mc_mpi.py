@@ -28,37 +28,36 @@ from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
 class SamplerParams:
-    """ Parameter set for specifying sampling algorithm
+    """Parameter set for specifying sampling algorithm
 
     Attributes
     ----------
     sampler : str
         Sampler name
-
     """
 
     def __init__(self):
-        self.sampler = 'RXMC'
+        self.sampler = "RXMC"
 
     @classmethod
     def from_dict(cls, d):
         """
-           Read information from dictionary
+        Read information from dictionary
 
-           Parameters
-           ----------
-           d: dict
-               Dictionary including parameters for specifying sampling algorithm
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for specifying sampling algorithm
 
-           Returns
-           -------
-           params: SamplerParams object
-               self
+        Returns
+        -------
+        params: SamplerParams object
+            self
         """
-        if 'sampler' in d:
-            d = d['sampler']
+        if "sampler" in d:
+            d = d["sampler"]
         params = cls()
-        params.sampler = d.get('sampler', 'RXMC')
+        params.sampler = d.get("sampler", "RXMC")
         return params
 
     @classmethod
@@ -80,8 +79,9 @@ class SamplerParams:
 
         return cls.from_dict(toml.load(fname))
 
+
 class ParallelRandomParams:
-    """ Parameter set for parallel random sampling
+    """Parameter set for parallel random sampling
 
     Attributes
     ----------
@@ -100,7 +100,6 @@ class ParallelRandomParams:
     seed : int
         The seed of the random number generator
         If 0, some random number is used (e.g., system time or some random noise).
-
     """
 
     def __init__(self):
@@ -115,20 +114,20 @@ class ParallelRandomParams:
     @classmethod
     def from_dict(cls, d):
         """
-           Read information from dictionary
+        Read information from dictionary
 
-           Parameters
-           ----------
-           d: dict
-               Dictionary including parameters for parallel random sampling
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for parallel random sampling
 
-           Returns
-           -------
-           params: DFTParams object
-               self
+        Returns
+        -------
+        params: DFTParams object
+            self
         """
-        if 'replica' in d:
-            d = d['replica']
+        if "replica" in d:
+            d = d["replica"]
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
@@ -158,8 +157,9 @@ class ParallelRandomParams:
 
         return cls.from_dict(toml.load(fname))
 
+
 class ParalleMCParams:
-    """ Parameter set for embarrasingly parallel Monte Carlo
+    """Parameter set for embarrasingly parallel Monte Carlo
 
     Attributes
     ----------
@@ -182,7 +182,6 @@ class ParalleMCParams:
     seed : int
         The seed of the random number generator
         If 0, some random number is used (e.g., system time or some random noise).
-
     """
 
     def __init__(self):
@@ -199,20 +198,20 @@ class ParalleMCParams:
     @classmethod
     def from_dict(cls, d):
         """
-           Read information from dictionary
+        Read information from dictionary
 
-           Parameters
-           ----------
-           d: dict
-               Dictionary including parameters for embarrassingly parallel Monte Carlo method
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for embarrassingly parallel Monte Carlo method
 
-           Returns
-           -------
-           params: DFTParams object
-               self
+        Returns
+        -------
+        params: DFTParams object
+            self
         """
-        if 'replica' in d:
-            d = d['replica']
+        if "replica" in d:
+            d = d["replica"]
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
@@ -243,10 +242,10 @@ class ParalleMCParams:
         import toml
 
         return cls.from_dict(toml.load(fname))
-    
+
 
 class RXParams:
-    """ Parameter set for replica exchange Monte Carlo
+    """Parameter set for replica exchange Monte Carlo
 
     Attributes
     ----------
@@ -271,7 +270,6 @@ class RXParams:
     seed : int
         The seed of the random number generator
         If 0, some random number is used (e.g., system time or some random noise).
-
     """
 
     def __init__(self):
@@ -289,20 +287,20 @@ class RXParams:
     @classmethod
     def from_dict(cls, d):
         """
-           Read information from dictionary
+        Read information from dictionary
 
-           Parameters
-           ----------
-           d: dict
-               Dictionary including parameters for replica exchange Monte Carlo method
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for replica exchange Monte Carlo method
 
-           Returns
-           -------
-           params: DFTParams object
-               self
+        Returns
+        -------
+        params: DFTParams object
+            self
         """
-        if 'replica' in d:
-            d = d['replica']
+        if "replica" in d:
+            d = d["replica"]
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
@@ -362,7 +360,9 @@ def RX_MPI_init(rxparams):
 
     if worldprocs < nreplicas:
         if worldrank == 0:
-            print("ERROR! Please run with at least as many MPI processes as the number of replicas")
+            print(
+                "ERROR! Please run with at least as many MPI processes as the number of replicas"
+            )
         sys.exit(1)
 
     if worldprocs > nreplicas:
@@ -383,8 +383,9 @@ def RX_MPI_init(rxparams):
         comm = commworld
     return comm
 
-class EmbarrassinglyParallelSampling():
-    def __init__(self, comm, MCalgo, model, configs, kTs = None, subdirs=True):
+
+class EmbarrassinglyParallelSampling:
+    def __init__(self, comm, MCalgo, model, configs, kTs=None, subdirs=True):
         """
 
         Parameters
@@ -406,7 +407,7 @@ class EmbarrassinglyParallelSampling():
         self.rank = self.comm.Get_rank()
         self.procs = self.comm.Get_size()
         if kTs is None:
-            kTs = [0]*self.procs
+            kTs = [0] * self.procs
         self.kTs = kTs
         self.model = model
         self.subdirs = subdirs
@@ -419,19 +420,18 @@ class EmbarrassinglyParallelSampling():
                     + "number of temperatures equal to the number of processes"
                 )
             sys.exit(1)
-            
+
         myconfig = configs[self.rank]
         mytemp = kTs[self.rank]
         self.mycalc = MCalgo(model, mytemp, myconfig)
         self.obs_save = []
-        self.kT_hist = []        
+        self.kT_hist = []
         self.Lreload = False
-
 
     def reload(self):
         self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
         self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
-        self.mycalc.energy = self.obs_save0[-1,0]
+        self.mycalc.energy = self.obs_save0[-1, 0]
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         self.mycalc.kT = self.kT_hist0[-1]
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
@@ -507,21 +507,23 @@ class EmbarrassinglyParallelSampling():
                 pickle_dump(rand_state, "rand_state.pickle")
                 if save_obs:
                     if hasattr(self, "obs_save0"):
-                        obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
-                        kT_hist_ = np.concatenate((self.kT_hist0, np.array(self.kT_hist)))
+                        obs_save_ = np.concatenate(
+                            (self.obs_save0, np.array(self.obs_save))
+                        )
+                        kT_hist_ = np.concatenate(
+                            (self.kT_hist0, np.array(self.kT_hist))
+                        )
                     else:
                         obs_save_ = np.array(self.obs_save)
                         kT_hist_ = np.array(self.kT_hist)
 
                     numpy_save(obs_save_, "obs_save.npy")
                     numpy_save(kT_hist_, "kT_hist.npy")
-                    
+
                 if subdirs:
                     os.chdir("../")
                 if subdirs:
                     os.chdir(str(self.rank))
-
-
 
         if subdirs:
             os.chdir("../")
@@ -609,6 +611,7 @@ class ParallelMC(object):
             self.comm.Allgather(observables, obs_buffer)
             return obs_buffer
 
+
 class RandomSampling_MPI(ParallelMC):
     def __init__(self, comm, MCalgo, model, configs, subdirs=True):
         """
@@ -626,7 +629,7 @@ class RandomSampling_MPI(ParallelMC):
         subdirs: boolean
             If true, working directory for this rank is made
         """
-        
+
         super(TemperatureRX_MPI, self).__init__(
             comm, MCalgo, model, configs, kTs, subdirs
         )
@@ -637,6 +640,7 @@ class RandomSampling_MPI(ParallelMC):
         self.obs_save = []
         self.Trank_hist = []
         self.kT_hist = []
+
 
 class TemperatureRX_MPI(ParallelMC):
     def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True):
@@ -674,7 +678,7 @@ class TemperatureRX_MPI(ParallelMC):
         self.mycalc.kT = self.kTs[self.rank_to_T[self.rank]]
         self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
         self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
-        self.mycalc.energy = self.obs_save0[-1,0]
+        self.mycalc.energy = self.obs_save0[-1, 0]
         self.Trank_hist0 = numpy_load(os.path.join(str(self.rank), "Trank_hist.npy"))
         self.kT_hist0 = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
@@ -835,11 +839,15 @@ class TemperatureRX_MPI(ParallelMC):
                     pickle_dump(rand_state, "rand_state.pickle")
                     if save_obs:
                         if hasattr(self, "obs_save0"):
-                            obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
+                            obs_save_ = np.concatenate(
+                                (self.obs_save0, np.array(self.obs_save))
+                            )
                             Trank_hist_ = np.concatenate(
                                 (self.Trank_hist0, np.array(self.Trank_hist))
                             )
-                            kT_hist_ = np.concatenate((self.kT_hist0, np.array(self.kT_hist)))
+                            kT_hist_ = np.concatenate(
+                                (self.kT_hist0, np.array(self.kT_hist))
+                            )
                         else:
                             obs_save_ = np.array(self.obs_save)
                             Trank_hist_ = np.array(self.Trank_hist)
@@ -856,8 +864,6 @@ class TemperatureRX_MPI(ParallelMC):
                         numpy_save(self.kTs, "kTs.npy")
                     if subdirs:
                         os.chdir(str(self.rank))
-
-
 
         if subdirs:
             os.chdir("../")

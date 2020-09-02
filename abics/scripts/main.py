@@ -39,7 +39,10 @@ from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.run_base_mpi import runner, runner_multistep
+from abics.applications.latgas_abinitio_interface.run_base_mpi import (
+    runner,
+    runner_multistep,
+)
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
@@ -49,7 +52,7 @@ from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 def main_impl(tomlfile):
     samplerparams = SamplerParams.from_toml(tomlfile)
-    if samplerparams.sampler == 'RXMC':
+    if samplerparams.sampler == "RXMC":
         rxparams = RXParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
@@ -71,8 +74,8 @@ def main_impl(tomlfile):
         RXtrial_frequency = rxparams.RXtrial_frequency
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-        
-    elif samplerparams.sampler == 'parallelRand':
+
+    elif samplerparams.sampler == "parallelRand":
         rxparams = ParallelRandomParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
@@ -85,8 +88,7 @@ def main_impl(tomlfile):
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
 
-        
-    elif samplerparams.sampler == 'parallelMC':
+    elif samplerparams.sampler == "parallelMC":
         rxparams = RXParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
@@ -109,22 +111,24 @@ def main_impl(tomlfile):
         print_frequency = rxparams.print_frequency
 
     else:
-        print('Unknown sampler. Exiting...')
+        print("Unknown sampler. Exiting...")
         sys.exit(1)
 
     dftparams = DFTParams.from_toml(tomlfile)
 
-    if dftparams.solver == 'vasp':
+    if dftparams.solver == "vasp":
         solver = VASPSolver(dftparams.path)
-    elif dftparams.solver == 'qe':
-        parallel_level = dftparams.properties.get('parallel_level', {})
+    elif dftparams.solver == "qe":
+        parallel_level = dftparams.properties.get("parallel_level", {})
         solver = QESolver(dftparams.path, parallel_level=parallel_level)
-    elif dftparams.solver == 'aenet':
-        solver = aenetSolver(dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme)
-    elif dftparams.solver == 'openmx':
+    elif dftparams.solver == "aenet":
+        solver = aenetSolver(
+            dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme
+        )
+    elif dftparams.solver == "openmx":
         solver = OpenMXSolver(dftparams.path)
     else:
-        print('unknown solver: {}'.format(dftparams.solver))
+        print("unknown solver: {}".format(dftparams.solver))
         sys.exit(1)
 
     # model setup
@@ -137,7 +141,7 @@ def main_impl(tomlfile):
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
             perturb=dftparams.perturb,
-            solver_run_scheme=dftparams.solver_run_scheme
+            solver_run_scheme=dftparams.solver_run_scheme,
         )
     else:
         energy_calculator = runner_multistep(
@@ -147,10 +151,9 @@ def main_impl(tomlfile):
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
             perturb=dftparams.perturb,
-            solver_run_scheme=dftparams.solver_run_scheme
+            solver_run_scheme=dftparams.solver_run_scheme,
         )
     model = dft_latgas(energy_calculator, save_history=False)
-
 
     # defect sublattice setup
 
@@ -158,14 +161,14 @@ def main_impl(tomlfile):
 
     spinel_config = defect_config(configparams)
 
-    #configs = []
-    #for i in range(nreplicas):
+    # configs = []
+    # for i in range(nreplicas):
     #    configs.append(copy.deepcopy(spinel_config))
-    configs = [spinel_config]*nreplicas
+    configs = [spinel_config] * nreplicas
 
     obsparams = ObserverParams.from_toml(tomlfile)
 
-    if samplerparams.sampler == 'RXMC':
+    if samplerparams.sampler == "RXMC":
         # RXMC calculation
         RXcalc = TemperatureRX_MPI(comm, CanonicalMonteCarlo, model, configs, kTs)
         if Lreload:
@@ -179,11 +182,10 @@ def main_impl(tomlfile):
             subdirs=True,
         )
 
-
         if comm.Get_rank() == 0:
             print(obs)
 
-    elif samplerparams.sampler == 'parallelRand':
+    elif samplerparams.sampler == "parallelRand":
         calc = EmbarrassinglyParallelSampling(comm, RandomSampling, model, configs)
         if Lreload:
             calc.reload()
@@ -195,12 +197,13 @@ def main_impl(tomlfile):
             subdirs=True,
         )
 
-
         if comm.Get_rank() == 0:
             print(obs)
 
-    elif samplerparams.sampler == 'parallelMC':
-        calc = EmbarrassinglyParallelSampling(comm, CanonicalMonteCarlo, model, configs, kTs)
+    elif samplerparams.sampler == "parallelMC":
+        calc = EmbarrassinglyParallelSampling(
+            comm, CanonicalMonteCarlo, model, configs, kTs
+        )
         if Lreload:
             calc.reload()
         obs = calc.run(
@@ -211,10 +214,8 @@ def main_impl(tomlfile):
             subdirs=True,
         )
 
-
         if comm.Get_rank() == 0:
             print(obs)
-
 
 
 def main():
