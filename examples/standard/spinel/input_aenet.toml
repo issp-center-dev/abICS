@@ -9,11 +9,11 @@ nsteps = 1600  # Number of steps for sampling
 RXtrial_frequency = 4
 sample_frequency = 16
 print_frequency = 1
-reload = true
+reload = false
 
 [solver]
 type = 'aenet'
-path= '/home/kasamatsu/git/aenet/bin/predict.x-2.0.4-gfortran_serial'
+path= '~/git/aenet/bin/predict.x-2.0.4-gfortran_serial'
 base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess' #'mpi_spawn_ready'
