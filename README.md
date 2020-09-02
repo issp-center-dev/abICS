@@ -55,7 +55,7 @@ The distribution of the program package and the source codes follow GNU General 
 
 ## Official page
 
-Under construction
+https://www.pasums.issp.u-tokyo.ac.jp/abics
 
 ## Author
 
