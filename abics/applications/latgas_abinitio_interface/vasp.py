@@ -100,7 +100,13 @@ class VASPSolver(SolverBase):
             structure : pymatgen.Structure
                 Atomic structure
             """
-            self.pos_info = Poscar(structure=structure, selective_dynamics=structure.site_properties["seldyn"])
+            if "seldyn" in structure.site_properties.keys():
+                self.pos_info = Poscar(
+                    structure=structure,
+                    selective_dynamics=structure.site_properties["seldyn"],
+                )
+            else:
+                self.pos_info = Poscar(structure=structure)
             self.base_vasp_input.update({"POSCAR": self.pos_info})
 
         def update_info_from_files(self, workdir, rerun):
@@ -130,9 +136,7 @@ class VASPSolver(SolverBase):
                     self.base_vasp_input.update({"INCAR": self.base_info})
                 elif info == "POS":
                     # Update positions
-                    self.pos_info = Poscar.from_file(
-                        os.path.join(workdir, "CONTCAR")
-                    )
+                    self.pos_info = Poscar.from_file(os.path.join(workdir, "CONTCAR"))
                     self.base_vasp_input.update({"POSCAR": self.pos_info})
 
         def write_input(self, output_dir):
@@ -172,6 +176,7 @@ class VASPSolver(SolverBase):
         """
         Output manager.
         """
+
         def __init__(self):
             self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
             self.queen = BorgQueen(self.drone)
