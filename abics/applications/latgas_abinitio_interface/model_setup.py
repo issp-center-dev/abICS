@@ -287,7 +287,9 @@ class dft_latgas(model):
 
             else:
                 # Exchange different groups between sites
-                ex1_group, ex2_group = rand.choice(defect_sublattice.groups, 2, replace=False)
+                ex1_group, ex2_group = rand.choice(
+                    defect_sublattice.groups, 2, replace=False
+                )
                 ex1_id = rand.choice(match_latgas_group(latgas_rep, ex1_group))
                 ex2_id = rand.choice(match_latgas_group(latgas_rep, ex2_group))
                 latgas_rep[ex1_id], latgas_rep[ex2_id] = (
@@ -748,7 +750,7 @@ class config:
                 group = defect_sublattice.group_dict[site[0]]
                 norr = group.orientations
                 site[1] = rand.randint(norr)
-        if self.set_latgas() == False:
+        if not self.set_latgas():
             self.shuffle()
 
     def count(self, group_name, orientation):
