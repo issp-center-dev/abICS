@@ -19,18 +19,12 @@ import sys,os
 
 from mpi4py import MPI
 import numpy as np
-import scipy.constants as constants
 
-from abics.mc import CanonicalMonteCarlo, RandomSampling
 from abics.mc_mpi import (
     RX_MPI_init,
-    TemperatureRX_MPI,
-    RXParams,
-    SamplerParams,
-    ParallelRandomParams,
-    EmbarrassinglyParallelSampling,
+    RefParams,
 )
-from abics.applications.latgas_abinitio_interface import default_observer
+from abics.applications.latgas_abinitio_interface import default_observer, map2perflat
 from abics.applications.latgas_abinitio_interface.model_setup import (
     dft_latgas,
     ObserverParams,
@@ -44,86 +38,92 @@ from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-from abics.applications.latgas_abinitio_interface.params import DFTParams
+from abics.applications.latgas_abinitio_interface.params import ALParams
 
+from pymatgen import Structure
 
 def main_impl(tomlfile):
-    samplerparams = SamplerParams.from_toml(tomlfile)
-
-    rxparams = ParallelRandomParams.from_toml(tomlfile)
-    nreplicas = rxparams.nreplicas
+    rxparams = RefParams.from_toml(tomlfile)
     nprocs_per_replica = rxparams.nprocs_per_replica
-    comm = RX_MPI_init(rxparams)
-
-    # Set Lreload to True when restarting
-    Lreload = rxparams.reload
-
     nsteps = rxparams.nsteps
     sample_frequency = rxparams.sample_frequency
-    print_frequency = rxparams.print_frequency
+    comm = RX_MPI_init(rxparams)
+    alparams = ALParams.from_toml(tomlfile)
+    configparams = DFTConfigParams.from_toml(tomlfile) 
 
-        
-
-    dftparams = DFTParams.from_toml(tomlfile)
-
-    if dftparams.solver == 'vasp':
-        solver = VASPSolver(dftparams.path)
-    elif dftparams.solver == 'qe':
-        parallel_level = dftparams.properties.get('parallel_level', {})
-        solver = QESolver(dftparams.path, parallel_level=parallel_level)
-    elif dftparams.solver == 'aenet':
-        solver = aenetSolver(dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme)
-    elif dftparams.solver == 'openmx':
-        solver = OpenMXSolver(dftparams.path)
+    if alparams.solver == 'vasp':
+        solver = VASPSolver(alparams.path)
+    elif alparams.solver == 'qe':
+        parallel_level = alparams.properties.get('parallel_level', {})
+        solver = QESolver(alparams.path, parallel_level=parallel_level)
+    elif alparams.solver == 'aenet':
+        solver = aenetSolver(alparams.path, alparams.ignore_species, alparams.solver_run_scheme)
+    elif alparams.solver == 'openmx':
+        solver = OpenMXSolver(alparams.path)
     else:
-        print('unknown solver: {}'.format(dftparams.solver))
+        print('unknown solver: {}'.format(alparams.solver))
         sys.exit(1)
 
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
-    if len(dftparams.base_input_dir) == 1:
+    if len(alparams.base_input_dir) == 1:
         energy_calculator = runner(
-            base_input_dir=dftparams.base_input_dir[0],
+            base_input_dir=alparams.base_input_dir[0],
             Solver=solver,
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
-            perturb=dftparams.perturb,
-            solver_run_scheme=dftparams.solver_run_scheme
+            perturb=alparams.perturb,
+            solver_run_scheme=alparams.solver_run_scheme
         )
     else:
         energy_calculator = runner_multistep(
-            base_input_dirs=dftparams.base_input_dir,
+            base_input_dirs=alparams.base_input_dir,
             Solver=solver,
             runner=runner,
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
-            perturb=dftparams.perturb,
-            solver_run_scheme=dftparams.solver_run_scheme
+            perturb=alparams.perturb,
+            solver_run_scheme=alparams.solver_run_scheme
         )
 
     myreplica = comm.Get_rank()
-    energy_ref = np.loadtxt(os.path.join(str(myreplica), "energies.dat"))
-    rootdir = os.getcwd()
-    os.makedirs(os.path.join("activelearn",str(myreplica)))
-    os.chdir(os.path.join("activelearn",str(myreplica)))
-    nskip = 0
-    nsteps = 400
+
+    # Find newest MC run
+    i = 0
+    while True:
+        if os.path.exists(os.path.join("MC", str(i))):
+            i += 1
+        else:
+            break
+    MCdir = os.path.join(os.getcwd(), "MC{}".format(i))
+    obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
+    energy_ref = obs[:,0]
+    i += 1
+    ALdir = os.path.join(os.getcwd(), "AL{}".format(i), str(myreplica))
+    os.makedirs(ALdir, exist_ok = False)
+    os.chdir(ALdir)
     energy_corrlist = []
     relax_max = []
-    e_gs =  0 #-.31774118E+04
-    from pymatgen import Structure
-    from map2perflat import map2perflat
-    perf_st = Structure.from_file(os.path.join(rootdir, "MgAl2O4.vasp"))
-    perf_st.make_supercell([2,2,2])
-    for i in range(nskip, nsteps, 20):
-        st_in = Structure.from_file(os.path.join(rootdir, str(myreplica), 'structure.{}.vasp'.format(i)))
+    config = defect_config(configparams)
+    perf_st = config.structure
+    if alparams.ignore_species:
+        ignore_structure = perf_st.copy()
+        remove_sp = [sp for sp in perf_st.symbol_set if sp not in alparams.ignore_species]
+        ignore_structure.remove_species(remove_sp)
+
+    for i in range(0, nsteps, sample_frequency):
+        st_in = Structure.from_file(os.path.join(MCdir, str(myreplica), 'structure.{}.vasp'.format(i)))
         st = map2perflat(perf_st, st_in)
-        #st.remove_species(["N", "Li"])
+        if alparams.vac_space_holder:
+            st.remove_species(alparams.vac_space_holder)
         stbak = st.copy()
-        energy, st_rel = energy_calculator.submit(st, os.path.join(rootdir, "activelearn", str(myreplica), "output"))
+        energy, st_rel = energy_calculator.submit(st, os.path.join(ALdir, "output"))
+        if alparams.ignore_species:
+            for site in ignore_structure:
+                st_rel.append(site.species_string, site.frac_coords)
         st_rel.to("POSCAR", "structure_rel.{}.vasp".format(i))
-        energy_corrlist.append([energy_ref[i], energy - e_gs])
+        energy_corrlist.append([energy_ref[i], energy])
         np.savetxt("energy_corr.dat", energy_corrlist)
         dmax = 0
         dmax_id = 0
