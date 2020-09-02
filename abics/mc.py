@@ -30,7 +30,7 @@ verylargeint = sys.maxsize
 
 
 class model:
-    """ This class defines a model whose energy equals 0 no matter the configuration, and the configuration
+    """This class defines a model whose energy equals 0 no matter the configuration, and the configuration
     never changes.
     This is a base template for building useful models."""
 
@@ -150,9 +150,9 @@ def binning(x, nlevels):
 
 
 empty_array = np.array([])
+
+
 # @profile
-
-
 def obs_encode(*args):
     """
 
@@ -359,7 +359,6 @@ class CanonicalMonteCarlo:
         self.obs_save = []
 
     # @profile
-
     def MCstep(self):
         dconfig, dE = self.model.trialstep(self.config, self.energy)
         # if self.energy == float("inf"):
@@ -403,7 +402,7 @@ class CanonicalMonteCarlo:
         nsample = 0
         self.energy = self.model.energy(self.config)
         output = open("obs.dat", "a")
-        with open(os.devnull, 'w') as f:
+        with open(os.devnull, "w") as f:
             if hasattr(observer.observe(self, f), "__add__"):
                 observe = True
             else:
@@ -427,6 +426,7 @@ class CanonicalMonteCarlo:
             return obs_decode(args_info, observables)
         else:
             return None
+
 
 class RandomSampling(CanonicalMonteCarlo):
     def MCstep(self):
