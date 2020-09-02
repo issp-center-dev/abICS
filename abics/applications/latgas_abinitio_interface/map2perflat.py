@@ -2,16 +2,18 @@
 import os
 import numpy as np
 from pymatgen import Structure
-from abics.applications.latgas_abinitio_interface import aenet
-import naive_matcher
+from abics.applications.latgas_abinitio_interface import aenet, naive_matcher
+
 mapper = naive_matcher.naive_mapping
 
-def map2perflat(perf_st, st, vac_spaceholder={"H":"Li"}):
+def map2perflat(perf_st, st, vac_spaceholder={}):
     perf_st = perf_st.copy()
+    N = perf_st.num_sites
+    seldyn = np.array(perf_st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float)
     perf_st.replace_species(vac_spaceholder)        
     mapping = mapper(st, perf_st)
     for i,j in enumerate(mapping):
-        perf_st.replace(j, st[i].species_string)
+        perf_st.replace(j, st[i].species_string, properties={"seldyn":seldyn[j]})
     perf_st.sort(key=lambda site: site.species_string)
     return perf_st
 
