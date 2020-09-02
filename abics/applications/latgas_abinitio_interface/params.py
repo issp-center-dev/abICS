@@ -18,6 +18,7 @@ import os
 
 from ...util import expand_path
 
+
 class DFTParams:
     def __init__(self):
         self.base_input_dir = []
@@ -42,20 +43,21 @@ class DFTParams:
         params: DFTParams object
             self
         """
-        if 'solver' in d:
-            d = d['solver']
+        if "solver" in d:
+            d = d["solver"]
         params = cls()
-        base_input_dir = d.get('base_input_dir', ['./baseinput'])
+        base_input_dir = d.get("base_input_dir", ["./baseinput"])
         if isinstance(base_input_dir, str):
             base_input_dir = [base_input_dir]
-        params.base_input_dir = base_input_dir = list(map(lambda x: expand_path(x, os.getcwd()), base_input_dir))
-        params.solver = d['type']
-        params.path = expand_path(d['path'], os.getcwd())
-        params.perturb = d.get('perturb', 0.1)
-        params.solver_run_scheme = d.get('run_scheme',
-                                         'mpi_spawn_ready')
-        params.ignore_species = d.get('ignore_species', None)
-        params.constraint_module = d.get('constraint_module', None)
+        params.base_input_dir = base_input_dir = list(
+            map(lambda x: expand_path(x, os.getcwd()), base_input_dir)
+        )
+        params.solver = d["type"]
+        params.path = expand_path(d["path"], os.getcwd())
+        params.perturb = d.get("perturb", 0.1)
+        params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
+        params.ignore_species = d.get("ignore_species", None)
+        params.constraint_module = d.get("constraint_module", None)
         params.properties = d
 
         return params
@@ -76,4 +78,5 @@ class DFTParams:
             self
         """
         import toml
+
         return cls.from_dict(toml.load(f))
