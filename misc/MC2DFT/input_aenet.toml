@@ -1,16 +1,16 @@
 [replica]
-nreplicas = 7
+nreplicas = 4
 nprocs_per_replica = 1 
 kTstart = 600.0
 kTend = 1400.0
-nsteps = 1600  # Number of steps for sampling
+nsteps = 800  # Number of steps for sampling
 RXtrial_frequency = 4
 sample_frequency = 16
 print_frequency = 1
 reload = false
 
 [replicaRef]
-nreplicas = 7
+nreplicas = 4
 nprocs_per_replica = 1
 nsteps = 50
 sample_frequency = 1
