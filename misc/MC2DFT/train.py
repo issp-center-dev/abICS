@@ -13,6 +13,13 @@ import os, sys
 
 
 def main_impl(tomlfile):
+    if not os.path.exists("ALloop.progress"):
+        print("You shouldn't run train now. Run activelearn first.")
+    with open("ALloop.progress", "r") as fi:
+        last_li = fi.readlines()[-1]
+    if "AL" not in last_li:
+        print("You shouldn't run train now. Either MC or activelearn first.")
+        sys.exit(1)
 
     # We need info from MC steps as well as parameters
     # specific to training
@@ -39,7 +46,7 @@ def main_impl(tomlfile):
 
     ls = os.listdir()
     rootdir = os.getcwd()
-    ALdirs = [dir for dir in ls if "AL" in dir]
+    ALdirs = [dir for dir in ls if "AL" in dir and os.path.isdir(dir)]
     structures = []
     energies = []
 
@@ -52,9 +59,12 @@ def main_impl(tomlfile):
     for dir in ALdirs:
         for rpl in range(nreplicas):
             os.chdir(os.path.join(dir, str(rpl)))
-            energies_ref = np.loadtxt("energy_corr.dat")[:, 1]
+            if dir == "AL0":
+                energies_ref = np.load("obs_save.npy")[:,0]
+            else:
+                energies_ref = np.loadtxt("energy_corr.dat")[:, 1]
             for i, energy in enumerate(energies_ref):
-                structure = Structure.from_file("structure_rel.{}.vasp".format(i))
+                structure = Structure.from_file("structure.{}.vasp".format(i))
                 # map to perfect lattice
                 structure = map2perflat(perf_st, structure, vac_map)
                 if ignore_species:
@@ -86,6 +96,8 @@ def main_impl(tomlfile):
     trainer.prepare()
     trainer.train()
     trainer.new_baseinput(base_input_dir[0])
+    with open("ALloop.progress", "a") as fi:
+        fi.write("train\n")
 
 
 if __name__ == "__main__":

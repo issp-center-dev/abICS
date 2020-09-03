@@ -20,11 +20,19 @@ import os
 from mpi4py import MPI
 import numpy as np
 
+from abics.mc import RandomSampling
+
 from abics.mc_mpi import (
     RX_MPI_init,
     RefParams,
+    EmbarrassinglyParallelSampling,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
+from abics.applications.latgas_abinitio_interface import default_observer
+from abics.applications.latgas_abinitio_interface.model_setup import (
+    dft_latgas,
+    ObserverParams,
+)
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -45,6 +53,7 @@ from pymatgen import Structure
 def main_impl(tomlfile):
     rxparams = RefParams.from_toml(tomlfile)
     nprocs_per_replica = rxparams.nprocs_per_replica
+    nreplicas = rxparams.nreplicas
     nsteps = rxparams.nsteps
     sample_frequency = rxparams.sample_frequency
     comm = RX_MPI_init(rxparams)
@@ -95,59 +104,104 @@ def main_impl(tomlfile):
     i = 0
     while os.path.exists("MC{}".format(i)):
         i += 1
-    MCdir = os.path.join(os.getcwd(), "MC{}".format(i-1))
-    obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
-    energy_ref = obs[:, 0]
-    ALdir = os.path.join(os.getcwd(), "AL{}".format(i), str(myreplica))
-    os.makedirs(ALdir, exist_ok=False)
-    os.chdir(ALdir)
-    energy_corrlist = []
-    relax_max = []
-    config = defect_config(configparams)
-    perf_st = config.structure
-    if alparams.ignore_species:
-        ignore_structure = perf_st.copy()
-        remove_sp = filter(
-            lambda sp: sp not in alparams.ignore_species, perf_st.symbol_set
+
+    rootdir = os.getcwd()
+    if i == 0: # Random sampling!
+        if os.path.exists("AL0"):
+            print("It seems you've already run the first active learning step. You should train now.")
+            sys.exit(1)
+        model = dft_latgas(energy_calculator, save_history=False)
+        configparams = DFTConfigParams.from_toml(tomlfile)
+        config = defect_config(configparams) 
+        configs = [config] * nreplicas
+        if myreplica == 0:
+            os.mkdir("AL0")
+        comm.Barrier()
+        
+        os.chdir("AL0")
+        
+        calc = EmbarrassinglyParallelSampling(comm, RandomSampling, model, configs)
+        obs = calc.run(
+            nsteps = nsteps//sample_frequency,
+            sample_frequency = 1,
+            print_frequency = 1,
+            observer=default_observer(comm, False),
+            subdirs=True,
         )
-        ignore_structure.remove_species(remove_sp)
 
-    for i in range(0, nsteps, sample_frequency):
-        # In st_in, used for aenet,
-        # (i)  "Ignore species" are omitted and should be added.
-        # (ii) "Vacancy element" is included and should be removed.
-        st_in = Structure.from_file(
-            os.path.join(MCdir, str(myreplica), "structure.{}.vasp".format(i))
-        )
+        if comm.Get_rank() == 0:
+            print(obs)
+        os.chdir(rootdir)
+        
+        if comm.Get_rank() == 0:
+            with open("ALloop.progress", "a") as fi:
+                fi.write("AL0\n")
 
-        # (i)
-        st = map2perflat(perf_st, st_in)
-        # (ii)
-        if alparams.vac_space_holder:
-            st.remove_species(alparams.vac_space_holder)
-        stbak = st.copy()
-
-        energy, st_rel = energy_calculator.submit(st, os.path.join(ALdir, "output"))
-
-        # energy_calculator may return the structure w/o ignored structure
+    else: # Active learning!
+        MCdir = os.path.join(os.getcwd(), "MC{}".format(i-1))
+        with open("ALloop.progress", "r") as fi:
+            last_li = fi.readlines()[-1]
+        if "MC{}".format(i-1) not in last_li:
+            print("You shouldn't run activelearn now. Either train or MC first.")
+            sys.exit(1)
+        MCdir = os.path.join(os.getcwd(), "MC{}".format(i-1))
+        obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
+        energy_ref = obs[:, 0]
+        ALdir = os.path.join(os.getcwd(), "AL{}".format(i), str(myreplica))
+        ALstep = i
+        os.makedirs(ALdir, exist_ok=False)
+        os.chdir(ALdir)
+        energy_corrlist = []
+        relax_max = []
+        config = defect_config(configparams)
+        perf_st = config.structure
         if alparams.ignore_species:
-            for site in ignore_structure:
-                st_rel.append(site.species_string, site.frac_coords)
-        st_rel.to("POSCAR", "structure_rel.{}.vasp".format(i))
-        energy_corrlist.append([energy_ref[i], energy])
-        np.savetxt("energy_corr.dat", energy_corrlist)
+            ignore_structure = perf_st.copy()
+            remove_sp = filter(
+                lambda sp: sp not in alparams.ignore_species, perf_st.symbol_set
+            )
+            ignore_structure.remove_species(remove_sp)
 
-        dmax = 0
-        dmax_id = 0
-        for j, site in enumerate(stbak):
-            d = site.distance(st_rel[j])
-            if d > dmax:
-                dmax = d
-                dmax_id = j
-        relax_max.append([dmax_id, dmax])
-        with open("relax_max.dat", "w") as fi:
-            for row in relax_max:
-                fi.write("{} \t {}\n".format(row[0], row[1]))
+        for i in range(0, nsteps, sample_frequency):
+            # In st_in, used for aenet,
+            # (i)  "Ignore species" are omitted and should be added.
+            # (ii) "Vacancy element" is included and should be removed.
+            st_in = Structure.from_file(
+                os.path.join(MCdir, str(myreplica), "structure.{}.vasp".format(i))
+            )
+
+            # (i)
+            st = map2perflat(perf_st, st_in)
+            # (ii)
+            if alparams.vac_space_holder:
+                st.remove_species(alparams.vac_space_holder)
+            stbak = st.copy()
+
+            energy, st_rel = energy_calculator.submit(st, os.path.join(ALdir, "output"))
+
+            # energy_calculator may return the structure w/o ignored structure
+            if alparams.ignore_species:
+                for site in ignore_structure:
+                    st_rel.append(site.species_string, site.frac_coords)
+            st_rel.to("POSCAR", "structure.{}.vasp".format(i))
+            energy_corrlist.append([energy_ref[i], energy])
+            np.savetxt("energy_corr.dat", energy_corrlist)
+
+            dmax = 0
+            dmax_id = 0
+            for j, site in enumerate(stbak):
+                d = site.distance(st_rel[j])
+                if d > dmax:
+                    dmax = d
+                    dmax_id = j
+            relax_max.append([dmax_id, dmax])
+            with open("relax_max.dat", "w") as fi:
+                for row in relax_max:
+                    fi.write("{} \t {}\n".format(row[0], row[1]))
+        os.chdir(rootdir)
+        if comm.Get_rank() == 0:
+            with open("ALloop.progress", "a") as fi:
+                fi.write("AL{}\n".format(ALstep))
 
 
 if __name__ == "__main__":
