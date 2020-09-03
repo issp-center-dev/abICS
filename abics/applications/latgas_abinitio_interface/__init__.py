@@ -16,4 +16,4 @@
 
 from .default_observer import *
 from .map2perflat import *
-
+from .aenet_trainer import *

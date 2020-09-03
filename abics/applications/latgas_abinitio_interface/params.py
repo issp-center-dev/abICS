@@ -110,7 +110,7 @@ class ALParams:
         params: DFTParams object
             self
         """
-        if "solver" in d:
+        if "solverRef" in d:
             d = d["solverRef"]
         params = cls()
         base_input_dir = d.get("base_input_dir", ["./baseinput"])
@@ -127,6 +127,73 @@ class ALParams:
         params.constraint_module = d.get("constraint_module", None)
         params.only_input = d.get("only_input", False)
         params.vac_space_holder = d.get("vac_convert", [])
+
+        params.properties = d
+
+        return params
+
+    @classmethod
+    def from_toml(cls, f):
+        """
+        Read information from toml file
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oDFTParams: DFTParams object
+            self
+        """
+        import toml
+
+        return cls.from_dict(toml.load(f))
+
+class TrainerParams:
+    def __init__(self):
+        self.base_input_dir = []
+        self.solver = ""
+        self.path = ""
+        self.solver_run_scheme = ""
+        self.ignore_species = None
+        self.properties = {}
+        self.exe_command = []
+        self.vac_map = []
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Read information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        params: TrainerParams object
+            self
+        """
+        if "trainer" in d:
+            d = d["trainer"]
+        params = cls()
+        base_input_dir = d.get("base_input_dir", ["./baseinput"])
+        if isinstance(base_input_dir, str):
+            base_input_dir = [base_input_dir]
+        params.base_input_dir = base_input_dir = list(
+            map(lambda x: expand_path(x, os.getcwd()), base_input_dir)
+        )
+        params.solver = d["type"]
+        exe_command = d["exe_command"]
+        if isinstance(exe_command, str):
+            exe_command = [exe_command]
+        params.exe_command = exe_command
+        params.solver_run_scheme = d.get("run_scheme", "subprocess")
+        params.ignore_species = d.get("ignore_species", None)
+        params.vac_map = d.get("vac_map", [])
 
         params.properties = d
 
