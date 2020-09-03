@@ -93,7 +93,7 @@ class ALParams:
         self.ignore_species = None
         self.constraint_module = None
         self.only_input = False
-        self.vac_space_holder = {}
+        self.vac_space_holder = []
 
     @classmethod
     def from_dict(cls, d):
@@ -126,7 +126,7 @@ class ALParams:
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
         params.only_input = d.get("only_input", False)
-        params.vac_space_holder = d.get("vac_convert", {})
+        params.vac_space_holder = d.get("vac_convert", [])
 
         params.properties = d
 
