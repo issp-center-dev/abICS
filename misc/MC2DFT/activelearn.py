@@ -14,8 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-import copy
-import sys,os
+import sys
+import os
 
 from mpi4py import MPI
 import numpy as np
@@ -24,16 +24,15 @@ from abics.mc_mpi import (
     RX_MPI_init,
     RefParams,
 )
-from abics.applications.latgas_abinitio_interface import default_observer, map2perflat
-from abics.applications.latgas_abinitio_interface.model_setup import (
-    dft_latgas,
-    ObserverParams,
-)
+from abics.applications.latgas_abinitio_interface import map2perflat
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.run_base_mpi import runner, runner_multistep
+from abics.applications.latgas_abinitio_interface.run_base_mpi import (
+    runner,
+    runner_multistep,
+)
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
@@ -42,6 +41,7 @@ from abics.applications.latgas_abinitio_interface.params import ALParams
 
 from pymatgen import Structure
 
+
 def main_impl(tomlfile):
     rxparams = RefParams.from_toml(tomlfile)
     nprocs_per_replica = rxparams.nprocs_per_replica
@@ -49,19 +49,21 @@ def main_impl(tomlfile):
     sample_frequency = rxparams.sample_frequency
     comm = RX_MPI_init(rxparams)
     alparams = ALParams.from_toml(tomlfile)
-    configparams = DFTConfigParams.from_toml(tomlfile) 
+    configparams = DFTConfigParams.from_toml(tomlfile)
 
-    if alparams.solver == 'vasp':
+    if alparams.solver == "vasp":
         solver = VASPSolver(alparams.path)
-    elif alparams.solver == 'qe':
-        parallel_level = alparams.properties.get('parallel_level', {})
+    elif alparams.solver == "qe":
+        parallel_level = alparams.properties.get("parallel_level", {})
         solver = QESolver(alparams.path, parallel_level=parallel_level)
-    elif alparams.solver == 'aenet':
-        solver = aenetSolver(alparams.path, alparams.ignore_species, alparams.solver_run_scheme)
-    elif alparams.solver == 'openmx':
+    elif alparams.solver == "aenet":
+        solver = aenetSolver(
+            alparams.path, alparams.ignore_species, alparams.solver_run_scheme
+        )
+    elif alparams.solver == "openmx":
         solver = OpenMXSolver(alparams.path)
     else:
-        print('unknown solver: {}'.format(alparams.solver))
+        print("unknown solver: {}".format(alparams.solver))
         sys.exit(1)
 
     # model setup
@@ -74,7 +76,7 @@ def main_impl(tomlfile):
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
             perturb=alparams.perturb,
-            solver_run_scheme=alparams.solver_run_scheme
+            solver_run_scheme=alparams.solver_run_scheme,
         )
     else:
         energy_calculator = runner_multistep(
@@ -84,24 +86,20 @@ def main_impl(tomlfile):
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
             perturb=alparams.perturb,
-            solver_run_scheme=alparams.solver_run_scheme
+            solver_run_scheme=alparams.solver_run_scheme,
         )
 
     myreplica = comm.Get_rank()
 
     # Find newest MC run
     i = 0
-    while True:
-        if os.path.exists(os.path.join("MC", str(i))):
-            i += 1
-        else:
-            break
-    MCdir = os.path.join(os.getcwd(), "MC{}".format(i))
+    while os.path.exists("MC{}".format(i)):
+        i += 1
+    MCdir = os.path.join(os.getcwd(), "MC{}".format(i-1))
     obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
-    energy_ref = obs[:,0]
-    i += 1
+    energy_ref = obs[:, 0]
     ALdir = os.path.join(os.getcwd(), "AL{}".format(i), str(myreplica))
-    os.makedirs(ALdir, exist_ok = False)
+    os.makedirs(ALdir, exist_ok=False)
     os.chdir(ALdir)
     energy_corrlist = []
     relax_max = []
@@ -109,22 +107,36 @@ def main_impl(tomlfile):
     perf_st = config.structure
     if alparams.ignore_species:
         ignore_structure = perf_st.copy()
-        remove_sp = [sp for sp in perf_st.symbol_set if sp not in alparams.ignore_species]
+        remove_sp = filter(
+            lambda sp: sp not in alparams.ignore_species, perf_st.symbol_set
+        )
         ignore_structure.remove_species(remove_sp)
 
     for i in range(0, nsteps, sample_frequency):
-        st_in = Structure.from_file(os.path.join(MCdir, str(myreplica), 'structure.{}.vasp'.format(i)))
+        # In st_in, used for aenet,
+        # (i)  "Ignore species" are omitted and should be added.
+        # (ii) "Vacancy element" is included and should be removed.
+        st_in = Structure.from_file(
+            os.path.join(MCdir, str(myreplica), "structure.{}.vasp".format(i))
+        )
+
+        # (i)
         st = map2perflat(perf_st, st_in)
+        # (ii)
         if alparams.vac_space_holder:
             st.remove_species(alparams.vac_space_holder)
         stbak = st.copy()
+
         energy, st_rel = energy_calculator.submit(st, os.path.join(ALdir, "output"))
+
+        # energy_calculator may return the structure w/o ignored structure
         if alparams.ignore_species:
             for site in ignore_structure:
                 st_rel.append(site.species_string, site.frac_coords)
         st_rel.to("POSCAR", "structure_rel.{}.vasp".format(i))
         energy_corrlist.append([energy_ref[i], energy])
         np.savetxt("energy_corr.dat", energy_corrlist)
+
         dmax = 0
         dmax_id = 0
         for j, site in enumerate(stbak):
@@ -138,6 +150,6 @@ def main_impl(tomlfile):
                 fi.write("{} \t {}\n".format(row[0], row[1]))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     main_impl(tomlfile)
