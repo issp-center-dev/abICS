@@ -79,6 +79,7 @@ class SamplerParams:
 
         return cls.from_dict(toml.load(fname))
 
+
 class RefParams:
     """Parameter set for reference calculations in active learning run
 
@@ -148,6 +149,7 @@ class RefParams:
         import toml
 
         return cls.from_dict(toml.load(fname))
+
 
 class ParallelRandomParams:
     """Parameter set for parallel random sampling
