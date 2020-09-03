@@ -1,4 +1,4 @@
-from abics.mc_mpi import RefParams
+from abics.replica_params import RefParams
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
 from abics.applications.latgas_abinitio_interface import map2perflat
