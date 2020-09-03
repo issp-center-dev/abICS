@@ -1,8 +1,23 @@
+from typing import List
+
 import numpy as np
 from pymatgen import Structure
 
-def naive_mapping(st0, st1):
-    # provide mapping, where st0[i] corresponds to st1[mapping[i]]
+
+def naive_mapping(st0: Structure, st1: Structure) -> List[int]:
+    """
+
+    Arguments
+    =========
+    st0: Structure
+    st1: Structure
+
+    Returns
+    =======
+    mapping: List[int]
+        mapping atoms from st0 to st1.
+        st0[i] corresponds to st1[mapping[i]]
+    """
     coords0 = st0.frac_coords
     coords1 = st1.frac_coords
     D = st0.lattice.get_all_distances(coords0, coords1)
@@ -11,6 +26,10 @@ def naive_mapping(st0, st1):
     mapping = cols[rows.argsort()]
     return mapping
 
+
+"""
+Testing
+"""
 if __name__ == "__main__":
     st0 = Structure.from_file("MgAl2O4.vasp")
     st1 = Structure.from_file("0/structure.0.vasp")
