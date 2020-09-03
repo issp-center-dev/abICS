@@ -37,6 +37,7 @@ from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
 from pymatgen import Structure
@@ -62,6 +63,8 @@ def main_impl(tomlfile):
         )
     elif alparams.solver == "openmx":
         solver = OpenMXSolver(alparams.path)
+    elif alparams.solver == "mock":
+        solver = MockSolver()
     else:
         print("unknown solver: {}".format(alparams.solver))
         sys.exit(1)
