@@ -1,7 +1,10 @@
 1. Modify the following paths and commands to the aenet executables in the `input_aenet.toml`
   - `path` in `[solver]`
+    - Path to aenet predictor
   - `path` in `[solverRef]`
+    - Path to energy calculator for making training dataset
   - `exe_command` in `[trainer]`
+    - aenet generator and aenet trainer
 2. Run `mpiexec -np 4 abics_activelearn input_aenet.toml` to calculate energies for existing configurations (samples)
   - At first time, `replicaRef.nsteps` configurations will be generated randomly
   - In this example, energies are calculated by using the aenet solver with pretrained potential.
