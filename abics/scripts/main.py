@@ -47,6 +47,7 @@ from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
@@ -127,6 +128,8 @@ def main_impl(tomlfile):
         )
     elif dftparams.solver == "openmx":
         solver = OpenMXSolver(dftparams.path)
+    elif dftparams.solver == "mock":
+        solver = MockSolver()
     else:
         print("unknown solver: {}".format(dftparams.solver))
         sys.exit(1)
