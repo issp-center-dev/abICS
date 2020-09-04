@@ -209,6 +209,10 @@ def main_impl(tomlfile):
                 fi.write("AL{}\n".format(ALstep))
 
 
-if __name__ == "__main__":
+def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     main_impl(tomlfile)
+
+
+if __name__ == "__main__":
+    main()
