@@ -106,6 +106,8 @@ class aenet_trainer:
             # Find epoch id with minimum test set RMSE
             testRMSE = epoch_dat_arr[:, 4]
             minID = np.argmin(testRMSE)
+            if minID == 0:
+                minID = np.argmin(testRMSE[1:]) + 1
             num_epoch = len(testRMSE)
             if minID < num_epoch - 10:  # this "10" is a heuristic
                 break
