@@ -706,7 +706,9 @@ class config:
         self.defect_sublattices = defect_sublattices
 
         assert num_sites == ntot_defects
-        self.set_latgas()
+        constraint_fullfilled = self.set_latgas()
+        if not constraint_fullfilled:
+            self.shuffle()
 
     def set_latgas(self, defect_sublattices=False):
         """
