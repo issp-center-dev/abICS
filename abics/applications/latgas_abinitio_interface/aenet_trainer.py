@@ -27,17 +27,27 @@ class aenet_trainer:
         self.is_trained = False
         self.generate_outputdir = None
 
-    def prepare(self):
+    def prepare(self, latgas_mode = True):
         # prepare XSF files for aenet
         os.makedirs("aenetXSF", exist_ok=True)
         os.chdir("aenetXSF")
-        for i, st in enumerate(self.structures):
-            xsf_string = aenet.to_XSF(st, write_force_zero=True)
-            xsf_string = (
-                "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
-            )
-            with open("structure.{}.xsf".format(i), "w") as fi:
-                fi.write(xsf_string)
+        if latgas_mode:
+            for i, st in enumerate(self.structures):
+                xsf_string = aenet.to_XSF(st, write_force_zero=False)
+                xsf_string = (
+                    "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
+                )
+                with open("structure.{}.xsf".format(i), "w") as fi:
+                    fi.write(xsf_string)
+        else:
+            for i, st in enumerate(self.structures):
+                xsf_string = aenet.to_XSF(st, write_force_zero=False)
+                xsf_string = (
+                    "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
+                )
+                with open("structure.{}.xsf".format(i), "w") as fi:
+                    fi.write(xsf_string)
+
         xsfdir = os.getcwd()
         os.chdir(pathlib.Path(os.getcwd()).parent)
         # prepare generate
