@@ -41,7 +41,10 @@ def main_impl(tomlfile):
     # specific to training
     rxparams = RefParams.from_toml(tomlfile)
     nreplicas = rxparams.nreplicas
-
+    nsteps = rxparams.nsteps
+    sample_frequency = rxparams.sample_frequency
+    sample_ids = list(range(0, nsteps, sample_frequency))
+    
     DFTparams = DFTParams.from_toml(tomlfile)
     base_input_dir = DFTparams.base_input_dir
 
@@ -79,8 +82,11 @@ def main_impl(tomlfile):
                 energies_ref = np.load("obs_save.npy")[:, 0]
             else:
                 energies_ref = np.loadtxt("energy_corr.dat")[:, 1]
+            structure_list = [finame for finame in os.listdir() if "structure" in finame]
+            step_ids = [int(st_fi.split(".")[1]) for st_fi in structure_list]
+            step_ids.sort()
             for i, energy in enumerate(energies_ref):
-                structure = Structure.from_file("structure.{}.vasp".format(i))
+                structure = Structure.from_file("structure.{}.vasp".format(step_ids[i]))
                 # map to perfect lattice
                 structure = map2perflat(perf_st, structure, vac_map)
                 if ignore_species:
