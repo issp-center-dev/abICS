@@ -20,7 +20,7 @@ def naive_mapping(st0: Structure, st1: Structure) -> List[int]:
     """
     coords0 = st0.frac_coords
     coords1 = st1.frac_coords
-    D = st0.lattice.get_all_distances(coords0, coords1)
+    D = st1.lattice.get_all_distances(coords0, coords1)
     rows = D.min(axis=1).argsort()
     cols = D.argmin(axis=1)[rows]
     mapping = cols[rows.argsort()]

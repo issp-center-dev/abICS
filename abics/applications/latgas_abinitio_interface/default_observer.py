@@ -77,3 +77,6 @@ class default_observer(observer_base):
         calc_state.config.structure.to(
             fmt="POSCAR", filename="structure." + str(self.lprintcount) + ".vasp"
         )
+        calc_state.config.structure_norel.to(
+            fmt="POSCAR", filename="structure_norel." + str(self.lprintcount) + ".vasp"
+        )

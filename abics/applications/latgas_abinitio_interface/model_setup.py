@@ -228,7 +228,7 @@ class dft_latgas(model):
             config.calc_history.append((energy, structure0.copy(), structure.copy()))
             if len(config.calc_history) == 25:
                 del config.calc_history[0:5]
-
+        config.structure_norel = structure0
         config.structure = structure
         return np.float64(energy)
 
@@ -254,6 +254,7 @@ class dft_latgas(model):
 
         # Back up structure and defect_sublattices
         structure0 = copy.deepcopy(config.structure)
+        structure_norel0 = copy.deepcopy(config.structure_norel)
         defect_sublattices0 = copy.deepcopy(config.defect_sublattices)
 
         while True:
@@ -309,12 +310,14 @@ class dft_latgas(model):
 
         # return old structure
         structure = config.structure
+        structure_norel = config.structure_norel
         config.structure = structure0
+        config.structure_norel = structure_norel0
         defect_sublattices = config.defect_sublattices
         config.defect_sublattices = defect_sublattices0
 
         # Simply pass new structure and latgas_rep  in dconfig to be used by newconfig():
-        dconfig = structure, defect_sublattices
+        dconfig = structure, structure_norel, defect_sublattices
         if e0 == float("inf"):
             dE = e1
         else:
@@ -338,7 +341,7 @@ class dft_latgas(model):
         config: config object
             New configuration
         """
-        config.structure, config.defect_sublattices = dconfig
+        config.structure, config.structure_norel, config.defect_sublattices = dconfig
         if self.l_update_basestruct:
             self.update_basestruct(config)
         return config
@@ -744,6 +747,86 @@ class config:
                     )
         return self.constraint_func(self.structure)
 
+    def dummy_structure(self):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        Structure where all atoms and vacancies are replaced by dummy atoms
+        """
+        dummy_structure = copy.deepcopy(self.base_structure)
+        for defect_sublattice in self.defect_sublattices:
+            latgas_rep = defect_sublattice.latgas_rep
+            assert len(latgas_rep) == len(defect_sublattice.site_centers_sc)
+            for isite in range(len(latgas_rep)):
+                grp_name = latgas_rep[isite][0]
+                orr = latgas_rep[isite][1]
+                group = defect_sublattice.group_dict[grp_name]
+                if group.natoms == 0:
+                    dummy_structure.append(
+                        "X",
+                        defect_sublattice.site_centers_sc[isite],
+                        properties={
+                            "seldyn": (True, True, True),
+                            "magnetization": (0, 0, 0),
+                        },
+                    )
+                for j in range(group.natoms):
+                    dummy_structure.append(
+                        "X",
+                        group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
+                        properties={
+                            "seldyn": group.relaxations[j, :],
+                            "magnetization": group.magnetizations[j],
+                        },
+                    )
+        return dummy_structure
+
+    def dummy_structure_sp(self, species_in):
+        """
+
+        Parameters
+        ----------
+        species (str): name of species for constructing dummy lattice
+
+        Returns
+        -------
+        Structure where all atoms and vacancies are replaced by dummy atoms
+        """
+        dummy_structure = copy.deepcopy(self.base_structure)
+        sp_remove = filter(lambda sp: sp != species_in, dummy_structure.symbol_set)
+        dummy_structure.remove_species(sp_remove)
+        for defect_sublattice in self.defect_sublattices:
+            latgas_rep = defect_sublattice.latgas_rep
+            assert len(latgas_rep) == len(defect_sublattice.site_centers_sc)
+            # find all species that can reside on this lattice
+            species_sublattice = set()
+            groups = defect_sublattice.group_dict.keys()
+            for grp_name in groups:
+                group = defect_sublattice.group_dict[grp_name]
+                if group.natoms > 1:
+                    print("dummy_structure_sp does not support multi-atom groups")
+                    sys.exit(1)
+                if group.natoms == 1:
+                    species_sublattice.add(group.species[0])
+            if species_in not in species_sublattice:
+                continue
+            for isite in range(len(latgas_rep)):
+                dummy_structure.append(
+                    "X",
+                    defect_sublattice.site_centers_sc[isite],
+                    properties={
+                        "seldyn": (True, True, True),
+                        "magnetization": (0, 0, 0),
+                    },
+                )
+                
+        return dummy_structure
+
+    
     def shuffle(self):
         for defect_sublattice in self.defect_sublattices:
             latgas_rep = defect_sublattice.latgas_rep

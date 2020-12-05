@@ -62,7 +62,7 @@ def main_impl(tomlfile):
     configparams = DFTConfigParams.from_toml(tomlfile)
 
     if alparams.solver == "vasp":
-        solver = VASPSolver(alparams.path)
+        solver = VASPSolver(alparams.path, alparams.ignore_species)
     elif alparams.solver == "qe":
         parallel_level = alparams.properties.get("parallel_level", {})
         solver = QESolver(alparams.path, parallel_level=parallel_level)
@@ -159,7 +159,7 @@ def main_impl(tomlfile):
         energy_corrlist = []
         relax_max = []
         config = defect_config(configparams)
-        perf_st = config.structure
+        perf_st = config.dummy_structure()
         if alparams.ignore_species:
             ignore_structure = perf_st.copy()
             remove_sp = filter(
@@ -177,6 +177,7 @@ def main_impl(tomlfile):
 
             # (i)
             st = map2perflat(perf_st, st_in)
+            st.remove_species(["X"])
             # (ii)
             if alparams.vac_space_holder:
                 st.remove_species(alparams.vac_space_holder)
