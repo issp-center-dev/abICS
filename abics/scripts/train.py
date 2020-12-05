@@ -57,7 +57,7 @@ def main_impl(tomlfile):
 
     configparams = DFTConfigParams.from_toml(tomlfile)
     config = defect_config(configparams)
-    perf_st = config.structure
+    perf_st = config.dummy_structure()
 
     if trainer_type != "aenet":
         print("Unknown trainer: ", trainer_type)
@@ -82,7 +82,7 @@ def main_impl(tomlfile):
                 energies_ref = np.load("obs_save.npy")[:, 0]
             else:
                 energies_ref = np.loadtxt("energy_corr.dat")[:, 1]
-            structure_list = [finame for finame in os.listdir() if "structure" in finame]
+            structure_list = [finame for finame in os.listdir() if "structure." in finame]
             step_ids = [int(st_fi.split(".")[1]) for st_fi in structure_list]
             step_ids.sort()
             for i, energy in enumerate(energies_ref):
@@ -91,6 +91,7 @@ def main_impl(tomlfile):
                 structure = map2perflat(perf_st, structure, vac_map)
                 if ignore_species:
                     structure.remove_species(ignore_species)
+                structure.remove_species(["X"])
                 structures.append(structure)
                 energies.append(energy)
             os.chdir(rootdir)
