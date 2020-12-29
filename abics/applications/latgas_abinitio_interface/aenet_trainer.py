@@ -91,7 +91,7 @@ class aenet_trainer:
             shutil.rmtree("train")
         shutil.copytree(self.train_inputdir, "train")
         os.chdir("train")
-        shutil.copyfile(
+        os.rename(
             os.path.join(self.generate_outputdir, "aenet.train"),
             os.path.join(os.getcwd(), "aenet.train"),
         )
