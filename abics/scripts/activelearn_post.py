@@ -111,15 +111,39 @@ def main_impl(tomlfile):
     rootdir = os.getcwd()
     if i == 0:  # Random sampling!
         if os.path.exists("AL0"):
+            if alparams.only_input:
+                if os.path.exists("ALloop.progress"):
+                    print(
+                        "It seems you've already run the first active learning step. You should train now."
+                    )
+                    sys.exit(1)
+                os.chdir("AL0")
+                # attempting post processing of ALed output
+                solver_output = solver.output
+                ndigits = len(str(nsteps // sample_frequency))
+                fmtstr = "input{:0>"+str(ndigits)+"d}"
+                energies = []
+                for i in range(nsteps // sample_frequency):
+                    energy, st = solver_output.get_results(os.path.join(str(myreplica),fmtstr.format(i)))
+                    st.to("POSCAR", os.path.join(str(myreplica),"structure.{}.vasp".format(i)))
+                    energies.append([energy])
+                np.save(os.path.join(str(myreplica),"obs_save.npy"), energies)
+                os.chdir(rootdir)
+                if myreplica == 0:
+                    with open("ALloop.progress", "a") as fi:
+                        fi.write("AL0\n")
+                sys.exit(0)
+
             print(
-                "It seems you've already run the first active learning step. You should train now."
+                "It seems you've already run the first active learning step." + \
+                "Check if it has completed normally. If it has, then you should train now."
             )
             sys.exit(1)
         model = dft_latgas(energy_calculator, save_history=False)
         configparams = DFTConfigParams.from_toml(tomlfile)
         config = defect_config(configparams)
         configs = [config] * nreplicas
-        if myreplica == 0:
+        if myreplica == 0 and not os.path.exists("AL0"):
             os.mkdir("AL0")
         comm.Barrier()
 
@@ -163,7 +187,20 @@ def main_impl(tomlfile):
         energy_ref = obs[:, 0]
         ALdir = os.path.join(os.getcwd(), "AL{}".format(i), str(myreplica))
         ALstep = i
-        os.makedirs(ALdir, exist_ok=False)
+        AL_post_step = True
+        if alparams.only_input:
+            if os.path.exists(ALdir):
+                AL_post_step = True
+                solver_output = solver.output
+            else:
+                os.makedirs(ALdir, exist_ok=False)
+                AL_post_step = False
+                solver_input = solver.input
+                solver_input.from_directory(alparams.base_input_dir[0])
+            ndigits = len(str(nsteps))
+            fmtstr = "input{:0>"+str(ndigits)+"d}"
+        elif not os.path.exists(ALdir):
+            os.makedirs(ALdir, exist_ok=False)
         os.chdir(ALdir)
         energy_corrlist = []
         relax_max = []
@@ -175,6 +212,8 @@ def main_impl(tomlfile):
                 lambda sp: sp not in alparams.ignore_species, perf_st.symbol_set
             )
             ignore_structure.remove_species(remove_sp)
+
+
 
         for i in range(0, nsteps, sample_frequency):
             # In st_in, used for aenet,
@@ -192,8 +231,17 @@ def main_impl(tomlfile):
                 st.remove_species(alparams.vac_space_holder)
             stbak = st.copy()
 
-            energy, st_rel = energy_calculator.submit(st, os.path.join(ALdir, "output"))
+            # Solver running step
+            if alparams.only_input and not AL_post_step:
+                solver_input.update_info_by_structure(st)
+                solver_input.write_input(fmtstr.format(i))
+                continue
+            if not alparams.only_input:
+                energy, st_rel = energy_calculator.submit(st, os.path.join(ALdir, "output"))
 
+            # Obtaining results 
+            if AL_post_step:
+                energy, st_rel = solver_output.get_results(fmtstr.format(i))
             # energy_calculator may return the structure w/o ignored structure
             if alparams.ignore_species:
                 for site in ignore_structure:
@@ -214,7 +262,7 @@ def main_impl(tomlfile):
                 for row in relax_max:
                     fi.write("{} \t {}\n".format(row[0], row[1]))
         os.chdir(rootdir)
-        if comm.Get_rank() == 0:
+        if comm.Get_rank() == 0 and AL_post_step:
             with open("ALloop.progress", "a") as fi:
                 fi.write("AL{}\n".format(ALstep))
 
