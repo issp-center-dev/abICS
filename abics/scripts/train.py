@@ -18,6 +18,7 @@ from abics.replica_params import RefParams
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
 from abics.applications.latgas_abinitio_interface import map2perflat
+from abics.applications.latgas_abinitio_interface.naive_matcher import naive_mapping
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -57,7 +58,8 @@ def main_impl(tomlfile):
 
     configparams = DFTConfigParams.from_toml(tomlfile)
     config = defect_config(configparams)
-    perf_st = config.dummy_structure()
+    species = config.structure.symbol_set
+    dummy_sts = {sp: config.dummy_structure_sp(sp) for sp in species}
 
     if trainer_type != "aenet":
         print("Unknown trainer: ", trainer_type)
@@ -87,12 +89,25 @@ def main_impl(tomlfile):
             step_ids.sort()
             for i, energy in enumerate(energies_ref):
                 structure = Structure.from_file("structure.{}.vasp".format(step_ids[i]))
-                # map to perfect lattice
-                structure = map2perflat(perf_st, structure, vac_map)
+                mapped_sts = []
+                for sp in species: #perform species by species mapping
+                    # prepare structure containing only one species
+                    sp_rm = filter(lambda s: s != sp, species)
+                    st_tmp = structure.copy()
+                    st_tmp.remove_species(sp_rm)
+                    # map to perfect lattice for this species
+                    st_tmp = map2perflat(dummy_sts[sp], st_tmp)
+                    st_tmp.remove_species(["X"])
+                    mapped_sts.append(st_tmp)
+                for sts in mapped_sts[1:]:
+                    for i in range(len(sts)):
+                        mapped_sts[0].append(
+                            sts[i].species_string,
+                            sts[i].frac_coords
+                        )
                 if ignore_species:
-                    structure.remove_species(ignore_species)
-                structure.remove_species(["X"])
-                structures.append(structure)
+                    mapped_sts[0].remove_species(ignore_species)
+                structures.append(mapped_sts[0])
                 energies.append(energy)
             os.chdir(rootdir)
 
