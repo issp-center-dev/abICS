@@ -104,6 +104,7 @@ class VASPSolver(SolverBase):
             if self.ignore_species is not None:
                 structure = structure.copy()
                 structure.remove_species(self.ignore_species)
+                structure.sort(key=lambda site: site.species_string)
             if "seldyn" in structure.site_properties.keys():
                 self.pos_info = Poscar(
                     structure=structure,
