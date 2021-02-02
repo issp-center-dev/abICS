@@ -119,7 +119,7 @@ class aenet_trainer:
             if minID == 0:
                 minID = np.argmin(testRMSE[1:]) + 1
             num_epoch = len(testRMSE)
-            if minID < num_epoch - 10:  # this "10" is a heuristic
+            if minID < num_epoch*0.7:  # this "0.7" is a heuristic
                 break
 
         print("Best fit at epoch ID ", minID)
