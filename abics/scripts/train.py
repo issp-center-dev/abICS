@@ -90,15 +90,20 @@ def main_impl(tomlfile):
             for i, energy in enumerate(energies_ref):
                 structure = Structure.from_file("structure.{}.vasp".format(step_ids[i]))
                 mapped_sts = []
+                mapping_success = True
                 for sp in species: #perform species by species mapping
                     # prepare structure containing only one species
                     sp_rm = filter(lambda s: s != sp, species)
                     st_tmp = structure.copy()
                     st_tmp.remove_species(sp_rm)
+                    num_sp = len(st_tmp)
                     # map to perfect lattice for this species
                     st_tmp = map2perflat(dummy_sts[sp], st_tmp)
                     st_tmp.remove_species(["X"])
                     mapped_sts.append(st_tmp)
+                    if num_sp != len(st_tmp):
+                        print("mapping failed for structure {} in replica {}".format(step_ids[i], rpl))
+                        mapping_success = False
                 for sts in mapped_sts[1:]:
                     for i in range(len(sts)):
                         mapped_sts[0].append(
@@ -107,8 +112,9 @@ def main_impl(tomlfile):
                         )
                 if ignore_species:
                     mapped_sts[0].remove_species(ignore_species)
-                structures.append(mapped_sts[0])
-                energies.append(energy)
+                if mapping_success:
+                    structures.append(mapped_sts[0])
+                    energies.append(energy)
             os.chdir(rootdir)
 
     if len(trainer_input_dirs) == 1:
