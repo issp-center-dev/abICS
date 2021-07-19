@@ -1,5 +1,5 @@
 # abICS
-ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and application) for Metropolice Monte Carlo.
+ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and application) for Metropolis Monte Carlo.
 
 ## Requirement
 
