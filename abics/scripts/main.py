@@ -184,14 +184,20 @@ def main_impl(tomlfile):
         if "train" not in last_li:
             print("You should activelearn before next MC sampling.")
             sys.exit(1)
-        # Make new directory and perform sampling there
-        if comm.Get_rank() == 0:
-            os.mkdir("MC{}".format(i))
-        comm.Barrier()
-        rootdir = os.getcwd()
-        os.chdir("MC{}".format(i))
-        ALrun = True
-        MCid = i
+        if Lreload:
+            rootdir = os.getcwd()
+            os.chdir("MC{}".format(i-1))
+            ALrun = True
+            MCid = i - 1
+        else:
+            # Make new directory and perform sampling there
+            if comm.Get_rank() == 0:
+                os.mkdir("MC{}".format(i))
+            comm.Barrier()
+            rootdir = os.getcwd()
+            os.chdir("MC{}".format(i))
+            ALrun = True
+            MCid = i
 
 
     if samplerparams.sampler == "RXMC":
