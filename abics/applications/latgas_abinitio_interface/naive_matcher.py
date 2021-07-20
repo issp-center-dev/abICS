@@ -1,7 +1,7 @@
 from typing import List
 
 import numpy as np
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 
 def naive_mapping(st0: Structure, st1: Structure) -> List[int]:
