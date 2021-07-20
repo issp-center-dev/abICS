@@ -1,0 +1,87 @@
+SYSTEM = spinel
+
+ Electronic minimisation
+   ENCUT  = 400 eV  ! energy cut-off for the calculation (optional)
+   #ENAUG  = 350.00 eV  ! energy cut-off for the augmentation charges
+
+#   NBANDS=36
+
+ Spin
+#   ISPIN = 2
+#   MAGMOM = 1 1 -1 -1
+#   ISTART = 1
+   ICHARG = 1
+   #NELMDL = -10
+   NELM = 200
+   NELMIN = 4
+ MIXING
+#   AMIN = 0.05
+   #BMIX = 0.0001
+#   LMAXMIX = 6
+   #IMIX = 1
+   #AMIX = 0.001
+   #BMIX = 0.0001
+   #ADDGRID=.TRUE.
+   MAXMIX=40
+   
+ Accuracy
+   PREC = Normal #Accurate
+   EDIFF = 1e-5
+
+ Smearing
+   ISMEAR = 0 # 
+   SIGMA = 0.05
+   LREAL = Auto
+   ALGO = Fast
+
+ Relaxation and MD
+   NSW = 100
+   EDIFFG = -0.04
+   IBRION = 1
+   POTIM = 0.3
+#   SMASS = -1
+#   NFREE = 20
+   #NELECT = 760
+   #LVTOT = True
+#   ISYM = 0
+   ISIF=3
+
+   #EMIN = -3
+   #EMAX = 15
+   NEDOS = 1000
+
+   #LPARD = .TRUE.
+   IBAND = 171 172 173 174 
+   KPUSE = 1 
+   LSEPB = .TRUE.
+   LSEPK = .TRUE.
+
+
+   #EFIELD =  0.005
+   #LDIPOL = .TRUE.
+   #IDIPOL= 3
+#   LDIPOL = .TRUE.
+#   IDIPOL = 3
+#   DIPOL = 0.0 0.0 0.5
+
+
+   LVTOT = .FALSE.
+   LVHAR = .FALSE.
+   #DEFERMI = 0.6
+   #OPALR = 0.3 0.72
+   NCORE = 8
+#   KPAR = 3
+
+
+   LWAVE=.FALSE.
+   LCHARG=.FALSE.
+#   LORBIT=10
+#   LDAU = .TRUE.
+#   LDAUTYPE = 2
+#   LDAUL = 1
+#   LDAUU = 5
+#   LDAUJ = 0
+#   LUSE_VDW = .TRUE.
+#   AGGAC = 0.0000
+#   GGA = RE
+#LDAUU = 0
