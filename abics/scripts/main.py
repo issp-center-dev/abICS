@@ -15,7 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 import copy
-import sys
+import sys,os
 
 from mpi4py import MPI
 import numpy as np
@@ -47,6 +47,7 @@ from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
@@ -127,6 +128,8 @@ def main_impl(tomlfile):
         )
     elif dftparams.solver == "openmx":
         solver = OpenMXSolver(dftparams.path)
+    elif dftparams.solver == "mock":
+        solver = MockSolver()
     else:
         print("unknown solver: {}".format(dftparams.solver))
         sys.exit(1)
@@ -167,6 +170,35 @@ def main_impl(tomlfile):
     configs = [spinel_config] * nreplicas
 
     obsparams = ObserverParams.from_toml(tomlfile)
+
+    # Check if we are running in active learning directory
+    ALrun = False
+    if "train" in os.listdir():
+        # Check how many AL iterations have been performed
+        i = 0
+        while os.path.exists("MC{}".format(i)):
+            i += 1
+        comm.Barrier()
+        with open("ALloop.progress", "r") as fi:
+            last_li = fi.readlines(-1)[-1]
+        if "train" not in last_li:
+            print("You should activelearn before next MC sampling.")
+            sys.exit(1)
+        if Lreload:
+            rootdir = os.getcwd()
+            os.chdir("MC{}".format(i-1))
+            ALrun = True
+            MCid = i - 1
+        else:
+            # Make new directory and perform sampling there
+            if comm.Get_rank() == 0:
+                os.mkdir("MC{}".format(i))
+            comm.Barrier()
+            rootdir = os.getcwd()
+            os.chdir("MC{}".format(i))
+            ALrun = True
+            MCid = i
+
 
     if samplerparams.sampler == "RXMC":
         # RXMC calculation
@@ -216,8 +248,16 @@ def main_impl(tomlfile):
 
         if comm.Get_rank() == 0:
             print(obs)
-
+    if ALrun:
+        os.chdir(rootdir)
+        if comm.Get_rank() == 0:
+            with open("ALloop.progress", "a") as fi:
+                fi.write("MC{}\n".format(MCid))
 
 def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     main_impl(tomlfile)
+
+
+if __name__ == "__main__":
+    main()

@@ -42,7 +42,7 @@ class VASPSolver(SolverBase):
         Output manager
     """
 
-    def __init__(self, path_to_solver):
+    def __init__(self, path_to_solver, ignore_species=None):
         """
         Initialize the solver.
 
@@ -53,7 +53,7 @@ class VASPSolver(SolverBase):
         """
         super(VASPSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = VASPSolver.Input()
+        self.input = VASPSolver.Input(ignore_species)
         self.output = VASPSolver.Output()
 
     def name(self):
@@ -71,9 +71,10 @@ class VASPSolver(SolverBase):
             Atom positions
         """
 
-        def __init__(self):
+        def __init__(self, ignore_species):
             self.base_info = None
             self.pos_info = None
+            self.ignore_species = ignore_species
 
         def from_directory(self, base_input_dir):
             """
@@ -100,6 +101,10 @@ class VASPSolver(SolverBase):
             structure : pymatgen.Structure
                 Atomic structure
             """
+            if self.ignore_species is not None:
+                structure = structure.copy()
+                structure.remove_species(self.ignore_species)
+                structure.sort(key=lambda site: site.species_string)
             if "seldyn" in structure.site_properties.keys():
                 self.pos_info = Poscar(
                     structure=structure,
