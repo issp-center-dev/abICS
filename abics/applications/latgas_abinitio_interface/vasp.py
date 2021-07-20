@@ -22,8 +22,10 @@ To deal with VASP
 from .base_solver import SolverBase
 from collections import namedtuple
 from pymatgen.io.vasp.inputs import Poscar, VaspInput
-from pymatgen.apps.borg.hive import SimpleVaspToComputedEntryDrone
-from pymatgen.apps.borg.queen import BorgQueen
+from pymatgen.io.vasp.outputs import Oszicar
+from pymatgen.core import Structure
+#from pymatgen.apps.borg.hive import SimpleVaspToComputedEntryDrone
+#from pymatgen.apps.borg.queen import BorgQueen
 import numpy as np
 import os.path
 
@@ -182,9 +184,9 @@ class VASPSolver(SolverBase):
         Output manager.
         """
 
-        def __init__(self):
-            self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
-            self.queen = BorgQueen(self.drone)
+        #def __init__(self):
+        #    self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
+        #    self.queen = BorgQueen(self.drone)
 
         def get_results(self, workdir):
             """
@@ -204,9 +206,12 @@ class VASPSolver(SolverBase):
             """
             # Read results from files in output_dir and calculate values
             Phys = namedtuple("PhysVaules", ("energy", "structure"))
-            self.queen.serial_assimilate(workdir)
-            results = self.queen.get_data()[-1]
-            return Phys(np.float64(results.energy), results.structure)
+            #self.queen.serial_assimilate(workdir)
+            energy = Oszicar(os.path.join(workdir, "OSZICAR")).final_energy
+            structure = Structure.from_file(os.path.join(workdir, "CONTCAR"))
+            #results = self.queen.get_data()[-1]
+            #return Phys(np.float64(results.energy), results.structure)
+            return Phys(np.float64(energy), structure)
 
     def solver_run_schemes(self):
         return ("mpi_spawn_ready",)

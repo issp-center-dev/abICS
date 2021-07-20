@@ -27,7 +27,7 @@ import os.path
 
 import numpy as np
 import scipy.constants as spc
-from pymatgen import Structure
+from pymatgen.core import Structure
 from qe_tools.parsers import PwInputFile
 
 from .base_solver import SolverBase
