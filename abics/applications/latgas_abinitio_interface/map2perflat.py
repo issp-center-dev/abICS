@@ -1,7 +1,7 @@
 # from mpi4py import MPI
 import numpy as np
 from typing import Dict
-from pymatgen import Structure
+from pymatgen.core import Structure
 from abics.applications.latgas_abinitio_interface.naive_matcher import naive_mapping
 
 
