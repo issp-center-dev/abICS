@@ -80,6 +80,77 @@ class SamplerParams:
         return cls.from_dict(toml.load(fname))
 
 
+class RefParams:
+    """Parameter set for reference calculations in active learning run
+
+    Attributes
+    ----------
+    nreplicas : int
+        The number of replicas
+    nprocs_per_replica : int
+        The number of processes which a replica uses
+    nsteps : int
+        The number of MC steps
+    sample_frequency :
+        The number of MC steps between measurements observables
+    reload : bool
+        Whether to restart simulation or not
+    """
+
+    def __init__(self):
+        self.nreplicas = None
+        self.nprocs_per_replica = 1
+        self.nsteps = None
+        self.sample_frequency = 1
+        self.print_frequency = 1
+        self.reload = False
+        self.seed = 0
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Read information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for parallel random sampling
+
+        Returns
+        -------
+        params: DFTParams object
+            self
+        """
+        if "replicaRef" in d:
+            d = d["replicaRef"]
+        params = cls()
+        params.nreplicas = d["nreplicas"]
+        params.nprocs_per_replica = d["nprocs_per_replica"]
+        params.nsteps = d["nsteps"]
+        params.sample_frequency = d.get("sample_frequency", 1)
+        params.reload = d.get("reload", False)
+        return params
+
+    @classmethod
+    def from_toml(cls, fname):
+        """
+        Read information from toml file
+
+        Parameters
+        ----------
+        f: str
+            The name of input toml File
+
+        Returns
+        -------
+        DFTParams: DFTParams object
+            self
+        """
+        import toml
+
+        return cls.from_dict(toml.load(fname))
+
+
 class ParallelRandomParams:
     """Parameter set for parallel random sampling
 

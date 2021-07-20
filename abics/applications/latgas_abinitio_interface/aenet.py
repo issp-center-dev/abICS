@@ -49,6 +49,12 @@ def to_XSF(structure, write_force_zero=False):
     app("PRIMCOORD")
     app(" %d 1" % len(cart_coords))
     species = structure.species
+    site_properties = structure.site_properties
+    if 'forces' not in site_properties.keys():
+        write_force_zero = True
+    else:
+        forces = site_properties['forces']
+
     if write_force_zero:
         for a in range(len(cart_coords)):
             app(
@@ -58,7 +64,10 @@ def to_XSF(structure, write_force_zero=False):
             )
     else:
         for a in range(len(cart_coords)):
-            app(str(species[a]) + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a]))
+            app(str(species[a]) 
+                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
+                + " %20.14f %20.14f %20.14f" % tuple(forces[a])
+            )
 
     return "\n".join(lines)
 
