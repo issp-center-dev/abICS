@@ -1,7 +1,7 @@
 Cython
 mpi4py
 numpy
-pymatgen
+pymatgen==2019.12.3
 qe-tools
 scipy
 toml
