@@ -84,14 +84,12 @@ pythonモジュールは ``abics`` ディレクトリ以下に一式格納され
 インストール
 .................
 
-- wheelファイルを作成します. ::
+- ``pip3 install`` の引数に abICS のルートディレクトリを渡すことでインストール可能です ::
 
-   $ ./make_wheel.sh
+   $ pip3 install ./abICS
 
-- 作成されたファイルを使用して以下のようにインストールします. ::
 
-   $ pip3 install dist/abics-*.whl
+アンインストール
+~~~~~~~~~~~~~~~~~
 
-- すでにより新しいバージョン番号の abICS がインストールされているときに再インストールする場合は以下のようにします。 ::
-
-   $ pip3 install --no-deps --force-reinstall dist/abics-*.whl
+- ``pip3 uninstall abics`` でアンインストールできます.
