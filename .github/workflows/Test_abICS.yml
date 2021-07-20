@@ -27,7 +27,5 @@ jobs:
         python -m pip install Cython
     - name: Install abICS
       run: python -m pip install .
-      working-directory: ${{runner.workspace}}
     - name: Test
       run: python -m unittest
-      working-directory: ${{runner.workspace}}
