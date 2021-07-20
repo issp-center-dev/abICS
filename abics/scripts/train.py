@@ -54,8 +54,7 @@ def main_impl(tomlfile):
     trainer_commands = trainerparams.exe_command
     trainer_type = trainerparams.solver
     trainer_input_dirs = trainerparams.base_input_dir
-    vac_map = trainerparams.vac_map
-
+    
     configparams = DFTConfigParams.from_toml(tomlfile)
     config = defect_config(configparams)
     species = config.structure.symbol_set
@@ -72,11 +71,43 @@ def main_impl(tomlfile):
     energies = []
 
     # val_map is a list of list [[sp0, vac0], [sp1, vac1], ...]
-    if vac_map:
-        vac_map = {specie: vacancy for specie, vacancy in vac_map}
-    else:
-        vac_map = {}
+    #if vac_map:
+    #    vac_map = {specie: vacancy for specie, vacancy in vac_map}
+    #else:
+    #    vac_map = {}
 
+    # we first group species that share sublattices together
+    import networkx as nx
+    import itertools
+    G = nx.Graph()
+    G.add_nodes_from(species)
+    for sublattice in config.defect_sublattices:
+        groups = sublattice.groups
+        sp_list = []
+        for group in groups:
+            sp_list.extend(group.species)
+        for pair in itertools.combinations(sp_list, 2):
+            G.add_edge(*pair)
+    sp_groups = nx.connected_components(G)
+    #print(list(sp_groups))
+    #sys.exit(0)
+    dummy_sts_share = []
+    for c in nx.connected_components(G):
+        # merge dummy structures for species that share sublattices
+        sps = list(c)
+
+        coords = np.concatenate([dummy_sts[sp].frac_coords for sp in sps], axis = 0)
+        st_tmp = Structure(dummy_sts[sps[0]].lattice,
+                           species=["X"]*coords.shape[0],
+                           coords = coords,
+        )
+        st_tmp.merge_sites(mode="del")
+        dummy_sts_share.append([st_tmp,sps])
+
+    #for i,st in enumerate(dummy_sts_share):
+    #    st.to("POSCAR","{}.dummy.vasp".format(i))
+
+    
     for dir in ALdirs:
         for rpl in range(nreplicas):
             os.chdir(os.path.join(dir, str(rpl)))
@@ -91,19 +122,20 @@ def main_impl(tomlfile):
                 structure = Structure.from_file("structure.{}.vasp".format(step_ids[i]))
                 mapped_sts = []
                 mapping_success = True
-                for sp in species: #perform species by species mapping
-                    # prepare structure containing only one species
-                    sp_rm = filter(lambda s: s != sp, species)
+                for dummy_st, specs in dummy_sts_share:
+                    # perform sublattice by sublattice mapping
+                    sp_rm = filter(lambda s: s not in specs, species)
                     st_tmp = structure.copy()
                     st_tmp.remove_species(sp_rm)
                     num_sp = len(st_tmp)
                     # map to perfect lattice for this species
-                    st_tmp = map2perflat(dummy_sts[sp], st_tmp)
+                    st_tmp = map2perflat(dummy_st, st_tmp)
                     st_tmp.remove_species(["X"])
                     mapped_sts.append(st_tmp)
                     if num_sp != len(st_tmp):
                         print("mapping failed for structure {} in replica {}".format(step_ids[i], rpl))
-                        mapping_success = False
+                        mapping_success = False                            
+                            
                 for sts in mapped_sts[1:]:
                     for i in range(len(sts)):
                         mapped_sts[0].append(
