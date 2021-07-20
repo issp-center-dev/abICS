@@ -3,11 +3,7 @@
 
 name: Test for abICS
 
-on:
-  push:
-    branches: [ master, develop ]
-  pull_request:
-    branches: [ master, develop ]
+on: [push]
 
 jobs:
   build:
