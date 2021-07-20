@@ -20,7 +20,7 @@ import numpy as np
 import os
 import scipy.constants as spc
 import subprocess
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 hartree2eV = spc.value("Hartree energy in eV")
 Bohr2AA = spc.value("Bohr radius") * 1e10
