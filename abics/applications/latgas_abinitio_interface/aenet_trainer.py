@@ -133,7 +133,10 @@ class aenet_trainer:
             assert self.is_trained
         except AssertionError as e:
             e.args += "you have to train before getting results!"
-        os.makedirs(baseinput_dir, exist_ok=True)
+        if os.path.exists(baseinput_dir):
+            shutil.rmtree(baseinput_dir)
+
+        os.makedirs(baseinput_dir, exist_ok=False)
         shutil.copyfile(
             os.path.join(self.predict_inputdir, "predict.in"),
             os.path.join(baseinput_dir, "predict.in"),
@@ -143,5 +146,10 @@ class aenet_trainer:
         for fi in NNPfiles:
             shutil.copyfile(
                 os.path.join(self.train_outputdir, fi),
+                os.path.join(baseinput_dir, fi),
+            )
+            # os.rename is guaranteed to be atomic
+            os.rename(
+                os.path.join(baseinput_dir, fi),
                 os.path.join(baseinput_dir, fi[:-6]),
             )
