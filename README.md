@@ -3,7 +3,7 @@ ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and 
 
 ## Requirement
 
-- python3 (>=3.6)
+- python3 (>=3.7)
 - numpy
 - scipy
 - toml (for parsing input files)

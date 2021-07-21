@@ -3,7 +3,7 @@
 Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~
 
-abICS requires Python3 (>=3.6).
+abICS requires Python3 (>=3.7).
 
 The following Python packages are required.
 
