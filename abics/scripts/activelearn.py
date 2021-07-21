@@ -319,12 +319,16 @@ def main_impl(tomlfile):
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
                         fi.write("AL{}\n".format(ALstep))
+                        fi.flush()
+                        os.fsync(fi.fileno())
                 sys.exit(0)
             else:
                 comm.Barrier()
                 if myreplica == 0:
                     with open(os.path.join(os.path.pardir, "baseinput.progress"), "a") as fi:
                         fi.write(str(runstep) + "\n")
+                        fi.flush()
+                        os.fsync(fi.fileno())
                 sys.exit(0)
 
 
@@ -365,6 +369,8 @@ def main_impl(tomlfile):
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
                 with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
                     fi.write("\n".join(rundir_list))
+                    fi.flush()
+                    os.fsync(fi.fileno())
 
 def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
