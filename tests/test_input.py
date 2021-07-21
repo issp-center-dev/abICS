@@ -20,7 +20,7 @@ import unittest
 import numpy as np
 from numpy.linalg import inv
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 from abics.mc_mpi import RXParams
 from abics.applications.latgas_abinitio_interface.model_setup import group, perturb_structure

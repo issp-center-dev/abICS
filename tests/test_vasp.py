@@ -20,7 +20,7 @@ import unittest
 
 import numpy as np
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.io.vasp.inputs import VaspInput
 
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
