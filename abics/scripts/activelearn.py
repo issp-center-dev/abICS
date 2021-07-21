@@ -49,6 +49,7 @@ from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
+from abics.util import exists_on_all_nodes
 from pymatgen import Structure
 
 
@@ -87,15 +88,16 @@ def main_impl(tomlfile):
     
     # Find newest MC run
     i = 0
-    while os.path.exists("MC{}".format(i)):
+    while exists_on_all_nodes(comm, "MC{}".format(i)):
         i += 1
 
     rootdir = os.getcwd()
     if i == 0:  # Random sampling!
         ndigits = len(str(nsteps//sample_frequency))
         fmtstr = "input{:0>"+str(ndigits)+"d}"
-        if os.path.exists("AL0"):
-            if os.path.exists("ALloop.progress"):
+
+        if exists_on_all_nodes(comm, "AL0"):
+            if exists_on_all_nodes(comm, "ALloop.progress"):
                 print(
                     "It seems you've already run the first active learning step. You should train now."
                 )
@@ -103,7 +105,7 @@ def main_impl(tomlfile):
             os.chdir("AL0")
 
             # attempting post processing of ALed output
-            if not os.path.exists("baseinput.progress"): # 1st step
+            if not exists_on_all_nodes(comm, "baseinput.progress"): # 1st step
                 runstep = 0
             else:
                 with open("baseinput.progress", "r") as fi:
@@ -185,7 +187,11 @@ def main_impl(tomlfile):
             comm.Barrier()
             if myreplica == 0:
                 os.mkdir("AL0")
-            comm.Barrier()
+
+            # Wait until the new directory is visible from all ranks
+            if not exists_on_all_nodes(comm, "AL0"):
+                print("Directory creation failed")
+                sys.exit(1)
 
             os.chdir("AL0")
             rundir_list = []
@@ -230,10 +236,10 @@ def main_impl(tomlfile):
             ignore_structure.remove_species(remove_sp)
 
         
-        if os.path.exists(ALdir): # We're going to read solver results
+        if exists_on_all_nodes(comm, ALdir): # We're going to read solver results
             os.chdir(ALdir)
 
-            if not os.path.exists(os.path.join(os.path.pardir, "baseinput.progress")):
+            if not exists_on_all_nodes(comm, os.path.join(os.path.pardir, "baseinput.progress")):
                 # 1st runner step
                 runstep = 0
             else:

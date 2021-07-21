@@ -50,6 +50,7 @@ from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
+from abics.util import exists_on_all_nodes
 
 def main_impl(tomlfile, ALrun=False):
     samplerparams = SamplerParams.from_toml(tomlfile)
@@ -176,9 +177,8 @@ def main_impl(tomlfile, ALrun=False):
         if "train" in os.listdir():
             # Check how many AL iterations have been performed
             i = 0
-            while os.path.exists("MC{}".format(i)):
+            while exists_on_all_nodes(comm, "MC{}".format(i)):
                 i += 1
-            comm.Barrier()
             with open("ALloop.progress", "r") as fi:
                 last_li = fi.readlines(-1)[-1]
             if "train" not in last_li:
