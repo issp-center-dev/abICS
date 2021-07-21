@@ -174,6 +174,8 @@ def main_impl(tomlfile):
     trainer.new_baseinput(base_input_dir[0])
     with open("ALloop.progress", "a") as fi:
         fi.write("train\n")
+        fi.flush()
+        os.fsync(fi.fileno())
 
 
 def main():

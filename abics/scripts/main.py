@@ -254,6 +254,8 @@ def main_impl(tomlfile, ALrun=False):
         if comm.Get_rank() == 0:
             with open("ALloop.progress", "a") as fi:
                 fi.write("MC{}\n".format(MCid))
+                fi.flush()
+                os.fsync(fi.fileno())
 
 def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
