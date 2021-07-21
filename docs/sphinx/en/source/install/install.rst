@@ -28,11 +28,11 @@ Install from PyPI
 
 Since abICS is registered in PyPI users can install abICS easily::
 
-   $ pip3 install abICS
+   $ pip3 install abics
 
 If you want to install abICS locally because, for example, you have no permission to write files, the following command::
 
-   $ pip3 install --user abICS
+   $ pip3 install --user abics
 
 installs abICS below a directory ``~/.local`` .
 If you want to install abICS into another directory, use the ``--prefix=DIRECTORY`` option (``DIRECTORY`` is the path to the directory where abICS will be installed) .
@@ -85,14 +85,11 @@ A set of python modules are located in the ``abics`` directory.
 Install
 ...........
 
-- Make wheel file by typing following command::
+- Pass the location of the root directory of abICS as an argument of ``pip3 install`` :
 
-   $ ./make_wheel.sh
+   $ pip3 install ./abICS
 
-- Install using the created file as follows::
+Uninstall
+~~~~~~~~~~
 
-   $ pip install dist/abics-*.whl
-
-- Or upgrade as the following::
-
-   $ pip install --no-deps --force-reinstall dist/abics-*.whl
+- ``pip3 uninstall abics`` uninstalls abics from your machine.

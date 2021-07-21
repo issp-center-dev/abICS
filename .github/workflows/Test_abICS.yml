@@ -8,10 +8,11 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.7, 3.8]
+      fail-fast: false
 
     steps:
     - uses: actions/checkout@v2
@@ -22,9 +23,10 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        python -m pip install setuptools wheel
         sudo apt-get install -y libopenmpi-dev openmpi-bin
         python -m pip install Cython
-        pip install -r requirements.txt
+    - name: Install abICS
+      run: python -m pip install .
     - name: Test
-      run: 
-        python -m unittest
+      run: python -m unittest
