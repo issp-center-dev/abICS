@@ -11,14 +11,13 @@ module purge
 module load intel_compiler/2019.5.281
 module load openmpi/4.0.4-intel-2019.5.281
 
-sleep 30
-for i in {1..3} # 3 runs set in baseinput
+for i in {1..2} # 2 runs set in baseinput
 do
-    srun -n 15  python /home/k0306/k030600/git/abICS/abics/scripts/activelearn_post.py input_aenet.toml >> active.out
+    srun -n 15  abics_activelearn input_aenet.toml >> active.out
     sh parallel_run.sh
 done
 
-srun -n 15 python /home/k0306/k030600/git/abICS/abics/scripts/activelearn_post.py input_aenet.toml >> active.out
+srun -n 15 abics_activelearn input_aenet.toml >> active.out
 
 #train
 module purge

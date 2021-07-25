@@ -49,6 +49,7 @@ from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
+from abics.util import exists_on_all_nodes
 from pymatgen import Structure
 
 
@@ -87,15 +88,16 @@ def main_impl(tomlfile):
     
     # Find newest MC run
     i = 0
-    while os.path.exists("MC{}".format(i)):
+    while exists_on_all_nodes(comm, "MC{}".format(i)):
         i += 1
 
     rootdir = os.getcwd()
     if i == 0:  # Random sampling!
         ndigits = len(str(nsteps//sample_frequency))
         fmtstr = "input{:0>"+str(ndigits)+"d}"
-        if os.path.exists("AL0"):
-            if os.path.exists("ALloop.progress"):
+
+        if exists_on_all_nodes(comm, "AL0"):
+            if exists_on_all_nodes(comm, "ALloop.progress"):
                 print(
                     "It seems you've already run the first active learning step. You should train now."
                 )
@@ -103,7 +105,7 @@ def main_impl(tomlfile):
             os.chdir("AL0")
 
             # attempting post processing of ALed output
-            if not os.path.exists("baseinput.progress"): # 1st step
+            if not exists_on_all_nodes(comm, "baseinput.progress"): # 1st step
                 runstep = 0
             else:
                 with open("baseinput.progress", "r") as fi:
@@ -125,8 +127,9 @@ def main_impl(tomlfile):
                     lambda sp: sp not in alparams.ignore_species, ignore_structure.symbol_set
                 )
                 ignore_structure.remove_species(remove_sp)
+            rundir_list = []
             for i in range(nsteps // sample_frequency):
-                energy, st = solver_output.get_results(os.path.join(str(myreplica),fmtstr.format(i)))
+                energy, st = solver_output.get_results(os.path.join(str(myreplica),fmtstr.format(i),"baseinput{}".format(runstep)))
                 if finalrun:
                     # energy_calculator may return the structure w/o ignored structure
                     if alparams.ignore_species:
@@ -137,8 +140,21 @@ def main_impl(tomlfile):
                     energies.append([energy])
                 else:
                     solver_input.update_info_by_structure(st)
-                    solver_input.write_input(os.path.join(str(myreplica),fmtstr.format(i)))
-
+                    solver_input.write_input(
+                        os.path.join(str(myreplica),fmtstr.format(i),"baseinput{}".format(runstep+1))
+                    )
+                    rundir_list.append(
+                        os.path.abspath(
+                            os.path.join(str(myreplica),fmtstr.format(i),"baseinput{}".format(runstep+1))
+                        )
+                    )
+            rundir_list = comm.gather(rundir_list, root = 0)
+            if myreplica == 0 and not finalrun:
+                rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
+                with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
+                    fi.write("\n".join(rundir_list))
+                    fi.flush()
+                    os.fsync(fi.fileno())
             if finalrun:
                 np.save(os.path.join(str(myreplica),"obs_save.npy"), energies)
                 os.chdir(rootdir)
@@ -171,7 +187,11 @@ def main_impl(tomlfile):
             comm.Barrier()
             if myreplica == 0:
                 os.mkdir("AL0")
-            comm.Barrier()
+
+            # Wait until the new directory is visible from all ranks
+            if not exists_on_all_nodes(comm, "AL0"):
+                print("Directory creation failed")
+                sys.exit(1)
 
             os.chdir("AL0")
             rundir_list = []
@@ -182,8 +202,8 @@ def main_impl(tomlfile):
                 perturb_structure(config.structure,perturb)
                 config.structure.sort(key=lambda site: site.species_string)
                 solver_input.update_info_by_structure(config.structure)
-                solver_input.write_input(os.path.join(str(myreplica),fmtstr.format(i)))
-                rundir_list.append(os.path.abspath(os.path.join(str(myreplica),fmtstr.format(i))))
+                solver_input.write_input(os.path.join(str(myreplica),fmtstr.format(i),"baseinput0"))
+                rundir_list.append(os.path.abspath(os.path.join(str(myreplica),fmtstr.format(i),"baseinput0")))
             rundir_list = comm.gather(rundir_list, root = 0)
             if myreplica == 0:
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
@@ -216,10 +236,10 @@ def main_impl(tomlfile):
             ignore_structure.remove_species(remove_sp)
 
         
-        if os.path.exists(ALdir): # We're going to read solver results
+        if exists_on_all_nodes(comm, ALdir): # We're going to read solver results
             os.chdir(ALdir)
 
-            if not os.path.exists(os.path.join(os.path.pardir, "baseinput.progress")):
+            if not exists_on_all_nodes(comm, os.path.join(os.path.pardir, "baseinput.progress")):
                 # 1st runner step
                 runstep = 0
             else:
@@ -239,7 +259,9 @@ def main_impl(tomlfile):
             relax_max = []
             rundir_list = []
             for i in range(0, nsteps,  sample_frequency):
-                energy, st_rel = solver_output.get_results(fmtstr.format(i))
+                energy, st_rel = solver_output.get_results(
+                    os.path.join(fmtstr.format(i), "baseinput{}".format(runstep))
+                )
                 if finalrun:
                     # Get original structure for calculating relaxation magnitude
                     # In st_in, used for aenet,
@@ -277,8 +299,22 @@ def main_impl(tomlfile):
 
                 else:
                     solver_input.update_info_by_structure(st_rel)
-                    solver_input.write_input(fmtstr.format(i))
+                    solver_input.write_input(os.path.join(fmtstr.format(i),"baseinput{}".format(runstep+1)))
+                    rundir_list.append(
+                        os.path.abspath(
+                            os.path.join(fmtstr.format(i),"baseinput{}".format(runstep+1)
+                            )
+                        )
+                    )
+            rundir_list = comm.gather(rundir_list, root = 0)
+            if myreplica == 0 and not finalrun:
+                rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
+                with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
+                    fi.write("\n".join(rundir_list))
+                    fi.flush()
+                    os.fsync(fi.fileno())
 
+                        
             if finalrun:
                 np.savetxt("energy_corr.dat", energy_corrlist)
                 with open("relax_max.dat", "w") as fi:
@@ -289,12 +325,16 @@ def main_impl(tomlfile):
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
                         fi.write("AL{}\n".format(ALstep))
+                        fi.flush()
+                        os.fsync(fi.fileno())
                 sys.exit(0)
             else:
                 comm.Barrier()
                 if myreplica == 0:
                     with open(os.path.join(os.path.pardir, "baseinput.progress"), "a") as fi:
                         fi.write(str(runstep) + "\n")
+                        fi.flush()
+                        os.fsync(fi.fileno())
                 sys.exit(0)
 
 
@@ -320,13 +360,23 @@ def main_impl(tomlfile):
                     st.remove_species(alparams.vac_space_holder)
                 perturb_structure(st,perturb)
                 solver_input.update_info_by_structure(st)
-                solver_input.write_input(fmtstr.format(i))
-                rundir_list.append(os.path.abspath(fmtstr.format(i)))
+                solver_input.write_input(
+                    os.path.join(fmtstr.format(i), "baseinput0")
+                )
+                rundir_list.append(
+                    os.path.abspath(
+                        os.path.join(
+                            fmtstr.format(i), "baseinput0"
+                        )
+                    )
+                )
             rundir_list = comm.gather(rundir_list, root = 0)
             if myreplica == 0:
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
                 with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
                     fi.write("\n".join(rundir_list))
+                    fi.flush()
+                    os.fsync(fi.fileno())
 
 def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"

@@ -25,13 +25,13 @@ ignore_species = ["O"]
 
 [solverRef]
 type = 'vasp'
-path = '/home/k0306/k030600/git/aenet/bin/predict.x-2.0.4-ifort_serial'
-base_input_dir = ['./baseinput_ref', './baseinput_ref', './baseinput_ref'] #, './baseinput_ref']
+path = ''
+base_input_dir = ['./baseinput_ref', './baseinput_ref']
 perturb = 0.05
-run_scheme = 'subprocess'
-only_input = true
+#run_scheme = 'subprocess'
+#only_input = true
 ignore_species = []
-vac_convert = []
+#vac_convert = []
 
 [trainer]
 type = 'aenet'

@@ -42,6 +42,7 @@ class TestVASP(unittest.TestCase):
         self.workdir = os.path.join(self.rootdir, "res", "vasp")
 
     def test_get_results(self):
+        os.utime(os.path.join(self.datadir, "output", "OSZICAR"))
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
         res.structure.to("POSCAR", os.path.join(self.workdir, "pos.vasp"))
         ref = Structure.from_file(os.path.join(self.datadir, "..", "pos.vasp"))
