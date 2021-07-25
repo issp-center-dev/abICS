@@ -27,6 +27,7 @@ qe_tools = "^1.1"
 
 [tool.poetry.scripts]
 abics = "abics.scripts.main:main"
+abicsAL = "abics.scripts.main:mainAL"
 st2abics = "abics.scripts.st2abics_config:main"
 abicsRXsepT = "abics.scripts.abicsRXsepT:main"
 abics_activelearn = "abics.scripts.activelearn:main"

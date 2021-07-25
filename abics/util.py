@@ -16,6 +16,8 @@
 
 import os.path
 import pickle
+import time
+from itertools import groupby
 
 import numpy as np
 
@@ -152,3 +154,26 @@ def numpy_save(data, filename, allow_pickle=False):
 def numpy_load(filename):
     with open(filename, 'rb') as f:
         return np.load(f)
+
+# all_equal function by kennytm
+# CC-BY-SA 4.0 https://stackoverflow.com/a/3844832
+def all_equal(iterable):
+    g = groupby(iterable)
+    return next(g, True) and not next(g, False)
+
+def exists_on_all_nodes(comm, path, check_interval = 1, max_wait = 30):
+    counter = 0
+    while True:
+        exists = os.path.exists(path)
+        exists_gather = comm.allgather(exists)
+        # make sure all procs return same result
+        if all_equal(exists_gather):
+            break
+        counter += 1
+        if counter == max_wait:
+            raise TimeoutError("File system has been out of sync as seen from each process"
+                               " for {} seconds. Aborting.". format(check_interval * max_wait))
+        print("File system seems to be out of sync as seen from each process."
+              " Waiting for sync.")
+        time.sleep(check_interval)
+    return exists_gather[0]

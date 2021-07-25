@@ -50,8 +50,9 @@ from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
+from abics.util import exists_on_all_nodes
 
-def main_impl(tomlfile):
+def main_impl(tomlfile, ALrun=False):
     samplerparams = SamplerParams.from_toml(tomlfile)
     if samplerparams.sampler == "RXMC":
         rxparams = RXParams.from_toml(tomlfile)
@@ -171,33 +172,33 @@ def main_impl(tomlfile):
 
     obsparams = ObserverParams.from_toml(tomlfile)
 
-    # Check if we are running in active learning directory
-    ALrun = False
-    if "train" in os.listdir():
-        # Check how many AL iterations have been performed
-        i = 0
-        while os.path.exists("MC{}".format(i)):
-            i += 1
-        comm.Barrier()
-        with open("ALloop.progress", "r") as fi:
-            last_li = fi.readlines(-1)[-1]
-        if "train" not in last_li:
-            print("You should activelearn before next MC sampling.")
-            sys.exit(1)
-        if Lreload:
-            rootdir = os.getcwd()
-            os.chdir("MC{}".format(i-1))
-            ALrun = True
-            MCid = i - 1
+    # Active learning mode
+    if ALrun:
+        if "train" in os.listdir():
+            # Check how many AL iterations have been performed
+            i = 0
+            while exists_on_all_nodes(comm, "MC{}".format(i)):
+                i += 1
+            with open("ALloop.progress", "r") as fi:
+                last_li = fi.readlines(-1)[-1]
+            if "train" not in last_li:
+                print("You should train before next MC sampling.")
+                sys.exit(1)
+            if Lreload:
+                rootdir = os.getcwd()
+                os.chdir("MC{}".format(i-1))
+                MCid = i - 1
+            else:
+                # Make new directory and perform sampling there
+                if comm.Get_rank() == 0:
+                    os.mkdir("MC{}".format(i))
+                comm.Barrier()
+                rootdir = os.getcwd()
+                os.chdir("MC{}".format(i))
+                MCid = i
         else:
-            # Make new directory and perform sampling there
-            if comm.Get_rank() == 0:
-                os.mkdir("MC{}".format(i))
-            comm.Barrier()
-            rootdir = os.getcwd()
-            os.chdir("MC{}".format(i))
-            ALrun = True
-            MCid = i
+            print("You should train before MC sampling in AL mode.")
+            sys.exit(1)
 
 
     if samplerparams.sampler == "RXMC":
@@ -253,10 +254,17 @@ def main_impl(tomlfile):
         if comm.Get_rank() == 0:
             with open("ALloop.progress", "a") as fi:
                 fi.write("MC{}\n".format(MCid))
+                fi.flush()
+                os.fsync(fi.fileno())
 
 def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     main_impl(tomlfile)
+
+def mainAL():
+    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+    main_impl(tomlfile, True)
+
 
 
 if __name__ == "__main__":
