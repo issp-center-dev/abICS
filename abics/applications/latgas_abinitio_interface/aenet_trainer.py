@@ -83,7 +83,7 @@ class aenet_trainer:
         os.chdir(pathlib.Path(os.getcwd()).parent)
         self.is_prepared = True
 
-    def train(self):
+    def train(self, dE = 1e-10, RMSEconverge = 1e-3):
         try:
             assert self.is_prepared
         except AssertionError as e:
@@ -122,8 +122,12 @@ class aenet_trainer:
             num_epoch = len(testRMSE)
             if minID < num_epoch*0.7:  # this "0.7" is a heuristic
                 break
-
+            if np.abs(testRMSE[0] - testRMSE.min()) < dE:
+                break
+            if testRMSE.min() < RMSEconverge:
+                break
         print("Best fit at epoch ID ", minID)
+        print("Final test set RMSE: {} eV/atom".format(testRMSE[minID]))
         self.train_outputdir = os.getcwd()
         self.train_minID = minID
         os.chdir(pathlib.Path(os.getcwd()).parent)
