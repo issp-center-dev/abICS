@@ -141,7 +141,8 @@ def main_impl(tomlfile):
                 else:
                     solver_input.update_info_by_structure(st)
                     solver_input.write_input(
-                        os.path.join(str(myreplica),fmtstr.format(i),"baseinput{}".format(runstep+1))
+                            os.path.abspath(
+                                os.path.join(str(myreplica),fmtstr.format(i),"baseinput{}".format(runstep+1)))
                     )
                     rundir_list.append(
                         os.path.abspath(
@@ -153,6 +154,7 @@ def main_impl(tomlfile):
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
                 with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
                     fi.write("\n".join(rundir_list))
+                    fi.write("\n")
                     fi.flush()
                     os.fsync(fi.fileno())
             if finalrun:
@@ -202,7 +204,7 @@ def main_impl(tomlfile):
                 perturb_structure(config.structure,perturb)
                 config.structure.sort(key=lambda site: site.species_string)
                 solver_input.update_info_by_structure(config.structure)
-                solver_input.write_input(os.path.join(str(myreplica),fmtstr.format(i),"baseinput0"))
+                solver_input.write_input(os.path.abspath(os.path.join(str(myreplica),fmtstr.format(i),"baseinput0")))
                 rundir_list.append(os.path.abspath(os.path.join(str(myreplica),fmtstr.format(i),"baseinput0")))
             rundir_list = comm.gather(rundir_list, root = 0)
             if myreplica == 0:
@@ -299,7 +301,7 @@ def main_impl(tomlfile):
 
                 else:
                     solver_input.update_info_by_structure(st_rel)
-                    solver_input.write_input(os.path.join(fmtstr.format(i),"baseinput{}".format(runstep+1)))
+                    solver_input.write_input(os.path.abspath(os.path.join(fmtstr.format(i),"baseinput{}".format(runstep+1))))
                     rundir_list.append(
                         os.path.abspath(
                             os.path.join(fmtstr.format(i),"baseinput{}".format(runstep+1)
