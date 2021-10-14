@@ -1,0 +1,19 @@
+.. pyMC documentation master file, created by
+   sphinx-quickstart on Wed Jul 31 13:13:22 2019.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+概要
+------------------------------------------
+abICSは元々、第一原理計算とレプリカ交換モンテカルロ法を組み合わせることを念頭に開発されましたが、
+計算できるモデル規模やステップ数が、第一原理計算の大きな計算コストのために限られてしまいます。
+これに対して、Ver. 2では、構造最適化後のエネルギーを高速に予測するニューラルネットワークモデルを構成するための能動学習手法を実装し、
+飛躍的にサンプリング速度を向上させました `[論文プレプリント] <https://arxiv.org/abs/2008.02572>`_ 。
+このチュートリアルでは、この手法によるMgAl2O4スピネル結晶のMg/Alサイト反転度の計算方法を解説します。
+```examples/standard/active_learning ``` にあるサンプルを用います。
+
+.. image:: ../../../image/schmatic_AR.png
+   :width: 800px
+   :align: center
+
+
