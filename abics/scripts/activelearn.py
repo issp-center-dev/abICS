@@ -363,7 +363,7 @@ def main_impl(tomlfile):
                 perturb_structure(st,perturb)
                 solver_input.update_info_by_structure(st)
                 solver_input.write_input(
-                    os.path.join(fmtstr.format(i), "baseinput0")
+                    os.path.abspath(os.path.join(fmtstr.format(i), "baseinput0"))
                 )
                 rundir_list.append(
                     os.path.abspath(
