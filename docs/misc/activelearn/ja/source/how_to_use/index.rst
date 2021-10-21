@@ -13,7 +13,7 @@ abICSでは、ニューラルネットワークモデルの構築のためにaen
 aenetは http://ann.atomistic.net からダウンロードすることが可能です。
 DocumentationのInstallationに従い、インストールを実施します。
 なお、abICSでは、ニューラルネットワークの学習と評価にaenetの ``train.x`` と ``predict.x`` を使います。
-train.xについてはMPI並列版が利用可能ですが、predict.xについてはMPIを使用しない実行ファイル(serial)を使用する必要があります。
+``train.x`` についてはMPI並列版が利用可能ですが、 ``predict.x`` についてはMPIを使用しない実行ファイル(serial)を使用する必要があります。
 そのため、makefilesの下にあるserial版もインストールするようにしてください。
 
 GNU parallelのインストール(オプション)
@@ -49,10 +49,9 @@ st2abicsツールを使うことで、結晶構造ファイルからinput.toml�
 
 
 今回の例題では、このようにして生成したinput.tomlの中の
-``[solver]`` セクションのpathをご自身の環境におけるaenetの``predict.x``のパスに設定し、
-``[trainer]`` セクションのexe_commandをaenetの ``generate.x`` 、``train.x`` 実行時のコマンドに
-置き換えます。さらに、``[solver]`` と ``[trainer]`` で ``ignore_species = ["O"]`` と
-設定することで動作します。
+``[solver]`` セクションのpathをご自身の環境におけるaenetの ``predict.x`` のパスに設定し、
+``[trainer]`` セクションのexe_commandをaenetの ``generate.x`` 、 ``train.x`` 実行時のコマンドに
+置き換えます。さらに、 ``[solver]`` と ``[trainer]`` で ``ignore_species = ["O"]`` と設定することで動作します。
 
 ここでは、input.tomlのセクションごとの設定内容をもう少し詳しく解説します。例題をとりあえず
 実行したい場合は、読み飛ばしても大丈夫です。
@@ -111,8 +110,8 @@ nstepsは、RXMC計算で出力される配置の数（[replica]セクション�
 
 RXMC計算に使うエネルギーソルバーの設定を行います。今回は、aenetを使ってニューラルネットワークモデルの評価を行います。
 type, perturb, run_schemeに関しては、能動学習スキームを用いる場合は上の例のまま変更しないでください。
-pathには、ご自身の環境におけるaenetの``predict.x``のパスを指定してください。base_input_dirは自由に設定して構いません。
-設定したディレクトリの中に``predict.x``に対応した入力ファイルを設置します（後述）。
+pathには、ご自身の環境におけるaenetの ``predict.x`` のパスを指定してください。base_input_dirは自由に設定して構いません。
+設定したディレクトリの中に ``predict.x`` に対応した入力ファイルを設置します（後述）。
 
 また、ignore_speciesでは、
 ニューラルネットワークモデルで「無視」する原子種を指定できます。今回の例題では、Oの副格子は常に占有率1なので、Oの
@@ -226,7 +225,7 @@ aenetをソルバーとして利用しモンテカルロ法を利用した構造
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 abICSを走らせてモンテカルロ法を利用してします。
-[solver]セクションのtypeをaenetに変更し、pathにpredict.xへのパスを通します。
-また、base_input_dirには、predict.xの実行用に、(b)で作成されたニューラルネットワークと入力ファイルを置かれたディレクトリへのパスを指定します。
+[solver]セクションのtypeをaenetに変更し、pathに ``predict.x`` へのパスを通します。
+また、base_input_dirには、 ``predict.x`` の実行用に、(b)で作成されたニューラルネットワークと入力ファイルを置かれたディレクトリへのパスを指定します。
 入力ファイル作成後、abICSを実行させることで、構造推定が行われます。
 
