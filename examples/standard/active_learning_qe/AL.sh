@@ -19,7 +19,7 @@ echo start parallel_run 1
 sh parallel_run.sh
 
 echo start AL final
-srun -n 8 abics_activelearn.py input_aenet.toml >> active.out
+srun -n 8 abics_activelearn input_aenet.toml >> active.out
 
 #train
 # module purge
