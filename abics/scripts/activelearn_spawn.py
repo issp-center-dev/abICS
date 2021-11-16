@@ -48,7 +48,7 @@ from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 
 def main_impl(tomlfile):

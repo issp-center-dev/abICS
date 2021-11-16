@@ -1,7 +1,7 @@
 import toml
 import os, sys
 import argparse
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 
 def main():

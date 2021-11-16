@@ -24,7 +24,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 import numpy as np
 import os, sys
 
