@@ -50,7 +50,7 @@ from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
 from abics.util import exists_on_all_nodes
-from pymatgen import Structure
+from pymatgen.core import Structure
 
 
 def main_impl(tomlfile):
