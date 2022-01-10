@@ -15,6 +15,7 @@ Contents
 
    about/index
    how_to_use/index
+   tutorial/index
 
 Indices and tables
 ==================
