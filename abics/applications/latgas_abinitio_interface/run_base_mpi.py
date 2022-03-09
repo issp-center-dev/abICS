@@ -237,6 +237,7 @@ class runner_multistep(object):
                     perturb=0,
                     nthreads_per_proc=nthreads_per_proc,
                     solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
                 )
             )
 
@@ -269,6 +270,7 @@ class runner_ensemble(object):
         perturb=0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
     ):
         """
         Parameters
@@ -287,6 +289,8 @@ class runner_ensemble(object):
             Number of threads which one solver process uses
         solver_run_scheme : str, default "mpi_spawn_ready"
             Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
         """
 
         self.runners = []
@@ -300,6 +304,7 @@ class runner_ensemble(object):
                 perturb,
                 nthreads_per_proc,
                 solver_run_scheme,
+                use_tmpdir=use_tmpdir,
             )
         )
         for i in range(1, len(base_input_dirs)):
@@ -312,6 +317,7 @@ class runner_ensemble(object):
                     perturb=0,
                     nthreads_per_proc=nthreads_per_proc,
                     solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
                 )
             )
 
