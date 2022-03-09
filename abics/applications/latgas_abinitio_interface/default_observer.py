@@ -97,7 +97,7 @@ class ensemble_error_observer(default_observer):
         Lreload: bool
             Reload or not
         """
-        super(ensemble_error_observer, self).__init__(comm, Lreload=False)
+        super(ensemble_error_observer, self).__init__(comm, Lreload)
         self.calculators = energy_calculators
         self.comm = comm
 
