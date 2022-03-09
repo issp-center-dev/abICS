@@ -30,7 +30,11 @@ from abics.mc_mpi import (
     ParallelRandomParams,
     EmbarrassinglyParallelSampling,
 )
-from abics.applications.latgas_abinitio_interface import default_observer
+from abics.applications.latgas_abinitio_interface import (
+    default_observer, 
+    EnsembleParams,
+    ensemble_error_observer,
+)
 from abics.applications.latgas_abinitio_interface.model_setup import (
     dft_latgas,
     ObserverParams,
@@ -41,6 +45,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     runner,
+    runner_ensemble,
     runner_multistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
@@ -138,17 +143,11 @@ def main_impl(tomlfile, ALrun=False):
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
-    if len(dftparams.base_input_dir) == 1:
-        energy_calculator = runner(
-            base_input_dir=dftparams.base_input_dir[0],
-            Solver=solver,
-            nprocs_per_solver=nprocs_per_replica,
-            comm=MPI.COMM_SELF,
-            perturb=dftparams.perturb,
-            solver_run_scheme=dftparams.solver_run_scheme,
-        )
-    else:
-        energy_calculator = runner_multistep(
+    if dftparams.ensemble:
+        if len(dftparams.base_input_dir) ==1:
+            print("You must specify more than one base_input_dir for ensemble calculator")
+            sys.exit(1)
+        energy_calculator = runner_ensemble(
             base_input_dirs=dftparams.base_input_dir,
             Solver=solver,
             runner=runner,
@@ -157,6 +156,26 @@ def main_impl(tomlfile, ALrun=False):
             perturb=dftparams.perturb,
             solver_run_scheme=dftparams.solver_run_scheme,
         )
+    else:
+        if len(dftparams.base_input_dir) == 1:
+            energy_calculator = runner(
+                base_input_dir=dftparams.base_input_dir[0],
+                Solver=solver,
+                nprocs_per_solver=nprocs_per_replica,
+                comm=MPI.COMM_SELF,
+                perturb=dftparams.perturb,
+                solver_run_scheme=dftparams.solver_run_scheme,
+            )
+        else:
+            energy_calculator = runner_multistep(
+                base_input_dirs=dftparams.base_input_dir,
+                Solver=solver,
+                runner=runner,
+                nprocs_per_solver=nprocs_per_replica,
+                comm=MPI.COMM_SELF,
+                perturb=dftparams.perturb,
+                solver_run_scheme=dftparams.solver_run_scheme,
+            )
     model = dft_latgas(energy_calculator, save_history=False)
 
     # defect sublattice setup
@@ -171,6 +190,41 @@ def main_impl(tomlfile, ALrun=False):
     configs = [spinel_config] * nreplicas
 
     obsparams = ObserverParams.from_toml(tomlfile)
+
+    # NNP ensemble error estimation
+    ensembleparams = EnsembleParams.from_toml(tomlfile)
+    if ensembleparams:
+        if ensembleparams.solver == "vasp":
+            solver = VASPSolver(ensembleparams.path)
+        elif ensembleparams.solver == "qe":
+            parallel_level = ensembleparams.properties.get("parallel_level", {})
+            solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
+        elif ensembleparams.solver == "aenet":
+            solver = aenetSolver(
+                ensembleparams.path, ensembleparams.ignore_species, ensembleparams.solver_run_scheme
+            )
+        elif ensembleparams.solver == "openmx":
+            solver = OpenMXSolver(ensembleparams.path)
+        elif ensembleparams.solver == "mock":
+            solver = MockSolver()
+        else:
+            print("unknown solver: {}".format(ensembleparams.solver))
+            sys.exit(1)
+    
+        energy_calculators = [
+            runner(
+                base_input_dir=base_input_dir,
+                Solver=copy.deepcopy(solver),
+                nprocs_per_solver=nprocs_per_replica,
+                comm=MPI.COMM_SELF,
+                perturb=ensembleparams.perturb,
+                solver_run_scheme=ensembleparams.solver_run_scheme,
+            ) for base_input_dir in ensembleparams.base_input_dirs
+        ]
+        print(ensembleparams.base_input_dirs)
+        observer = ensemble_error_observer(comm, energy_calculators, Lreload)
+    else:
+        observer = default_observer(comm, Lreload)
 
     # Active learning mode
     if ALrun:
@@ -211,7 +265,7 @@ def main_impl(tomlfile, ALrun=False):
             RXtrial_frequency,
             sample_frequency,
             print_frequency,
-            observer=default_observer(comm, Lreload),
+            observer=observer,
             subdirs=True,
         )
 
@@ -226,7 +280,7 @@ def main_impl(tomlfile, ALrun=False):
             nsteps,
             sample_frequency,
             print_frequency,
-            observer=default_observer(comm, Lreload),
+            observer=observer,
             subdirs=True,
         )
 
@@ -243,7 +297,7 @@ def main_impl(tomlfile, ALrun=False):
             nsteps,
             sample_frequency,
             print_frequency,
-            observer=default_observer(comm, Lreload),
+            observer=observer,
             subdirs=True,
         )
 

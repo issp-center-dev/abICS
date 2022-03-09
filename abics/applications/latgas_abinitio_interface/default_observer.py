@@ -15,7 +15,10 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from abics.mc import observer_base
+from ...util import expand_path
+
 import os
+import numpy as np
 
 
 class default_observer(observer_base):
@@ -80,3 +83,93 @@ class default_observer(observer_base):
         calc_state.config.structure_norel.to(
             fmt="POSCAR", filename="structure_norel." + str(self.lprintcount) + ".vasp"
         )
+
+class ensemble_error_observer(default_observer):
+    def __init__(self, comm, energy_calculators, Lreload=False):
+        """
+
+        Parameters
+        ----------
+        comm: mpi4py.MPI.Intracomm
+            MPI communicator
+        energy_calculators: abics.applications.latgas_abinitio_interface.run_base_mpi.runner
+            setup of the energy calculator
+        Lreload: bool
+            Reload or not
+        """
+        super(ensemble_error_observer, self).__init__(comm, Lreload=False)
+        self.calculators = energy_calculators
+
+    def logfunc(self, calc_state):
+        if calc_state.energy < self.minE:
+            self.minE = calc_state.energy
+            with open("minEfi.dat", "a") as f:
+                f.write(str(self.minE) + "\n")
+            calc_state.config.structure.to(fmt="POSCAR", filename="minE.vasp")
+        energies = [calc_state.energy]
+        for i, calculator in enumerate(self.calculators):
+            energy, _ = calculator.submit(
+                    calc_state.config.structure, os.path.join(os.getcwd(), "ensemble{}".format(i))
+            )
+            energies.append(energy)
+        energies.append(np.std(energies, ddof=1))
+        return np.asarray(energies)
+
+
+
+class EnsembleParams:
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Read information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        params: EnsembleParams object
+            self
+        """
+        if "ensemble" in d:
+            d = d["ensemble"]
+        else:
+            return None
+
+        params = cls()
+        base_input_dirs = d.get("base_input_dirs", ["./baseinput"])
+        if isinstance(base_input_dirs, str):
+            base_input_dirs = [base_input_dirs]
+        params.base_input_dirs = base_input_dirs = list(
+            map(lambda x: expand_path(x, os.getcwd()), base_input_dirs)
+        )
+        params.solver = d["type"]
+        params.path = expand_path(d["path"], os.getcwd())
+        params.perturb = d.get("perturb", 0.1)
+        params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
+        params.ignore_species = d.get("ignore_species", None)
+        params.constraint_module = d.get("constraint_module", None)
+        params.properties = d
+
+        return params
+
+    @classmethod
+    def from_toml(cls, f):
+        """
+        Read information from toml file
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oDFTParams: DFTParams object
+            self
+        """
+        import toml
+
+        return cls.from_dict(toml.load(f))
