@@ -405,7 +405,7 @@ class RXParams:
         return cls.from_dict(toml.load(fname))
 
 
-def RX_MPI_init(rxparams, dftparams):
+def RX_MPI_init(rxparams, dftparams=None):
     """
 
     Parameters
@@ -418,7 +418,7 @@ def RX_MPI_init(rxparams, dftparams):
     comm: comm world
         MPI communicator
     """
-    if dftparams.ensemble and dftparams.par_ensemble:
+    if dftparams != None and dftparams.ensemble and dftparams.par_ensemble:
         nensemble = len(dftparams.base_input_dir)
     else:
         nensemble = 1
@@ -461,6 +461,8 @@ def RX_MPI_init(rxparams, dftparams):
         rand.seed(rand_seeds[RXrank])
 
     #return commRX
+    if dftparams == None:
+        return commRX
     return commRX, commEnsemble
 
 class EmbarrassinglyParallelSampling:
