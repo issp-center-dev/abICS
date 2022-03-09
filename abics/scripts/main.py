@@ -58,6 +58,7 @@ from abics.applications.latgas_abinitio_interface.params import DFTParams
 from abics.util import exists_on_all_nodes
 
 def main_impl(tomlfile, ALrun=False):
+    dftparams = DFTParams.from_toml(tomlfile)
     samplerparams = SamplerParams.from_toml(tomlfile)
     if samplerparams.sampler == "RXMC":
         rxparams = RXParams.from_toml(tomlfile)
@@ -66,8 +67,8 @@ def main_impl(tomlfile, ALrun=False):
 
         kB = constants.value(u"Boltzmann constant in eV/K")
 
-        comm = RX_MPI_init(rxparams)
-
+        comm, commEnsemble = RX_MPI_init(rxparams, dftparams)
+        
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
         kTstart = rxparams.kTstart
@@ -86,7 +87,7 @@ def main_impl(tomlfile, ALrun=False):
         rxparams = ParallelRandomParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
-        comm = RX_MPI_init(rxparams)
+        comm, commEnsemble = RX_MPI_init(rxparams, dftparams)
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -102,7 +103,7 @@ def main_impl(tomlfile, ALrun=False):
 
         kB = constants.value(u"Boltzmann constant in eV/K")
 
-        comm = RX_MPI_init(rxparams)
+        comm, commEnsemble = RX_MPI_init(rxparams, dftparams)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -121,7 +122,7 @@ def main_impl(tomlfile, ALrun=False):
         print("Unknown sampler. Exiting...")
         sys.exit(1)
 
-    dftparams = DFTParams.from_toml(tomlfile)
+    
 
     if dftparams.solver == "vasp":
         solver = VASPSolver(dftparams.path)
@@ -152,7 +153,7 @@ def main_impl(tomlfile, ALrun=False):
             Solver=solver,
             runner=runner,
             nprocs_per_solver=nprocs_per_replica,
-            comm=MPI.COMM_SELF,
+            comm=commEnsemble,
             perturb=dftparams.perturb,
             solver_run_scheme=dftparams.solver_run_scheme,
             use_tmpdir=dftparams.use_tmpdir,
@@ -222,10 +223,10 @@ def main_impl(tomlfile, ALrun=False):
                 comm=MPI.COMM_SELF,
                 perturb=ensembleparams.perturb,
                 solver_run_scheme=ensembleparams.solver_run_scheme,
+                use_tmpdir=dftparams.use_tmpdir,
             ) for base_input_dir in ensembleparams.base_input_dirs
         ]
-        print(ensembleparams.base_input_dirs)
-        observer = ensemble_error_observer(comm, energy_calculators, Lreload)
+        observer = ensemble_error_observer(commEnsemble, energy_calculators, Lreload)
     else:
         observer = default_observer(comm, Lreload)
 
@@ -257,10 +258,13 @@ def main_impl(tomlfile, ALrun=False):
             print("You should train before MC sampling in AL mode.")
             sys.exit(1)
 
-
+    if commEnsemble.Get_rank() == 0:
+        write_node = True
+    else:
+        write_node = False
     if samplerparams.sampler == "RXMC":
         # RXMC calculation
-        RXcalc = TemperatureRX_MPI(comm, CanonicalMonteCarlo, model, configs, kTs)
+        RXcalc = TemperatureRX_MPI(comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node)
         if Lreload:
             RXcalc.reload()
         obs = RXcalc.run(
@@ -272,11 +276,11 @@ def main_impl(tomlfile, ALrun=False):
             subdirs=True,
         )
 
-        if comm.Get_rank() == 0:
+        if comm.Get_rank() == 0 and write_node:
             print(obs)
 
     elif samplerparams.sampler == "parallelRand":
-        calc = EmbarrassinglyParallelSampling(comm, RandomSampling, model, configs)
+        calc = EmbarrassinglyParallelSampling(comm, RandomSampling, model, configs, write_node=write_node)
         if Lreload:
             calc.reload()
         obs = calc.run(
@@ -287,12 +291,12 @@ def main_impl(tomlfile, ALrun=False):
             subdirs=True,
         )
 
-        if comm.Get_rank() == 0:
+        if comm.Get_rank() == 0 and write_node:
             print(obs)
 
     elif samplerparams.sampler == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
-            comm, CanonicalMonteCarlo, model, configs, kTs
+            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             calc.reload()
@@ -304,11 +308,11 @@ def main_impl(tomlfile, ALrun=False):
             subdirs=True,
         )
 
-        if comm.Get_rank() == 0:
+        if comm.Get_rank() == 0 and write_node:
             print(obs)
     if ALrun:
         os.chdir(rootdir)
-        if comm.Get_rank() == 0:
+        if comm.Get_rank() == 0 and write_node:
             with open("ALloop.progress", "a") as fi:
                 fi.write("MC{}\n".format(MCid))
                 fi.flush()
