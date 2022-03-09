@@ -99,6 +99,7 @@ class ensemble_error_observer(default_observer):
         """
         super(ensemble_error_observer, self).__init__(comm, Lreload=False)
         self.calculators = energy_calculators
+        self.comm = comm
 
     def logfunc(self, calc_state):
         if calc_state.energy < self.minE:
@@ -107,12 +108,24 @@ class ensemble_error_observer(default_observer):
                 f.write(str(self.minE) + "\n")
             calc_state.config.structure.to(fmt="POSCAR", filename="minE.vasp")
         energies = [calc_state.energy]
-        for i, calculator in enumerate(self.calculators):
-            energy, _ = calculator.submit(
-                    calc_state.config.structure, os.path.join(os.getcwd(), "ensemble{}".format(i))
-            )
-            energies.append(energy)
-        energies.append(np.std(energies, ddof=1))
+        npar = self.comm.Get_size()
+        if npar > 1:
+            assert(npar == len(self.calculators))
+            myrank = self.comm.Get_rank()
+            energy, _ = self.calculators[myrank].submit(calc_state.config.structure, os.path.join(os.getcwd(),"ensemble{}".format(myrank)))
+            energies_tmp = self.comm.allgather(energy)
+            std = np.std(energies_tmp, ddof=1)
+
+        else:
+            energies_tmp = []
+            for i, calculator in enumerate(self.calculators):
+                energy, _ = calculator.submit(
+                        calc_state.config.structure, os.path.join(os.getcwd(), "ensemble{}".format(i))
+                )
+                energies_tmp.append(energy)
+            std = np.std(energies_tmp, ddof=1)
+        energies.extend(energies_tmp)
+        energies.append(std)
         return np.asarray(energies)
 
 
