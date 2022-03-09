@@ -936,9 +936,6 @@ class TemperatureRX_MPI(ParallelMC):
                     if subdirs:
                         os.chdir(str(self.rank))
 
-        if subdirs:
-            os.chdir("../")
-
         if nsample != 0:
             obs = np.array(obs)
             obs_buffer = np.empty(obs.shape)
@@ -948,4 +945,9 @@ class TemperatureRX_MPI(ParallelMC):
             args_info = observer.obs_info(self.mycalc)
             for i in range(len(self.kTs)):
                 obs_list.append(obs_decode(args_info, obs_buffer[i]))
+            if subdirs:
+                os.chdir("../")
             return obs_list
+            
+        if subdirs:
+            os.chdir("../")

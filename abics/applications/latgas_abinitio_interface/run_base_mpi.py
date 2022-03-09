@@ -230,6 +230,80 @@ class runner_multistep(object):
             newstructure = newstructure.copy(site_properties)
         return energy, newstructure
 
+class runner_ensemble(object):
+    """
+    Ensemble runner
+
+    Attributes
+    ----------
+    runners : list[runner]
+        Runners
+    """
+
+    def __init__(
+        self,
+        base_input_dirs,
+        Solver,
+        runner,
+        nprocs_per_solver,
+        comm,
+        perturb=0,
+        nthreads_per_proc=1,
+        solver_run_scheme="mpi_spawn_ready",
+    ):
+        """
+        Parameters
+        ----------
+        base_input_dirs : list[str]
+            List of paths to directories including base input files
+        Solver : SolverBase
+            Solver
+        nprocs_per_solver : int
+            Number of processes which one solver program uses
+        comm : MPI.Comm
+            MPI Communicator
+        perturb : float, default 0.0
+            Perturbation of atom position
+        nthreads_per_proc : int, default 1
+            Number of threads which one solver process uses
+        solver_run_scheme : str, default "mpi_spawn_ready"
+            Scheme how to invoke a solver program
+        """
+
+        self.runners = []
+        assert len(base_input_dirs) > 1
+        self.runners.append(
+            runner(
+                base_input_dirs[0],
+                copy.deepcopy(Solver),
+                nprocs_per_solver,
+                comm,
+                perturb,
+                nthreads_per_proc,
+                solver_run_scheme,
+            )
+        )
+        for i in range(1, len(base_input_dirs)):
+            self.runners.append(
+                runner(
+                    base_input_dirs[i],
+                    copy.deepcopy(Solver),
+                    nprocs_per_solver,
+                    comm,
+                    perturb=0,
+                    nthreads_per_proc=nthreads_per_proc,
+                    solver_run_scheme=solver_run_scheme,
+                )
+            )
+
+    def submit(self, structure, output_dir):
+        energies = []
+        for i in range(len(self.runners)):
+            energy, _ = self.runners[i].submit(structure, os.path.join(output_dir,"ensemble{}".format(i)))
+            energies.append(energy)
+        return np.mean(energies), structure
+
+
 
 class run_mpispawn:
     """
