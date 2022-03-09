@@ -237,6 +237,7 @@ class runner_multistep(object):
                     perturb=0,
                     nthreads_per_proc=nthreads_per_proc,
                     solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
                 )
             )
 
