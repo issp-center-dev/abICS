@@ -104,6 +104,9 @@ class runner(object):
         if self.use_tmpdir:
             import tempfile
             self.tmpdir = tempfile.TemporaryDirectory()
+            import shutil
+            shutil.copy(self.path_to_solver, self.tmpdir.name)
+            self.path_to_solver = os.path.join(self.tmpdir.name, os.path.basename(self.path_to_solver))
         if solver_run_scheme not in Solver.solver_run_schemes():
             print(
                 "{scheme} not implemented for {solver}".format(
