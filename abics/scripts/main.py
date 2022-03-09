@@ -146,6 +146,7 @@ def main_impl(tomlfile, ALrun=False):
             comm=MPI.COMM_SELF,
             perturb=dftparams.perturb,
             solver_run_scheme=dftparams.solver_run_scheme,
+            use_tmpdir=dftparams.use_tmpdir,
         )
     else:
         energy_calculator = runner_multistep(
@@ -156,6 +157,7 @@ def main_impl(tomlfile, ALrun=False):
             comm=MPI.COMM_SELF,
             perturb=dftparams.perturb,
             solver_run_scheme=dftparams.solver_run_scheme,
+            use_tmpdir=dftparams.use_tmpdir,
         )
     model = dft_latgas(energy_calculator, save_history=False)
 
