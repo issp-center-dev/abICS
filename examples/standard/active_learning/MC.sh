@@ -8,5 +8,5 @@ module purge
 module load intel_compiler/2019.5.281
 module load openmpi/4.0.4-intel-2019.5.281
 
-sleep 30
-srun -n 15 abics input_aenet.toml >> aenet.out
+#sleep 30
+srun -n 15 abicsAL input_aenet.toml >> aenet.out

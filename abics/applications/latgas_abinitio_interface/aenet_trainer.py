@@ -1,6 +1,7 @@
 from abics.applications.latgas_abinitio_interface import aenet
 import numpy as np
 import os, pathlib, shutil, subprocess
+import time
 
 
 class aenet_trainer:
@@ -133,15 +134,32 @@ class aenet_trainer:
             assert self.is_trained
         except AssertionError as e:
             e.args += "you have to train before getting results!"
-        os.makedirs(baseinput_dir, exist_ok=True)
+
+        # Some filesystems may delay making a directory due to cache
+        # especially when mkdir just after rmdir, and hence 
+        # we should make sure that the old directory is removed and the new one is made.
+        # Since `os.rename` is an atomic operation,
+        # `baseinput_dir` is removed after `os.rename`.
+        if os.path.exists(baseinput_dir):
+            os.rename(baseinput_dir, baseinput_dir + "_temporary")
+            shutil.rmtree(baseinput_dir + "_temporary")
+        os.makedirs(baseinput_dir, exist_ok=False)
+        while not os.path.exists(baseinput_dir):
+            time.sleep(0.1)
         shutil.copyfile(
             os.path.join(self.predict_inputdir, "predict.in"),
             os.path.join(baseinput_dir, "predict.in"),
         )
+
         NNPid_str = "{:05d}".format(self.train_minID)
         NNPfiles = [fi for fi in os.listdir(self.train_outputdir) if NNPid_str in fi]
         for fi in NNPfiles:
             shutil.copyfile(
                 os.path.join(self.train_outputdir, fi),
+                os.path.join(baseinput_dir, fi),
+            )
+            # os.rename is guaranteed to be atomic
+            os.rename(
+                os.path.join(baseinput_dir, fi),
                 os.path.join(baseinput_dir, fi[:-6]),
             )
