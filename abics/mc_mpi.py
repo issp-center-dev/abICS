@@ -463,7 +463,7 @@ def RX_MPI_init(rxparams, dftparams=None):
     #return commRX
     if dftparams == None:
         return commRX
-    return commRX, commEnsemble
+    return commRX, commEnsemble, comm
 
 class EmbarrassinglyParallelSampling:
     def __init__(self, comm, MCalgo, model, configs, kTs=None, subdirs=True, write_node=True):

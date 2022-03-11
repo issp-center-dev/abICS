@@ -28,10 +28,14 @@ class aenet_trainer:
         self.is_trained = False
         self.generate_outputdir = None
 
-    def prepare(self, latgas_mode = True):
+    def prepare(self, latgas_mode = True, st_dir = "aenetXSF"):
+        rootdir = os.getcwd()
+        xsfdir = os.path.join(rootdir, st_dir)
+        
         # prepare XSF files for aenet
-        os.makedirs("aenetXSF", exist_ok=True)
-        os.chdir("aenetXSF")
+        os.makedirs(xsfdir, exist_ok=True)
+        os.chdir(xsfdir)
+        xsfdir = os.getcwd()
         if latgas_mode:
             for i, st in enumerate(self.structures):
                 xsf_string = aenet.to_XSF(st, write_force_zero=False)
@@ -49,13 +53,15 @@ class aenet_trainer:
                 with open("structure.{}.xsf".format(i), "w") as fi:
                     fi.write(xsf_string)
 
-        xsfdir = os.getcwd()
-        os.chdir(pathlib.Path(os.getcwd()).parent)
+        os.chdir(rootdir)
+
+    def generate_run(self, xsfdir="aenetXSF", generate_dir="generate"):
         # prepare generate
-        if os.path.exists("generate"):
-            shutil.rmtree("generate")
-        shutil.copytree(self.generate_inputdir, "generate")
-        os.chdir("generate")
+        xsfdir = str(pathlib.Path(xsfdir).resolve())
+        if os.path.exists(generate_dir):
+            shutil.rmtree(generate_dir)
+        shutil.copytree(self.generate_inputdir, generate_dir)
+        os.chdir(generate_dir)
         with open("generate.in.head", "r") as fi:
             generate_head = fi.read()
             xsf_paths = [
@@ -76,22 +82,27 @@ class aenet_trainer:
 
         command = self.generate_exe + " generate.in"
         with open(os.path.join(os.getcwd(), "stdout"), "w") as fi:
-            subprocess.run(
-                command, shell=True, stdout=fi, stderr=subprocess.STDOUT, check=True
-            )
+            #subprocess.run(
+            self.gen_proc = subprocess.Popen(
+                command, shell=True, stdout=fi, stderr=subprocess.STDOUT,#, check=True
+                )
         self.generate_outputdir = os.getcwd()
         os.chdir(pathlib.Path(os.getcwd()).parent)
+        #self.is_prepared = True
+        
+    def generate_wait(self):
+        self.gen_proc.wait()
         self.is_prepared = True
 
-    def train(self):
+    def train(self, train_dir = "train"):
         try:
             assert self.is_prepared
         except AssertionError as e:
             e.args += "you have to prepare the trainer before training!"
-        if os.path.exists("train"):
-            shutil.rmtree("train")
-        shutil.copytree(self.train_inputdir, "train")
-        os.chdir("train")
+        if os.path.exists(train_dir):
+            shutil.rmtree(train_dir)
+        shutil.copytree(self.train_inputdir, train_dir)
+        os.chdir(train_dir)
         os.rename(
             os.path.join(self.generate_outputdir, "aenet.train"),
             os.path.join(os.getcwd(), "aenet.train"),

@@ -15,7 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 import copy
-import sys,os
+import sys,os,shutil
 
 from mpi4py import MPI
 import numpy as np
@@ -67,7 +67,7 @@ def main_impl(tomlfile, ALrun=False):
 
         kB = constants.value(u"Boltzmann constant in eV/K")
 
-        comm, commEnsemble = RX_MPI_init(rxparams, dftparams)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams, dftparams)
         
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -87,7 +87,7 @@ def main_impl(tomlfile, ALrun=False):
         rxparams = ParallelRandomParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
-        comm, commEnsemble = RX_MPI_init(rxparams, dftparams)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams, dftparams)
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -103,7 +103,7 @@ def main_impl(tomlfile, ALrun=False):
 
         kB = constants.value(u"Boltzmann constant in eV/K")
 
-        comm, commEnsemble = RX_MPI_init(rxparams, dftparams)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams, dftparams)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -232,10 +232,10 @@ def main_impl(tomlfile, ALrun=False):
 
     # Active learning mode
     if ALrun:
-        if "train" in os.listdir():
+        if "train0" in os.listdir():
             # Check how many AL iterations have been performed
             i = 0
-            while exists_on_all_nodes(comm, "MC{}".format(i)):
+            while exists_on_all_nodes(commAll, "MC{}".format(i)):
                 i += 1
             with open("ALloop.progress", "r") as fi:
                 last_li = fi.readlines(-1)[-1]
@@ -248,10 +248,17 @@ def main_impl(tomlfile, ALrun=False):
                 MCid = i - 1
             else:
                 # Make new directory and perform sampling there
-                if comm.Get_rank() == 0:
+                if commAll.Get_rank() == 0:
                     os.mkdir("MC{}".format(i))
-                comm.Barrier()
+                    if dftparams.use_tmpdir:
+                        # backup baseinput for this AL step
+                        for j, d in enumerate(dftparams.base_input_dir):
+                            shutil.copytree(d, "MC{}/baseinput{}".format(i,j))
+                commAll.Barrier()
                 rootdir = os.getcwd()
+                print(i, rootdir)
+                while not exists_on_all_nodes(commAll, "MC{}".format(i)):
+                    pass
                 os.chdir("MC{}".format(i))
                 MCid = i
         else:

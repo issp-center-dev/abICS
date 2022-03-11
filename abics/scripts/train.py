@@ -27,7 +27,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
 from pymatgen.core import Structure
 import numpy as np
 import os, sys
-
+import threading
 
 def main_impl(tomlfile):
     if not os.path.exists("ALloop.progress"):
@@ -46,8 +46,9 @@ def main_impl(tomlfile):
     sample_frequency = rxparams.sample_frequency
     sample_ids = list(range(0, nsteps, sample_frequency))
     
-    DFTparams = DFTParams.from_toml(tomlfile)
-    base_input_dir = DFTparams.base_input_dir
+    dftparams = DFTParams.from_toml(tomlfile)
+    ensemble = dftparams.ensemble
+    base_input_dir = dftparams.base_input_dir
 
     trainerparams = TrainerParams.from_toml(tomlfile)
     ignore_species = trainerparams.ignore_species
@@ -149,29 +150,61 @@ def main_impl(tomlfile):
                     energies.append(energy)
             os.chdir(rootdir)
 
-    if len(trainer_input_dirs) == 1:
-        generate_inputdir = os.path.join(trainer_input_dirs[0], "generate")
-        train_inputdir = os.path.join(trainer_input_dirs[0], "train")
-        predict_inputdir = os.path.join(trainer_input_dirs[0], "predict")
-    else:
-        generate_inputdir = trainer_input_dirs[0]
-        train_inputdir = trainer_input_dirs[1]
-        predict_inputdir = trainer_input_dirs[2]
+    generate_input_dirs = []
+    train_input_dirs = []
+    predict_input_dirs = []
+
+    if dftparams.ensemble:
+        if len(trainer_input_dirs) != len(base_input_dir):
+            print('You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP')
+            sys.exit(1)
+    for d in trainer_input_dirs:
+        generate_input_dirs.append(os.path.join(d, "generate"))
+        train_input_dirs.append(os.path.join(d, "train"))
+        predict_input_dirs.append(os.path.join(d, "predict"))
+
 
     generate_exe = trainer_commands[0]
     train_exe = trainer_commands[1]
-    trainer = aenet_trainer(
-        structures,
-        energies,
-        generate_inputdir,
-        train_inputdir,
-        predict_inputdir,
-        generate_exe,
-        train_exe,
-    )
-    trainer.prepare()
-    trainer.train()
-    trainer.new_baseinput(base_input_dir[0])
+
+    trainers = []
+    for i in range(len(trainer_input_dirs)):
+        trainers.append(
+            aenet_trainer(
+                structures,
+                energies,
+                generate_input_dirs[i],
+                train_input_dirs[i],
+                predict_input_dirs[i],
+                generate_exe,
+                train_exe,
+            )
+        )
+
+    trainers[0].prepare()
+    # We use threads to parallelize generate.x over ensemble members
+    """threads = []
+    for i, trainer in enumerate(trainers):
+        threads.append(
+            threading.Thread(
+                target=trainer.generate(generate_dir="generate{}".format(i))
+                )
+            )
+        threads[-1].start()
+    for t in threads:
+        t.join()
+    """
+    for i, trainer in enumerate(trainers):
+        trainer.generate_run(generate_dir='generate{}'.format(i))
+
+    for trainer in trainers:
+        trainer.generate_wait()
+        
+    # We use MPI version of train.x so no need to write parallel code here
+    for i, trainer in enumerate(trainers):
+        trainer.train(train_dir="train{}".format(i))
+        trainer.new_baseinput(base_input_dir[i])
+
     with open("ALloop.progress", "a") as fi:
         fi.write("train\n")
         fi.flush()

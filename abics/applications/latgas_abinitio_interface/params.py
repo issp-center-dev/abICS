@@ -27,6 +27,11 @@ class DFTParams:
         self.perturb = 0.0
         self.solver_run_scheme = ""
         self.properties = {}
+        self.ignore_species = None
+        self.constraint_module = None
+        self.ensemble = False
+        self.par_ensemble = False
+        self.use_tmpdir = False
 
     @classmethod
     def from_dict(cls, d):
