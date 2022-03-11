@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "abics"
+version = "1.1-dev"
+description = "ab-Initio Configuration Sampling tool kit"
+authors = ["abICS developers <abics-dev@issp.u-tokyo.ac.jp>"]
+license = "GPL-3.0-or-later"
+
+readme = "README.md"
+repository = "https://github.com/issp-center-dev/abICS"
+
+packages = [
+  { include = "abics" }
+  ]
+
+[tool.poetry.dependencies]
+python = "^3.7"
+numpy = "^1.20"
+toml = ">=0.10"
+scipy = "^1"
+mpi4py = "^3"
+pymatgen = ">=2019.12.3"
+qe_tools = "^1.1"
+
+[tool.poetry.extras]
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.scripts]
+abics = "abics.scripts.main:main"
+abicsAL = "abics.scripts.main:mainAL"
+st2abics = "abics.scripts.st2abics_config:main"
+abicsRXsepT = "abics.scripts.abicsRXsepT:main"
+abics_activelearn = "abics.scripts.activelearn:main"
+abics_train = "abics.scripts.train:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

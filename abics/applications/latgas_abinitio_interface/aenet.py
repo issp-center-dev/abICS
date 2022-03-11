@@ -17,7 +17,7 @@
 from .base_solver import SolverBase
 from collections import namedtuple
 import numpy as np
-from pymatgen import Structure
+from pymatgen.core import Structure
 import os
 import sys, shutil, io
 

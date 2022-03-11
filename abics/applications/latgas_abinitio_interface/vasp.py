@@ -22,11 +22,13 @@ To deal with VASP
 from .base_solver import SolverBase
 from collections import namedtuple
 from pymatgen.io.vasp.inputs import Poscar, VaspInput
-from pymatgen.apps.borg.hive import SimpleVaspToComputedEntryDrone
-from pymatgen.apps.borg.queen import BorgQueen
+from pymatgen.io.vasp.outputs import Oszicar
+from pymatgen.core import Structure
+#from pymatgen.apps.borg.hive import SimpleVaspToComputedEntryDrone
+#from pymatgen.apps.borg.queen import BorgQueen
 import numpy as np
-import os.path
-
+import os, os.path
+import time
 
 class VASPSolver(SolverBase):
     """
@@ -182,9 +184,9 @@ class VASPSolver(SolverBase):
         Output manager.
         """
 
-        def __init__(self):
-            self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
-            self.queen = BorgQueen(self.drone)
+        #def __init__(self):
+        #    self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
+        #    self.queen = BorgQueen(self.drone)
 
         def get_results(self, workdir):
             """
@@ -204,9 +206,30 @@ class VASPSolver(SolverBase):
             """
             # Read results from files in output_dir and calculate values
             Phys = namedtuple("PhysVaules", ("energy", "structure"))
-            self.queen.serial_assimilate(workdir)
-            results = self.queen.get_data()[-1]
-            return Phys(np.float64(results.energy), results.structure)
+
+            # Make sure output is newer than input
+
+            counter = 0
+            while True:
+                st_in = os.stat(os.path.join(workdir, "INCAR"))
+                st_out = os.stat(os.path.join(workdir, "OSZICAR"))
+                if st_in.st_mtime - st_out.st_mtime < 0:
+                    break
+                elif counter > 10:
+                    raise TimeoutError(
+                        "VASP OSZICAR is older than INCAR and no update was seen for 1 minute. "
+                        "If VASP was actually run, then this might be due to a very slow file system."
+                    )
+                else:
+                    print("VASP OSZICAR is older than INCAR; waiting for file system update")
+                    counter += 1
+                    time.sleep(10)
+                    
+            energy = Oszicar(os.path.join(workdir, "OSZICAR")).final_energy
+            structure = Structure.from_file(os.path.join(workdir, "CONTCAR"))
+            
+
+            return Phys(np.float64(energy), structure)
 
     def solver_run_schemes(self):
         return ("mpi_spawn_ready",)
