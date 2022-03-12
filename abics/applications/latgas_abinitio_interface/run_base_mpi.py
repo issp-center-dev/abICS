@@ -101,9 +101,9 @@ class runner(object):
         self.comm = comm
         self.use_tmpdir = use_tmpdir
 
-        #if self.use_tmpdir:
-        #    import tempfile
-        #    self.tmpdir = tempfile.TemporaryDirectory()
+        if self.use_tmpdir:
+            import tempfile
+            self.tmpdir = tempfile.TemporaryDirectory()
         #    import shutil
         #    shutil.copy(self.path_to_solver, self.tmpdir.name)
         #    self.path_to_solver = os.path.join(self.tmpdir.name, os.path.basename(self.path_to_solver))
