@@ -458,7 +458,9 @@ def RX_MPI_init(rxparams, dftparams=None):
         rand.seed(rxparams.seed + RXrank * 137)
     else:
         rand_seeds = [rand.randint(10000) for i in range(commRX.Get_size())]
-        rand.seed(rand_seeds[RXrank])
+        rand_seed = commEnsemble.bcast(rand_seeds[RXrank], root=0)
+        rand.seed(rand_seed)
+        
 
     #return commRX
     if dftparams == None:
