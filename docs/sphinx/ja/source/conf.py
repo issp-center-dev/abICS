@@ -161,8 +161,6 @@ man_pages = [
      [author], 1)
 ]
 
-latex_docclass =  {'manual': 'jsbook'}
-
 # -- Options for Texinfo output -------------------------------------------
 
 # Grouping the document tree into Texinfo files. List of tuples
@@ -183,6 +181,3 @@ html_sidebars = {
         'donate.html',
     ]
 }
-
-
-
