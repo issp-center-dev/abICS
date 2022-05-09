@@ -48,7 +48,7 @@ jobs:
 
     - name: Build
       run: |
-        cd ${GITHUB_WORKSPACE}/docs
+        cd main/${GITHUB_WORKSPACE}/docs
         sh make.sh
 
     - name: Deploy Configuration
