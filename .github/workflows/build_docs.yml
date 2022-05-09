@@ -5,10 +5,8 @@ on: [push]
 jobs:
   check-build-doc:
     runs-on: ubuntu-20.04
+    timeout-minutes: 10
     steps:
-    - name: Inject slug/short variables
-      uses: rlespinasse/github-slug-action@v3.x
-
     - name: Checkout
       uses: actions/checkout@v2
 
