@@ -34,6 +34,6 @@ jobs:
         python -m unittest
     - name: Test (ActiveLearn)
       run: |
-        cd tests/integration/activelearn
+        cd tests/integration/active_learn
         sh ./install_aenet.sh
         sh ./run.sh
