@@ -1,5 +1,5 @@
 [replica]
-nreplicas = 4
+nreplicas = 2
 nprocs_per_replica = 1 
 kTstart = 1200.0
 kTend = 1500.0
@@ -10,7 +10,7 @@ print_frequency = 1
 reload = false
 
 [replicaRef]
-nreplicas = 4
+nreplicas = 2
 nprocs_per_replica = 1
 nsteps = 40
 sample_frequency = 10
@@ -38,7 +38,7 @@ type = 'aenet'
 base_input_dir = './aenet_train_input'
 exe_command = [
 '~/opt/aenet/bin/generate.x_serial',
-'mpiexec -np 4 --oversubscribe ~/opt/aenet/bin/train.x_mpi'
+'mpiexec -np 2 ~/opt/aenet/bin/train.x_mpi'
 ]
 ignore_species = ["O"]
 vac_map = []
