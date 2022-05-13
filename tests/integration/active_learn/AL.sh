@@ -11,5 +11,5 @@ mpiexec -np 4 --oversubscribe abics_activelearn input.toml
 
 #train
 echo start training
-abics_train input_aenet.toml > train.out
+abics_train input.toml > train.out
 echo Done
