@@ -15,9 +15,9 @@ cd ../src
 
 GFORTRAN_VERSION=$(gfortran -dump-version | cut -d. -f1)
 if [ $GFORTRAN_VERSION -ge 10 ]; then
-	LOCAL_FCFLAGS="-fallow-argument-mismatch -O2 -fexternal-blas \$(DEBUG)"
+  LOCAL_FCFLAGS="-fallow-argument-mismatch -O2 -fexternal-blas \$(DEBUG)"
 else
-	LOCAL_FCFLAGS="-O2 -fexternal-blas \$(DEBUG)"
+  LOCAL_FCFLAGS="-O2 -fexternal-blas \$(DEBUG)"
 fi
 
 cd makefiles
