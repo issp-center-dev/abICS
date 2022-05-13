@@ -1,0 +1,11 @@
+OUTPUT aenet.train
+
+TYPES
+2
+Al -0.0  ! eV
+Mg -0.0  ! eV
+
+SETUPS
+Al   Al.fingerprint.stp
+Mg    Mg.fingerprint.stp
+
