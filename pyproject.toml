@@ -24,6 +24,9 @@ qe_tools = "^1.1"
 [tool.poetry.extras]
 
 [tool.poetry.dev-dependencies]
+Sphinx = "^4.5.0"
+sphinx-rtd-theme = "^1.0.0"
+pynvim = "^0.4.3"
 
 [tool.poetry.scripts]
 abics = "abics.scripts.main:main"

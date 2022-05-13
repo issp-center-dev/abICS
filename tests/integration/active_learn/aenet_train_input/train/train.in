@@ -1,0 +1,29 @@
+TRAININGSET aenet.train 
+TESTPERCENT 10
+ITERATIONS  500
+
+MAXENERGY 10000
+
+TIMING
+
+!SAVE_ENERGIES
+
+METHOD
+!lm batchsize=4000 learnrate=0.1d0 iter=3 conv=0.001 adjust=5.0
+bfgs
+
+!METHOD 2 Steepest Descent
+!online_sd gamma=5.0d-7 alpha=0.25d0
+!online_sd gamma=1.0d-8 alpha=0.25d0
+!
+!METHOD 3 Extended Kalman Filter
+!ekf
+!
+!METHOD 4 Levenberg-Marquardt
+!lm batchsize=8000 learnrate=0.1d0 iter=3 conv=0.001 adjust=5.0
+
+NETWORKS
+! atom   network         hidden
+! types  file-name       layers  nodes:activation
+  Al     Al.15t-15t.nn    2      15:tanh 15:tanh
+  Mg       Mg.15t-15t.nn    2      15:tanh 15:tanh
