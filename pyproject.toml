@@ -24,6 +24,9 @@ qe_tools = "^1.1"
 [tool.poetry.extras]
 
 [tool.poetry.dev-dependencies]
+Sphinx = "^4.5.0"
+sphinx-rtd-theme = "^1.0.0"
+pynvim = "^0.4.3"
 
 [tool.poetry.scripts]
 abics = "abics.scripts.main:main"
@@ -32,7 +35,6 @@ st2abics = "abics.scripts.st2abics_config:main"
 abicsRXsepT = "abics.scripts.abicsRXsepT:main"
 abics_activelearn = "abics.scripts.activelearn:main"
 abics_train = "abics.scripts.train:main"
-abics_mocksolver = "abics.scripts.mocksolver:main"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
