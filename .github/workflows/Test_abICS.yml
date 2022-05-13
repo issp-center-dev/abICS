@@ -26,6 +26,7 @@ jobs:
         python -m pip install setuptools wheel
         sudo apt update
         sudo apt install -y libopenmpi-dev openmpi-bin parallel
+        sudo apt install -y python3-mpi4py
         python -m pip install Cython
     - name: Install abICS
       run: python -m pip install .

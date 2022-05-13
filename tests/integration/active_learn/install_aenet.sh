@@ -1,6 +1,8 @@
 #!/bin/sh
 
 # This script installs aenet by using gfortran
+# generate.x_serial, train.x_mpi, and predict.x_serial will be copied
+# into ~/opt/aenet/bin
 
 VERSION=2.0.4
 
@@ -29,6 +31,7 @@ make -f makefiles/Makefile.gfortran_serial
 make -f makefiles/Makefile.gfortran_mpi
 
 cd ../bin
-ln -s generate.x-${VERSION}-gfortran_serial generate.x_serial
-ln -s train.x-${VERSION}-gfortran_mpi train.x_mpi
-ln -s predict.x-${VERSION}-gfortran_serial predict.x_serial
+mkdir -p ~/opt/aenet/bin
+cp generate.x-${VERSION}-gfortran_serial ~/opt/aenet/bin/generate.x_serial
+cp train.x-${VERSION}-gfortran_mpi ~/opt/aenet/bin/train.x_mpi
+cp predict.x-${VERSION}-gfortran_serial ~/opt/aenet/bin/predict.x_serial

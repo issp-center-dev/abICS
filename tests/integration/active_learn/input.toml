@@ -17,7 +17,7 @@ sample_frequency = 10
 
 [solver]
 type = 'aenet'
-path= 'aenet/bin/predict.x_serial'
+path= '~/opt/aenet/bin/predict.x_serial'
 base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess'
@@ -37,8 +37,8 @@ ignore_species = []
 type = 'aenet'
 base_input_dir = './aenet_train_input'
 exe_command = [
-'aenet/bin/generate.x_serial',
-'mpiexec -np 4 --oversubscribe aenet/bin/train.x_mpi'
+'~/opt/aenet/bin/generate.x_serial',
+'mpiexec -np 4 --oversubscribe ~/opt/aenet/bin/train.x_mpi'
 ]
 ignore_species = ["O"]
 vac_map = []
