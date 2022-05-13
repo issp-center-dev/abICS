@@ -38,7 +38,7 @@ type = 'aenet'
 base_input_dir = './aenet_train_input'
 exe_command = [
 'aenet/bin/generate.x_serial',
-'mpiexec -np 2 aenet/bin/train.x_mpi'
+'mpiexec -np 4 --oversubscribe aenet/bin/train.x_mpi'
 ]
 ignore_species = ["O"]
 vac_map = []

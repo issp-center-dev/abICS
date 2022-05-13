@@ -1,3 +1,3 @@
 #!/bin/sh
-mpiexec -np 4 abicsAL input_aenet.toml >> aenet.out
+mpiexec -np 4 --oversubscribe abicsAL input_aenet.toml >> aenet.out
 echo Done
