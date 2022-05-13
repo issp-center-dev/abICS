@@ -11,6 +11,7 @@ Submodules
    abics.scripts.activelearn
    abics.scripts.activelearn_spawn
    abics.scripts.main
+   abics.scripts.mocksolver
    abics.scripts.st2abics_config
    abics.scripts.train
 
