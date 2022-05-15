@@ -58,6 +58,7 @@ class DFTParams:
         params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
+        params.use_tmpdir = d.get("use_tmpdir", False)
         params.properties = d
 
         return params
