@@ -64,6 +64,7 @@ class runner(object):
         perturb=0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
     ):
         """
         Parameters
@@ -82,6 +83,8 @@ class runner(object):
             Number of threads which one solver process uses
         solver_run_scheme : str, default "mpi_spawn_ready"
             Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
 
         Raises
         ------
@@ -96,6 +99,14 @@ class runner(object):
         self.nthreads_per_proc = nthreads_per_proc
         self.output = Solver.output
         self.comm = comm
+        self.use_tmpdir = use_tmpdir
+
+        if self.use_tmpdir:
+            import tempfile
+            self.tmpdir = tempfile.TemporaryDirectory()
+        #    import shutil
+        #    shutil.copy(self.path_to_solver, self.tmpdir.name)
+        #    self.path_to_solver = os.path.join(self.tmpdir.name, os.path.basename(self.path_to_solver))
         if solver_run_scheme not in Solver.solver_run_schemes():
             print(
                 "{scheme} not implemented for {solver}".format(
@@ -150,6 +161,10 @@ class runner(object):
             perturb_structure(structure, self.perturb)
         solverinput = self.base_solver_input
         solverinput.update_info_by_structure(structure)
+        if self.use_tmpdir:
+            if output_dir[0] == "/":
+                output_dir = output_dir[1:]
+            output_dir = os.path.join(self.tmpdir.name, output_dir)
         self.run.submit(self.solver_name, solverinput, output_dir)
         results = self.output.get_results(output_dir)
         return np.float64(results.energy), results.structure
@@ -175,6 +190,7 @@ class runner_multistep(object):
         perturb=0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
     ):
         """
         Parameters
@@ -193,6 +209,8 @@ class runner_multistep(object):
             Number of threads which one solver process uses
         solver_run_scheme : str, default "mpi_spawn_ready"
             Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
         """
 
         self.runners = []
@@ -206,6 +224,7 @@ class runner_multistep(object):
                 perturb,
                 nthreads_per_proc,
                 solver_run_scheme,
+                use_tmpdir,
             )
         )
         for i in range(1, len(base_input_dirs)):
@@ -218,6 +237,7 @@ class runner_multistep(object):
                     perturb=0,
                     nthreads_per_proc=nthreads_per_proc,
                     solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
                 )
             )
 
