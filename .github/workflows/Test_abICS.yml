@@ -25,9 +25,16 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install setuptools wheel
         sudo apt update
-        sudo apt install -y libopenmpi-dev openmpi-bin
+        sudo apt install -y libopenmpi-dev openmpi-bin parallel
+        sudo apt install -y python3-mpi4py
         python -m pip install Cython
     - name: Install abICS
       run: python -m pip install .
-    - name: Test
-      run: python -m unittest
+    - name: Test (Unit)
+      run: |
+        python -m unittest
+    - name: Test (ActiveLearn)
+      run: |
+        cd tests/integration/active_learn
+        sh ./install_aenet.sh
+        sh ./run.sh
