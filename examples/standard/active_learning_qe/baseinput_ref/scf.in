@@ -2,7 +2,7 @@
   calculation = 'relax'
   tstress = .false.
   tprnfor = .false.
-  pseudo_dir = '~/qe/pot'
+  pseudo_dir = './pseudo'
   disk_io = 'low'
   wf_collect = .false.
 /
