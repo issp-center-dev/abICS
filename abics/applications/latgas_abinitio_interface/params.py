@@ -27,6 +27,11 @@ class DFTParams:
         self.perturb = 0.0
         self.solver_run_scheme = ""
         self.properties = {}
+        self.ignore_species = None
+        self.constraint_module = None
+        self.ensemble = False
+        self.par_ensemble = False
+        self.use_tmpdir = False
 
     @classmethod
     def from_dict(cls, d):
@@ -58,6 +63,8 @@ class DFTParams:
         params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
+        params.ensemble = d.get("ensemble", False)
+        params.par_ensemble = d.get("par_ensemble", False)
         params.use_tmpdir = d.get("use_tmpdir", False)
         params.properties = d
 
