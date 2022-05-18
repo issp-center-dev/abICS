@@ -405,7 +405,7 @@ class RXParams:
         return cls.from_dict(toml.load(fname))
 
 
-def RX_MPI_init(rxparams):
+def RX_MPI_init(rxparams, dftparams=None):
     """
 
     Parameters
@@ -418,16 +418,14 @@ def RX_MPI_init(rxparams):
     comm: comm world
         MPI communicator
     """
-
-    nreplicas = rxparams.nreplicas
+    if dftparams != None and dftparams.ensemble and dftparams.par_ensemble:
+        nensemble = len(dftparams.base_input_dir)
+    else:
+        nensemble = 1
+    nreplicas = rxparams.nreplicas*nensemble
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
-    if rxparams.seed > 0:
-        rand.seed(rxparams.seed + worldrank * 137)
-    else:
-        rand_seeds = [rand.randint(10000) for i in range(worldprocs)]
-        rand.seed(rand_seeds[worldrank])
 
     if worldprocs < nreplicas:
         if worldrank == 0:
@@ -452,11 +450,25 @@ def RX_MPI_init(rxparams):
             comm = commworld.Split(color=0, key=worldrank)
     else:
         comm = commworld
-    return comm
+    comm = comm.Create_cart(dims=[rxparams.nreplicas, nensemble], periods=[False, False], reorder=True)
+    commRX = comm.Sub(remain_dims=[True, False])
+    commEnsemble = comm.Sub(remain_dims=[False, True])
+    RXrank = commRX.Get_rank()
+    if rxparams.seed > 0:
+        rand.seed(rxparams.seed + RXrank * 137)
+    else:
+        rand_seeds = [rand.randint(10000) for i in range(commRX.Get_size())]
+        rand_seed = commEnsemble.bcast(rand_seeds[RXrank], root=0)
+        rand.seed(rand_seed)
+        
 
+    #return commRX
+    if dftparams == None:
+        return commRX
+    return commRX, commEnsemble, comm
 
 class EmbarrassinglyParallelSampling:
-    def __init__(self, comm, MCalgo, model, configs, kTs=None, subdirs=True):
+    def __init__(self, comm, MCalgo, model, configs, kTs=None, subdirs=True, write_node=True):
         """
 
         Parameters
@@ -483,6 +495,7 @@ class EmbarrassinglyParallelSampling:
         self.model = model
         self.subdirs = subdirs
         self.nreplicas = len(configs)
+        self.write_node = write_node
 
         if not (self.procs == self.nreplicas == len(self.kTs)):
             if self.rank == 0:
@@ -560,9 +573,10 @@ class EmbarrassinglyParallelSampling:
         with open("obs.dat", "a") as output:
             for i in range(1, nsteps + 1):
                 self.mycalc.MCstep()
+            
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
-                        self.mycalc, output, i % print_frequency == 0
+                        self.mycalc, output, i % print_frequency == 0 and self.write_node
                     )
                     obs[self.rank] += obs_step
                     if save_obs:
@@ -572,24 +586,25 @@ class EmbarrassinglyParallelSampling:
 
                 self.comm.Barrier()
 
-                # save information for restart
-                pickle_dump(self.mycalc.config, "calc.pickle")
-                rand_state = rand.get_state()
-                pickle_dump(rand_state, "rand_state.pickle")
-                if save_obs:
-                    if hasattr(self, "obs_save0"):
-                        obs_save_ = np.concatenate(
-                            (self.obs_save0, np.array(self.obs_save))
-                        )
-                        kT_hist_ = np.concatenate(
-                            (self.kT_hist0, np.array(self.kT_hist))
-                        )
-                    else:
-                        obs_save_ = np.array(self.obs_save)
-                        kT_hist_ = np.array(self.kT_hist)
+                if self.write_node:
+                    # save information for restart
+                    pickle_dump(self.mycalc.config, "calc.pickle")
+                    rand_state = rand.get_state()
+                    pickle_dump(rand_state, "rand_state.pickle")
+                    if save_obs:
+                        if hasattr(self, "obs_save0"):
+                            obs_save_ = np.concatenate(
+                                (self.obs_save0, np.array(self.obs_save))
+                            )
+                            kT_hist_ = np.concatenate(
+                                (self.kT_hist0, np.array(self.kT_hist))
+                            )
+                        else:
+                            obs_save_ = np.array(self.obs_save)
+                            kT_hist_ = np.array(self.kT_hist)
 
-                    numpy_save(obs_save_, "obs_save.npy")
-                    numpy_save(kT_hist_, "kT_hist.npy")
+                        numpy_save(obs_save_, "obs_save.npy")
+                        numpy_save(kT_hist_, "kT_hist.npy")
 
                 if subdirs:
                     os.chdir("../")
@@ -612,7 +627,7 @@ class EmbarrassinglyParallelSampling:
 
 
 class ParallelMC(object):
-    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True):
+    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True):
         """
 
         Parameters
@@ -637,6 +652,7 @@ class ParallelMC(object):
         self.model = model
         self.subdirs = subdirs
         self.nreplicas = len(configs)
+        self.write_node = write_node
 
         if not (self.procs == self.nreplicas == len(self.kTs)):
             if self.rank == 0:
@@ -674,7 +690,8 @@ class ParallelMC(object):
                 pass
             os.chdir(str(self.rank))
         observables = self.mycalc.run(nsteps, sample_frequency, observer)
-        pickle_dump(self.mycalc.config, "config.pickle")
+        if self.write_node:
+            pickle_dump(self.mycalc.config, "config.pickle")
         if self.subdirs:
             os.chdir("../")
         if sample_frequency:
@@ -684,7 +701,7 @@ class ParallelMC(object):
 
 
 class RandomSampling_MPI(ParallelMC):
-    def __init__(self, comm, MCalgo, model, configs, subdirs=True):
+    def __init__(self, comm, MCalgo, model, configs, subdirs=True, write_node=True):
         """
 
         Parameters
@@ -711,10 +728,11 @@ class RandomSampling_MPI(ParallelMC):
         self.obs_save = []
         self.Trank_hist = []
         self.kT_hist = []
+        self.write_node = write_node
 
 
 class TemperatureRX_MPI(ParallelMC):
-    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True):
+    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True):
         """
 
         Parameters
@@ -733,7 +751,7 @@ class TemperatureRX_MPI(ParallelMC):
             If true, working directory for this rank is made
         """
         super(TemperatureRX_MPI, self).__init__(
-            comm, MCalgo, model, configs, kTs, subdirs
+            comm, MCalgo, model, configs, kTs, subdirs, write_node
         )
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int)
@@ -893,7 +911,7 @@ class TemperatureRX_MPI(ParallelMC):
                     XCscheme = (XCscheme + 1) % 2
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
-                        self.mycalc, output, i % print_frequency == 0
+                        self.mycalc, output, i % print_frequency == 0 and self.write_node
                     )
                     obs[self.rank_to_T[self.rank]] += obs_step
                     if save_obs:
@@ -904,40 +922,39 @@ class TemperatureRX_MPI(ParallelMC):
 
                     self.comm.Barrier()
 
-                    # save information for restart
-                    pickle_dump(self.mycalc.config, "calc.pickle")
-                    rand_state = rand.get_state()
-                    pickle_dump(rand_state, "rand_state.pickle")
-                    if save_obs:
-                        if hasattr(self, "obs_save0"):
-                            obs_save_ = np.concatenate(
-                                (self.obs_save0, np.array(self.obs_save))
-                            )
-                            Trank_hist_ = np.concatenate(
-                                (self.Trank_hist0, np.array(self.Trank_hist))
-                            )
-                            kT_hist_ = np.concatenate(
-                                (self.kT_hist0, np.array(self.kT_hist))
-                            )
-                        else:
-                            obs_save_ = np.array(self.obs_save)
-                            Trank_hist_ = np.array(self.Trank_hist)
-                            kT_hist_ = np.array(self.kT_hist)
+                    if self.write_node:
+                        # save information for restart
+                        pickle_dump(self.mycalc.config, "calc.pickle")
+                        rand_state = rand.get_state()
+                        pickle_dump(rand_state, "rand_state.pickle")
+                        if save_obs:
+                            if hasattr(self, "obs_save0"):
+                                obs_save_ = np.concatenate(
+                                    (self.obs_save0, np.array(self.obs_save))
+                                )
+                                Trank_hist_ = np.concatenate(
+                                    (self.Trank_hist0, np.array(self.Trank_hist))
+                                )
+                                kT_hist_ = np.concatenate(
+                                    (self.kT_hist0, np.array(self.kT_hist))
+                                )
+                            else:
+                                obs_save_ = np.array(self.obs_save)
+                                Trank_hist_ = np.array(self.Trank_hist)
+                                kT_hist_ = np.array(self.kT_hist)
 
-                        numpy_save(obs_save_, "obs_save.npy")
-                        numpy_save(Trank_hist_, "Trank_hist.npy")
-                        numpy_save(kT_hist_, "kT_hist.npy")
+                            numpy_save(obs_save_, "obs_save.npy")
+                            numpy_save(Trank_hist_, "Trank_hist.npy")
+                            numpy_save(kT_hist_, "kT_hist.npy")
 
                     if subdirs:
                         os.chdir("../")
-                    if self.rank == 0:
-                        pickle_dump(self.rank_to_T, "rank_to_T.pickle")
-                        numpy_save(self.kTs, "kTs.npy")
+                    if self.write_node:
+                        if self.rank == 0:
+                            pickle_dump(self.rank_to_T, "rank_to_T.pickle")
+                            numpy_save(self.kTs, "kTs.npy")
                     if subdirs:
                         os.chdir(str(self.rank))
-
-        if subdirs:
-            os.chdir("../")
 
         if nsample != 0:
             obs = np.array(obs)
@@ -948,4 +965,9 @@ class TemperatureRX_MPI(ParallelMC):
             args_info = observer.obs_info(self.mycalc)
             for i in range(len(self.kTs)):
                 obs_list.append(obs_decode(args_info, obs_buffer[i]))
+            if subdirs:
+                os.chdir("../")
             return obs_list
+            
+        if subdirs:
+            os.chdir("../")
