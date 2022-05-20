@@ -173,7 +173,7 @@ Please refer to :ref:`sec_basic_usage` section for information on setting the nu
 
 ::
 
-   mpiexec -np 2 abics input_qe.toml
+   mpiexec -np 2 abics_sampling input_qe.toml
 
 
 After the abICS calculation, we can calculate the degree of inversion (DOI: ratio of Al atoms on Mg sites of the ordered spinel structure).
