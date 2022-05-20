@@ -33,7 +33,13 @@ jobs:
     - name: Test (Unit)
       run: |
         python -m unittest
+    - name: Test (Sampling)
+      working-directory: ${{runner.workspace}}
+      run: |
+        cd tests/integration/mock
+        sh ./run.sh
     - name: Test (ActiveLearn)
+      working-directory: ${{runner.workspace}}
       run: |
         cd tests/integration/active_learn
         sh ./install_aenet.sh
