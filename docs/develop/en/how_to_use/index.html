@@ -198,7 +198,7 @@ ignored_species = [&#39;O&#39;]
 <section id="execution">
 <h2><span class="section-number">3.3. </span>Execution<a class="headerlink" href="#execution" title="Permalink to this headline">¶</a></h2>
 <p>The number of processes specified here must be greater than or equal to the number of replicas.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics input.toml
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics_sampling input.toml
 </pre></div>
 </div>
 <p>This creates a directory named with the replica number under the current directory, and each replica runs the solver in it.
@@ -210,7 +210,7 @@ Here, <cite>input.toml</cite> is an input file for abICS (see <a class="referenc
 This function executes another program on new MPI processes.</p>
 <p>For example, consider that you have a parallel machine with 4 CPU cores per node
 and want to run two replicas and to invoke solvers on 4 CPU cores.
-If invoked as <code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np2</span> <span class="pre">abics</span> <span class="pre">input.toml</span></code>, the replica control processes A and B are started on the first two cores of node 0,
+If invoked as <code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np2</span> <span class="pre">abics_sampling</span> <span class="pre">input.toml</span></code>, the replica control processes A and B are started on the first two cores of node 0,
 each starting a new four-parallel solver a and b.
 Then, solver a fills the remaining two cores in node 0 and the first two cores in node 1,
 and solver b is placed on the remaining two cores in node 1 and the first two cores in node 2.

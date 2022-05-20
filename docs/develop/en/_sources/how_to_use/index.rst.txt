@@ -52,7 +52,7 @@ The number of processes specified here must be greater than or equal to the numb
 
 ::
 
- $ mpiexec -np 2 abics input.toml
+ $ mpiexec -np 2 abics_sampling input.toml
 
 This creates a directory named with the replica number under the current directory, and each replica runs the solver in it.
 Here, `input.toml` is an input file for abICS (see :ref:`subsec_basic_input`).
@@ -64,7 +64,7 @@ This function executes another program on new MPI processes.
 
 For example, consider that you have a parallel machine with 4 CPU cores per node
 and want to run two replicas and to invoke solvers on 4 CPU cores.
-If invoked as ``mpiexec -np2 abics input.toml``, the replica control processes A and B are started on the first two cores of node 0,
+If invoked as ``mpiexec -np2 abics_sampling input.toml``, the replica control processes A and B are started on the first two cores of node 0,
 each starting a new four-parallel solver a and b.
 Then, solver a fills the remaining two cores in node 0 and the first two cores in node 1,
 and solver b is placed on the remaining two cores in node 1 and the first two cores in node 2.
