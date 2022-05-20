@@ -3,11 +3,18 @@
 # This script installs aenet by using gfortran
 # generate.x_serial, train.x_mpi, and predict.x_serial will be copied
 # into ~/opt/aenet/bin
+#
+# NOTE:
+# For macOS, `gcc` (/usr/bin/gcc) does not mean GNU CC and hence the compilation will fail.
+# To use this script, make sure that `gcc` command invokes GNU CC by, for example,
+#   ln -s `which gcc-11` ./gcc
+#   PATH=`pwd`:$PATH sh ./install_aenet.sh
 
 VERSION=2.0.4
 
 URL=https://github.com/atomisticnet/aenet/archive/refs/tags/v${VERSION}.tar.gz
 wget $URL -O aenet.tar.gz
+rm -rf aenet
 mkdir aenet
 tar zxf aenet.tar.gz -C aenet --strip-components=1
 
@@ -15,7 +22,7 @@ cd aenet/lib
 make
 cd ../src
 
-GFORTRAN_VERSION=$(gfortran -dump-version | cut -d. -f1)
+GFORTRAN_VERSION=$(gfortran -dumpversion | cut -d. -f1)
 if [ $GFORTRAN_VERSION -ge 10 ]; then
   LOCAL_FCFLAGS="-fallow-argument-mismatch -O2 -fexternal-blas \$(DEBUG)"
 else

@@ -175,7 +175,7 @@ MPI 実行におけるプロセス数やオプションの設定については 
 
 ::
 
-   mpiexec -np 2 abics input_qe.toml
+   mpiexec -np 2 abics_sampling input_qe.toml
 
 
 abics 計算終了後、反転度（もともと Mg 原子があった位置にAl 原子が占めている割合）を計算します。
