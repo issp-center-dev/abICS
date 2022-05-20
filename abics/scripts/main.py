@@ -15,7 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 import copy
-import sys,os,shutil
+import sys, os, shutil
 
 from mpi4py import MPI
 import numpy as np
@@ -31,7 +31,7 @@ from abics.mc_mpi import (
     EmbarrassinglyParallelSampling,
 )
 from abics.applications.latgas_abinitio_interface import (
-    default_observer, 
+    default_observer,
     EnsembleParams,
     ensemble_error_observer,
 )
@@ -57,7 +57,8 @@ from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
 
-def main_impl(tomlfile, ALrun=False):
+
+def main_impl(tomlfile):
     dftparams = DFTParams.from_toml(tomlfile)
     samplerparams = SamplerParams.from_toml(tomlfile)
     if samplerparams.sampler == "RXMC":
@@ -65,10 +66,10 @@ def main_impl(tomlfile, ALrun=False):
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
 
-        kB = constants.value(u"Boltzmann constant in eV/K")
+        kB = constants.value("Boltzmann constant in eV/K")
 
         comm, commEnsemble, commAll = RX_MPI_init(rxparams, dftparams)
-        
+
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
         kTstart = rxparams.kTstart
@@ -101,7 +102,7 @@ def main_impl(tomlfile, ALrun=False):
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
 
-        kB = constants.value(u"Boltzmann constant in eV/K")
+        kB = constants.value("Boltzmann constant in eV/K")
 
         comm, commEnsemble, commAll = RX_MPI_init(rxparams, dftparams)
 
@@ -121,8 +122,6 @@ def main_impl(tomlfile, ALrun=False):
     else:
         print("Unknown sampler. Exiting...")
         sys.exit(1)
-
-    
 
     if dftparams.solver == "vasp":
         solver = VASPSolver(dftparams.path)
@@ -145,8 +144,10 @@ def main_impl(tomlfile, ALrun=False):
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
     if dftparams.ensemble:
-        if len(dftparams.base_input_dir) ==1:
-            print("You must specify more than one base_input_dir for ensemble calculator")
+        if len(dftparams.base_input_dir) == 1:
+            print(
+                "You must specify more than one base_input_dir for ensemble calculator"
+            )
             sys.exit(1)
         energy_calculator = runner_ensemble(
             base_input_dirs=dftparams.base_input_dir,
@@ -205,7 +206,9 @@ def main_impl(tomlfile, ALrun=False):
             solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
         elif ensembleparams.solver == "aenet":
             solver = aenetSolver(
-                ensembleparams.path, ensembleparams.ignore_species, ensembleparams.solver_run_scheme
+                ensembleparams.path,
+                ensembleparams.ignore_species,
+                ensembleparams.solver_run_scheme,
             )
         elif ensembleparams.solver == "openmx":
             solver = OpenMXSolver(ensembleparams.path)
@@ -214,7 +217,7 @@ def main_impl(tomlfile, ALrun=False):
         else:
             print("unknown solver: {}".format(ensembleparams.solver))
             sys.exit(1)
-    
+
         energy_calculators = [
             runner(
                 base_input_dir=base_input_dir,
@@ -224,11 +227,14 @@ def main_impl(tomlfile, ALrun=False):
                 perturb=ensembleparams.perturb,
                 solver_run_scheme=ensembleparams.solver_run_scheme,
                 use_tmpdir=dftparams.use_tmpdir,
-            ) for base_input_dir in ensembleparams.base_input_dirs
+            )
+            for base_input_dir in ensembleparams.base_input_dirs
         ]
         observer = ensemble_error_observer(commEnsemble, energy_calculators, Lreload)
     else:
         observer = default_observer(comm, Lreload)
+
+    ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 
     # Active learning mode
     if ALrun:
@@ -244,7 +250,7 @@ def main_impl(tomlfile, ALrun=False):
                 sys.exit(1)
             if Lreload:
                 rootdir = os.getcwd()
-                os.chdir("MC{}".format(i-1))
+                os.chdir("MC{}".format(i - 1))
                 MCid = i - 1
             else:
                 # Make new directory and perform sampling there
@@ -253,7 +259,7 @@ def main_impl(tomlfile, ALrun=False):
                     if dftparams.use_tmpdir:
                         # backup baseinput for this AL step
                         for j, d in enumerate(dftparams.base_input_dir):
-                            shutil.copytree(d, "MC{}/baseinput{}".format(i,j))
+                            shutil.copytree(d, "MC{}/baseinput{}".format(i, j))
                 commAll.Barrier()
                 rootdir = os.getcwd()
                 print(i, rootdir)
@@ -271,7 +277,9 @@ def main_impl(tomlfile, ALrun=False):
         write_node = False
     if samplerparams.sampler == "RXMC":
         # RXMC calculation
-        RXcalc = TemperatureRX_MPI(comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node)
+        RXcalc = TemperatureRX_MPI(
+            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+        )
         if Lreload:
             RXcalc.reload()
         obs = RXcalc.run(
@@ -287,7 +295,9 @@ def main_impl(tomlfile, ALrun=False):
             print(obs)
 
     elif samplerparams.sampler == "parallelRand":
-        calc = EmbarrassinglyParallelSampling(comm, RandomSampling, model, configs, write_node=write_node)
+        calc = EmbarrassinglyParallelSampling(
+            comm, RandomSampling, model, configs, write_node=write_node
+        )
         if Lreload:
             calc.reload()
         obs = calc.run(
@@ -325,14 +335,10 @@ def main_impl(tomlfile, ALrun=False):
                 fi.flush()
                 os.fsync(fi.fileno())
 
+
 def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     main_impl(tomlfile)
-
-def mainAL():
-    tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    main_impl(tomlfile, True)
-
 
 
 if __name__ == "__main__":

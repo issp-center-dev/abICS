@@ -13,11 +13,11 @@ module load openmpi/4.0.4-intel-2019.5.281
 
 for i in {1..2} # 2 runs set in baseinput
 do
-    srun -n 15  abics_activelearn input_aenet.toml >> active.out
+    srun -n 15  abics_mlref input_aenet.toml >> active.out
     sh parallel_run.sh
 done
 
-srun -n 15 abics_activelearn input_aenet.toml >> active.out
+srun -n 15 abics_mlref input_aenet.toml >> active.out
 
 #train
 module purge
