@@ -178,3 +178,33 @@ OpenMX
     
     ``mpi_spawn_wrapper`` に設定してください。
 
+
+aenet
+======
+
+- URL : http://ann.atomistic.net
+
+- バージョン2.0.3 (2018-06-25) で動作確認済。
+
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+  
+  - aenet用の入力ファイルを ``[trainer]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``generate`` 、 ``train`` 、および ``predict`` ディレクトリに設置してください。
+
+  - aenetでは、訓練用の原子配置とエネルギーのデータを、原子環境記述子とエネルギーの関係に変換した中間バイナリフォーマットにまとめてから訓練を行います。この変換を行う ``generate.x`` 用の 入力ファイルを ``generate`` ディレクトリに設置してください。
+
+  - ``generate.x`` で生成された訓練データを読み込み、訓練を行う ``train.x`` 用の入力ファイルを ``train`` ディレクトリに設置します。 ファイル名は ``train.in`` としてください。
+    
+  - 訓練したポテンシャルモデルを使って入力座標に対してエネルギーを 評価するための ``predict.x`` 用の入力ファイル ``predict.in`` を、 ``predict`` ディレクトリに設置してください。
+
+
+- abICS 入力ファイル
+
+  - ``[solver]`` セクションで ``type`` , ``perturb`` , ``run_scheme`` に関しては、能動学習スキームを用いる場合は以下に設定してください。
+
+  .. code-block:: bash  
+
+     type = “aenet”
+     perturb = 0.0
+     run_scheme = ‘subprocess’
+
+  
