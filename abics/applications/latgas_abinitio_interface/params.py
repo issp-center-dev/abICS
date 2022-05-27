@@ -48,8 +48,6 @@ class DFTParams:
         params: DFTParams object
             self
         """
-        if "solver" in d:
-            d = d["solver"]
         params = cls()
         base_input_dir = d.get("base_input_dir", ["./baseinput"])
         if isinstance(base_input_dir, str):
@@ -82,12 +80,13 @@ class DFTParams:
 
         Returns
         -------
-        oDFTParams: DFTParams object
+        DFTParams: DFTParams object
             self
         """
         import toml
 
-        return cls.from_dict(toml.load(f))
+        d = toml.load(f)
+        return cls.from_dict(d["sampling"]["solver"])
 
 
 class ALParams:
@@ -118,8 +117,6 @@ class ALParams:
         params: DFTParams object
             self
         """
-        if "solverRef" in d:
-            d = d["solverRef"]
         params = cls()
         base_input_dir = d.get("base_input_dir", ["./baseinput"])
         if isinstance(base_input_dir, str):
@@ -128,7 +125,10 @@ class ALParams:
             map(lambda x: expand_path(x, os.getcwd()), base_input_dir)
         )
         params.solver = d["type"]
-        params.path = expand_path(d["path"], os.getcwd())
+
+        # the current version of abics_mlref does not invoke solver
+        # params.path = expand_path(d["path"], os.getcwd())
+
         params.perturb = d.get("perturb", 0.1)
         params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)
@@ -157,7 +157,8 @@ class ALParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(f))
+        d = toml.load(f)
+        return cls.from_dict(d["mlref"]["solver"])
 
 class TrainerParams:
     def __init__(self):
@@ -185,8 +186,6 @@ class TrainerParams:
         params: TrainerParams object
             self
         """
-        if "trainer" in d:
-            d = d["trainer"]
         params = cls()
         base_input_dir = d.get("base_input_dir", ["./baseinput"])
         if isinstance(base_input_dir, str):
@@ -224,4 +223,5 @@ class TrainerParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(f))
+        d = toml.load(f)
+        return cls.from_dict(d["train"])

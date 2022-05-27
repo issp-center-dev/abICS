@@ -1,4 +1,4 @@
-[replica]
+[sampling]
 nreplicas = 2
 nprocs_per_replica = 1 
 kTstart = 1200.0
@@ -9,13 +9,7 @@ sample_frequency = 16
 print_frequency = 1
 reload = false
 
-[replicaRef]
-nreplicas = 2
-nprocs_per_replica = 1
-nsteps = 40
-sample_frequency = 10
-
-[solver]
+[sampling.solver]
 type = 'aenet'
 path= '~/opt/aenet/bin/predict.x_serial'
 base_input_dir = './baseinput'
@@ -23,17 +17,22 @@ perturb = 0.0
 run_scheme = 'subprocess'
 ignore_species = ["O"]
 
-[solverRef]
+[mlref]
+nreplicas = 2
+nsteps = 40
+sample_frequency = 10
+
+[mlref.solver]
 type = 'mock'
-path = ''
+# path = ''
 base_input_dir = './baseinput_ref'
 perturb = 0.05
-#run_scheme = 'subprocess'
-#only_input = true
 ignore_species = []
-#vac_convert = []
 
-[trainer]
+[train]
+nreplicas = 2
+nsteps = 40
+sample_frequency = 10
 type = 'aenet'
 base_input_dir = './aenet_train_input'
 exe_command = [

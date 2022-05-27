@@ -99,7 +99,7 @@ class RefParams:
 
     def __init__(self):
         self.nreplicas = None
-        self.nprocs_per_replica = 1
+        # self.nprocs_per_replica = 1
         self.nsteps = None
         self.sample_frequency = 1
         self.print_frequency = 1
@@ -121,11 +121,9 @@ class RefParams:
         params: DFTParams object
             self
         """
-        if "replicaRef" in d:
-            d = d["replicaRef"]
         params = cls()
         params.nreplicas = d["nreplicas"]
-        params.nprocs_per_replica = d["nprocs_per_replica"]
+        # params.nprocs_per_replica = d["nprocs_per_replica"]
         params.nsteps = d["nsteps"]
         params.sample_frequency = d.get("sample_frequency", 1)
         params.reload = d.get("reload", False)
@@ -148,7 +146,8 @@ class RefParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(fname))
+        d = toml.load(fname)
+        return cls.from_dict(d["mlref"])
 
 
 class ParallelRandomParams:
@@ -370,8 +369,6 @@ class RXParams:
         params: DFTParams object
             self
         """
-        if "replica" in d:
-            d = d["replica"]
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
@@ -402,7 +399,8 @@ class RXParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(fname))
+        d = toml.load(fname)
+        return cls.from_dict(d["sampling"])
 
 
 def RX_MPI_init(rxparams, dftparams=None):

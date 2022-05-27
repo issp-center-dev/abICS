@@ -51,7 +51,7 @@ class SamplerParams:
         return cls.from_dict(toml.load(fname))
 
 
-class RefParams:
+class TrainParams:
     """Parameter set for reference calculations in active learning run
 
     Attributes
@@ -96,7 +96,7 @@ class RefParams:
             d = d["replicaRef"]
         params = cls()
         params.nreplicas = d["nreplicas"]
-        params.nprocs_per_replica = d["nprocs_per_replica"]
+        params.nprocs_per_replica = d.get("nprocs_per_replica", 1)
         params.nsteps = d["nsteps"]
         params.sample_frequency = d.get("sample_frequency", 1)
         params.reload = d.get("reload", False)
@@ -119,7 +119,8 @@ class RefParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(fname))
+        d = toml.load(fname)
+        return cls.from_dict(d["train"])
 
 
 class ParallelRandomParams:
