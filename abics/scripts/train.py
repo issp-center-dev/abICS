@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from abics.replica_params import RefParams
+from abics.replica_params import TrainParams
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
 from abics.applications.latgas_abinitio_interface import map2perflat
@@ -40,7 +40,7 @@ def main_impl(tomlfile):
 
     # We need info from MC steps as well as parameters
     # specific to training
-    rxparams = RefParams.from_toml(tomlfile)
+    rxparams = TrainParams.from_toml(tomlfile)
     nreplicas = rxparams.nreplicas
     nsteps = rxparams.nsteps
     sample_frequency = rxparams.sample_frequency

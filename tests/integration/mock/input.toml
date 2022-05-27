@@ -1,4 +1,4 @@
-[replica]
+[sampling]
 nreplicas = 2
 nprocs_per_replica = 1 
 kTstart = 1200.0
@@ -9,7 +9,7 @@ sample_frequency = 16
 print_frequency = 1
 reload = false
 
-[solver]
+[sampling.solver]
 type = 'mock'
 path= ''
 base_input_dir = './baseinput'

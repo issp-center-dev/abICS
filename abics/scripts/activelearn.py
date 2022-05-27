@@ -55,8 +55,8 @@ from pymatgen.core import Structure
 
 def main_impl(tomlfile):
     rxparams = RefParams.from_toml(tomlfile)
-    nprocs_per_replica = rxparams.nprocs_per_replica
-    nreplicas = rxparams.nreplicas
+    # nprocs_per_replica = rxparams.nprocs_per_replica
+    # nreplicas = rxparams.nreplicas
     nsteps = rxparams.nsteps
     sample_frequency = rxparams.sample_frequency
     comm = RX_MPI_init(rxparams)
