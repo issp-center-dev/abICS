@@ -1,4 +1,4 @@
-[replica]
+[sampling]
 nreplicas = 8
 nprocs_per_replica = 1 
 kTstart = 600.0
@@ -9,12 +9,6 @@ sample_frequency = 16
 print_frequency = 1
 reload = false
 
-[replicaRef]
-nreplicas = 8
-nprocs_per_replica = 1
-nsteps = 400
-sample_frequency = 100
-
 [solver]
 type = 'aenet'
 path= '~/aenet/bin/predict.x-2.0.4-ifort_serial'
@@ -22,6 +16,12 @@ base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess' #'mpi_spawn_ready'
 ignore_species = ["O"]
+
+[mlref]
+nreplicas = 8
+nprocs_per_replica = 1
+nsteps = 400
+sample_frequency = 100
 
 [solverRef]
 type = 'qe'
@@ -40,6 +40,10 @@ exe_command = ['~/aenet/bin/generate.x-2.0.4-ifort_serial', 'srun ~/aenet/bin/tr
 ignore_species = ["O"]
 vac_map = []
 restart = false
+nreplicas = 8
+nprocs_per_replica = 1
+nsteps = 400
+sample_frequency = 100
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
