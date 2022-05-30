@@ -87,24 +87,34 @@ class RefParams:
     ----------
     nreplicas : int
         The number of replicas
-    nprocs_per_replica : int
-        The number of processes which a replica uses
-    nsteps : int
-        The number of MC steps
-    sample_frequency :
-        The number of MC steps between measurements observables
-    reload : bool
-        Whether to restart simulation or not
+    ndata: int
+        The number of structures to be converted
     """
 
+    nreplicas: int
+    "The number of replicas"
+    ndata: int
+    "The number of structures to be converted"
+    sampler: str
+    "The sampling method ('linspace' or 'random')"
+
     def __init__(self):
-        self.nreplicas = None
-        # self.nprocs_per_replica = 1
-        self.nsteps = None
-        self.sample_frequency = 1
-        self.print_frequency = 1
-        self.reload = False
+        self.nreplicas = 1
+        self.ndata = 1
+        self.sampler = "linspace"
         self.seed = 0
+
+    def sampling(self, nsamples: int) -> np.ndarray:
+        if self.sampler == "linspace":
+            ret = np.linspace(0, nsamples - 1, num=self.ndata, dtype=int)
+            return ret
+        elif self.sampler == "random":
+            ret = rand.choice(np.arange(nsamples), size=self.ndata, replace=False)
+            ret.sort()
+            return ret
+        else:
+            print(f"Unknown sampler: {self.sampler}")
+            sys.exit(1)
 
     @classmethod
     def from_dict(cls, d):
@@ -123,10 +133,12 @@ class RefParams:
         """
         params = cls()
         params.nreplicas = d["nreplicas"]
+        params.ndata = d["ndata"]
+        params.sampler = d.get("sampler", "linspace")
         # params.nprocs_per_replica = d["nprocs_per_replica"]
-        params.nsteps = d["nsteps"]
-        params.sample_frequency = d.get("sample_frequency", 1)
-        params.reload = d.get("reload", False)
+        # params.nsteps = d["nsteps"]
+        # params.sample_frequency = d.get("sample_frequency", 1)
+        # params.reload = d.get("reload", False)
         return params
 
     @classmethod
@@ -420,7 +432,7 @@ def RX_MPI_init(rxparams, dftparams=None):
         nensemble = len(dftparams.base_input_dir)
     else:
         nensemble = 1
-    nreplicas = rxparams.nreplicas*nensemble
+    nreplicas = rxparams.nreplicas * nensemble
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
@@ -448,7 +460,9 @@ def RX_MPI_init(rxparams, dftparams=None):
             comm = commworld.Split(color=0, key=worldrank)
     else:
         comm = commworld
-    comm = comm.Create_cart(dims=[rxparams.nreplicas, nensemble], periods=[False, False], reorder=True)
+    comm = comm.Create_cart(
+        dims=[rxparams.nreplicas, nensemble], periods=[False, False], reorder=True
+    )
     commRX = comm.Sub(remain_dims=[True, False])
     commEnsemble = comm.Sub(remain_dims=[False, True])
     RXrank = commRX.Get_rank()
@@ -458,15 +472,17 @@ def RX_MPI_init(rxparams, dftparams=None):
         rand_seeds = [rand.randint(10000) for i in range(commRX.Get_size())]
         rand_seed = commEnsemble.bcast(rand_seeds[RXrank], root=0)
         rand.seed(rand_seed)
-        
 
-    #return commRX
+    # return commRX
     if dftparams == None:
         return commRX
     return commRX, commEnsemble, comm
 
+
 class EmbarrassinglyParallelSampling:
-    def __init__(self, comm, MCalgo, model, configs, kTs=None, subdirs=True, write_node=True):
+    def __init__(
+        self, comm, MCalgo, model, configs, kTs=None, subdirs=True, write_node=True
+    ):
         """
 
         Parameters
@@ -571,10 +587,12 @@ class EmbarrassinglyParallelSampling:
         with open("obs.dat", "a") as output:
             for i in range(1, nsteps + 1):
                 self.mycalc.MCstep()
-            
+
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
-                        self.mycalc, output, i % print_frequency == 0 and self.write_node
+                        self.mycalc,
+                        output,
+                        i % print_frequency == 0 and self.write_node,
                     )
                     obs[self.rank] += obs_step
                     if save_obs:
@@ -625,7 +643,9 @@ class EmbarrassinglyParallelSampling:
 
 
 class ParallelMC(object):
-    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True):
+    def __init__(
+        self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True
+    ):
         """
 
         Parameters
@@ -730,7 +750,9 @@ class RandomSampling_MPI(ParallelMC):
 
 
 class TemperatureRX_MPI(ParallelMC):
-    def __init__(self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True):
+    def __init__(
+        self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True
+    ):
         """
 
         Parameters
@@ -909,7 +931,9 @@ class TemperatureRX_MPI(ParallelMC):
                     XCscheme = (XCscheme + 1) % 2
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
-                        self.mycalc, output, i % print_frequency == 0 and self.write_node
+                        self.mycalc,
+                        output,
+                        i % print_frequency == 0 and self.write_node,
                     )
                     obs[self.rank_to_T[self.rank]] += obs_step
                     if save_obs:
@@ -966,6 +990,6 @@ class TemperatureRX_MPI(ParallelMC):
             if subdirs:
                 os.chdir("../")
             return obs_list
-            
+
         if subdirs:
             os.chdir("../")

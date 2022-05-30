@@ -162,6 +162,9 @@ def all_equal(iterable):
     return next(g, True) and not next(g, False)
 
 def exists_on_all_nodes(comm, path, check_interval = 1, max_wait = 30):
+    """ check ``path`` file is visible from all procs
+    """
+
     counter = 0
     while True:
         exists = os.path.exists(path)
