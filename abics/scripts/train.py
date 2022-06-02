@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from abics.replica_params import TrainParams
+import sys
+
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
 from abics.applications.latgas_abinitio_interface import map2perflat
@@ -28,24 +29,27 @@ from pymatgen.core import Structure
 import numpy as np
 import os, sys
 import threading
+import networkx as nx
+import itertools
+
 
 def main_impl(tomlfile):
     if not os.path.exists("ALloop.progress"):
-        print("You shouldn't run train now. Run activelearn first.")
+        print("abics_mlref has not run yet.")
+        sys.exit(1)
+    ALdirs = []
     with open("ALloop.progress", "r") as fi:
-        last_li = fi.readlines()[-1]
-    if "AL" not in last_li:
-        print("You shouldn't run train now. Either MC or activelearn first.")
+        lines = fi.readlines()
+        for line in lines:
+            line = line.strip()
+            if line.startswith("AL"):
+                ALdirs.append(line)
+        last_li = lines[-1].strip()
+    if not last_li.startswith("AL"):
+        print("You shouldn't run train now.")
+        print("Either abics_sampling or abics_mlref first.")
         sys.exit(1)
 
-    # We need info from MC steps as well as parameters
-    # specific to training
-    rxparams = TrainParams.from_toml(tomlfile)
-    nreplicas = rxparams.nreplicas
-    nsteps = rxparams.nsteps
-    sample_frequency = rxparams.sample_frequency
-    sample_ids = list(range(0, nsteps, sample_frequency))
-    
     dftparams = DFTParams.from_toml(tomlfile)
     ensemble = dftparams.ensemble
     base_input_dir = dftparams.base_input_dir
@@ -55,7 +59,7 @@ def main_impl(tomlfile):
     trainer_commands = trainerparams.exe_command
     trainer_type = trainerparams.solver
     trainer_input_dirs = trainerparams.base_input_dir
-    
+
     configparams = DFTConfigParams.from_toml(tomlfile)
     config = defect_config(configparams)
     species = config.structure.symbol_set
@@ -65,21 +69,18 @@ def main_impl(tomlfile):
         print("Unknown trainer: ", trainer_type)
         sys.exit(1)
 
-    ls = os.listdir()
     rootdir = os.getcwd()
-    ALdirs = [dir for dir in ls if "AL" in dir and os.path.isdir(dir)]
     structures = []
     energies = []
 
     # val_map is a list of list [[sp0, vac0], [sp1, vac1], ...]
-    #if vac_map:
+    # if vac_map:
     #    vac_map = {specie: vacancy for specie, vacancy in vac_map}
-    #else:
+    # else:
     #    vac_map = {}
 
     # we first group species that share sublattices together
-    import networkx as nx
-    import itertools
+
     G = nx.Graph()
     G.add_nodes_from(species)
     for sublattice in config.defect_sublattices:
@@ -90,37 +91,38 @@ def main_impl(tomlfile):
         for pair in itertools.combinations(sp_list, 2):
             G.add_edge(*pair)
     sp_groups = nx.connected_components(G)
-    #print(list(sp_groups))
-    #sys.exit(0)
+    # print(list(sp_groups))
+    # sys.exit(0)
     dummy_sts_share = []
     for c in nx.connected_components(G):
         # merge dummy structures for species that share sublattices
         sps = list(c)
 
-        coords = np.concatenate([dummy_sts[sp].frac_coords for sp in sps], axis = 0)
-        st_tmp = Structure(dummy_sts[sps[0]].lattice,
-                           species=["X"]*coords.shape[0],
-                           coords = coords,
+        coords = np.concatenate([dummy_sts[sp].frac_coords for sp in sps], axis=0)
+        st_tmp = Structure(
+            dummy_sts[sps[0]].lattice,
+            species=["X"] * coords.shape[0],
+            coords=coords,
         )
         st_tmp.merge_sites(mode="del")
-        dummy_sts_share.append([st_tmp,sps])
+        dummy_sts_share.append([st_tmp, sps])
 
-    #for i,st in enumerate(dummy_sts_share):
+    # for i,st in enumerate(dummy_sts_share):
     #    st.to("POSCAR","{}.dummy.vasp".format(i))
 
-    
     for dir in ALdirs:
-        for rpl in range(nreplicas):
+        rpl = 0
+        while os.path.isdir(os.path.join(dir, str(rpl))):
             os.chdir(os.path.join(dir, str(rpl)))
-            if dir == "AL0":
-                energies_ref = np.load("obs_save.npy")[:, 0]
-            else:
-                energies_ref = np.loadtxt("energy_corr.dat")[:, 1]
-            structure_list = [finame for finame in os.listdir() if "structure." in finame]
-            step_ids = [int(st_fi.split(".")[1]) for st_fi in structure_list]
-            step_ids.sort()
-            for i, energy in enumerate(energies_ref):
-                structure = Structure.from_file("structure.{}.vasp".format(step_ids[i]))
+            energies_ref = []
+            step_ids = []
+            with open("energy_corr.dat") as fi:
+                for line in fi:
+                    words = line.split()
+                    energies_ref.append(float(words[1]))
+                    step_ids.append(int(words[2]))
+            for step_id, energy in zip(step_ids, energies_ref):
+                structure = Structure.from_file(f"structure.{step_id}.vasp")
                 mapped_sts = []
                 mapping_success = True
                 for dummy_st, specs in dummy_sts_share:
@@ -134,20 +136,20 @@ def main_impl(tomlfile):
                     st_tmp.remove_species(["X"])
                     mapped_sts.append(st_tmp)
                     if num_sp != len(st_tmp):
-                        print("mapping failed for structure {} in replica {}".format(step_ids[i], rpl))
-                        mapping_success = False                            
-                            
+                        print(
+                            f"mapping failed for structure {step_id} in replica {rpl}"
+                        )
+                        mapping_success = False
+
                 for sts in mapped_sts[1:]:
                     for i in range(len(sts)):
-                        mapped_sts[0].append(
-                            sts[i].species_string,
-                            sts[i].frac_coords
-                        )
+                        mapped_sts[0].append(sts[i].species_string, sts[i].frac_coords)
                 if ignore_species:
                     mapped_sts[0].remove_species(ignore_species)
                 if mapping_success:
                     structures.append(mapped_sts[0])
                     energies.append(energy)
+            rpl += 1
             os.chdir(rootdir)
 
     generate_input_dirs = []
@@ -156,13 +158,14 @@ def main_impl(tomlfile):
 
     if dftparams.ensemble:
         if len(trainer_input_dirs) != len(base_input_dir):
-            print('You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP')
+            print(
+                "You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP"
+            )
             sys.exit(1)
     for d in trainer_input_dirs:
         generate_input_dirs.append(os.path.join(d, "generate"))
         train_input_dirs.append(os.path.join(d, "train"))
         predict_input_dirs.append(os.path.join(d, "predict"))
-
 
     generate_exe = trainer_commands[0]
     train_exe = trainer_commands[1]
@@ -195,11 +198,11 @@ def main_impl(tomlfile):
         t.join()
     """
     for i, trainer in enumerate(trainers):
-        trainer.generate_run(generate_dir='generate{}'.format(i))
+        trainer.generate_run(generate_dir="generate{}".format(i))
 
     for trainer in trainers:
         trainer.generate_wait()
-        
+
     # We use MPI version of train.x so no need to write parallel code here
     for i, trainer in enumerate(trainers):
         trainer.train(train_dir="train{}".format(i))

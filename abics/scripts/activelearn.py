@@ -170,6 +170,10 @@ def main_impl(tomlfile):
                     os.fsync(fi.fileno())
             if finalrun:
                 np.save(os.path.join(str(myreplica), "obs_save.npy"), energies)
+                with open(os.path.join(str(myreplica), "energy_corr.dat"), "w") as fi:
+                    for i in range(len(energies)):
+                        energy = energies[i][0]
+                        fi.write(f"NaN {energy} {i}\n")
                 os.chdir(rootdir)
                 comm.Barrier()
                 if myreplica == 0:
@@ -311,7 +315,7 @@ def main_impl(tomlfile):
                             st_rel.append(site.species_string, site.frac_coords)
 
                     st_rel.to("POSCAR", f"structure.{i}.vasp")
-                    energy_corrlist.append([energy_ref[i], energy])
+                    energy_corrlist.append([energy_ref[i], energy, i])
 
                     # Examine relaxation
                     dmax = 0
@@ -339,7 +343,11 @@ def main_impl(tomlfile):
                     os.fsync(fi.fileno())
 
             if finalrun:
-                np.savetxt("energy_corr.dat", energy_corrlist)
+                # np.savetxt("energy_corr.dat", energy_corrlist)
+                with open("energy_corr.dat", "w") as fi:
+                    for i in range(len(energy_corrlist)):
+                        ene_nn, ene_ref, step = energy_corrlist[i]
+                        fi.write(f"{ene_nn} {ene_ref} {step}\n")
                 with open("relax_max.dat", "w") as fi:
                     for row in relax_max:
                         fi.write("{} \t {}\n".format(row[0], row[1]))
