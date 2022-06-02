@@ -84,8 +84,7 @@ class aenet_trainer:
         with open(os.path.join(os.getcwd(), "stdout"), "w") as fi:
             #subprocess.run(
             self.gen_proc = subprocess.Popen(
-                command, shell=True, #, check=True
-                # command, shell=True, stdout=fi, stderr=subprocess.STDOUT,#, check=True
+                command, shell=True, stdout=fi, stderr=subprocess.STDOUT,#, check=True
                 )
         self.generate_outputdir = os.getcwd()
         os.chdir(pathlib.Path(os.getcwd()).parent)
