@@ -18,6 +18,7 @@
 Mock for energy calculator
 """
 
+import numpy as np
 
 from .base_solver import SolverBase
 from collections import namedtuple
@@ -63,6 +64,7 @@ class MockSolver(SolverBase):
             for i in range(n):
                 for j in range(i+1,n):
                     ene += dm[i,j] ** 2
+            ene = np.sqrt(ene)
         with open(os.path.join(output_dir, "energy.dat"), "w") as f:
             f.write('{:.15f}\n'.format(ene))
 

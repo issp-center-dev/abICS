@@ -19,7 +19,7 @@ ignore_species = ["O"]
 
 [mlref]
 nreplicas = 2
-ndata = 5
+ndata = 10
 
 [mlref.solver]
 type = 'mock'
