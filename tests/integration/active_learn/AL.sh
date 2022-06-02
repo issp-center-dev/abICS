@@ -12,5 +12,7 @@ sleep 5
 
 #train
 echo start training
-abics_train input.toml > train.out
+abics_train input.toml
+echo 'cat train0/stdout'
+cat train0/stdout
 echo Done
