@@ -19,20 +19,15 @@ ignore_species = ["O"]
 
 [mlref]
 nreplicas = 2
-nsteps = 40
-sample_frequency = 10
+ndata = 5
 
 [mlref.solver]
 type = 'mock'
-# path = ''
 base_input_dir = './baseinput_ref'
 perturb = 0.05
 ignore_species = []
 
 [train]
-nreplicas = 2
-nsteps = 40
-sample_frequency = 10
 type = 'aenet'
 base_input_dir = './aenet_train_input'
 exe_command = [
