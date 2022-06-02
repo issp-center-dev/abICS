@@ -169,7 +169,6 @@ def main_impl(tomlfile):
                     fi.flush()
                     os.fsync(fi.fileno())
             if finalrun:
-                np.save(os.path.join(str(myreplica), "obs_save.npy"), energies)
                 with open(os.path.join(str(myreplica), "energy_corr.dat"), "w") as fi:
                     for i in range(len(energies)):
                         energy = energies[i][0]
