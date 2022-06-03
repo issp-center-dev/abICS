@@ -11,5 +11,5 @@
 # source XXX
 
 #sleep 30
-srun -n 8 abics_sampling input_aenet.toml >> aenet.out
+srun -n 8 abics_sampling input.toml >> aenet.out
 echo Done

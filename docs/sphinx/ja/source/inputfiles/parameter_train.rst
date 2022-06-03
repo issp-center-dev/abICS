@@ -9,7 +9,7 @@
 
 .. code-block:: toml
 
-    [trainer] # モデル学習器の設定
+    [train] # モデル学習器の設定
     type = 'aenet'
     base_input_dir = './aenet_train_input'
     exe_command = ['~/git/aenet/bin/generate.x-2.0.4-ifort_serial', 
