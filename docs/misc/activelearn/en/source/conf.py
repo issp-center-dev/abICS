@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'abICS'
-copyright = u'2019, Institute for Solid State Physics, University of Tokyo'
+copyright = u'2019-, Institute for Solid State Physics, University of Tokyo'
 author = u'abICS Developer team'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -160,8 +160,6 @@ man_pages = [
     (master_doc, 'abICS', u'abICS Documentation',
      [author], 1)
 ]
-
-latex_docclass =  {'manual': 'book'}
 
 # -- Options for Texinfo output -------------------------------------------
 

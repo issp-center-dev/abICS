@@ -18,7 +18,7 @@ QE参照ファイルの準備
 ``baseinput_ref`` にQEのscf計算で参照する入力ファイルをおきます。
 以下、サンプルディレクトリにある ``scf.in`` ファイルを記載します。
 
-.. code-block:: toml
+.. code-block::
 
     &CONTROL
     calculation = 'relax'
@@ -53,9 +53,9 @@ QE参照ファイルの準備
 ``ATOMIC_SPECIES`` で使用する擬ポテンシャルについて、自分の環境に従い書き換える必要があります。
 なお、本サンプルで使用している擬ポテンシャルは以下のリンクからダウンロードできます。
 
-- https://www.quantum-espresso.org/upf_files/Al.pbe-nl-kjpaw_psl.1.0.0.UPF
-- https://www.quantum-espresso.org/upf_files/Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
-- https://www.quantum-espresso.org/upf_files/O.pbe-n-kjpaw_psl.1.0.0.UPF
+- https://pseudopotentials.quantum-espresso.org/upf_files/Al.pbe-nl-kjpaw_psl.1.0.0.UPF
+- https://pseudopotentials.quantum-espresso.org/upf_files/Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
+- https://pseudopotentials.quantum-espresso.org/upf_files/O.pbe-n-kjpaw_psl.1.0.0.UPF
 
 このサンプルでは、QE計算時に構造最適化を行うため ``calculation = 'relax'`` を、
 計算高速化のため、 ``K_POINTS`` は ``gammma`` を選択しています。
@@ -89,32 +89,33 @@ abICSファイルの準備
 
     # Run reference DFT calc.
     echo start AL sample
-    srun -n 8 abics_activelearn input_aenet.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> active.out
     echo start parallel_run 1
     sh parallel_run.sh
 
     echo start AL final
-    srun -n 8 abics_activelearn input_aenet.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> active.out
 
     #train
     echo start training
-    abics_train input_aenet.toml > train.out
+    abics_train input.toml > train.out
     echo Done
 
-最初のSBATCHは物性研スパコンでのジョブスケジューラに関するコマンドです。
+最初の ``#SBATCH`` で始まる数行は物性研スパコンでのジョブスケジューラに関するコマンドです。
 ここでは、プロセス数512のMPI並列を実行しています。
-ジョブスケジューラに関する詳細は、物性研スパコンのマニュアルを参照してください。
+また、 ``srun`` は並列環境でプログラムを実行するためのコマンドです（ ``mpiexec`` に相当します）。
+ジョブスケジューラに関する詳細は、実際に利用する計算機のマニュアルを参照してください。
 
 .. code-block:: shell
 
     # Run reference DFT calc.
     echo start AL sample
-    srun -n 8 abics_activelearn input_aenet.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> active.out
 
-で、abics_activelearnを用いて、訓練データの大元となる第一原理計算用の入力ファイルを生成します。
+で、 ``abics_mlref`` を用いて、訓練データの大元となる第一原理計算用の入力ファイルを生成します。
 初回実行時は、指定した数だけ原子配置をランダムに生成し、
 それぞれの原子配置に対して個別のディレクトリを用意した上で、ディレクトリ内に入力ファイルを作成します。
-同時に、それらのディレクトリのpathが記載されたファイルrundirs.txtも生成します。
+同時に、それらのディレクトリのpathが記載されたファイル ``rundirs.txt`` も生成します。
 このディレクトリリストを使って、個々の入力に対する第一原理計算ジョブの実行を自動化することができます。
 次に得られたファイルをもとに、第一原理計算を実行します。
 
@@ -127,30 +128,30 @@ abICSファイルの準備
 これによりrundirs.txtに記載されたディレクトリを対象にQEの網羅計算が行われます。
 QEの計算結果は、それぞれのディレクトリに格納されます。
 QEの網羅計算により、教師データを作成したので、次はaenetでのニューラルネットワークポテンシャルの作成に移ります。
-最初に、``abics_activelearn`` を再度実行し、第一原理計算の結果をabics_trainが読み込む共通フォーマットにしたファイルを作成します。
+最初に、 ``abics_mlref`` を再度実行し、第一原理計算の結果をabics_trainが読み込む共通フォーマットにしたファイルを作成します。
 
 .. code-block:: shell
 
     echo start AL final
-    srun -n 8 abics_activelearn input_aenet.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> active.out
 
 次に、学習データをもとにaenetによりニューラルネットワークポテンシャルの作成を行います。
 ニューラルネットワークポテンシャルは ``abics_train`` により計算されます。
-入力ファイルの[trainer]セクションにあるbase_input_dirに格納された入力ファイルを読み込むことで、計算が実施されます。
-計算が無事終了すると、baseinputディレクトリに学習済みのニューラルネットワークが出力されます。
+入力ファイルの ``[trainer]`` セクションにある ``base_input_dir`` に格納された入力ファイルを読み込むことで、計算が実施されます。
+計算が無事終了すると、 ``baseinput`` ディレクトリに学習済みのニューラルネットワークが出力されます。
 
 .. code-block:: shell
 
     #train
     echo start training
-    abics_train input_aenet.toml > train.out
+    abics_train input.toml > train.out
     echo Done
 
-以上のプロセスで、能動学習を行うためのAL.shのプロセスが終了となります。
+以上のプロセスで、能動学習を行うための ``AL.sh`` のプロセスが終了となります。
 
 次に、学習したニューラルネットワークポテンシャルを用い、abICSにより最適化構造を求めます。
-このプロセスはMC.shで行うことができます。
-以下が、MC.shの中身です。
+このプロセスは ``MC.sh`` で行うことができます。
+以下が、 ``MC.sh`` の中身です。
 
 .. code-block:: shell
 
@@ -160,14 +161,14 @@ QEの網羅計算により、教師データを作成したので、次はaenet�
     #SBATCH -n 8
     #SBATCH --time=00:30:00
 
-    srun -n 8 abicsAL input_aenet.toml >> aenet.out
+    srun -n 8 abics_sampling input.toml >> aenet.out
     echo Done
 
-abicsALを実行することで ``MCxx`` ディレクトリが作成されます(xxは実行回数)。
-active learningを念頭にしており、ALloop.progressを読むことで計算回数などの情報を取得する機能が追加実装されています。
+``abics_sampling`` を実行することで ``MCxx`` ディレクトリが作成されます(xxは実行回数)。
+``active learning`` を念頭にしており、ALloop.progressを読むことで計算回数などの情報を取得する機能が追加実装されています。
 ``MCxx`` ディレクトリの下には、レプリカ数分だけのフォルダが作成され、
-VASPのPOSCARファイル形式で記載された各ステップごとの原子配置(structure.XXX.vasp)、
-最低エネルギーを与えた原子位置(minE.vasp)や、各ステップごとの温度とエネルギー(obs.dat)などが出力されます。
+VASPのPOSCARファイル形式で記載された各ステップごとの原子配置(``structure.XXX.vasp``)、
+最低エネルギーを与えた原子位置(``minE.vasp``)や、各ステップごとの温度とエネルギー(``obs.dat``)などが出力されます。
 詳細については `abICSマニュアルの出力ファイル <https://issp-center-dev.github.io/abICS/docs/sphinx/ja/build/html/outputfiles/index.html>`_ を参考にしてください。
 
 上の手続きで得られた結果は、aenetにより求められたニューラルネットワークポテンシャルの精度に依存します。
@@ -189,12 +190,12 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 
 1. MCxxxに移動する。
 
-2. srun -n 8 abicsRXsepT ../input_aenet.toml で Tseparate ディレクトリを作成する
-(abicsALを実行した際の並列数に揃える。本チュートリアルでは並列数を8にしているので8に設定)。
+2. ``srun -n 8 abicsRXsepT ../input.toml`` で ``Tseparate`` ディレクトリを作成する
+(abics_samplingを実行した際の並列数に揃える。本チュートリアルでは並列数を8にしているので8に設定)。
 
-3. sampleディレクトリにあるcalc_DOI.py と MgAl2O4.vasp をコピーする。
+3. sampleディレクトリにある ``calc_DOI.py`` と ``MgAl2O4.vasp`` をコピーする。
 
-4. srun -n 8 python3 calc_DOI.py ../input_aenet.toml で温度ごとの反転率を計算する。
-(abicsALを実行した際の並列数に揃える。本チュートリアルでは並列数を8にしているので8に設定)。
+4. ``srun -n 8 python3 calc_DOI.py ../input.toml`` で温度ごとの反転率を計算する。
+(abics_samplingを実行した際の並列数に揃える。本チュートリアルでは並列数を8にしているので8に設定)。
 
 以上が、チュートリアルになります。

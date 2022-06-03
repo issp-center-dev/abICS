@@ -14,17 +14,17 @@
 # source XXX
 
 echo start AL sample
-srun -n 8 abics_mlref input_aenet.toml >> active.out
+srun -n 8 abics_mlref input.toml >> active.out
 echo start parallel_run 1
 sh parallel_run.sh
 
 echo start AL final
-srun -n 8 abics_mlref input_aenet.toml >> active.out
+srun -n 8 abics_mlref input.toml >> active.out
 
 #train
 # module purge
 # module load intel_compiler/2020.2.254  
 # module load intel_mpi/2020.2.254
 echo start training
-abics_train input_aenet.toml > train.out
+abics_train input.toml > train.out
 echo Done

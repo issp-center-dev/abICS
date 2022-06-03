@@ -1,5 +1,5 @@
 [sampling]
-nreplicas = 15
+nreplicas = 8
 nprocs_per_replica = 1 
 kTstart = 600.0
 kTend = 2000.0
@@ -11,39 +11,30 @@ reload = false
 
 [sampling.solver]
 type = 'aenet'
-path= '~/git/aenet/bin/predict.x-2.0.4-ifort_serial'
+path= '~/aenet/bin/predict.x-2.0.4-ifort_serial'
 base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess' #'mpi_spawn_ready'
 ignore_species = ["O"]
 
 [mlref]
-nreplicas = 15
+nreplicas = 8
 nprocs_per_replica = 1
-nsteps = 400
-sample_frequency = 20
+ndata = 5
 
 [mlref.solver]
-type = 'vasp'
-path = ''
-base_input_dir = ['./baseinput_ref', './baseinput_ref']
+type = 'qe'
+base_input_dir = './baseinput_ref'
 perturb = 0.05
-#run_scheme = 'subprocess'
-#only_input = true
 ignore_species = []
-#vac_convert = []
 
-[train]
+[trainer]
 type = 'aenet'
 base_input_dir = './aenet_train_input'
-exe_command = ['/home/k0306/k030600/git/aenet/bin/generate.x-2.0.4-ifort_serial', 'srun /home/k0306/k030600/git/aenet/bin/train.x-2.0.4-ifort_intelmpi']
+exe_command = ['~/aenet/bin/generate.x-2.0.4-ifort_serial', 'srun ~/aenet/bin/train.x-2.0.4-ifort_intelmpi']
 ignore_species = ["O"]
 vac_map = []
 restart = false
-nreplicas = 15
-nprocs_per_replica = 1
-nstep = 400
-sample_frequency = 20
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
