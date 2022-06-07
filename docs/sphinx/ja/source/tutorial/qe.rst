@@ -1,11 +1,5 @@
 .. highlight:: none
 
-多元系イオン結晶 :math:`{\rm Mg}{\rm Al}_2 {\rm O}_4` の, Mg, Al 原子の反転度計算
---------------------------------------------------------------------------------------
-
-このチュートリアルの入力ファイルは examples/standard/spinel にあります。
-以下、QuantumESPRESSOおよびVASPでの例について順に記載します。
-
 QuantumESPRESSO を用いた例
 ============================
 
@@ -16,7 +10,7 @@ abICS の入力ファイルは ``input_qe.toml`` です。
 
 ::
 
-   [replica]
+   [sampling]
    nreplicas = 2
    nprocs_per_replica = 1
 
@@ -33,7 +27,7 @@ abICS の入力ファイルは ``input_qe.toml`` です。
 
 ::
 
-   [solver]
+   [sampling.solver]
    type = 'qe'
    path= './pw.x'
    base_input_dir = './baseinput'
@@ -213,54 +207,3 @@ QE の場合には ``baseinput/scf.in`` の ``CALCULATION`` パラメータを `
 といった結果が得られます。
 温度を上げるほど反転度が上がっていくのがわかります。
 
-VASP を用いた例
-============================
-
-abICS の入力ファイルの準備
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-abICS の入力ファイルは ``input_vasp.toml`` です。
-以下、 ``examples/standard/spinel`` にある ``input_vasp.toml`` を例に説明します。
-``[solver]`` セクションのみ、QuantumESPRESSOと異なり、以下のように指定されています。
-
-::
-
-   [solver]
-   type = 'vasp'
-   path = './vasp'
-   base_input_dir = './baseinput'
-   perturb = 0.0
-   run_scheme = 'mpi_spawn_ready'
-
-VASP を用いるために ``type`` を ``'vasp'`` にしています。
-また、VASP のエネルギー計算ソルバー ``vasp`` が、実行箇所にあることを ``path`` で指定しています（シンボリックリンクでも構いません）。
-ソルバーごとに固有の入力パラメータファイルが収められたディレクトリとして、 ``base_input_dir`` を用いて ``./baseinput`` を指定しています。
-``perturb`` は構造最適化のために原子位置を乱数でずらすパラメータですが、今回は構造最適化を行わないために 0 にしてあります。
-abICS は ``vasp`` を ``MPI_Comm_spawn`` で起動するため、 ``run_scheme`` として ``mpi_spawn_ready`` を与えます(VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください)。
-
-VASP の入力ファイルの準備
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-abICS では、内部で保持した原子座標をもとに VASP の入力ファイルを生成します。それ以外の情報は、ユーザが与える必要があります。
-この情報は ``base_input_dir`` で指定したディレクトリの中に ``INCAR`` 、 ``POSCAR`` 、 ``KPOINTS`` があります。
-上記のファイル以外にも、 ``POTCAR`` がVASPの実行には必要となりますが、ライセンスの関係上、サンプルファイルにはおいてありません。
-実行前には ``O, Al, Mg`` の擬ポテンシャルファイルから ``POTCAR`` ファイルを作成してください。
-これらのファイルをもとに、ユニットセルや原子座標などを書き換えた入力ファイルが自動生成されます。
-
-- 注意点
-  
-  - ``POSCAR`` の座標情報はabICSの入力情報で上書きされますが、内部処理を行うために記載する必要があるのでご注意ください。
-  - ``POTCAR`` は原子のアルファベット順に記載してください。
-
-
-実行・解析
-~~~~~~~~~~~~~~~~~~
-
-実行・解析の手順はQEの場合と同様です.
-QEの例と同じように、17 レプリカ、1000 ステップで計算をすると
-
-.. image:: ../../../image/doi_vasp.png
-   :width: 400px
-   :align: center
-
-といった結果が得られ、同様の結果が得られることがわかります。
