@@ -78,7 +78,6 @@ This time, we will use anet's ``predict.x`` as the energy solver for RXMC calcul
 
     [mlref]
     nreplicas = 8
-    nprocs_per_replica = 1
     ndata = 5
 
 In this section, you can set the options for extracting atomic configurations from the RXMC calculation results to evaluate the accuracy of the neural network model and to expand the training data.
