@@ -18,7 +18,7 @@ from mpi4py import MPI
 import shutil
 import os, sys
 import datetime
-from pymatgen import Structure
+from pymatgen.core import Structure
 from abics.mc_mpi import RXParams
 import numpy as np
 
