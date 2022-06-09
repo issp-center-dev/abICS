@@ -19,7 +19,6 @@ ignore_species = ["O"]
 
 [mlref]
 nreplicas = 8
-nprocs_per_replica = 1
 ndata = 5
 
 [mlref.solver]
