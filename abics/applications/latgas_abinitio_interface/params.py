@@ -16,7 +16,7 @@
 
 import os
 
-from ...util import expand_path
+from ...util import expand_path, expand_cmd_path
 
 
 class DFTParams:
@@ -56,7 +56,10 @@ class DFTParams:
             map(lambda x: expand_path(x, os.getcwd()), base_input_dir)
         )
         params.solver = d["type"]
-        params.path = expand_path(d["path"], os.getcwd())
+
+        #params.path = expand_path(d["path"], os.getcwd())
+        params.path = expand_cmd_path(d["path"])
+
         params.perturb = d.get("perturb", 0.1)
         params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)
