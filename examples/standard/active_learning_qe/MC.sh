@@ -12,4 +12,5 @@
 
 #sleep 30
 srun -n 8 abics_sampling input.toml >> aenet.out
+
 echo Done

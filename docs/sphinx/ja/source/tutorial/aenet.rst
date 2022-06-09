@@ -56,8 +56,8 @@ abICS制御ファイル (``input.toml``)
 
 今回の例題では、このようにして生成した ``input.toml`` の中の
 ``[sampling.solver]`` セクションのpathをご自身の環境におけるaenetの ``predict.x`` のパスに設定し、
-``[trainer]`` セクションの ``exe_command`` をaenetの ``generate.x`` 、 ``train.x`` 実行時のコマンドに
-置き換えます。さらに、 ``[sampling.solver]`` と ``[trainer]`` で ``ignore_species = ["O"]`` と設定することで動作します。
+``[train]`` セクションの ``exe_command`` をaenetの ``generate.x`` 、 ``train.x`` 実行時のコマンドに
+置き換えます。さらに、 ``[sampling.solver]`` と ``[train]`` で ``ignore_species = ["O"]`` と設定することで動作します。
 
 ここでは、 ``input.toml`` のセクションごとの設定内容をもう少し詳しく解説します。例題をとりあえず
 実行したい場合は、読み飛ばしても大丈夫です。
@@ -67,7 +67,7 @@ abICS制御ファイル (``input.toml``)
 .. code-block:: toml
 
     [sampling]
-    nreplicas = 15
+    nreplicas = 8
     nprocs_per_replica = 1
     kTstart = 600.0
     kTend = 2000.0
@@ -87,8 +87,9 @@ abICS制御ファイル (``input.toml``)
 .. code-block:: toml
 
     [mlref]
-    nreplicas = 15
-    ndata = 20
+    nreplicas = 8
+    nprocs_per_replica = 1
+    ndata = 5
 
 RXMC計算の結果から、ニューラルネットワークモデルの精度評価と訓練データの拡張のために原子配置を取り出す際の
 オプションが設定できます。基本的に、 ``nreplicas`` は ``[sampling]`` セクションと同じ値にしてください。
@@ -101,7 +102,7 @@ RXMC計算の結果から、ニューラルネットワークモデルの精度�
 
     [sampling.solver] # RXMC計算に使うソルバーの設定
     type = 'aenet'
-    path= '~/git/aenet/bin/predict.x-2.0.4-ifort_serial'
+    path= 'predict.x-2.0.4-ifort_serial'
     base_input_dir = './baseinput'
     perturb = 0.0
     run_scheme = 'subprocess'
@@ -145,15 +146,15 @@ RXMC計算に使うエネルギーソルバーの設定を行います。今回�
 
 
 
-(v)  ``[trainer]`` セクション
+(v)  ``[train]`` セクション
 ****************************************************
 .. code-block:: toml
 
-    [trainer] # モデル学習器の設定
+    [train] # モデル学習器の設定
     type = 'aenet'
     base_input_dir = './aenet_train_input'
-    exe_command = ['~/git/aenet/bin/generate.x-2.0.4-ifort_serial',
-                  'srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi']
+    exe_command = ['generate.x-2.0.4-ifort_serial',
+                  'srun train.x-2.0.4-ifort_intelmpi']
     ignore_species = ["O"]
     vac_map = []
     restart = false
@@ -203,7 +204,7 @@ QE参照ファイルの準備
     calculation = 'relax'
     tstress = .false.
     tprnfor = .false.
-    pseudo_dir = '~/qe/pot'
+    pseudo_dir = './pseudo'
     disk_io = 'low'
     wf_collect = .false.
     /
@@ -242,7 +243,7 @@ QE参照ファイルの準備
 aenetを使った訓練および配置エネルギ－計算用の入力ファイル
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-aenet用の入力ファイルを ``[trainer]`` セクションの ``base_input_dir`` で
+aenet用の入力ファイルを ``[train]`` セクションの ``base_input_dir`` で
 設定したディレクトリ内の ``generate`` 、 ``train`` 、および ``predict``
 ディレクトリに設置します。
 
@@ -386,6 +387,7 @@ predict
     # Run reference DFT calc.
     echo start AL sample
     srun -n 8 abics_mlref input.toml >> active.out
+
     echo start parallel_run 1
     sh parallel_run.sh
 
@@ -395,6 +397,7 @@ predict
     #train
     echo start training
     abics_train input.toml > train.out
+
     echo Done
 
 最初の ``#SBATCH`` で始まる数行は物性研スパコンでのジョブスケジューラに関するコマンドです。
@@ -433,7 +436,7 @@ QEの網羅計算により、教師データを作成したので、次はaenet�
 
 次に、学習データをもとにaenetによりニューラルネットワークポテンシャルの作成を行います。
 ニューラルネットワークポテンシャルは ``abics_train`` により計算されます。
-入力ファイルの ``[trainer]`` セクションにある ``base_input_dir`` に格納された入力ファイルを読み込むことで、計算が実施されます。
+入力ファイルの ``[train]`` セクションにある ``base_input_dir`` に格納された入力ファイルを読み込むことで、計算が実施されます。
 計算が無事終了すると、 ``baseinput`` ディレクトリに学習済みのニューラルネットワークが出力されます。
 
 .. code-block:: shell
@@ -441,7 +444,6 @@ QEの網羅計算により、教師データを作成したので、次はaenet�
     #train
     echo start training
     abics_train input.toml > train.out
-    echo Done
 
 以上のプロセスで、能動学習を行うための ``AL.sh`` のプロセスが終了となります。
 
@@ -458,6 +460,7 @@ QEの網羅計算により、教師データを作成したので、次はaenet�
     #SBATCH --time=00:30:00
 
     srun -n 8 abics_sampling input.toml >> aenet.out
+
     echo Done
 
 ``abics_sampling`` を実行することで ``MCxx`` ディレクトリが作成されます(xxは実行回数)。
