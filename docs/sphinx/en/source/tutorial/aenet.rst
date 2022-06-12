@@ -50,7 +50,7 @@ By using the st2abics tool, you can automatically generate the input.toml templa
   $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp > input.toml
 
 
-In this example, set tha path of the ``[sampling.solver]`` section in the ``input.toml`` to the path of the aenet ``predict.x`` in your environment, and set the exe_command in the ``[trainer]`` section to the commands for running ``generate.x`` and ``train.x``. In addition, you need to set ``ignore_species = ["O"]`` in ``[sampling.solver]`` and ``[trainer]`` to get it to work.
+In this example, set tha path of the ``[sampling.solver]`` section in the ``input.toml`` to the path of the aenet ``predict.x`` in your environment, and set the exe_command in the ``[train]`` section to the commands for running ``generate.x`` and ``train.x``. In addition, you need to set ``ignore_species = ["O"]`` in ``[sampling.solver]`` and ``[train]`` to get it to work.
 
 In this section, we will explain the settings for each section of input.toml in more detail. If you want to run the example right now, you can skip it.
 
@@ -59,7 +59,7 @@ In this section, we will explain the settings for each section of input.toml in 
 .. code-block:: toml
 
     [sampling]
-    nreplicas = 15
+    nreplicas = 8
     nprocs_per_replica = 1
     kTstart = 600.0
     kTend = 2000.0
@@ -77,8 +77,8 @@ This time, we will use anet's ``predict.x`` as the energy solver for RXMC calcul
 .. code-block:: toml
 
     [mlref]
-    nreplicas = 15
-    ndata = 20
+    nreplicas = 8
+    ndata = 5
 
 In this section, you can set the options for extracting atomic configurations from the RXMC calculation results to evaluate the accuracy of the neural network model and to expand the training data.
 Basically, ``nreplicas`` should be the same values as in the ``[sampling]`` section.
@@ -91,7 +91,7 @@ Therefore, it should be set to a value less than or equal to the number of confi
 
     [sampling.solver] # Configure the solver used for RXMC calculations
     type = 'aenet'
-    path= '~/git/aenet/bin/predict.x-2.0.4-ifort_serial'
+    path= 'predict.x-2.0.4-ifort_serial'
     base_input_dir = '. /baseinput'
     perturb = 0.0
     run_scheme = 'subprocess'
@@ -130,16 +130,16 @@ For another example, in the case of a lattice vector relaxation, the same input 
 The ``perturb`` is for starting the structural optimization from a structure with broken symmetry by randomly displacing each atom.
 In this case, the first calculation starts from the structure in which all atoms for structural relaxation are displaced by 0.05 angstrom in a random direction.
 
-(v) ``[trainer]`` section
+(v) ``[train]`` section
 ****************************************************
 
 .. code-block:: toml
 
-    [trainer] # Configure the model trainer.
+    [train] # Configure the model trainer.
     type = 'aenet'
     base_input_dir = '. /aenet_train_input'
-    exe_command = ['~/git/aenet/bin/generate.x-2.0.4-ifort_serial',
-                  'srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi']
+    exe_command = ['generate.x-2.0.4-ifort_serial',
+                  'srun train.x-2.0.4-ifort_intelmpi']
     ignore_species = ["O"]
 
 Set up a learner to train a placement energy prediction model from training data.
@@ -185,7 +185,7 @@ The following is a description of the ``scf.in`` file in the sample directory.
     calculation = 'relax'
     tstress = .false.
     tprnfor = .false.
-    pseudo_dir = '~/qe/pot'
+    pseudo_dir = './pseudo'
     disk_io = 'low'
     wf_collect = .false.
     /
@@ -223,7 +223,7 @@ Preparation of input files for aenet
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Place the input files for aenet in the ``generate``, ``train``, and ``predict`` directories
-in the directory set in the ``base_input_dir`` of the ``[trainer]`` section.
+in the directory set in the ``base_input_dir`` of the ``[train]`` section.
 
 generate
 ********
@@ -362,6 +362,7 @@ Note that before running these shell scripts, you need to change the permissions
     # Run reference DFT calc.
     echo start AL sample
     srun -n 8 abics_mlref input.toml >> active.out
+
     echo start parallel_run 1
     sh parallel_run.sh
 
@@ -371,6 +372,7 @@ Note that before running these shell scripts, you need to change the permissions
     #train
     echo start training
     abics_train input.toml > train.out
+
     echo Done
 
 The lines starting with ``#SBATCH`` and ``srun`` command are parameters of the job scheduler and the command to invoke parallel program (similar to ``mpiexec``) used on the ISSP supercomputer system B, respectively.
@@ -407,7 +409,7 @@ First, we run ``abics_mlref`` again to create a file with the results of the ab 
 
 Next, we use anet to create a neural network potential based on the training data.
 The neural network potential is calculated by ``abics_train``.
-The calculation is performed by reading the input file stored in ``base_input_dir`` in the ``[trainer]`` section of the input file.
+The calculation is performed by reading the input file stored in ``base_input_dir`` in the ``[train]`` section of the input file.
 When the calculation is completed successfully, the trained neural network is output to the baseinput directory.
 
 .. code-block:: shell
@@ -415,7 +417,6 @@ When the calculation is completed successfully, the trained neural network is ou
     #train
     echo start training
     abics_train input.toml > train.out
-    echo Done
 
 The above process completes the AL.sh process for active learning.
 
@@ -432,6 +433,7 @@ The following is the content of ``MC.sh``.
     #SBATCH --time=00:30:00
 
     srun -n 8 abics_sampling input.toml >> aenet.out
+    
     echo Done
 
 Running abicsAL will create the ``MCxx`` directory (where xx is the number of runs).
