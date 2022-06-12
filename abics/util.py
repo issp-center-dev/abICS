@@ -136,6 +136,10 @@ def expand_path(path, basedir):
         path = os.path.join(basedir, path)
     return path
 
+def expand_cmd_path(path):
+    path = os.path.expanduser(path)
+    path = os.path.expandvars(path)
+    return path
 
 def pickle_dump(data, filename):
     with open(filename, 'wb') as f:
