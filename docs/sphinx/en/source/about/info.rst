@@ -19,9 +19,7 @@ abICS is developed by the following members.
    - Yuichi Motoyama (Institute for Solid State Physics, Univ. of Tokyo)
    - Kazuyoshi Yoshimi (Institute for Solid State Physics, Univ. of Tokyo)
    - Tatsumi Aoyama (Institute for Solid State Physics, Univ. of Tokyo)
-   - Yoshiyuki Yamamoto (Institute for Solid State Physics, Univ. of Tokyo)
    - Osamu Sugino (Institute for Solid State Physics, Univ. of Tokyo)
-   - Taisuke Ozaki (Institute for Solid State Physics, Univ. of Tokyo)
 
 - ver. 1.0
    - Shusuke Kasamatsu (Yamagata University)
