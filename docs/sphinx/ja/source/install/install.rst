@@ -20,7 +20,7 @@ abICS をインストール・実行するには、 バージョン3.7 以上の
 
    $ pip3 install cython
 
-VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
+.. VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
 
 
 PyPI からインストールする
@@ -54,8 +54,6 @@ abICS のソースコードは `GitHub page <https://github.com/issp-center-dev/
 .......................
 
 abICSのディレクトリ構成は以下のようになっています.
-``examples/standard`` には簡易ファイルで実行可能なサンプルが, 
-``examples/expert`` にはpythonモジュールを直接用いて作成されたサンプルがあります.
 pythonモジュールは ``abics`` ディレクトリ以下に一式格納されています.
 
 :: 
@@ -73,8 +71,6 @@ pythonモジュールは ``abics`` ディレクトリ以下に一式格納され
  |-- docs/
  |   `-- sphinx/
  |-- examples/
- |   |-- expert/
- |   `-- standard/
  |-- make_wheel.sh
  |-- setup.cfg
  `-- setup.py

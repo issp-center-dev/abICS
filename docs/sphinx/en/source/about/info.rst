@@ -7,8 +7,8 @@ What is abICS ?
 ------------------------------------------
 abICS is a software framework for performing configurational sampling in disordered systems,
 with a specific emphasis on multi-component solid state systems such as metal and oxide alloys.
-It couples parallel sampling methods with external codes that perform structural relaxation and energy calculations.
-We provide interfaces for Quantum Espresso, VASP, OpenMX, and aenet.
+The current version of abics allows aenet to be used as a neural network.
+First-principles calculation solvers (Quantum Espresso, VASP, OpenMX) are used to create training data for the neural network.
 
 Developers
 ------------------------------------------
