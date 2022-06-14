@@ -30,7 +30,7 @@ Examples are provided in ``examples/standard/st2abics`` and can be run as follow
     $ st2abics st2abics_BZY.toml BaZrO3.vasp abics_BZY.toml # Y-doped BaZrO3
 
 The resulting files (abics_MgAl2O4.toml, abics_CuZn.toml, and abics_BZY.toml in the above example) can be used as abICS input after
-filling in the ``[mlref]]``, ``[train]``, ``[sampling]`` and ``[observer]`` sections.
+filling in the ``[mlref]``, ``[train]``, ``[sampling]`` and ``[observer]`` sections.
 
 Input Format
 ^^^^^^^^^^^^
