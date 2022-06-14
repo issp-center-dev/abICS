@@ -59,7 +59,7 @@ abICS制御ファイル (``input.toml``)
   $ cd [example_dir]
   $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp > input.toml
 
-以下では ``input.toml`` の中で第一原理計算にようる学習データに関連するセクションの設定内容をもう少し詳しく解説します。
+以下では ``input.toml`` の中で第一原理計算によ る学習データに関連するセクションの設定内容をもう少し詳しく解説します。
 
 (i)  ``[mlref]`` セクション
 ****************************************************
@@ -458,7 +458,7 @@ abICS制御ファイル (``input.toml``)
     print_frequency = 1
     reload = false
 
-レプリカ交換モンテカルロ(RXMC)法のレプリカの数や温度範囲などに関する設定を行います（cf. 5.1 [sampling]セクション）。
+レプリカ交換モンテカルロ(RXMC)法のレプリカの数や温度範囲などに関する設定を行います（:doc:`../inputfiles/index`）。
 今回は、RXMC計算のエネルギーソルバーとしてaenetの ``predict.x`` を用います。
 現状、MPI版の ``predict.x`` はサポートしていないため、 ``nprocs_per_replica`` は
 1を指定してください。
@@ -530,6 +530,7 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 
 
 なお、DOIについては以下の手順で計算できます。
+
  #. MCxx ディレクトリに移動する。
  #. ``srun -n 8 abicsRXsepT ../input.toml`` を実行して ``Tseparate`` ディレクトリを作成する (並列数は ``abics_sampling`` を実行した際の並列数に揃える。本チュートリアルでは並列数を8にしているので8に設定)。
  #. sampleディレクトリにある ``calc_DOI.py`` と ``MgAl2O4.vasp`` をコピーする。
