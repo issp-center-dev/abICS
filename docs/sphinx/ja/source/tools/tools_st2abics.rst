@@ -32,7 +32,7 @@ config.base_structureとconfig.defect_structureを構成するか指定するた
     $ st2abics st2abics_BZY.toml BaZrO3.vasp abics_BZY.toml # Y-doped BaZrO3
 
 結果として得られたファイル(上記の例ではabics_MgAl2O4.toml, abics_CuZn.toml, abics_BZY.toml)は、
-``[replica]`` 、``[solver]`` 、 ``[observer]`` セクションのキーワードが空になっており、
+``[sampling]``, ``[mlref]``, ``[train]``, ``[observer]`` セクションのキーワードが空になっており、
 これらを記入した後、abICSの入力として使用することができます。
 
 入力フォーマット

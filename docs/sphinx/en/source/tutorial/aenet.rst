@@ -1,17 +1,20 @@
 .. _sec_tutorial:
 
 ***************************
-Example by using aenet
+Creating neural network
 ***************************
 
-This section contains a tutorial on how to use Quantum ESPRESSO (QE) to perform active learning and structure estimation.
+This section contains an instruction how to create neural network using ``aenet``, 
+with Quantum ESPRESSO (QE) for first-principle calculation solver. 
 A set of input files used in this tutorial can be found in ``examples/standard/active_learning_qe``.
-In the following, we assume that gnu parallel and anet are installed.
+In the following, we briefly describe the installation of aenet and GNU parallel, but you may skip if they are preinstalled in your system. 
 We will also use ohtaka, the supercomputer system B of the Institute for Solid State Physics, as the environment for running the calculations.
 
+Preprations
+-------------------------
 
 Installation of aenet
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In abICS, we use aenet to build neural network models.
 You can download aenet from http://ann.atomistic.net.
@@ -20,8 +23,9 @@ Note that abICS uses ``train.x`` and ``predict.x`` of aenet for training and eva
 For ``train.x``, an MPI parallel version is available, but for ``predict.x``, you need to use a non-MPI executable file (serial).
 For this reason, you should also install the serial version under makefiles.
 
-Installation of GNU parallel (optional)
------------------------------------------
+Installation of GNU parallel
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In this tutorial, we will use GNU parallel to run first-principles calculations with Quantum Espresso in parallel.
 Therefore, you need to install GNU parallel first.
 GNU parallel can be downloaded from https://www.gnu.org/software/parallel/ (on a Mac, it can also be installed directly by homebrew).
@@ -35,11 +39,16 @@ After moving to the directory you downloaded and extracted, you can install it i
 
 For detailed configuration, please refer to the official manual.
 
-Preparation of input files
------------------------------
+Preparation of input files for training data set
+------------------------------------------------
+
+A set of training data is required for creating a neural network 
+that relate the configurations of atoms as input and the energy as output by the first-principle calculations.
+To generate the data set, the input files need to be prepared for both abICS and the first-principle solver.
+
 
 Preparation of the abICS control file (``input.toml``)
-=======================================================
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This file contains the definition of the lattice structure to be calculated, the control of the entire active learning loop by abICS, and the parameters for the replica exchange Monte Carlo method.
 By using the st2abics tool, you can automatically generate the input.toml template from the crystal structure file.
@@ -50,30 +59,12 @@ By using the st2abics tool, you can automatically generate the input.toml templa
   $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp > input.toml
 
 
-In this example, set tha path of the ``[sampling.solver]`` section in the ``input.toml`` to the path of the aenet ``predict.x`` in your environment, and set the exe_command in the ``[train]`` section to the commands for running ``generate.x`` and ``train.x``. In addition, you need to set ``ignore_species = ["O"]`` in ``[sampling.solver]`` and ``[train]`` to get it to work.
+.. In this example, set tha path of the ``[sampling.solver]`` section in the ``input.toml`` to the path of the aenet ``predict.x`` in your environment, and set the exe_command in the ``[train]`` section to the commands for running ``generate.x`` and ``train.x``. In addition, you need to set ``ignore_species = ["O"]`` in ``[sampling.solver]`` and ``[train]`` to get it to work.
 
-In this section, we will explain the settings for each section of input.toml in more detail. If you want to run the example right now, you can skip it.
+In this section, we will explain the settings for each section of ``input.toml`` in more detail.
 
-(i) ``[sampling]`` section
-****************************************************
-.. code-block:: toml
-
-    [sampling]
-    nreplicas = 8
-    nprocs_per_replica = 1
-    kTstart = 600.0
-    kTend = 2000.0
-    nsteps = 6400
-    RXtrial_frequency = 4
-    sample_frequency = 16
-    print_frequency = 1
-    reload = false
-
-In this section, you can configure settings related to the number of replicas, temperature range, etc. for the Replica Exchange Monte Carlo (RXMC) method (manual reference link).
-This time, we will use anet's ``predict.x`` as the energy solver for RXMC calculations. Currently, the mpi version of ``predict.x`` is not supported, so nprocs_per_replica should be 1.
-
-(ii) ``[mlref]`` section
-****************************************************
+(i) ``[mlref]`` section
+**************************
 .. code-block:: toml
 
     [mlref]
@@ -85,31 +76,8 @@ Basically, ``nreplicas`` should be the same values as in the ``[sampling]`` sect
 ``ndata`` specifies how many samples to be extracted as the training dataset of the machine learning model from configurations generated by the RXMC calculation.
 Therefore, it should be set to a value less than or equal to the number of configurations generated by the RXMC calculation, ``nsteps/sample_frequency`` in ``[sampling]`` section.
 
-(iii) ``[sampling.solver]`` section
-****************************************************
-.. code-block:: toml
-
-    [sampling.solver] # Configure the solver used for RXMC calculations
-    type = 'aenet'
-    path= 'predict.x-2.0.4-ifort_serial'
-    base_input_dir = '. /baseinput'
-    perturb = 0.0
-    run_scheme = 'subprocess'
-    ignore_species = ["O"]
-
-In this section, you can configure the energy calculator (solver) to be used for RXMC calculations.
-In this article, we will use ``aenet`` package to implement a neural network model.
-For ``type``, ``perturb``, and ``run_scheme``, if you are using the active learning scheme, do not change the above example.
-Set path to the path of aenet's ``predict.x`` in your environment.
-The ``base_input_dir``, where the input files corresponding to ``predict.x`` are generated, can be set freely (explained in detail later).
-
-You can also specify the atomic species to be ignored in the neural network model as ``ignore_species``.
-In this example, the sublattice of oxygen always has an occupancy of 1, so oxygens do not affect energy.
-In this case, it is more computationally efficient to ignore the existence when training and evaluating the neural network model.
-
-(iv) ``[mlref.solver]`` section
-****************************************************
-
+(ii) ``[mlref.solver]`` section
+*******************************
 .. code-block:: toml
 
     [mlref.solver] # Set up a reference ab initio solver.
@@ -130,28 +98,11 @@ For another example, in the case of a lattice vector relaxation, the same input 
 The ``perturb`` is for starting the structural optimization from a structure with broken symmetry by randomly displacing each atom.
 In this case, the first calculation starts from the structure in which all atoms for structural relaxation are displaced by 0.05 angstrom in a random direction.
 
-(v) ``[train]`` section
-****************************************************
+The ``ignore-species`` is set to an empty list when the first-principle solver is used for generating the training data. 
+When a model is employed for the data generation in which some atomic species are ignored, they are specified in ``ignore-species``.
 
-.. code-block:: toml
-
-    [train] # Configure the model trainer.
-    type = 'aenet'
-    base_input_dir = '. /aenet_train_input'
-    exe_command = ['generate.x-2.0.4-ifort_serial',
-                  'srun train.x-2.0.4-ifort_intelmpi']
-    ignore_species = ["O"]
-
-Set up a learner to train a placement energy prediction model from training data.
-Currently, abICS supports only aenet.
-You can freely set the ``base_input_dir``.
-In the configured directory, set up the configuration files for the trainer (see below).
-In ``exe_command``, specify the paths to ``generate.x`` and ``train.x`` of aenet. For ``train.x``, an MPI parallel version is available, in which case, set the commands for MPI execution (``mpiexec``, ``srun``, etc.) as shown in the example above.
-
-``ignore_species`` specifies the atomic species to be ignored by NN model (see description in (iii) ``[sampling.solver]``).
-
-(vi) ``[config]`` section
-****************************************************
+(iii) ``[config]`` section
+**************************
 
 .. code-block:: toml
 
@@ -172,6 +123,9 @@ In ``exe_command``, specify the paths to ``generate.x`` and ``train.x`` of aenet
 
 ``[config]`` section specifies atomic positions to be used in the Monte Carlo sampling.
 The ``st2abics`` utility tool can generate this section.
+If ``abics_sampling`` has not been performed yet, the atomic positions are randomly generated 
+based on this information, and the input files for the first-principle calculation are produced. 
+Once ``abics_sampling`` is executed, the input files will be generated from the atomic positions obtained from the Monte Carlo sampling.
 
 Preparation of the QE reference file
 =========================================
@@ -210,7 +164,9 @@ The following is a description of the ``scf.in`` file in the sample directory.
 
     K_POINTS gamma
 
-You need to rewrite the directory that contains the pseudopotentials, ``pseudo_dir``, and the pseudopotentials used in ``ATOMIC_SPECIES`` according to your environment. The pseudopotentials used in this sample can be downloaded from the following link.
+You need to rewrite the directory that contains the pseudopotentials, ``pseudo_dir``, 
+and the pseudopotentials used in ``ATOMIC_SPECIES`` according to your environment. 
+The pseudopotentials used in this sample can be downloaded from the following link.
 
 - https://pseudopotentials.quantum-espresso.org/upf_files/Al.pbe-nl-kjpaw_psl.1.0.0.UPF
 - https://pseudopotentials.quantum-espresso.org/upf_files/Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
@@ -218,9 +174,39 @@ You need to rewrite the directory that contains the pseudopotentials, ``pseudo_d
 
 In this example, ``calculation = 'relax'`` is used for structural optimization during the QE calculation, and ``gammma`` is used for ``K_POINTS`` to speed up the calculation.
 
+ 
+Preparation of input files for creating neural network
+------------------------------------------------------
+
+In this tutorial we use ``aenet`` to create neural netowrk. We need to prepare the input files for 
+``abICS`` and ``aenet``.
+
+Preparation of the abICS control file (``input.toml``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(i) ``[train]`` section
+****************************************************
+
+.. code-block:: toml
+
+    [train] # Configure the model trainer.
+    type = 'aenet'
+    base_input_dir = '. /aenet_train_input'
+    exe_command = ['generate.x-2.0.4-ifort_serial',
+                  'srun train.x-2.0.4-ifort_intelmpi']
+    ignore_species = ["O"]
+
+Set up a learner to train a placement energy prediction model from training data.
+Currently, abICS supports only aenet.
+You can freely set the ``base_input_dir``.
+In the configured directory, set up the configuration files for the trainer (see below).
+In ``exe_command``, specify the paths to ``generate.x`` and ``train.x`` of aenet. For ``train.x``, an MPI parallel version is available, in which case, set the commands for MPI execution (``mpiexec``, ``srun``, etc.) as shown in the example above.
+
+The ``ignore-species`` is set to an empty list when the first-principle solver is used for generating the training data. 
+When a model is employed for the data generation in which some atomic species are ignored, they are specified in ``ignore-species``.
 
 Preparation of input files for aenet
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Place the input files for aenet in the ``generate``, ``train``, and ``predict`` directories
 in the directory set in the ``base_input_dir`` of the ``[train]`` section.
@@ -234,7 +220,7 @@ Input files for ``generate.x`` that perform this conversion are placed in the ``
 
 First, prepare a descriptor setting file for each element type.
 The file names are arbitrary.
-In the tutorial we will use ``Al.fingerprint.stp`` , ``Mg.fingerprint.stp`` and so on.
+In the tutorial we will use ``Al.fingerprint.stp``, ``Mg.fingerprint.stp`` and so on.
 
 As an example, the content of ``Al.fingerprint.stp`` is shown below:
 
@@ -340,14 +326,12 @@ for each elemental species in the ``NETWORKS`` section.
 Also, ``VERBOSITY`` must be set to ``low``.
 
 Running the calculation
------------------------
+~~~~~~~~~~~~~~~~~~~~~~~
 
-The sample scripts ``AL.sh`` and ``MC.sh`` are prepared to simplify the calculation procedure.
-By performing these alternately, active learning and structural estimation by Monte Carlo are carried out.
-
-Let's take a look at the contents of ``AL.sh`` first.
-Note that before running these shell scripts, you need to change the permissions of ``run_pw.sh`` with ``chmod u+x``.
-``run_pw.sh`` is a script to perform QE calculations and is called inside ``parallel_run.sh``, which will be described later.
+Now the input files have been prepared, we proceed to describe how to run the calculation. 
+A sample script ``AL.sh`` is prepared to simplify the calculation procedure.
+Note that prior to running the script, you need to change the permissions of ``run_pw.sh`` with ``chmod u+x run_pw.sh``.
+It is called inside ``parallel_run.sh`` and performs QE calculations, which will be described later.
 
 .. code-block:: shell
 
@@ -420,9 +404,68 @@ When the calculation is completed successfully, the trained neural network is ou
 
 The above process completes the AL.sh process for active learning.
 
+**********************************
+Predicting the optimized structure
+**********************************
+
 Next, we use the trained neural network potential to find the optimization structure by abICS.
-This process can be done in ``MC.sh``.
-The following is the content of ``MC.sh``.
+
+Preparation of input files
+--------------------------
+
+Several parameters need to be set in the abICS control file to find the optimized structure as follows. 
+
+
+Preparation of the abICS control file (``input.toml``)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The calculation parameters are specified in ``[sampling]`` section concerning the Replica Exchange Monte carlo method.
+
+(i) ``[sampling]`` section
+****************************************************
+.. code-block:: toml
+
+    [sampling]
+    nreplicas = 8
+    nprocs_per_replica = 1
+    kTstart = 600.0
+    kTend = 2000.0
+    nsteps = 6400
+    RXtrial_frequency = 4
+    sample_frequency = 16
+    print_frequency = 1
+    reload = false
+
+In this section, you can configure settings related to the number of replicas, temperature range, etc. for the Replica Exchange Monte Carlo (RXMC) method (manual reference link).
+This time, we will use anet's ``predict.x`` as the energy solver for RXMC calculations. Currently, the mpi version of ``predict.x`` is not supported, so nprocs_per_replica should be 1.
+
+(ii) ``[sampling.solver]`` section
+****************************************************
+.. code-block:: toml
+
+    [sampling.solver] # Configure the solver used for RXMC calculations
+    type = 'aenet'
+    path= 'predict.x-2.0.4-ifort_serial'
+    base_input_dir = '. /baseinput'
+    perturb = 0.0
+    run_scheme = 'subprocess'
+    ignore_species = ["O"]
+
+In this section, you can configure the energy calculator (solver) to be used for RXMC calculations.
+In this article, we will use ``aenet`` package to implement a neural network model.
+For ``type``, ``perturb``, and ``run_scheme``, if you are using the active learning scheme, do not change the above example.
+Set path to the path of aenet's ``predict.x`` in your environment.
+The ``base_input_dir``, where the input files corresponding to ``predict.x`` are generated, can be set freely (explained in detail later).
+
+You can also specify the atomic species to be ignored in the neural network model as ``ignore_species``.
+In this example, the sublattice of oxygen always has an occupancy of 1, so oxygens do not affect energy.
+In this case, it is more computationally efficient to ignore the existence when training and evaluating the neural network model.
+
+
+Running the calculation
+-----------------------
+
+The sample script ``MC.sh`` is provided to simplify the calculation procedure. The content of the script is as follows.
 
 .. code-block:: shell
 
@@ -445,6 +488,7 @@ For more details, please refer to the `abICS manual output file <https://issp-ce
 The results obtained by the above procedure depend on the accuracy of the neural network potential computed by aenet.
 In the first step, we trained based on random configurations, thus the accuracy for low temperature structures is expected to be low.
 Here, by repeating the step of calculating the energy again by first-principles calculation for the structure estimated by Monte Carlo and relearning it, we expect to improve the accuracy in the whole temperature range.
+
 This process can be calculated by repeating ``AL.sh`` and ``MC.sh`` in turn.
 The actual result of the calculation of the inversion rate (DOI) is shown in the figure below.
 In this example, the first result is ``MC0``, followed by ``MC1``, ``MC2``, and so on.

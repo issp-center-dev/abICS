@@ -110,7 +110,7 @@ aenet
   - Place the input file ``predict.in`` for ``predict.x`` in the ``predict`` directory to evaluate the energy for the input coordinates using the trained potential model.
 
 
-- A rule of an infput file of abICS
+- A rule of an input file of abICS
 
   -  In the ``[solver]`` section, for ``type`` , ``perturb`` , and ``run_scheme``, set the following if using an active learning scheme.
 
@@ -143,19 +143,32 @@ The following is an example of an input file selecting aenet as a solver.
 
 .. literalinclude::  ../../../../../examples/standard/spinel/input_aenet.toml
 
-		     
-Execution
-========================
+Creating a set of training data
+================================
 
-The number of processes specified here must be greater than or equal to the number of replicas.
+1. Generate a set of input files for the first-principle calculation using ``abics_mlref``.
 
+2. Perform the first-principle calculation with these inputs. (In the tutorial GNU parallel is used for the exhaustive calculation.)
 
-::
+Creating a neural network
+==========================
 
- $ mpiexec -np 2 abics_sampling input.toml
+1. Run ``abics_mlref`` again to convert the results of the first-principle calculation into a common format that ``abics_train`` will read.
 
-This creates a directory named with the replica number under the current directory, and each replica runs the solver in it.
-Here, `input.toml` is an input file for abICS (see :ref:`subsec_basic_input`).
+2. Execute ``abics_train`` to create a neural network. When the calculation is completed successfully, the trained neural network is output in ``baseinput`` directory.
 
+Predicting the optimized structure
+=============================
 
+By using ``abics_sampling`` the optimized structure is found from the trained neural network. 
+(The number of MPI processes must be larger than the number of replicas.)
+Running the program will create directories named by the replica numbers under the current directory, 
+and each replica runs the solver in it.
 
+.. image:: ../../../image/schmatic_AR.png
+   :width: 800px
+   :align: center
+
+A schematic view of the active learning in abICS.
+
+.. solver_specific_notes:
