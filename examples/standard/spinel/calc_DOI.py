@@ -15,7 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from mpi4py import MPI
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import os, sys
 import numpy as np

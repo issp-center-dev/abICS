@@ -1,11 +1,5 @@
 .. highlight:: none
 
-Calculation of the degree of inversion of Mg, Al atoms in an ionic crystal :math:`{\rm Mg}{\rm Al}_2 {\rm O}_4`
----------------------------------------------------------------------------------------------------------------
-
-Input files are provided in ``examples/standard/spinel`` .
-Below, examples for QuantumESPRESSO and VASP are described.
-
 Example by using QuantumESPRESSO
 =======================================
 
@@ -16,7 +10,7 @@ The input file of abICS is ``input_qe.toml`` .
 
 ::
 
-   [replica]
+   [sampling]
    nreplicas = 2
    nprocs_per_replica = 1
 
@@ -28,12 +22,12 @@ The input file of abICS is ``input_qe.toml`` .
    sample_frequency = 1
    print_frequency = 1
 
-``[replica]`` is a section for specifying parameters of the replica exchange Monte Carlo method.
+``[sampling]`` is a section for specifying parameters of the replica exchange Monte Carlo method.
 In this example, the number of the replicas is 2 and the number of the steps is 5.
 
 ::
 
-   [solver]
+   [sampling.solver]
    type = 'qe'
    path= './pw.x'
    base_input_dir = './baseinput'
@@ -41,7 +35,7 @@ In this example, the number of the replicas is 2 and the number of the steps is 
    run_scheme = 'mpi_spawn'
 
 
-``[solver]`` is a section for specifying a solver program.
+``[sampling.solver]`` is a section for specifying a solver program.
 This examples sets ``type`` as ``qe`` in order to use Quantum ESPRESSO (QE).
 ``path`` specifies the path to ``pw.x``, the SCF energy solver of QE.
 The directory that contains the input parameter files specific to each solver is given as ``./baseinput`` using ``base_input_dir``.
@@ -156,11 +150,11 @@ Preparing the input file of QE
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 abICS generates the input files of the solver from the internally-held structure information, but information other than the structure such as pseudopotential information must be supplied by the user.
-In the case of QE, such information is specified by ``scf.in`` in the directory specified by ``base_input_dir`` in the format of the input file of ``pw.x``. 
+In the case of QE, such information is specified by ``scf.in`` in the directory specified by ``base_input_dir`` in the format of the input file of ``pw.x``.
 Based on this file, an input file with unit cells and atomic structure is automatically generated.
 
 - Notes
-  
+
   - The pseudopotential directory ``pseudo_dir`` must be passed as an absolute path. ``~`` expands to the user's home directory.
   - For ``calculation``,  SCF calculation ``scf`` and structure optimization ``relax`` are available.
   - ``disk_io`` must not be ``none`` .
@@ -204,57 +198,6 @@ In practical simulation, moreover, a structure optimization process is required.
 For example, if you perform this calculation with 17 replicas, 1000 steps, and ``perturb = 0.1``, the following result will be obtained
 
 .. image:: ../../../image/doi_qe.png
-   :width: 400px
-   :align: center
-
-You can see that DOI increases as the temperature increases.
-
-Example by using VASP
-=====================
-
-Preparing the input files for abICS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The input file of abICS is ``input_vasp.toml`` .
-Below, ``input_vasp.toml`` in ``examples/standard/spinel`` is explained as an example.
-Only the ``[solver]`` section is differnt from that of QuantumESPRESSO.
-The ``[solver]`` section is specified as follows:
-
-::
-
-   [solver]
-   type = 'vasp'
-   path = './vasp'
-   base_input_dir = './baseinput'
-   perturb = 0.0
-   run_scheme = 'mpi_spawn_ready'
-
-This examples sets ``type`` as ``vasp`` in order to use VASP.
-``path`` specifies the path to ``vasp``.
-The directory that contains the input parameter files specific to each solver is given as ``./baseinput`` using ``base_input_dir``.
-``perturb`` is a random parameter that shifts atomic positions for structural optimization, but in this example it is set to 0 not to perform structural optimization.
-
-abICS starts ``vasp`` with ``MPI_Comm_spawn``, so give ``mpi_spawn_ready`` as ``run_scheme`` .To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` .
-
-Preparing the input file of VASP
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-abICS generates the input files of the solver from the internal atomic structure, but information other than the structure, such as pseudopotential information, must be supplied by the user.
-In the case of VASP, such information is specified by ``INCAR``, ``POSCAR``,  ``KPOINTS`` and ``POTCAR`` in  ``base_input_dir``. Here, ``POTCAR`` file is not contained in the ``base_input_dir`` due to the VASP license. Before the calculation, generate  ``POTCAR`` file from the ``O, Al, Mg`` pesudo potential files.
-Based on these files, an input file with unit cells and atomic structure is automatically generated.
-
-- Notes
-  
-  -  The coordinate information of ``POSCAR`` will be overwritten by the input information of abICS, but it must be described.
-  - In ``POTCAR`` file, please list pseudo potentials in alphabetical order of atoms.
-
-Execution and analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The procedures of execution and analysis are same as those of QE.
-If you do with 17 replicas and 1000 steps same as the exapmle of QE, the following result will be obtained
-
-.. image:: ../../../image/doi_vasp.png
    :width: 400px
    :align: center
 

@@ -1,4 +1,4 @@
-[replica]
+[sampling]
 nreplicas = 17
 nprocs_per_replica = 24
 
@@ -10,7 +10,7 @@ RXtrial_frequency = 1
 sample_frequency = 1
 print_frequency = 1
 
-[solver]
+[sampling.solver]
 type = 'qe'
 path= './pw.x'
 base_input_dir = './baseinput'

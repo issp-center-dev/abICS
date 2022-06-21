@@ -35,10 +35,14 @@ sed -i.orig "s/FCFLAGS *=.*/FCFLAGS = ${LOCAL_FCFLAGS} -DPARALLEL/" Makefile.gfo
 cd ..
 
 make -f makefiles/Makefile.gfortran_serial
-make -f makefiles/Makefile.gfortran_mpi
 
 cd ../bin
 mkdir -p ~/opt/aenet/bin
 cp generate.x-${VERSION}-gfortran_serial ~/opt/aenet/bin/generate.x_serial
-cp train.x-${VERSION}-gfortran_mpi ~/opt/aenet/bin/train.x_mpi
 cp predict.x-${VERSION}-gfortran_serial ~/opt/aenet/bin/predict.x_serial
+
+cd ../src
+make clean
+make -f makefiles/Makefile.gfortran_mpi
+cd ../bin
+cp train.x-${VERSION}-gfortran_mpi ~/opt/aenet/bin/train.x_mpi

@@ -262,7 +262,6 @@ def main_impl(tomlfile):
                             shutil.copytree(d, "MC{}/baseinput{}".format(i, j))
                 commAll.Barrier()
                 rootdir = os.getcwd()
-                print(i, rootdir)
                 while not exists_on_all_nodes(commAll, "MC{}".format(i)):
                     pass
                 os.chdir("MC{}".format(i))

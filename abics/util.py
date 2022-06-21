@@ -136,6 +136,10 @@ def expand_path(path, basedir):
         path = os.path.join(basedir, path)
     return path
 
+def expand_cmd_path(path):
+    path = os.path.expanduser(path)
+    path = os.path.expandvars(path)
+    return path
 
 def pickle_dump(data, filename):
     with open(filename, 'wb') as f:
@@ -162,6 +166,9 @@ def all_equal(iterable):
     return next(g, True) and not next(g, False)
 
 def exists_on_all_nodes(comm, path, check_interval = 1, max_wait = 30):
+    """ check ``path`` file is visible from all procs
+    """
+
     counter = 0
     while True:
         exists = os.path.exists(path)

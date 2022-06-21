@@ -1,4 +1,4 @@
-[replica]
+[sampling]
 nreplicas = 2
 nprocs_per_replica = 1
 
@@ -11,7 +11,7 @@ sample_frequency = 4
 print_frequency = 5
 seed = 12345
 
-[solver]
+[sampling.solver]
 type = 'qe'
 path= './pw.x'
 base_input_dir = './baseinput'
