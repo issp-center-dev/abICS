@@ -6,12 +6,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>3. 基本的な使用方法 &#8212; abICS 1.0.0 ドキュメント</title>
+    <title>3. 基本的な使用方法 &#8212; abICS 2.0.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/translations.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -36,15 +37,15 @@
           <div class="body" role="main">
             
   <section id="sec-basic-usage">
-<span id="id1"></span><h1><span class="section-number">3. </span>基本的な使用方法<a class="headerlink" href="#sec-basic-usage" title="このヘッドラインへのパーマリンク">¶</a></h1>
-<p>abICSでは, モンテカルロステップ毎に位置座標を更新しながら、ソルバー(VASP, QEなど)によるエネルギー計算などを行います.
+<span id="id1"></span><h1><span class="section-number">3. </span>基本的な使用方法<a class="headerlink" href="#sec-basic-usage" title="Permalink to this heading">¶</a></h1>
+<p>abICSでは, モンテカルロステップ毎に位置座標を更新しながら、ニューラルネットワークを用いてエネルギー計算を行います.
 そのため、位置座標以外の情報について予め用意する必要があります。これらの情報は、ソルバーの入力形式に従ったファイルを参照し取得します。</p>
 <section id="subsec-basic-reference">
-<span id="id2"></span><h2><span class="section-number">3.1. </span>参照ファイルの準備<a class="headerlink" href="#subsec-basic-reference" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>使用するソルバーの入力形式に従った入力ファイルを用意します。
-参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
-座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
-以下、QEの参照ファイルの例について記載します。</p>
+<span id="id2"></span><h2><span class="section-number">3.1. </span>能動学習用参照ファイルの準備<a class="headerlink" href="#subsec-basic-reference" title="Permalink to this heading">¶</a></h2>
+<p>能動学習で使用するソルバーの入力形式に従った入力ファイルを用意します。
+参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
+座標情報については記載する必要はありません。
+以下、Quantum ESPRESSOの参照ファイルの例について記載します。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
   calculation = &#39;relax&#39;
   tstress = .false.
@@ -75,17 +76,125 @@ ATOMIC_POSITIONS crystal
 K_POINTS gamma
 </pre></div>
 </div>
-</section>
-<section id="subsec-basic-input">
-<span id="id3"></span><h2><span class="section-number">3.2. </span>入力ファイルの作成<a class="headerlink" href="#subsec-basic-input" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>次にabICSの入力ファイルを作成します。
-abICSの入力ファイルは, 以下の４つのセクションから構成されます.</p>
-<ol class="arabic">
-<li><p>[replica] セクション</p>
-<p>レプリカ数や温度の幅, モンテカルロステップ数など,レプリカ交換モンテカルロ部分のパラメータを指定します.</p>
+<section id="id3">
+<h3><span class="section-number">3.1.1. </span>能動学習用ソルバー利用時の注意点<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h3>
+<p>abICSでは原子の座標を更新します. それ以外の設定については基本的にソルバーごとに指定する必要があります。ただし、構造最適化をする原子の指定についてはabICS側で制御することが可能です。構造最適化機能を有効にする場合には、ソルバーの参照ファイルで構造最適化オプションを有効にした上で、構造最適化のステップ数なども指定することで最適化が行われます。
+また、abICSではソルバー毎に、参照ファイル名、実装時に仮定している参照ファイルのルールなどがあります。
+以下、それらについて説明します。</p>
+<section id="vasp">
+<h4>VASP<a class="headerlink" href="#vasp" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
+<li><p>参照ファイル</p>
+<ul>
+<li><p>INCAR, POTCAR, KPOINTS ファイルを用意してください。</p>
+<ul>
+<li><p>POTCARファイルは元素をアルファベット順に並べてください。</p></li>
+<li><p>POSCARファイルは不要ですが、依存パッケージである <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code> のバージョンによっては必要になります。その場合、なにか適当なファイルを用意してください。</p></li>
+</ul>
 </li>
-<li><p>[solver] セクション</p>
-<p>ソルバーの種類 (VASP, QE, OpenMX)、ソルバーへのパス、参照用入力ファイル( <a class="reference internal" href="#subsec-basic-reference"><span class="std std-ref">参照ファイルの準備</span></a> )のあるディレクトリなど、ソルバーのパラメータを指定します.</p>
+</ul>
+</li>
+</ul>
+</section>
+<section id="quantum-espresso">
+<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
+<li><p>バージョンは 6.2 以上を利用してください。</p>
+<ul>
+<li><p>いわゆる旧形式 XML バージョンは利用できません。</p></li>
+</ul>
+</li>
+<li><p>参照ファイル</p>
+<ul>
+<li><p>参照ファイル名は <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> にしてください。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculation</span></code> は <code class="docutils literal notranslate"><span class="pre">scf</span></code> と <code class="docutils literal notranslate"><span class="pre">relax</span></code> のみ対応しています。</p></li>
+<li><p><span class="math notranslate nohighlight">\(\Gamma\)</span> 点のみで計算する場合には、 <code class="docutils literal notranslate"><span class="pre">kpoints</span></code> を <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> に指定すると高速化します。</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="openmx">
+<h4>OpenMX<a class="headerlink" href="#openmx" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
+<li><p>バージョンは 3.9 を利用してください。</p></li>
+<li><p>参照ファイル</p>
+<ul>
+<li><p>参照ファイル名は <code class="docutils literal notranslate"><span class="pre">base.dat</span></code> にしてください。</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id4">
+<h2><span class="section-number">3.2. </span>ソルバー用参照ファイルの準備<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
+<p>使用するソルバーの入力形式に従った入力ファイルを用意します。
+参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
+座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
+以下、aenetの参照ファイルの例について記載します。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>TYPES
+2
+Mg
+Al
+
+
+NETWORKS
+Mg    Mg.15t-15t.nn
+Al  Al.15t-15t.nn
+
+
+VERBOSITY low
+
+#FILES
+#1
+#structure.xsf
+</pre></div>
+</div>
+<section id="subsec-basic-input">
+<span id="id5"></span><h3><span class="section-number">3.2.1. </span>ソルバー利用時の注意点<a class="headerlink" href="#subsec-basic-input" title="Permalink to this heading">¶</a></h3>
+<section id="aenet">
+<h4>aenet<a class="headerlink" href="#aenet" title="Permalink to this heading">¶</a></h4>
+<ul>
+<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
+<li><p>バージョン2.0.3 (2018-06-25) で動作確認済。</p></li>
+<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
+<ul class="simple">
+<li><p>aenet用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で設定したディレクトリ内の <code class="docutils literal notranslate"><span class="pre">generate</span></code> 、 <code class="docutils literal notranslate"><span class="pre">train</span></code> 、および <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。</p></li>
+<li><p>aenetでは、訓練用の原子配置とエネルギーのデータを、原子環境記述子とエネルギーの関係に変換した中間バイナリフォーマットにまとめてから訓練を行います。この変換を行う <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> 用の 入力ファイルを <code class="docutils literal notranslate"><span class="pre">generate</span></code> ディレクトリに設置してください。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate.x</span></code> で生成された訓練データを読み込み、訓練を行う <code class="docutils literal notranslate"><span class="pre">train.x</span></code> 用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">train</span></code> ディレクトリに設置します。 ファイル名は <code class="docutils literal notranslate"><span class="pre">train.in</span></code> としてください。</p></li>
+<li><p>訓練したポテンシャルモデルを使って入力座標に対してエネルギーを 評価するための <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> 用の入力ファイル <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> を、 <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。</p></li>
+</ul>
+</li>
+<li><p>abICS 入力ファイル</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションで <code class="docutils literal notranslate"><span class="pre">type</span></code> , <code class="docutils literal notranslate"><span class="pre">perturb</span></code> , <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> に関しては、能動学習スキームを用いる場合は以下に設定してください。</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span> <span class="o">=</span> “aenet”
+<span class="nv">perturb</span> <span class="o">=</span> <span class="m">0</span>.0
+<span class="nv">run_scheme</span> <span class="o">=</span> ‘subprocess’
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id6">
+<h2><span class="section-number">3.3. </span>入力ファイルの作成<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
+<p>次にabICSの入力ファイルを作成します。
+abICSの入力ファイルは, 以下の5つのセクションから構成されます.</p>
+<ol class="arabic">
+<li><p>[sampling] セクション</p>
+<p>レプリカ数や温度の幅, モンテカルロステップ数など,レプリカ交換モンテカルロ部分のパラメータを指定します.また、利用するソルバーの種類 (VASP, QE, ...)、ソルバーへのパス、不変な入力ファイルのあるディレクトリなど（第一原理計算）ソルバーのパラメータを指定します.</p>
+</li>
+<li><p>[mlref] セクション</p>
+<p>ニューラルネットワークモデルの精度評価と訓練データの拡張などを行うため、サンプリングの結果から原子配置のみを取り出す際のオプションを設定します. <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> のみで使用されます. また、訓練データを作成するために利用するソルバーの種類 (VASP, QE, ...)、ソルバーへのパス、不変な入力ファイルのあるディレクトリなど（第一原理計算）ソルバーのパラメータを指定します.</p>
+</li>
+<li><p>[train] セクション</p>
+<p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います. <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> のみで使用されます.</p>
 </li>
 <li><p>[observer] セクション</p>
 <p>取得する物理量の種類などを指定します.</p>
@@ -95,31 +204,32 @@ abICSの入力ファイルは, 以下の４つのセクションから構成さ�
 </li>
 </ol>
 <p>これらの詳細については <a class="reference internal" href="../inputfiles/index.html"><span class="doc">入力ファイルフォーマット</span></a> をご覧ください。
-以下、QEの場合の入力ファイルの例を記載します。</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[replica]
-nreplicas = 2
-nprocs_per_replica = 1
+以下、aenetの場合の入力ファイルの例を記載します。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
+nreplicas = 7
+nprocs_per_replica = 1 
 
-kTstart = 1000.0
-kTend = 1200.0
+kTstart = 600.0
+kTend = 1400.0
 
-nsteps = 2  # Number of steps for sampling
-RXtrial_frequency = 1
-sample_frequency = 1
+nsteps = 1600  # Number of steps for sampling
+RXtrial_frequency = 4
+sample_frequency = 16
 print_frequency = 1
+reload = false
 
-[solver]
-type = &#39;qe&#39;
-path= &#39;./pw.x&#39;
+[sampling.solver]
+type = &#39;aenet&#39;
+path= &#39;~/git/aenet/bin/predict.x-2.0.4-gfortran_serial&#39;
 base_input_dir = &#39;./baseinput&#39;
 perturb = 0.0
-run_scheme = &#39;mpi_spawn&#39;
+run_scheme = &#39;subprocess&#39; #&#39;mpi_spawn_ready&#39;
+ignore_species = [&quot;O&quot;]
 
 [config]
-unitcell = [
-            [4.056800, 4.056800, 0.000000],
-            [4.056800, 0.000000, -4.056800],
-            [0.000000, 4.056800, -4.056800], ]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
 supercell = [1,1,1]
 
 [[config.base_structure]]
@@ -190,12 +300,12 @@ coords = [
 name = &#39;Al&#39;
 # species = [&#39;Al&#39;]    # default
 # coords = [[[0,0,0]]]  # default
-num = 16
+num = 16 #432 #16000
 [[config.defect_structure.groups]]
 name = &#39;Mg&#39;
 # species = [&#39;Mg&#39;]    # default
 # coords = [[[0,0,0]]]  # default
-num = 8
+num = 8 #216 #8000
 
 
 [observer]
@@ -203,129 +313,26 @@ ignored_species = [&#39;O&#39;]
 </pre></div>
 </div>
 </section>
-<section id="abics">
-<h2><span class="section-number">3.3. </span>abICSの実行<a class="headerlink" href="#abics" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります。</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mpiexec -np 2 abics_sampling input.toml
-</pre></div>
-</div>
-<p>実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。
-ここで、 <code class="docutils literal notranslate"><span class="pre">input.toml</span></code> はabICS用の入力ファイルです( <a class="reference internal" href="#subsec-basic-input"><span class="std std-ref">入力ファイルの作成</span></a> 参照)。</p>
-<section id="mpi-tips">
-<h3><span class="section-number">3.3.1. </span>MPI プロセス数に関する Tips<a class="headerlink" href="#mpi-tips" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<p>abICS はソルバーの実行のために <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> という MPI ライブラリ関数を使用します。
-この関数は新規に MPI プロセスを(複数)起動して、そこで任意プログラムを(並列)実行します。</p>
-<p>たとえば、 1ノードあたり 4CPU コアをもつような並列計算機において、 2レプリカの計算を、1つあたり4並列のソルバーで実行する場合を考えます。
-<code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np</span> <span class="pre">2</span> <span class="pre">abics_sampling</span> <span class="pre">input.toml</span></code> として実行した場合、ノード 0 の最初の2コアでレプリカ制御プロセス A,B が起動し、それぞれが4並列ソルバー a,b を新規に起動します。
-そのとき、ソルバー a はノード 0 の残り2コアとノード 1 の先頭 2コアに、
-ソルバー b はノード 1 の残り2コアとノード 2 の先頭 2コアに配置され、ソルバー内でノード間通信が発生し、性能が低下します。</p>
-<p>初期プロセスを多めに取ることで、プロセスを整列させ、不要なノードまたぎが起きないようにできます。
-今回の例では、 <code class="docutils literal notranslate"><span class="pre">mpiexec</span> <span class="pre">-np</span> <span class="pre">4</span> <span class="pre">abics_sampling</span> <span class="pre">input.toml</span></code> とすることで、
-レプリカ制御プロセス A,B の他に何もしないプロセスで ノード0 をすべて埋めることができ、
-ソルバー a,b はそれぞれノード1, 2 を埋めることができます。</p>
+<section id="id7">
+<h2><span class="section-number">3.4. </span>学習データの作成<a class="headerlink" href="#id7" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を用いて訓練データの大元となる第一原理計算用の入力ファイルを生成します。</p></li>
+<li><p>1で生成した入力ファイルに対して第一原理計算を実施します(チュートリアルでは <code class="docutils literal notranslate"><span class="pre">GNU</span> <span class="pre">parallel</span></code> を利用し網羅計算を実行しています)。</p></li>
+</ol>
 </section>
-<section id="mpi">
-<h3><span class="section-number">3.3.2. </span>MPI 実装依存性<a class="headerlink" href="#mpi" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<p>MPI 実装によっては、 <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> 関数で、「合計でいくつのプロセスを起動できるか」 という情報 (<code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code>) を利用することがあります。
-<code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> の設定方法など、 各種MPI 実装に関するTips を紹介します。</p>
-<section id="openmpi">
-<h4>OpenMPI<a class="headerlink" href="#openmpi" title="このヘッドラインへのパーマリンク">¶</a></h4>
-<p>使用できるCPU コア数と同じ値が <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> として自動で設定されます。
-使用プロセス数がこれを超える場合には、 <code class="docutils literal notranslate"><span class="pre">--oversubscribe</span></code> オプションを渡す必要があります。</p>
-<p>OpenMPI は、 <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> で呼び出したプロセスが非ゼロのリターンコードを返した場合に、すべてのプロセスごと終了します。
-リターンコードを無視したい場合は、 <code class="docutils literal notranslate"><span class="pre">--mca</span> <span class="pre">orte_abort_on_non_zero_status</span> <span class="pre">0</span></code> としてください。
-例えばQuantum ESPRESSO は、計算中に浮動小数点数例外を捕捉すると、終了時に非ゼロのリターンコードを返します。</p>
+<section id="id8">
+<h2><span class="section-number">3.5. </span>ニューラルネットワークの作成<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を再度実行して、学習で用いる <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> が読み込めるよう第一原理計算の結果を変換します。</p></li>
+<li><p>次に <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> を実行してニューラルネットワークの作成を行います。 計算が無事終了すると、 <code class="docutils literal notranslate"><span class="pre">baseinput</span></code> ディレクトリに学習済みのニューラルネットワークが出力されます。</p></li>
+</ol>
 </section>
-<section id="mpich-intel-mpi">
-<h4>MPICH / Intel MPI<a class="headerlink" href="#mpich-intel-mpi" title="このヘッドラインへのパーマリンク">¶</a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">-usize</span> <span class="pre">&lt;num&gt;</span></code> オプションで <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> を指定できます。
-実際には指定しなくとも動作するようです。</p>
-</section>
-<section id="hpe-sgi-mpt">
-<h4>HPE (SGI) MPT<a class="headerlink" href="#hpe-sgi-mpt" title="このヘッドラインへのパーマリンク">¶</a></h4>
-<p><code class="docutils literal notranslate"><span class="pre">-up</span> <span class="pre">&lt;num&gt;</span></code> オプションで <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> を指定できます。
-<code class="docutils literal notranslate"><span class="pre">-np</span> <span class="pre">&lt;num&gt;</span></code> オプションよりも先に指定する必要があります。</p>
-</section>
-<section id="id4">
-<h4>その他<a class="headerlink" href="#id4" title="このヘッドラインへのパーマリンク">¶</a></h4>
-<p>大規模スパコンなどでは、ベンダーがジョブスケジューラとともに専用の MPI 実行スクリプトを用意している場合があります。
-その場合は、それぞれのマニュアルを参考にしてください。</p>
-<p>例として、 物性研スパコン sekirei, enaga では、 <code class="docutils literal notranslate"><span class="pre">mpijob</span> <span class="pre">-spawn</span></code> とすることで、 <code class="docutils literal notranslate"><span class="pre">MPI_UNIVERSE_SIZE</span></code> が自動的に設定されます。</p>
-</section>
-</section>
-</section>
-<section id="id5">
-<h2><span class="section-number">3.4. </span>ソルバー利用時の注意点<a class="headerlink" href="#id5" title="このヘッドラインへのパーマリンク">¶</a></h2>
-<p>abICSでは原子の座標を更新します. それ以外の設定については基本的にソルバーごとに指定する必要があります。ただし、構造最適化をする原子の指定についてはabICS側で制御することが可能です。構造最適化機能を有効にする場合には、ソルバーの参照ファイルで構造最適化オプションを有効にした上で、構造最適化のステップ数なども指定することで最適化が行われます。また、abICSではソルバー毎に、参照ファイル名、実装時に仮定している参照ファイルのルールや、abICS入力ファイルで指定できる実行形式 <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> があります。以下、それらについて説明します。</p>
-<section id="vasp">
-<h3><span class="section-number">3.4.1. </span>VASP<a class="headerlink" href="#vasp" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<ul>
-<li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
-<li><p>参照ファイル</p>
-<ul class="simple">
-<li><p>INCAR, POTCAR, KPOINTS ファイルを用意してください。</p>
-<ul>
-<li><p>POTCARファイルは元素をアルファベット順に並べてください。</p></li>
-<li><p>POSCARファイルは不要ですが、依存パッケージである <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code> のバージョンによっては必要になります。その場合、なにか適当なファイルを用意してください。</p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>abICS 入力ファイル</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> の指定</p>
-<p><code class="docutils literal notranslate"><span class="pre">mpi_spawn_ready</span></code> に設定してください。
-なお、VASPをソルバーとして利用する際には、 <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> を利用するためのパッチをあてる必要があります。
-利用されたい場合には、<a class="reference internal" href="../contact/index.html"><span class="doc">お問い合わせ</span></a> のその他に記載された連絡先までご連絡ください。</p>
-</li>
-</ul>
-</li>
-</ul>
-</section>
-<section id="quantum-espresso">
-<h3><span class="section-number">3.4.2. </span>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<ul>
-<li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
-<li><p>バージョンは 6.2 以上を利用してください。</p>
-<ul class="simple">
-<li><p>いわゆる旧形式 XML バージョンは利用できません。</p></li>
-</ul>
-</li>
-<li><p>参照ファイル</p>
-<ul class="simple">
-<li><p>参照ファイル名は <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> にしてください。</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">calculation</span></code> は <code class="docutils literal notranslate"><span class="pre">scf</span></code> と <code class="docutils literal notranslate"><span class="pre">relax</span></code> のみ対応しています。</p></li>
-<li><p><span class="math notranslate nohighlight">\(\Gamma\)</span> 点のみで計算する場合には、 <code class="docutils literal notranslate"><span class="pre">kpoints</span></code> を <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> に指定すると高速化します。</p></li>
-</ul>
-</li>
-<li><p>abICS 入力ファイル</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> の指定</p>
-<p><code class="docutils literal notranslate"><span class="pre">mpi_spawn</span></code> に設定してください。</p>
-</li>
-</ul>
-</li>
-</ul>
-</section>
-<section id="openmx">
-<h3><span class="section-number">3.4.3. </span>OpenMX<a class="headerlink" href="#openmx" title="このヘッドラインへのパーマリンク">¶</a></h3>
-<ul>
-<li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
-<li><p>バージョンは 3.9 を利用してください。</p></li>
-<li><p>参照ファイル</p>
-<ul class="simple">
-<li><p>参照ファイル名は <code class="docutils literal notranslate"><span class="pre">base.dat</span></code> にしてください。</p></li>
-</ul>
-</li>
-<li><p>abICS 入力ファイル</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> の指定</p>
-<p><code class="docutils literal notranslate"><span class="pre">mpi_spawn_wrapper</span></code> に設定してください。</p>
-</li>
-</ul>
-</li>
-</ul>
-</section>
+<section id="id9">
+<h2><span class="section-number">3.6. </span>最適化構造推定の実行<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> を用いて最適化構造の推定を行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
+実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。</p>
+<a class="reference internal image-reference" href="../_images/schmatic_AR.png"><img alt="../_images/schmatic_AR.png" class="align-center" src="../_images/schmatic_AR.png" style="width: 800px;" /></a>
+<p>abICSを用いた能動学習のイメージ図</p>
 </section>
 </section>
 
@@ -350,10 +357,12 @@ ignored_species = [&#39;O&#39;]
 <li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. 基本的な使用方法</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#subsec-basic-reference">3.1. 参照ファイルの準備</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#subsec-basic-input">3.2. 入力ファイルの作成</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#abics">3.3. abICSの実行</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id5">3.4. ソルバー利用時の注意点</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#subsec-basic-reference">3.1. 能動学習用参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">3.2. ソルバー用参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">3.3. 入力ファイルの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">3.4. 学習データの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">3.5. ニューラルネットワークの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">3.6. 最適化構造推定の実行</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
@@ -383,7 +392,7 @@ ignored_species = [&#39;O&#39;]
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -397,10 +406,10 @@ ignored_species = [&#39;O&#39;]
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, Institute for Solid State Physics, University of Tokyo.
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
