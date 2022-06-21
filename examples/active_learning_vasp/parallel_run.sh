@@ -7,7 +7,6 @@
 module purge
 module load intel_compiler/2019.5.281
 module load openmpi/4.0.4-intel-2019.5.281
-#srun /home/k0306/k030600/src/vasp.5.4.4.pl2/bin/vasp_gam
 
 parallel --delay 0.2 -j 16 --joblog runtask.log  \
 	 -a rundirs.txt ./run_vasp.sh 
