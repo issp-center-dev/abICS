@@ -171,7 +171,7 @@ Please refer to :ref:`sec_basic_usage` section for information on setting the nu
 
 
 After the abICS calculation, we can calculate the degree of inversion (DOI: ratio of Al atoms on Mg sites of the ordered spinel structure).
-Scripts for performing this analysis are ``separateT.py`` and ``calc_DOI.py`` in the ``examples/standard/spinel`` directory.
+Scripts for performing this analysis are ``separateT.py`` and ``calc_DOI.py`` in the ``examples/spinel`` directory.
 
 First, ``separateT.py`` is used to reorder the structures at each sampling step by temperature::
 

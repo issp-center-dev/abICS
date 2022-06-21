@@ -20,7 +20,7 @@ The path of the reference file is specified by ``base_input_dir`` in the ``[mlre
 The coordinate information should not be written here because it will obviously change in the course of the simulation.
 The following is an example of a QE reference file.
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/scf.in
+.. literalinclude::  ../../../../../examples/spinel/baseinput/scf.in
 
 .. _solver_specific_notes:
 
@@ -85,7 +85,7 @@ The lattice sites are specified in a separate abICS input file (see below),
 and abICS will take care of generating the coordinates section at each sampling step.
 The following is an example of an aenet reference file.
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/predict.in
+.. literalinclude::  ../../../../../examples/spinel/baseinput/predict.in
 
 .. _solver_specific_notes:
 
@@ -141,7 +141,7 @@ The input file of abICS is constructed by the following five sections:
 For details, see :doc:`../inputfiles/index` .
 The following is an example of an input file selecting aenet as a solver.
 
-.. literalinclude::  ../../../../../examples/standard/spinel/input_aenet.toml
+.. literalinclude::  ../../../../../examples/spinel/input_aenet.toml
 
 Creating a set of training data
 ================================
