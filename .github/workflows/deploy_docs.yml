@@ -70,7 +70,7 @@ jobs:
           # copy files
           for lang in ja en; do
             rm -rf "gh-pages/docs/${TARGET_NAME}/${lang}"
-            mkdir -p "gh-pages/docs/${TARGET_NAME}"
+            mkdir -p "gh-pages/docs/${TARGET_NAME}/${lang}"
             cp -r "main/docs/sphinx/${lang}/build/html" "gh-pages/docs/${TARGET_NAME}/${lang}"
             if [ $is_tag = "YES" ]; then
               cp "main/docs/sphinx/${lang}/build/latex/abICS_${LANG}.pdf" "gh-pages/docs/${TARGET_NAME}/${lang}/abICS.pdf"
