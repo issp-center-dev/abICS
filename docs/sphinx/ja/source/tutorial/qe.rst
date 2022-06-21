@@ -173,7 +173,7 @@ MPI 実行におけるプロセス数やオプションの設定については 
 
 
 abics 計算終了後、反転度（もともと Mg 原子があった位置にAl 原子が占めている割合）を計算します。
-そのために ``examples/standard/spinel`` ディレクトリにある ``separateT.py`` と ``calc_DOI.py`` スクリプトを用います。
+そのために ``examples/spinel`` ディレクトリにある ``separateT.py`` と ``calc_DOI.py`` スクリプトを用います。
 
 まず、 ``separateT.py`` を使い、レプリカごとに分かれていた構造情報を温度ごとにまとめます::
 

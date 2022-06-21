@@ -7,7 +7,7 @@ abICS の入力ファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 abICS の入力ファイルは ``input_vasp.toml`` です。
-以下、 ``examples/standard/spinel`` にある ``input_vasp.toml`` を例に説明します。
+以下、 ``examples/spinel`` にある ``input_vasp.toml`` を例に説明します。
 ``[sampling.solver]`` セクションのみ、QuantumESPRESSOと異なり、以下のように指定しています。
 
 ::

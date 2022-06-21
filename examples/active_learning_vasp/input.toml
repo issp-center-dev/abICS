@@ -1,42 +1,37 @@
-[replica]
-nreplicas = 4
+[sampling]
+nreplicas = 8
 nprocs_per_replica = 1 
 kTstart = 600.0
-kTend = 1400.0
-nsteps = 800  # Number of steps for sampling
+kTend = 2000.0
+nsteps = 6400 # Number of steps for sampling
 RXtrial_frequency = 4
 sample_frequency = 16
 print_frequency = 1
 reload = false
 
-[replicaRef]
-nreplicas = 4
-nprocs_per_replica = 1
-nsteps = 50
-sample_frequency = 1
-
-[solver]
+[sampling.solver]
 type = 'aenet'
-path= '~/git/aenet/bin/predict.x-2.0.4-gfortran_openblas_serial'
+path= 'predict.x-2.0.4-ifort_serial'
 base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess' #'mpi_spawn_ready'
 ignore_species = ["O"]
 
-[solverRef]
-type = 'aenet'
-path = '~/git/aenet/bin/predict.x-2.0.4-gfortran_openblas_serial'
-base_input_dir = './baseinput_ref'
-perturb = 0
-run_scheme = 'subprocess'
-only_input = false
-ignore_species = ["O"]
-vac_convert = []
+[mlref]
+nreplicas = 8
+ndata = 5
 
-[trainer]
+[mlref.solver]
+type = 'vasp'
+path = ''
+base_input_dir = ['./baseinput_ref', './baseinput_ref']
+perturb = 0.05
+ignore_species = []
+
+[train]
 type = 'aenet'
 base_input_dir = './aenet_train_input'
-exe_command = ['~/git/aenet/bin/generate.x-2.0.4-gfortran_openblas_serial', 'mpirun -np 4 ~/git/aenet/bin/train.x-2.0.4-gfortran_openblas_mpi']
+exe_command = ['generate.x-2.0.4-ifort_serial', 'srun train.x-2.0.4-ifort_intelmpi']
 ignore_species = ["O"]
 vac_map = []
 restart = false

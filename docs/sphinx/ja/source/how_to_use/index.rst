@@ -20,7 +20,7 @@ abICSでは, モンテカルロステップ毎に位置座標を更新しなが�
 座標情報については記載する必要はありません。
 以下、Quantum ESPRESSOの参照ファイルの例について記載します。
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/scf.in
+.. literalinclude::  ../../../../../examples/spinel/baseinput/scf.in
 
 能動学習用ソルバー利用時の注意点
 ================================
@@ -79,7 +79,7 @@ OpenMX
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
 以下、aenetの参照ファイルの例について記載します。
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/predict.in
+.. literalinclude::  ../../../../../examples/spinel/baseinput/predict.in
 
 .. _subsec_basic_input:
 
@@ -143,7 +143,7 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 これらの詳細については :doc:`../inputfiles/index` をご覧ください。
 以下、aenetの場合の入力ファイルの例を記載します。
 
-.. literalinclude::  ../../../../../examples/standard/spinel/input_aenet.toml
+.. literalinclude::  ../../../../../examples/spinel/input_aenet.toml
 
 学習データの作成
 -------------------
