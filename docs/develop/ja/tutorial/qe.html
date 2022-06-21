@@ -184,7 +184,7 @@ QE の場合は、この情報は <code class="docutils literal notranslate"><sp
 </pre></div>
 </div>
 <p>abics 計算終了後、反転度（もともと Mg 原子があった位置にAl 原子が占めている割合）を計算します。
-そのために <code class="docutils literal notranslate"><span class="pre">examples/standard/spinel</span></code> ディレクトリにある <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> と <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトを用います。</p>
+そのために <code class="docutils literal notranslate"><span class="pre">examples/spinel</span></code> ディレクトリにある <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> と <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトを用います。</p>
 <p>まず、 <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> を使い、レプリカごとに分かれていた構造情報を温度ごとにまとめます:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 python3 ./separateT.py input_qe.toml
 </pre></div>
