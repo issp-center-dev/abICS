@@ -21,7 +21,7 @@ These are installed automatically but mpi4py and pymatgen need extra software-pa
 
    $ pip3 install cython
 
-To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` ).
+.. To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` ).
 
 Install from PyPI
 ~~~~~~~~~~~~~~~~~~~~
@@ -68,15 +68,10 @@ The directory structure of abICS is given as follows:
  |-- docs/
  |   `-- sphinx/
  |-- examples/
- |   |-- expert/
- |   `-- standard/
  |-- make_wheel.sh
  |-- setup.cfg
  `-- setup.py
  
-
-``examples/standard`` contains samples that can be run by simple files.
-``examples/expert`` contains examples by using python module.
 
 A set of python modules are located in the ``abics`` directory.
 
