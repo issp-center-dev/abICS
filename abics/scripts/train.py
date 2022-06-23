@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-import sys
+import sys, datetime
 
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
@@ -73,6 +73,9 @@ def main_impl(tomlfile):
     structures = []
     energies = []
 
+
+    print("-Mapping relaxed structures in AL* to on-lattice model...")
+    sys.stdout.flush()
     # val_map is a list of list [[sp0, vac0], [sp1, vac1], ...]
     # if vac_map:
     #    vac_map = {specie: vacancy for specie, vacancy in vac_map}
@@ -137,7 +140,7 @@ def main_impl(tomlfile):
                     mapped_sts.append(st_tmp)
                     if num_sp != len(st_tmp):
                         print(
-                            f"mapping failed for structure {step_id} in replica {rpl}"
+                            f"--mapping failed for structure {step_id} in replica {rpl}"
                         )
                         mapping_success = False
 
@@ -151,7 +154,9 @@ def main_impl(tomlfile):
                     energies.append(energy)
             rpl += 1
             os.chdir(rootdir)
-
+    print("--Finished mapping")
+    sys.stdout.flush()
+    
     generate_input_dirs = []
     train_input_dirs = []
     predict_input_dirs = []
@@ -198,24 +203,40 @@ def main_impl(tomlfile):
         t.join()
     """
     for i, trainer in enumerate(trainers):
+        print(f"-Running generate run in generate{i}")
+        sys.stdout.flush()
         trainer.generate_run(generate_dir="generate{}".format(i))
 
     for trainer in trainers:
         trainer.generate_wait()
-
+    print(f"--Finished generate run(s)")
+    
     # We use MPI version of train.x so no need to write parallel code here
     for i, trainer in enumerate(trainers):
+        print(f"-Training run in train{i}")
+        sys.stdout.flush()
         trainer.train(train_dir="train{}".format(i))
+        print(f"--Training run finished in train{i}")
+        print(f"-Preparing NN model for abics_sampling in {base_input_dir[i]}")
+        sys.stdout.flush()
         trainer.new_baseinput(base_input_dir[i])
+        print(f"--Success.")
 
     with open("ALloop.progress", "a") as fi:
+        print("-Writing ALloop.progress")
         fi.write("train\n")
         fi.flush()
         os.fsync(fi.fileno())
+    now = datetime.datetime.now()
+    print("-Let's run abics_sampling next!")
+    print(f"Exiting normally on {now}.\n")
 
 
 def main():
+    now = datetime.datetime.now()
+    print("Running abics_train (abICS v.2.0.0) on {}".format(now))
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+    print("-Reading input from: {}".format(tomlfile))
     main_impl(tomlfile)
 
 
