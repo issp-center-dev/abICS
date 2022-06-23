@@ -68,7 +68,7 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 座標情報については記載する必要はありません。
 以下、Quantum ESPRESSOの参照ファイルの例について記載します。
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/scf.in
+.. literalinclude::  ../../../../../examples/spinel/baseinput/scf.in
 
 第一原理ソルバー利用時の注意点
 ================================
@@ -128,7 +128,7 @@ OpenMX
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
 以下、aenetの参照ファイルの例について記載します。
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/predict.in
+.. literalinclude::  ../../../../../examples/spinel/baseinput/predict.in
 
 .. _subsec_basic_input:
 

@@ -180,7 +180,8 @@ def exists_on_all_nodes(comm, path, check_interval = 1, max_wait = 30):
         if counter == max_wait:
             raise TimeoutError("File system has been out of sync as seen from each process"
                                " for {} seconds. Aborting.". format(check_interval * max_wait))
-        print("File system seems to be out of sync as seen from each process."
-              " Waiting for sync.")
+        if comm.Get_rank() == 0:
+            print("File system seems to be out of sync as seen from each process."
+                  " Waiting for sync. (Don't worry, this happens often on network file systems)")
         time.sleep(check_interval)
     return exists_gather[0]

@@ -14,11 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from mpi4py import MPI
+
 import sys
 import os, copy
 import glob
+import datetime
 
-from mpi4py import MPI
 import numpy as np
 
 from abics.mc import RandomSampling
@@ -110,6 +112,7 @@ def main_impl(tomlfile):
             # attempting post processing of ALed output
             if not exists_on_all_nodes(comm, "baseinput.progress"):  # 1st step
                 runstep = 0
+
             else:
                 with open("baseinput.progress", "r") as fi:
                     runstep = int(fi.readlines()[-1]) + 1
@@ -132,6 +135,16 @@ def main_impl(tomlfile):
                 )
                 ignore_structure.remove_species(remove_sp)
             rundir_list = []
+            
+            if myreplica == 0:
+                print(f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}...")
+                if finalrun:
+                    print(f"--This is the final {alparams.solver} calculation step for AL0")
+                else:
+                    print("--Input files for the next calculation step will be",
+                          f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
+                          sep = os.linesep
+                    )
             for i in range(ndata):
                 energy, st = solver_output.get_results(
                     os.path.join(
@@ -177,9 +190,14 @@ def main_impl(tomlfile):
                 comm.Barrier()
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
+                        print("-Writing ALloop.progress")
                         fi.write("AL0\n")
                         fi.flush()
                         os.fsync(fi.fileno())
+                    now = datetime.datetime.now()
+                    print("--Done. Please run abics_train next.",
+                          f"Exiting normally on {now}.\n",
+                          sep = os.linesep)
                 sys.exit(0)
             else:
                 comm.Barrier()
@@ -188,10 +206,20 @@ def main_impl(tomlfile):
                         fi.write(str(runstep) + "\n")
                         fi.flush()
                         os.fsync(fi.fileno())
+
+                    print(f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput{runstep+1}.",
+                          "--See rundirs.txt for a full list of the directories.", sep = os.linesep)
+                    print("-Please perform the calculations in those directories before running abics_mlref again.")
+                    now = datetime.datetime.now()
+                    print(f"Exiting normally on {now}.\n")
                 sys.exit(0)
         else:
             # "AL0" nor "MC0" does not exist:
             # this should be the first time running this script
+            if myreplica == 0:
+                print("-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(alparams.solver))
+                print("--Input files will be prepared in AL0/*/input*/baseinput0")
+
             configparams = DFTConfigParams.from_toml(tomlfile)
             config = defect_config(configparams)
             comm.Barrier()
@@ -200,7 +228,7 @@ def main_impl(tomlfile):
 
             # Wait until the new directory is visible from all ranks
             if not exists_on_all_nodes(comm, "AL0"):
-                print("Directory creation failed")
+                print("Failed to create AL0 directory.")
                 sys.exit(1)
 
             os.chdir("AL0")
@@ -224,6 +252,15 @@ def main_impl(tomlfile):
                     fi.write("\n".join(rundir_list))
                     fi.flush()
                     os.fsync(fi.fileno())
+
+                print(f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput0.",
+                      "--See rundirs.txt for a full list of the directories.",
+                      sep = os.linesep)
+                print("--Please perform the calculations in those directories before running abics_mlref again.")
+                now = datetime.datetime.now()
+                print(f"Exiting normally on {now}.\n")
+
+                sys.exit(0)
 
     else:  # "MC*" exists
         # Active learning!
@@ -269,7 +306,7 @@ def main_impl(tomlfile):
                 # 2nd or later runner step
                 with open(os.path.join(os.pardir, "baseinput.progress"), "r") as fi:
                     runstep = int(fi.readlines()[-1]) + 1
-
+                
             if runstep + 1 == len(alparams.base_input_dir):
                 # This is the last run for this AL step
                 finalrun = True
@@ -277,6 +314,16 @@ def main_impl(tomlfile):
             else:
                 finalrun = False
                 solver_input.from_directory(alparams.base_input_dir[runstep + 1])
+
+            if myreplica == 0:
+                print(f"-Parsing {alparams.solver} results in AL{nextMC_index}/*/input*/baseinput{runstep}...")
+                if finalrun:
+                    print(f"--This is the final {alparams.solver} calculation step for AL{nextMC_index}")
+                else:
+                    print("--Input files for the next calculation step will be",
+                          f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
+                          sep = os.linesep
+                    )
 
             energy_corrlist = []
             relax_max = []
@@ -354,9 +401,14 @@ def main_impl(tomlfile):
                 comm.Barrier()
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
+                        print("-Writing ALloop.progress")
                         fi.write("AL{}\n".format(ALstep))
                         fi.flush()
                         os.fsync(fi.fileno())
+                    now = datetime.datetime.now()
+                    print("--Done. Please run abics_train next.",
+                          f"Exiting normally on {now}.\n",
+                          sep = os.linesep)
                 sys.exit(0)
             else:
                 comm.Barrier()
@@ -367,9 +419,17 @@ def main_impl(tomlfile):
                         fi.write(str(runstep) + "\n")
                         fi.flush()
                         os.fsync(fi.fileno())
+                    print(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput{runstep+1}.",
+                          "--See rundirs.txt for a full list of the directories.", sep = os.linesep)
+                    print("--Please perform the calculations in those directories before running abics_mlref again.")
+                    now = datetime.datetime.now()
+                    print(f"Exiting normally on {now}.\n")
                 sys.exit(0)
 
         else:  # Create first input for this AL step
+            if myreplica == 0:
+                print(f"-This is the first run for AL{nextMC_index}")
+                print(f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input")
             os.makedirs(ALdir, exist_ok=False)
             solver_input.from_directory(alparams.base_input_dir[0])
             os.chdir(ALdir)
@@ -405,10 +465,23 @@ def main_impl(tomlfile):
                     fi.write("\n".join(rundir_list))
                     fi.flush()
                     os.fsync(fi.fileno())
+                print(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.",
+                      "--See rundirs.txt for a full list of the directories.",
+                      sep = os.linesep)
+                print("--Please perform the calculations in those directories before running abics_mlref again.")
+                now = datetime.datetime.now()
+                print(f"Exiting normally on {now}.\n")
+            sys.exit(0)
 
 
 def main():
+    now = datetime.datetime.now()
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        print("Running abics_mlref (abICS v.2.0.0) on {}".format(now))
+
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        print("-Reading input from: {}".format(tomlfile))
     main_impl(tomlfile)
 
 

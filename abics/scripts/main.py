@@ -14,10 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from mpi4py import MPI
 import copy
 import sys, os, shutil
+import datetime
 
-from mpi4py import MPI
 import numpy as np
 import scipy.constants as constants
 
@@ -84,6 +85,11 @@ def main_impl(tomlfile):
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
 
+        if commAll.Get_rank() == 0:
+            print(f"-Running RXMC calculation with {nreplicas} replicas")
+            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+            sys.stdout.flush()
+
     elif samplerparams.sampler == "parallelRand":
         rxparams = ParallelRandomParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
@@ -96,7 +102,9 @@ def main_impl(tomlfile):
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-
+        if commAll.Get_rank() == 0:
+            print(f"-Running parallel random sampling")
+            sys.stdout.flush()
     elif samplerparams.sampler == "parallelMC":
         rxparams = RXParams.from_toml(tomlfile)
         nreplicas = rxparams.nreplicas
@@ -118,7 +126,9 @@ def main_impl(tomlfile):
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-
+        if commAll.Get_rank() == 0:
+            print(f"-Running parallel MC sampling")
+            sys.stdout.flush()
     else:
         print("Unknown sampler. Exiting...")
         sys.exit(1)
@@ -139,7 +149,10 @@ def main_impl(tomlfile):
     else:
         print("unknown solver: {}".format(dftparams.solver))
         sys.exit(1)
-
+    if commAll.Get_rank() == 0:
+        print(f"-Setting up {dftparams.solver} solver for configuration energies")
+        print("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
+        sys.stdout.flush()
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
@@ -182,9 +195,15 @@ def main_impl(tomlfile):
                 use_tmpdir=dftparams.use_tmpdir,
             )
     model = dft_latgas(energy_calculator, save_history=False)
+    if commAll.Get_rank() == 0:
+        print("--Success.")
 
     # defect sublattice setup
+    if commAll.Get_rank() == 0:
+        print("-Setting up the on-lattice model.")
 
+    sys.stdout.flush()
+    
     configparams = DFTConfigParams.from_toml(tomlfile)
 
     spinel_config = defect_config(configparams)
@@ -196,6 +215,10 @@ def main_impl(tomlfile):
 
     obsparams = ObserverParams.from_toml(tomlfile)
 
+    if commAll.Get_rank() == 0:
+        print("--Success.")
+
+    
     # NNP ensemble error estimation
     ensembleparams = EnsembleParams.from_toml(tomlfile)
     if ensembleparams:
@@ -238,6 +261,9 @@ def main_impl(tomlfile):
 
     # Active learning mode
     if ALrun:
+        if commAll.Get_rank() == 0:
+            print(f"-Running in active learning mode.")
+
         if "train0" in os.listdir():
             # Check how many AL iterations have been performed
             i = 0
@@ -249,17 +275,23 @@ def main_impl(tomlfile):
                 print("You should train before next MC sampling.")
                 sys.exit(1)
             if Lreload:
+                if commAll.Get_rank() == 0:
+                    print(f"--Restarting run in MC{i-1}")
+                    sys.stdout.flush()
                 rootdir = os.getcwd()
                 os.chdir("MC{}".format(i - 1))
                 MCid = i - 1
             else:
                 # Make new directory and perform sampling there
                 if commAll.Get_rank() == 0:
+                    print(f"--MC sampling will be run in MC{i}")
                     os.mkdir("MC{}".format(i))
                     if dftparams.use_tmpdir:
+                        print(f"---Will use local tmpdir for {dftparams.solver} run")
                         # backup baseinput for this AL step
                         for j, d in enumerate(dftparams.base_input_dir):
                             shutil.copytree(d, "MC{}/baseinput{}".format(i, j))
+                    sys.stdout.flush()
                 commAll.Barrier()
                 rootdir = os.getcwd()
                 while not exists_on_all_nodes(commAll, "MC{}".format(i)):
@@ -280,7 +312,14 @@ def main_impl(tomlfile):
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
         if Lreload:
+            if commAll.Get_rank() == 0:
+                print("-Reloading from previous calculation")
             RXcalc.reload()
+
+        if commAll.Get_rank() == 0:
+            print("-Starting RXMC calculation")
+            sys.stdout.flush()
+            
         obs = RXcalc.run(
             nsteps,
             RXtrial_frequency,
@@ -290,8 +329,8 @@ def main_impl(tomlfile):
             subdirs=True,
         )
 
-        if comm.Get_rank() == 0 and write_node:
-            print(obs)
+        #if comm.Get_rank() == 0 and write_node:
+        #    print(obs)
 
     elif samplerparams.sampler == "parallelRand":
         calc = EmbarrassinglyParallelSampling(
@@ -307,8 +346,8 @@ def main_impl(tomlfile):
             subdirs=True,
         )
 
-        if comm.Get_rank() == 0 and write_node:
-            print(obs)
+        #if comm.Get_rank() == 0 and write_node:
+        #    print(obs)
 
     elif samplerparams.sampler == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
@@ -324,19 +363,35 @@ def main_impl(tomlfile):
             subdirs=True,
         )
 
-        if comm.Get_rank() == 0 and write_node:
-            print(obs)
+        #if comm.Get_rank() == 0 and write_node:
+        #    print(obs)
+
+    if commAll.Get_rank() == 0:
+        print("--Sampling completed sucessfully.")
     if ALrun:
         os.chdir(rootdir)
         if comm.Get_rank() == 0 and write_node:
+            print("-Writing ALloop.progress")
             with open("ALloop.progress", "a") as fi:
                 fi.write("MC{}\n".format(MCid))
                 fi.flush()
                 os.fsync(fi.fileno())
 
+    if commAll.Get_rank() == 0:
+        now = datetime.datetime.now()
+        print(f"Exiting normally on {now}\n")
+
 
 def main():
+    now = datetime.datetime.now()
+    
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        print("Running abics_sampling (abICS v.2.0.0) on {}".format(now))
+        
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
+    if MPI.COMM_WORLD.Get_rank() == 0:
+        print("-Reading input from: {}".format(tomlfile))
+
     main_impl(tomlfile)
 
 

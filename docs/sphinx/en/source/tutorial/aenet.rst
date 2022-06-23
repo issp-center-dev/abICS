@@ -6,7 +6,7 @@ Creating neural network
 
 This section contains an instruction how to create neural network using ``aenet``, 
 with Quantum ESPRESSO (QE) for first-principle calculation solver. 
-A set of input files used in this tutorial can be found in ``examples/standard/active_learning_qe``.
+A set of input files used in this tutorial can be found in ``examples/active_learning_qe``.
 In the following, we briefly describe the installation of aenet and GNU parallel, but you may skip if they are preinstalled in your system. 
 We will also use ohtaka, the supercomputer system B of the Institute for Solid State Physics, as the environment for running the calculations.
 

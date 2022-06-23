@@ -66,7 +66,7 @@ class DFTParams:
         params.constraint_module = d.get("constraint_module", None)
         params.ensemble = d.get("ensemble", False)
         params.par_ensemble = d.get("par_ensemble", False)
-        params.use_tmpdir = d.get("use_tmpdir", False)
+        params.use_tmpdir = d.get("use_tmpdir", True)
         params.properties = d
 
         return params
