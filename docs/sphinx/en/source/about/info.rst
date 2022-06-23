@@ -32,7 +32,7 @@ abICS is developed by the following members.
 Version information
 ------------------------------------------
 
-- ver. 2.0      : 2022/06/xx.
+- ver. 2.0      : 2022/06/24.
 - ver. 1.0      : 2020/05/01.
 - ver. 1.0-beta : 2020/03/31.
 - ver. 0.1      : 2019/12/10.

@@ -157,15 +157,15 @@ Creating a neural network
 
 2. Execute ``abics_train`` to create a neural network. When the calculation is completed successfully, the trained neural network is output in ``baseinput`` directory.
 
-Predicting the optimized structure
+Monte Carlo samplings
 =============================
 
-By using ``abics_sampling`` the optimized structure is found from the trained neural network. 
+By using ``abics_sampling``, Monte Carlo samplings can be performed by using the trained neural network.
 (The number of MPI processes must be larger than the number of replicas.)
 Running the program will create directories named by the replica numbers under the current directory, 
 and each replica runs the solver in it.
 
-.. image:: ../../../image/schmatic_AR.png
+.. image:: ../../../image/al_scheme.pdf
    :width: 800px
    :align: center
 

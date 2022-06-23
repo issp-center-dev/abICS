@@ -405,10 +405,10 @@ When the calculation is completed successfully, the trained neural network is ou
 The above process completes the AL.sh process for active learning.
 
 **********************************
-Predicting the optimized structure
+Monte Carlo sampling
 **********************************
 
-Next, we use the trained neural network potential to find the optimization structure by abICS.
+Next, we use the trained neural network potential for Monte Carlo samplings by abICS.
 
 Preparation of input files
 --------------------------
