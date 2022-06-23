@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH -p i8cpu
-#SBATCH -N 4
-#SBATCH -n 512
+#SBATCH -N 8
+#SBATCH -n 1024
 #SBATCH -J spinel
 #SBATCH -c 1
 #SBATCH --time=0:30:00
@@ -13,6 +13,6 @@ else
 	RESUME_OPT=""
 fi
 
-parallel --delay 0.2 -j 8 --joblog runtask.log $RESUME_OPT  \
-	 -a rundirs.txt ./run_pw.sh 
+parallel --delay 0.2 -j 32 --joblog runtask.log $RESUME_OPT  \
+	 -a rundirs.txt "/bin/sh ./run_pw.sh"
 sleep 30

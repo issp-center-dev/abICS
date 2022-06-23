@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH -p i8cpu
-#SBATCH -N 4
-#SBATCH -n 512
+#SBATCH -N 8
+#SBATCH -n 1024
 #SBATCH -J spinel
 #SBATCH -c 1
 #SBATCH --time=0:30:00
