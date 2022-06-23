@@ -1,4 +1,4 @@
-[replica]
+[sampling]
 nreplicas = 
 nprocs_per_replica = 
 
@@ -6,19 +6,28 @@ kTstart =
 kTend = 
 
 nsteps = 
-
 RXtrial_frequency = 
 sample_frequency = 
 print_frequency = 
 reload = false
 
-[solver]
+[sampling.solver]
 type = 
-path= 
+path = 
 base_input_dir = 
 perturb = 
 run_scheme = 
 
+# [mlref]
+# nreplicas = 
+# ndata = 
+
+# [mlref.solver]
+# type = 
+# path = 
+# base_input_dir = 
+# perturb = 
+# run_scheme = 
+
 [observer]
 type = 'default'
-
