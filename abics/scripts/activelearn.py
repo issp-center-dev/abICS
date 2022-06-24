@@ -250,6 +250,7 @@ def main_impl(tomlfile):
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
                 with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
                     fi.write("\n".join(rundir_list))
+                    fi.write("\n")
                     fi.flush()
                     os.fsync(fi.fileno())
 
@@ -385,6 +386,7 @@ def main_impl(tomlfile):
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
                 with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
                     fi.write("\n".join(rundir_list))
+                    fi.write("\n")
                     fi.flush()
                     os.fsync(fi.fileno())
 
@@ -463,6 +465,7 @@ def main_impl(tomlfile):
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
                 with open(os.path.join(rootdir, "rundirs.txt"), "w") as fi:
                     fi.write("\n".join(rundir_list))
+                    fi.write("\n")
                     fi.flush()
                     os.fsync(fi.fileno())
                 print(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.",
