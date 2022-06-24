@@ -333,8 +333,8 @@ Running the calculation
 
 Now the input files have been prepared, we proceed to describe how to run the calculation. 
 A sample script ``AL.sh`` is prepared to simplify the calculation procedure.
-Note that prior to running the script, you need to change the permissions of ``run_pw.sh`` with ``chmod u+x run_pw.sh``.
-It is called inside ``parallel_run.sh`` and performs QE calculations, which will be described later.
+``run_pw.sh`` is used to run QE calculations; it is called inside ``parallel_run.sh``, which will be described later.
+The contents of ``AL.sh`` is as follows.
 
 .. code-block:: shell
 
