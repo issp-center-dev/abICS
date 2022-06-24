@@ -3,7 +3,7 @@
 必要なライブラリ・環境
 ~~~~~~~~~~~~~~~~~~~~~~
 
-abICS をインストール・実行するには、 バージョン3.6 以上の Python が必要です。
+abICS をインストール・実行するには、 バージョン3.7 以上の Python が必要です。
 また、以下の Python パッケージが必要です。
 
 - numpy
@@ -20,7 +20,7 @@ abICS をインストール・実行するには、 バージョン3.6 以上の
 
    $ pip3 install cython
 
-VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
+.. VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、:doc:`../contact/index` のその他に記載された連絡先までご連絡ください。
 
 
 PyPI からインストールする
@@ -28,7 +28,7 @@ PyPI からインストールする
 
 abICS は PyPI に登録されているため、 ``pip`` コマンドで簡単にインストールできます。::
 
-   ``$ pip3 install abics``
+   $ pip3 install abics
 
 書き込み権限がないなどで、ユーザローカルのディレクトリにインストールする場合には ``--user`` オプションを追加してください。
 この場合、 ``~/.local/`` 以下に実行可能スクリプトやライブラリがインストールされます。
@@ -54,8 +54,6 @@ abICS のソースコードは `GitHub page <https://github.com/issp-center-dev/
 .......................
 
 abICSのディレクトリ構成は以下のようになっています.
-``examples/standard`` には簡易ファイルで実行可能なサンプルが, 
-``examples/expert`` にはpythonモジュールを直接用いて作成されたサンプルがあります.
 pythonモジュールは ``abics`` ディレクトリ以下に一式格納されています.
 
 :: 
@@ -66,32 +64,31 @@ pythonモジュールは ``abics`` ディレクトリ以下に一式格納され
  |-- abics/
  |   |-- __init__.py
  |   |-- applications/
+ |   |-- exception.py
  |   |-- mc.py
  |   |-- mc_mpi.py
+ |   |-- replica_params.py
  |   |-- scripts/
- |   `-- util.py
+ |   |-- util.py
  |-- docs/
- |   `-- sphinx/
+ |   |-- sphinx/
  |-- examples/
- |   |-- expert/
- |   `-- standard/
- |-- make_wheel.sh
- |-- setup.cfg
- `-- setup.py
+ |-- pyproject.toml
+ |-- test/
+ |-- tests/
+ 
 
 
 
 インストール
 .................
 
-- wheelファイルを作成します. ::
+- ``pip3 install`` の引数に abICS のルートディレクトリを渡すことでインストール可能です ::
 
-   $ ./make_wheel.sh
+   $ pip3 install ./abICS
 
-- 作成されたファイルを使用して以下のようにインストールします. ::
 
-   $ pip3 install dist/abics-*.whl
+アンインストール
+~~~~~~~~~~~~~~~~~
 
-- すでにより新しいバージョン番号の abICS がインストールされているときに再インストールする場合は以下のようにします。 ::
-
-   $ pip3 install --no-deps --force-reinstall dist/abics-*.whl
+- ``pip3 uninstall abics`` でアンインストールできます.

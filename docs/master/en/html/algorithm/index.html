@@ -1,18 +1,20 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>8. Algorithm &#8212; abICS 1.0.0 documentation</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>8. Algorithm &#8212; abICS 2.0.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="9. Acknowledgement" href="../acknowledge/index.html" />
@@ -33,13 +35,13 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="algorithm">
-<h1><span class="section-number">8. </span>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this headline">¶</a></h1>
+  <section id="algorithm">
+<h1><span class="section-number">8. </span>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this heading">¶</a></h1>
 <p>abICS is designed for combining parallel extended ensemble methods with
 arbitrary energy calculators. At present, only the replica exchange
 Monte Carlo method is implemented.</p>
-<div class="section" id="replica-exchange-monte-carlo-method">
-<h2><span class="section-number">8.1. </span>Replica exchange Monte Carlo method<a class="headerlink" href="#replica-exchange-monte-carlo-method" title="Permalink to this headline">¶</a></h2>
+<section id="replica-exchange-monte-carlo-method">
+<h2><span class="section-number">8.1. </span>Replica exchange Monte Carlo method<a class="headerlink" href="#replica-exchange-monte-carlo-method" title="Permalink to this heading">¶</a></h2>
 <p>A disadvantage of the widely-used Metropolis Monte Carlo algorithm is
 that it tends to get stuck in local minima.
 The replica exchange approach aims to overcome this problem by
@@ -73,9 +75,9 @@ Physical quantities such as the total energy is measured at each <code class="do
 </ul>
 </li>
 </ul>
-</div>
-<div class="section" id="about-configuration-and-update">
-<h2><span class="section-number">8.2. </span>About configuration and update<a class="headerlink" href="#about-configuration-and-update" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="about-configuration-and-update">
+<h2><span class="section-number">8.2. </span>About configuration and update<a class="headerlink" href="#about-configuration-and-update" title="Permalink to this heading">¶</a></h2>
 <p>Here, the outline of the definition of the configuration in abICS and the update by the Monte Carlo method are explained using <a class="reference internal" href="#alg-sampling"><span class="std std-numref">Fig. 8.1</span></a> as an example.</p>
 <p>(a)-(c) are schematic figures of <code class="docutils literal notranslate"><span class="pre">unitcell</span></code>, <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>, and <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>, where blue, green, and black circles are the atomic types defined by <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>, respectively. The star symbol indicates the location of the defects defined by <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>.
 (d) is a schematic figure for specifying the atomic species in <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>. Here, three atomic species of blue, green, and black are defined. How each atom is arranged is defined by <code class="docutils literal notranslate"><span class="pre">coords</span></code> for each atom type.
@@ -83,10 +85,12 @@ Physical quantities such as the total energy is measured at each <code class="do
 <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> can be defined multiple times. Groups of each <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> will be placed at points of each one.
 (f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that swaps two atom groups of different type
 , and the other that changes the orientation within the atom group without changing the arrangement. The type of updates is automatically selected with 1/2 probability. The energy is calculated with the specified solver from the proposed configuration <span class="math notranslate nohighlight">\(X_ {trial}\)</span> and then the adoption rate <span class="math notranslate nohighlight">\(P (X_i \rightarrow X_ {trial})\)</span> is calculated.</p>
-<div class="figure align-default" id="alg-sampling">
+<figure class="align-default" id="alg-sampling">
 <a class="reference internal image-reference" href="../_images/alg_sampling.png"><img alt="../_images/alg_sampling.png" src="../_images/alg_sampling.png" style="width: 513.4499999999999px; height: 1162.6499999999999px;" /></a>
-<p class="caption"><span class="caption-number">Fig. 8.1 </span><span class="caption-text">(a)-(e) Definition of lattice in abICS. (f) A schematic of MonteCarlo method. Details are described in the text.</span><a class="headerlink" href="#alg-sampling" title="Permalink to this image">¶</a></p>
-</div>
+<figcaption>
+<p><span class="caption-number">Fig. 8.1 </span><span class="caption-text">(a)-(e) Definition of lattice in abICS. (f) A schematic of MonteCarlo method. Details are described in the text.</span><a class="headerlink" href="#alg-sampling" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
 <ul class="simple">
 <li><p>Overview of abICS</p>
 <ul>
@@ -94,8 +98,8 @@ Physical quantities such as the total energy is measured at each <code class="do
 </ul>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -114,7 +118,7 @@ Physical quantities such as the total energy is measured at each <code class="do
 
 
 <h3>Navigation</h3>
-<p class="caption"><span class="caption-text">Contents:</span></p>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. About abICS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
@@ -145,12 +149,12 @@ Physical quantities such as the total energy is measured at each <code class="do
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -164,10 +168,10 @@ Physical quantities such as the total energy is measured at each <code class="do
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, Institute for Solid State Physics, University of Tokyo.
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

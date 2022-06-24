@@ -1,19 +1,20 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <title>2.1. 必要なライブラリ・環境 &#8212; abICS 1.0.0 ドキュメント</title>
-    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script type="text/javascript" src="../_static/translations.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>2.1. 必要なライブラリ・環境 &#8212; abICS 2.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/translations.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
     <link rel="next" title="3. 基本的な使用方法" href="../how_to_use/index.html" />
@@ -34,9 +35,9 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="id1">
-<h1><span class="section-number">2.1. </span>必要なライブラリ・環境<a class="headerlink" href="#id1" title="このヘッドラインへのパーマリンク">¶</a></h1>
-<p>abICS をインストール・実行するには、 バージョン3.6 以上の Python が必要です。
+  <section id="id1">
+<h1><span class="section-number">2.1. </span>必要なライブラリ・環境<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
+<p>abICS をインストール・実行するには、 バージョン3.7 以上の Python が必要です。
 また、以下の Python パッケージが必要です。</p>
 <ul class="simple">
 <li><p>numpy</p></li>
@@ -55,12 +56,11 @@
 </div>
 </li>
 </ul>
-<p>VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、<a class="reference internal" href="../contact/index.html"><span class="doc">お問い合わせ</span></a> のその他に記載された連絡先までご連絡ください。</p>
-</div>
-<div class="section" id="pypi">
-<h1><span class="section-number">2.2. </span>PyPI からインストールする<a class="headerlink" href="#pypi" title="このヘッドラインへのパーマリンク">¶</a></h1>
+</section>
+<section id="pypi">
+<h1><span class="section-number">2.2. </span>PyPI からインストールする<a class="headerlink" href="#pypi" title="Permalink to this heading">¶</a></h1>
 <p>abICS は PyPI に登録されているため、 <code class="docutils literal notranslate"><span class="pre">pip</span></code> コマンドで簡単にインストールできます。:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>``$ pip3 install abics``
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install abics
 </pre></div>
 </div>
 <p>書き込み権限がないなどで、ユーザローカルのディレクトリにインストールする場合には <code class="docutils literal notranslate"><span class="pre">--user</span></code> オプションを追加してください。
@@ -69,20 +69,18 @@
 <blockquote>
 <div><p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">abics</span></code></p>
 </div></blockquote>
-</div>
-<div class="section" id="id2">
-<h1><span class="section-number">2.3. </span>ソースからインストールする<a class="headerlink" href="#id2" title="このヘッドラインへのパーマリンク">¶</a></h1>
+</section>
+<section id="id2">
+<h1><span class="section-number">2.3. </span>ソースからインストールする<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h1>
 <p>多くの場合には PyPI からインストールすれば良いですが、機能追加する場合などはソースからインストールしてください。</p>
-<div class="section" id="id3">
-<h2><span class="section-number">2.3.1. </span>ダウンロード<a class="headerlink" href="#id3" title="このヘッドラインへのパーマリンク">¶</a></h2>
+<section id="id3">
+<h2><span class="section-number">2.3.1. </span>ダウンロード<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
 <p>abICS のソースコードは <a class="reference external" href="https://github.com/issp-center-dev/abICS">GitHub page</a> からダウンロードできます。</p>
 <p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/issp-center-dev/abICS</span></code></p>
-</div>
-<div class="section" id="id4">
-<h2><span class="section-number">2.3.2. </span>ディレクトリ構成<a class="headerlink" href="#id4" title="このヘッドラインへのパーマリンク">¶</a></h2>
+</section>
+<section id="id4">
+<h2><span class="section-number">2.3.2. </span>ディレクトリ構成<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
 <p>abICSのディレクトリ構成は以下のようになっています.
-<code class="docutils literal notranslate"><span class="pre">examples/standard</span></code> には簡易ファイルで実行可能なサンプルが,
-<code class="docutils literal notranslate"><span class="pre">examples/expert</span></code> にはpythonモジュールを直接用いて作成されたサンプルがあります.
 pythonモジュールは <code class="docutils literal notranslate"><span class="pre">abics</span></code> ディレクトリ以下に一式格納されています.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.
 |-- COPYING
@@ -90,42 +88,38 @@ pythonモジュールは <code class="docutils literal notranslate"><span class=
 |-- abics/
 |   |-- __init__.py
 |   |-- applications/
+|   |-- exception.py
 |   |-- mc.py
 |   |-- mc_mpi.py
+|   |-- replica_params.py
 |   |-- scripts/
-|   `-- util.py
+|   |-- util.py
 |-- docs/
-|   `-- sphinx/
+|   |-- sphinx/
 |-- examples/
-|   |-- expert/
-|   `-- standard/
-|-- make_wheel.sh
-|-- setup.cfg
-`-- setup.py
+|-- pyproject.toml
+|-- test/
+|-- tests/
 </pre></div>
 </div>
-</div>
-<div class="section" id="id5">
-<h2><span class="section-number">2.3.3. </span>インストール<a class="headerlink" href="#id5" title="このヘッドラインへのパーマリンク">¶</a></h2>
+</section>
+<section id="id5">
+<h2><span class="section-number">2.3.3. </span>インストール<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h2>
 <ul>
-<li><p>wheelファイルを作成します.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ ./make_wheel.sh
-</pre></div>
-</div>
-</li>
-<li><p>作成されたファイルを使用して以下のようにインストールします.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install dist/abics-*.whl
-</pre></div>
-</div>
-</li>
-<li><p>すでにより新しいバージョン番号の abICS がインストールされているときに再インストールする場合は以下のようにします。</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install --no-deps --force-reinstall dist/abics-*.whl
+<li><p><code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span></code> の引数に abICS のルートディレクトリを渡すことでインストール可能です</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install ./abICS
 </pre></div>
 </div>
 </li>
 </ul>
-</div>
-</div>
+</section>
+</section>
+<section id="id6">
+<h1><span class="section-number">2.4. </span>アンインストール<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">uninstall</span> <span class="pre">abics</span></code> でアンインストールできます.</p></li>
+</ul>
+</section>
 
 
           </div>
@@ -150,6 +144,7 @@ pythonモジュールは <code class="docutils literal notranslate"><span class=
 <li class="toctree-l2 current"><a class="current reference internal" href="#">2.1. 必要なライブラリ・環境</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#pypi">2.2. PyPI からインストールする</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id2">2.3. ソースからインストールする</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">2.4. アンインストール</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
@@ -177,12 +172,12 @@ pythonモジュールは <code class="docutils literal notranslate"><span class=
   <h3 id="searchlabel">クイック検索</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="検索" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>document.getElementById('searchbox').style.display = "block"</script>
 
 
 
@@ -196,10 +191,10 @@ pythonモジュールは <code class="docutils literal notranslate"><span class=
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, Institute for Solid State Physics, University of Tokyo.
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

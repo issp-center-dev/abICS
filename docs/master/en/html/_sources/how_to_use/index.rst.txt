@@ -6,140 +6,92 @@ Basic Usage
 
 .. highlight:: none
 
-In abICS, all solver and sampler parameters other than the position coordinates must be prepared in advance.
-To this end, abICS requires two input files: (1) a reference file for specifiying solver parameters that is formatted according to the solver input format, and (2) an input file for specifying parameters that control how abICS performs the configurational sampling.
+Active learning
+------------------------------------------
+abICS was originally developed for directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform configurational sampling,
+but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
+In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
+dramatically improving the sampling speed `[preprint] <https://arxiv.org/abs/2008.02572>`_ .
+
+The general flow of the active learning method implemented in abICS is as follows.
+
+1. Perform ab initio calculations on a large number of randomly generated atomic configurations and prepare training data (correspondence between configurations and energies).
+2. Build a neural network model that predicts energy from atomic configurations using the prepared training data.
+3. Perform statistical thermodynamic sampling of atomic configurations using a replica exchange Monte Carlo method with a neural network model.
+4. Evaluate the accuracy of the neural network model by sampling the ion configurations that appear in the Monte Carlo calculations and performing ab initio calculations on each of them.
+5. If the accuracy is not sufficient, add the results calculated in 4. to the training data and repeat from 2.
+
+.. image:: ../../../image/al_scheme.pdf
+   :width: 800px
+   :align: center
+
+Schematic of the active learning procedure using abICS
+
 
 .. _subsec_basic_reference:
 
-Preparing a reference file
-===========================
+Preparing an abICS control file
+------------------------------------------
 
-The user must prepare a reference file according to the input format of the solver to be used.
-The path of the reference file is specified by ``base_input_dir`` in the ``[solver]`` section in the abICS input file (see below).
-The coordinate information should not be written here because it will obviously change in the course of the simulation. 
-The lattice sites are specified in a separate abICS input file (see below), 
-and abICS will take care of generating the coordinates section at each sampling step.
-The following is an example of a QE reference file.
+First, we have to prepare an input file that controls the entire abICS framework.
+The input file of abICS is comprised of the following five sections:
 
-.. literalinclude::  ../../../../../examples/standard/spinel/baseinput/scf.in
+1. [sampling] section specifies the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps. In addition, [sampling.solver] subsection specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,...), the path to the solver, and the directory containing immutable input files.
 
-.. _subsec_basic_input:
+2. [mlref] section specifies options for extracting only atomic configurations from the sampling results in order to evaluate the accuracy of the neural network model and to expand the training data. In addition, for generating training data, [mlref.solver] subsection specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,...), the path to the solver, and the directory containing immutable input files. This section is used for ``abics_mlref`` .
 
-Preparing an input file of abICS		    
-================================
+3. [train] section specifies optinons for making a trainer to learn a placement energy prediction model from training data.  This section is used for ``abics_train`` .
 
-The input file of abICS is constructed by the following four sections:
+4. [observer] section specifies the type of physical quantity to be calculated.
 
-1. [replica] section specifies the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps.
-  
-2. [solver] section specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE, OpenMX), the path to the solver, and the directory containing reference input files (see :ref:`subsec_basic_reference` ).
-   
-3. [observer] section specifies the type of physical quantity to be calculated.
-
-4. [config] section specifies the configuration of the alloy, etc.
+5. [config] section specifies the configuration of the alloy, etc.
 
 For details, see :doc:`../inputfiles/index` .
-The following is an example of an input file selecting QE as a solver.
+The following is an example of an input file selecting aenet as a solver.
 
-.. literalinclude::  ../../../../../examples/standard/spinel/input_qe.toml
-
-		     
-Execution
-========================
-
-The number of processes specified here must be greater than or equal to the number of replicas.
+.. literalinclude::  ../../../../../examples/active_learning_qe/input.toml
 
 
-::
+Preparing a reference file for first-principles solvers
+-------------------------------------------------------
 
- $ mpiexec -np 2 abics input.toml
+The user must prepare reference input file(s) for first-principles solvers that are used for
+generating the training data according to the input format of the solver.
+The path of the reference file is specified by ``base_input_dir`` in the ``[mlref.solver]`` section in the abICS input file (see below).
+The coordinate information should not be written here; it will be written by abICS.
+The following is an example of a QE reference file.
 
-This creates a directory named with the replica number under the current directory, and each replica runs the solver in it.
-Here, `input.toml` is an input file for abICS (see :ref:`subsec_basic_input`).
-
-Tips for the number of MPI processes
-========================================
-abICS uses the MPI library function ``MPI_Comm_spawn`` to run the solver.
-This function executes another program on new MPI processes.
-
-For example, consider that you have a parallel machine with 4 CPU cores per node
-and want to run two replicas and to invoke solvers on 4 CPU cores.
-If invoked as ``mpiexec -np2 abics input.toml``, the replica control processes A and B are started on the first two cores of node 0,
-each starting a new four-parallel solver a and b.
-Then, solver a fills the remaining two cores in node 0 and the first two cores in node 1,
-and solver b is placed on the remaining two cores in node 1 and the first two cores in node 2.
-This causes inter-node communication within the solver and reduces performance.
-
-By taking more of the initial process, you can align the processes and prevent unnecessary internode communication.
-In this example, ``mpiexec -np 4 abics input.toml`` will allow the replica control processes A and B to fill all the cores of the node 0, while solvers a and b fill nodes 1 and 2, respectively.
-
-
-Comments on MPI implementation
-====================================
-In the ``MPI_Comm_spawn`` function, 
-some MPI implementations require the information of "the number of processes that can be started in total" to be set in variable ``MPI_UNIVERSE_SIZE``.
-In this section, we will comment on some MPI implementations including how to set ``MPI_UNIVERSE_SIZE``.
-
-OpenMPI
-~~~~~~~~~~~~~
-``MPI_UNIVERSE_SIZE`` is automatically set to the number of the CPU cores available.
-If you want more processes, you should pass the ``--oversubscribe`` option to the ``mpiexec`` command.
-
-When one of the spawned processes returns a nonzero return code, all the OpenMPI processes will abort.
-The ``--mca orte_abort_on_non_zero_status 0`` option allows you to ignore the return code.
-Quantum ESPRESSO, for example, may return a nonzero value due to a floating point exception even if the calculation is successfully completed.
-
-MPICH / Intel MPI
-~~~~~~~~~~~~~~~~~~~~~
-The ``-usize <num>`` option sets ``MPI_UNIVERSE_SIZE``.
-However, MPICH and Intel MPI seem not to use this value in ``MPI_Comm_spawn``.
-
-HPE (SGI) MPT
-~~~~~~~~~~~~~~~~~~~
-The ``-up <num>`` option sets ``MPI_UNIVERSE_SIZE``.
-This must be set before the ``-np <num>`` option.
-
-Others
-~~~~~~~~~~
-On large supercomputers, the vendor may provide a dedicated MPI execution script along with the job scheduler.
-In this case, please refer to the manuals provided by the supercomputer site.
-On the ISSP supercomputer systems, Sekirei and Enaga, for example, ``mpijob -spawn`` sets ``MPI_UNIVERSE_SIZE`` properly.
-
+.. literalinclude::  ../../../../../examples/active_learning_qe/baseinput_ref/scf.in
 
 .. _solver_specific_notes:
 
-Solver specific Notes
-----------------------------
+Specific notes for first-principles solvers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In abICS, the coordinates of atoms are updated. Other settings are basically specified on the reference file for each solver.
+Every setting other than those pertaining to the atomic coordinates should be set in the solver
+reference input file. 
 However, the specification of atoms to be relaxed can be controlled by abICS.
 To enable the structural optimization option, please set the option to do structural optimization in the reference file of the solver, and also specify the related parameters such as the total number of steps for relaxation.
-Furthermore, in abICS, a reference file name, a rule of a reference file, and an executable format ``run_scheme`` in the input file of abICS must be set on a solver-by-solver basis. We'll explain them below.
+Furthermore, to interoperate with abICS, there are a few rules regarding the file name and contents 
+of the reference file for each solver. We'll explain them below.
 
 VASP
-=====
+****
 
 - URL : https://www.vasp.at
 
-- Rules of a reference file
-   
+- Reference file rules
+
   - Please prepare INCAR, POTCAR, KPOINTS files.
 
     - In POTCAR file, please arrange the atoms in alphabetical order.
-    - The POSCAR file is basically not needed, but maybe needed depending on the version of ``pymatgen``. 
+    - The POSCAR file is basically not needed, but maybe needed depending on the version of ``pymatgen``.
       In that case, please prepare a suitable file.
 
-- A rule of an input file of abICS 
-
-  - Specifying ``run_scheme`` 
-    
-    Please set ``mpi_spawn_ready`` .
-    To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. 
-    If you wish to use VASP, please contact us (the e-mail address is written in :doc:`../contact/index` ).
 
 
 Quantum Espresso
-================
+****************
 
 - URL : https://www.quantum-espresso.org
 
@@ -147,32 +99,92 @@ Quantum Espresso
 
   - "Old XML" format is not available
 
-- Rules of a reference file
-  
-  - Please set a reference file name as ``scf.in`` .
+- Reference file rules
+
+  - Please set the reference file name as ``scf.in`` .
   - ``calculation`` option must be ``scf`` or ``relax`` .
   - If the calculation is done only at :math:`\Gamma` point, the calculation becomes fast if you set ``Gamma`` in ``kpoints``.
 
-- A rule of an input file of abICS
-
-  - Specifying ``run_scheme``
-    
-    Please set ``mpi_spawn`` .
 
 OpenMX
-======
+******
 
 - URL : http://www.openmx-square.org
 
 - Available version: 3.9
 
-- A rule of reference file
-  
-  - Please set a reference file name as ``base.dat`` .
+- Reference file rule
 
-- A rule of an input file of abICS
+  - Please set the reference file name as ``base.dat`` .
 
-  - Specifying ``run_scheme``
-    
-    Please set ``mpi_spawn_wrapper``.
 
+Preparing a reference file for training and evaluating the machine learning model
+----------------------------------------------------------------------------------
+
+The user must prepare a reference file according to the input format of the 
+machine learning model trainer and calculator to be used (only aenet is supported at the moment).
+The path of the reference file is specified by ``base_input_dir`` in the ``[solver]`` section in the abICS input file (see below).
+The coordinate information should not be written here because it will obviously change in the course of the simulation. 
+The lattice sites are specified in a separate abICS input file (see below), 
+and abICS will take care of generating the coordinates section at each sampling step.
+
+.. _subsec_basic_input:
+
+Machine learning trainer/calculator-specific notes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+aenet
+*****
+
+- URL : http://ann.atomistic.net
+
+- Checked with version 2.0.4.
+
+- Reference file rules
+
+  - Place the input files for aenet in the ``generate``, ``train``, and ``predict`` directories in the directory which is set in the ``base_input_dir`` of the ``[trainer]`` section.
+
+  - aenet compiles the atomic configuration and energy data for training into an intermediate binary format that is converted to atomic environment descriptor-energy relationships before training. Please place the input files for this conversion ``generate.x`` in the ``generate`` directory.
+
+  - Place an input file for ``train.x`` in the ``train`` directory that reads the training data generated by ``generate.x`` and trains. The file should be named ``train.in``.
+
+  - Place the input file ``predict.in`` for ``predict.x`` in the ``predict`` directory to evaluate the energy for the input coordinates using the trained potential model.
+
+
+- abICS control file
+
+  -  In the ``[solver]`` section, for ``type`` , ``perturb`` , and ``run_scheme``, set the following if using an active learning scheme.
+
+  .. code-block:: bash
+
+     type = “aenet”
+     perturb = 0.0
+     run_scheme = ‘subprocess’
+
+
+
+Creating a set of training data
+--------------------------------
+
+1. Generate a set of input files for the first-principle calculation using ``abics_mlref``.
+
+2. Perform the first-principle calculation with these inputs. (In the tutorial GNU parallel is used for the high-throughput calculation.)
+
+Creating a neural network
+--------------------------
+
+
+1. Run ``abics_mlref`` again to convert the results of the first-principle calculation into a common format that ``abics_train`` will read.
+
+2. Execute ``abics_train`` to create a neural network. When the calculation is completed successfully, the trained neural network is output in ``baseinput`` directory.
+
+Monte Carlo sampling
+---------------------
+
+By using ``abics_sampling``, Monte Carlo sampling can be performed by using the trained neural network.
+(The number of MPI processes must be larger than the number of replicas.)
+Running the program will create directories named by the replica numbers under the current directory, 
+and each replica runs the solver in it.
+
+
+.. solver_specific_notes:
