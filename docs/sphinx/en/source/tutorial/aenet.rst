@@ -1,16 +1,20 @@
 .. _sec_tutorial:
 
-***************************
-Creating neural network
-***************************
+************************************
+Constructing a neural network model
+************************************
 
-This section contains an instruction how to create neural network using ``aenet``, 
-with Quantum ESPRESSO (QE) for first-principle calculation solver. 
-A set of input files used in this tutorial can be found in ``examples/active_learning_qe``.
-In the following, we briefly describe the installation of aenet and GNU parallel, but you may skip if they are preinstalled in your system. 
+This section contains instructions on how to construct a neural network using ``aenet``
+to reproduce first-principles energies from Quantum ESPRESSO (QE).
+Here, we will consider the temperature-dependent degree of Mg/Al inversion in
+MgAl2O4 spinel. In the ground state, all Mg ions are tetrahedrally coordinated by O ions
+while Al ions are octahedrally coordinated. We will simulate the amount of 
+inversion between these sites vs. temperature.
+The set of input files used in this tutorial can be found in ``examples/active_learning_qe``.
+In the following, we briefly describe the installation of aenet and GNU parallel, but you may skip the section if they are preinstalled in your system. 
 We will also use ohtaka, the supercomputer system B of the Institute for Solid State Physics, as the environment for running the calculations.
 
-Preprations
+Preparation
 -------------------------
 
 Installation of aenet
@@ -19,8 +23,8 @@ Installation of aenet
 In abICS, we use aenet to build neural network models.
 You can download aenet from http://ann.atomistic.net.
 Follow the Installation instructions in the Documentation to install it.
-Note that abICS uses ``train.x`` and ``predict.x`` of aenet for training and evaluating neural networks.
-For ``train.x``, an MPI parallel version is available, but for ``predict.x``, you need to use a non-MPI executable file (serial).
+Note that abICS uses ``generate.x``, ``train.x`` and ``predict.x`` of aenet for training and evaluating neural networks.
+For ``train.x``, an MPI parallel version can be used, but for ``generate.x`` and ``predict.x``, you need to use a non-MPI executable file (serial).
 For this reason, you should also install the serial version under makefiles.
 
 Installation of GNU parallel
@@ -29,8 +33,7 @@ Installation of GNU parallel
 In this tutorial, we will use GNU parallel to run first-principles calculations with Quantum Espresso in parallel.
 Therefore, you need to install GNU parallel first.
 GNU parallel can be downloaded from https://www.gnu.org/software/parallel/ (on a Mac, it can also be installed directly by homebrew).
-There are also tutorials available free of charge online at this site.
-After moving to the directory you downloaded and extracted, you can install it into ``$HOME/opt/parallel`` by typing the following command.
+After moving to the directory where you downloaded and extracted the source files, you can install it into ``$HOME/opt/parallel`` by typing the following command.
 
 ::
 
@@ -39,8 +42,8 @@ After moving to the directory you downloaded and extracted, you can install it i
 
 For detailed configuration, please refer to the official manual.
 
-Preparation of input files for training data set
-------------------------------------------------
+Preparation of input files for training data set generation
+-------------------------------------------------------------
 
 A set of training data is required for creating a neural network 
 that relate the configurations of atoms as input and the energy as output by the first-principle calculations.
@@ -50,7 +53,7 @@ To generate the data set, the input files need to be prepared for both abICS and
 Preparation of the abICS control file (``input.toml``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This file contains the definition of the lattice structure to be calculated, the control of the entire active learning loop by abICS, and the parameters for the replica exchange Monte Carlo method.
+This file contains the definition of the lattice structure to be calculated, the control of the entire active learning cycles by abICS, and the parameters for the replica exchange Monte Carlo method.
 By using the st2abics tool, you can automatically generate the input.toml template from the crystal structure file.
 
 ::
@@ -85,7 +88,7 @@ Therefore, it should be set to a value less than or equal to the number of confi
     base_input_dir = ['./baseinput_ref', './baseinput_ref', './baseinput_ref'] #, './baseinput_ref']
     perturb = 0.05
 
-Set up the solver used to calculate the energy for training data (placement energy).
+Set up the solver used to calculate the energy for training data (configuration energy).
 In this example, Quantum Espresso is used.
 The ``base_input_dir`` can be set freely.
 The input files for the solver are placed in the set directory (see below).
@@ -175,10 +178,10 @@ The pseudopotentials used in this sample can be downloaded from the following li
 In this example, ``calculation = 'relax'`` is used for structural optimization during the QE calculation, and ``gammma`` is used for ``K_POINTS`` to speed up the calculation.
 
  
-Preparation of input files for creating neural network
-------------------------------------------------------
+Preparation of input files for training the neural network
+----------------------------------------------------------
 
-In this tutorial we use ``aenet`` to create neural netowrk. We need to prepare the input files for 
+In this tutorial we use ``aenet`` to train the neural netowrk. We need to prepare the input files for 
 ``abICS`` and ``aenet``.
 
 Preparation of the abICS control file (``input.toml``)
@@ -196,10 +199,10 @@ Preparation of the abICS control file (``input.toml``)
                   'srun train.x-2.0.4-ifort_intelmpi']
     ignore_species = ["O"]
 
-Set up a learner to train a placement energy prediction model from training data.
+Set up a trainer to train a configuration energy prediction model from training data.
 Currently, abICS supports only aenet.
 You can freely set the ``base_input_dir``.
-In the configured directory, set up the configuration files for the trainer (see below).
+In that directory, set up the configuration files for the trainer (see below).
 In ``exe_command``, specify the paths to ``generate.x`` and ``train.x`` of aenet. For ``train.x``, an MPI parallel version is available, in which case, set the commands for MPI execution (``mpiexec``, ``srun``, etc.) as shown in the example above.
 
 The ``ignore-species`` is set to an empty list when the first-principle solver is used for generating the training data. 
@@ -330,8 +333,8 @@ Running the calculation
 
 Now the input files have been prepared, we proceed to describe how to run the calculation. 
 A sample script ``AL.sh`` is prepared to simplify the calculation procedure.
-Note that prior to running the script, you need to change the permissions of ``run_pw.sh`` with ``chmod u+x run_pw.sh``.
-It is called inside ``parallel_run.sh`` and performs QE calculations, which will be described later.
+``run_pw.sh`` is used to run QE calculations; it is called inside ``parallel_run.sh``, which will be described later.
+The contents of ``AL.sh`` is as follows.
 
 .. code-block:: shell
 
@@ -345,17 +348,17 @@ It is called inside ``parallel_run.sh`` and performs QE calculations, which will
 
     # Run reference DFT calc.
     echo start AL sample
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
     echo start parallel_run 1
     sh parallel_run.sh
 
     echo start AL final
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
     #train
     echo start training
-    abics_train input.toml > train.out
+    abics_train input.toml >> abics_train.out
 
     echo Done
 
@@ -367,7 +370,7 @@ For more information about the job scheduler, please refer to the manuals of you
 
     # Run reference DFT calc.
     echo start AL sample
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
 The above code block generates an input file for ab initio calculation, which is the main source of the training data, using ``abics_mlref``.
 At the first execution, the specified number of atomic arrangements are randomly generated, a separate directory is prepared for each atomic arrangement, and an input file is created in the directory.
@@ -380,16 +383,16 @@ We will then run the ab initio calculation based on the resulting file.
     echo start parallel_run 1
     sh parallel_run.sh
 
-``parallel_run.sh`` is a script to run the QE exhaustive calculation using gnu parallel.
-It will run the QE exhaustive calculation for the directories listed in rundirs.txt.
+``parallel_run.sh`` is a script to run high-throughput QE calculations in parallel using gnu parallel.
+It will manage the parallel running of calculations for the directories listed in rundirs.txt.
 The results of the QE calculation will be stored in each directory.
-Now that we have created the teacher data by the QE coverage calculation, we will move on to create the neural network potential in aenet.
-First, we run ``abics_mlref`` again to create a file with the results of the ab initio calculations in a common format that abics_train will read.
+Now that we have created the training data by the QE coverage calculation, we will move on to create the neural network potential in aenet.
+First, we run ``abics_mlref`` again to create files with the results of the ab initio calculations in a common format that abics_train will read.
 
 .. code-block:: shell
 
     echo start AL final
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
 Next, we use anet to create a neural network potential based on the training data.
 The neural network potential is calculated by ``abics_train``.
@@ -400,20 +403,20 @@ When the calculation is completed successfully, the trained neural network is ou
 
     #train
     echo start training
-    abics_train input.toml > train.out
+    abics_train input.toml >> abics_train.out
 
 The above process completes the AL.sh process for active learning.
 
 **********************************
-Predicting the optimized structure
+Monte Carlo sampling
 **********************************
 
-Next, we use the trained neural network potential to find the optimization structure by abICS.
+Next, we use the trained neural network potential for Monte Carlo samplings by abICS.
 
 Preparation of input files
 --------------------------
 
-Several parameters need to be set in the abICS control file to find the optimized structure as follows. 
+Several parameters need to be set in the abICS control file to perform the sampling as follows. 
 
 
 Preparation of the abICS control file (``input.toml``)
@@ -452,7 +455,7 @@ This time, we will use anet's ``predict.x`` as the energy solver for RXMC calcul
     ignore_species = ["O"]
 
 In this section, you can configure the energy calculator (solver) to be used for RXMC calculations.
-In this article, we will use ``aenet`` package to implement a neural network model.
+In this tutorial, we will use ``aenet`` package to evaluate the neural network model.
 For ``type``, ``perturb``, and ``run_scheme``, if you are using the active learning scheme, do not change the above example.
 Set path to the path of aenet's ``predict.x`` in your environment.
 The ``base_input_dir``, where the input files corresponding to ``predict.x`` are generated, can be set freely (explained in detail later).
@@ -475,7 +478,7 @@ The sample script ``MC.sh`` is provided to simplify the calculation procedure. T
     #SBATCH -n 8
     #SBATCH --time=00:30:00
 
-    srun -n 8 abics_sampling input.toml >> aenet.out
+    srun -n 8 abics_sampling input.toml >> abics_sampling.out
     
     echo Done
 
@@ -499,15 +502,23 @@ On the other hand, if we train on the results of one Monte Carlo run, we find th
    :width: 800px
    :align: center
 
-In addition, DOI can be calculated by the following procedure.
+The DOI can be calculated by the following procedure.
 
-1. Go to ``MCxxx``.
+1. Go to ``MCxxx`` directory.
 
-2. Create ``Tseparate`` directory by ``srun -n 8 abicsRXsepT ../input.toml``. (Align with the number of parallelism when ``abics_sampling`` is executed.
+2. Create ``Tseparate`` directory by ``srun -n 8 abicsRXsepT ../input.toml``. (The number of processes should be the same as the number of replicas for ``abics_sampling``.
    In this tutorial, the number of parallelism is set to 8, so set it to 8.) 
 
 3. copy ``calc_DOI.py`` and ``MgAl2O4.vasp`` in the sample directory.
 
-4. Calculate the inversion rate for each temperature by ``srun -n 8 python3 calc_DOI.py ../input.toml``. (Align with the number of parallelism when ``abics_sampling`` is executed.
+4. Calculate the degree of inversion for each temperature by ``srun -n 8 python3 calc_DOI.py ../input.toml``. (Align with the number of parallelism when ``abics_sampling`` is executed.
    In this tutorial, the number of parallelism is set to 8, so set it to 8.) 
 
+In general, you will need to write your own scripts (``calc_DOI.py`` in the current example) 
+for calculating thermodynamic averages from the
+structures accumulated for each temperature in ``MCxxx/Tseparate``.
+
+Also, please note that the number of Monte Carlo steps in this example input is not enough for 
+fully converging the degree of inversion. It is recommended to perform a separate 
+RXMC calculation using the obtained neural network model 
+with a larger number of sampling steps to calculate thermodynamic averages.
