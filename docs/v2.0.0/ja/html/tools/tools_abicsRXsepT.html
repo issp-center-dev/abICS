@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>7.2. abicsRXsepT &#8212; abICS 2.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="8. アルゴリズム" href="../algorithm/index.html" />
+    <link rel="prev" title="7.1. st2abics" href="tools_st2abics.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="abicsrxsept">
+<h1><span class="section-number">7.2. </span>abicsRXsepT<a class="headerlink" href="#abicsrxsept" title="Permalink to this heading">¶</a></h1>
+<p>このツールは、RXMC実行の各サンプリングステップで得られる構造とエネルギーを
+温度ごとに並べ替えるためのツールです。abICSのRXMC実行が終了した後に使用します:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ mpiexec -np NPROCS abicsRXsepT input.toml NSKIP
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">NPROCS</span></code> はレプリカの数と同じかそれ以上でなければならず、<code class="docutils literal notranslate"><span class="pre">input.toml</span></code> はabICSの実行に使用された
+abICS入力ファイルに置き換える必要があります。
+<code class="docutils literal notranslate"><span class="pre">NSKIP</span></code> はオプションのパラメータで、
+各温度でのエネルギー平均を計算する際にスキップする初期ステップ数を指定します（デフォルト値は0）。
+結果は <code class="docutils literal notranslate"><span class="pre">Tseparate</span></code> ディレクトリに保存され、温度ごとのエネルギー平均は <code class="docutils literal notranslate"><span class="pre">Tseparate/energies_T.dat</span></code> に保存されます。</p>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">7. 付属ツール</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="tools_st2abics.html">7.1. <code class="docutils literal notranslate"><span class="pre">st2abics</span></code></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">7.2. abicsRXsepT</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html"><span class="section-number">7. </span>付属ツール</a><ul>
+      <li>Previous: <a href="tools_st2abics.html" title="前の章へ"><span class="section-number">7.1. </span><code class="docutils literal notranslate"><span class="pre">st2abics</span></code></a></li>
+      <li>Next: <a href="../algorithm/index.html" title="次の章へ"><span class="section-number">8. </span>アルゴリズム</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/tools/tools_abicsRXsepT.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
