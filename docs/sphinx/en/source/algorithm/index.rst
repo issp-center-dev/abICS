@@ -71,24 +71,6 @@ Here, the outline of the definition of the configuration in abICS and the update
   - `S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019) <https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta>`_.
 
 
-Active learning
-------------------------------------------
-abICS was originally developed with the intention of directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform the kind of calculations described above,
-but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
-In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
-dramatically improving the sampling speed `[preprint] <https://arxiv.org/abs/2008.02572>`_ .
-
-The general flow of the active learning method implemented in abICS is as follows.
-
-1. Perform ab initio calculations on a large number of randomly generated atomic configurations and prepare training data (correspondence between configurations and energies).
-2. Build a neural network model that predicts energy from atomic configurations using the prepared training data.
-3. Perform statistical thermodynamic sampling of atomic configurations using a replica exchange Monte Carlo method with a neural network model.
-4. Evaluate the accuracy of the neural network model by sampling the ion configurations that appear in the Monte Carlo calculations and performing ab initio calculations on each of them.
-5. If the accuracy is not sufficient, add the results calculated in 4. to the training data and repeat from 2.
-
-.. image:: ../../../image/al_scheme.pdf
-   :width: 800px
-   :align: center
 
 
 

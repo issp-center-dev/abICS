@@ -21,9 +21,11 @@ abICSに実装されている能動学習手法の大まかな流れは以下の
 4. モンテカルロ計算で出現したイオン配置をサンプリングし、それぞれに対して第一原理計算を行うことで、機械学習モデルの精度の評価を行う
 5. 不十分であった場合は、4.で計算した結果を訓練データに追加し、2.から繰り返す。
 
-.. image:: ../../../image/al_scheme.pdf
+.. image:: ../../../image/al_scheme.png
    :width: 800px
    :align: center
+
+abICSを用いた能動学習のイメージ図
 
 
 .. _subsec_basic_reference:
@@ -68,7 +70,10 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 座標情報については記載する必要はありません。
 以下、Quantum ESPRESSOの参照ファイルの例について記載します。
 
-.. literalinclude::  ../../../../../examples/spinel/baseinput/scf.in
+.. literalinclude::  ../../../../../examples/active_learning_qe/baseinput_ref/scf.in
+
+
+.. _solver_specific_notes:
 
 第一原理ソルバー利用時の注意点
 ================================
@@ -126,9 +131,6 @@ OpenMX
 使用する機械学習モデルソルバー（現在はaenetのみに対応）の入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある ``[solver]`` セクションの ``base_input_dir`` で指定します。
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
-以下、aenetの参照ファイルの例について記載します。
-
-.. literalinclude::  ../../../../../examples/spinel/baseinput/predict.in
 
 .. _subsec_basic_input:
 
@@ -185,13 +187,5 @@ aenet
 
 ``abics_sampling`` を用いてモンテカルロサンプリングを行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
 実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。
-
-.. image:: ../../../image/al_scheme.pdf
-   :width: 800px
-   :align: center
-
-abICSを用いた能動学習のイメージ図
-
-.. solver_specific_notes:
 
 
