@@ -65,7 +65,7 @@ class default_observer(observer_base):
             self.minE = calc_state.energy
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
-            calc_state.config.structure.to(fmt="POSCAR", filename="minE.vasp")
+            calc_state.config.structure_norel.to(fmt="POSCAR", filename="minE.vasp")
         return calc_state.energy
 
     def writefile(self, calc_state):
