@@ -87,22 +87,6 @@
 </figcaption>
 </figure>
 </section>
-<section id="id4">
-<h2><span class="section-number">8.3. </span>能動学習について<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
-<p>abICSは元々、第一原理計算とレプリカ交換モンテカルロ法を直接組み合わせて上述したような計算を行うことを念頭に開発されましたが、
-計算できるモデル規模やステップ数が、第一原理計算の大きな計算コストのために限られてしまいます。
-これに対して、Ver. 2では、構造最適化後のエネルギーを高速に予測するニューラルネットワークモデルを構成するための能動学習手法を実装し、
-飛躍的にサンプリング速度を向上させました <a class="reference external" href="https://arxiv.org/abs/2008.02572">[論文プレプリント]</a> 。</p>
-<p>abICSに実装されている能動学習手法の大まかな流れは以下の通りです。</p>
-<ol class="arabic simple">
-<li><p>ランダムに生成した多数の原子配置に対して第一原理計算を行い、訓練データ（原子配置とエネルギーの対応関係）を用意する</p></li>
-<li><p>用意した訓練データを使って、原子配置からエネルギーを予測するニューラルネットワークモデルを構築する</p></li>
-<li><p>ニューラルネットワークモデルを使って、レプリカ交換モンテカルロ法による原子配置の統計熱力学サンプリングを行う</p></li>
-<li><p>モンテカルロ計算で出現したイオン配置をサンプリングし、それぞれに対して第一原理計算を行うことで、ニューラルネットワークモデルの精度の評価を行う</p></li>
-<li><p>不十分であった場合は、4.で計算した結果を訓練データに追加し、2.から繰り返す。</p></li>
-</ol>
-<a class="reference internal image-reference" href="../_images/schmatic_AR.png"><img alt="../_images/schmatic_AR.png" class="align-center" src="../_images/schmatic_AR.png" style="width: 800px;" /></a>
-</section>
 </section>
 
 
@@ -133,7 +117,6 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">8. アルゴリズム</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id2">8.1. レプリカ交換モンテカルロ法</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id3">8.2. 配置と更新について</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id4">8.3. 能動学習について</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>

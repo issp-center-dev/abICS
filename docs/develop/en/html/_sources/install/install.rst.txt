@@ -61,16 +61,18 @@ The directory structure of abICS is given as follows:
  |-- abics/
  |   |-- __init__.py
  |   |-- applications/
+ |   |-- exception.py
  |   |-- mc.py
  |   |-- mc_mpi.py
+ |   |-- replica_params.py
  |   |-- scripts/
- |   `-- util.py
+ |   |-- util.py
  |-- docs/
- |   `-- sphinx/
+ |   |-- sphinx/
  |-- examples/
- |-- make_wheel.sh
- |-- setup.cfg
- `-- setup.py
+ |-- pyproject.toml
+ |-- test/
+ |-- tests/
  
 
 A set of python modules are located in the ``abics`` directory.

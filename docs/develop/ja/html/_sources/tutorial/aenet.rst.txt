@@ -1,11 +1,14 @@
 .. _sec_tutorial:
 
 ********************************
-ニューラルネットワークの作成
+ニューラルネットワークの構築
 ********************************
 
-ここでは、aenet を用いてニューラルネットワークの作成を行う方法について記載します。
+ここでは、aenet を用いてニューラルネットワークモデルの構築を行う方法について記載します。
 第一原理ソルバーには Quantum ESPRESSO (QE) を使います。
+例題としてMgAl2O4スピネルのMg/Al反転度の温度依存性を計算します。
+最安定構造では全てのMgが酸素に四面体配位されていて、Alは八面体配位になっています。
+このサイト間の反転度の温度依存性をシミュレーションします。
 なお、本チュートリアルで使用する入力ファイル一式は ``examples/active_learning_qe/`` にあります。
 以下では aenet および GNU parallel のインストールについても簡単に説明していますが、システムに既にインストールされている場合はそちらを使ってください。
 なお、計算の実行環境は物性研究所スーパーコンピュータシステムBのohtakaを利用しています。
@@ -27,7 +30,6 @@ GNU parallelのインストール
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 チュートリアルでは、GNU parallelを用いて Quantum Espresso による第一原理計算を並列実行します。
 GNU parallelは https://www.gnu.org/software/parallel/ からダウンロードできます (Macの場合はhomebrewにより直接インストールすることも可能です)。
-また、オンラインで無償で利用できるチュートリアルを本サイトで配布しています。
 インストールは基本的には、ダウンロードして解凍したディレクトリ に移動した後、
 
 ::
@@ -133,7 +135,7 @@ QE参照ファイルの準備
 ``baseinput_ref`` にQEのscf計算で参照する入力ファイルを配置します。
 以下、サンプルディレクトリにある ``scf.in`` ファイルを記載します。
 
-.. code-block::
+::
 
     &CONTROL
     calculation = 'relax'
@@ -233,7 +235,7 @@ aenetでは、訓練用の原子配置とエネルギーのデータを、原子
 ``Al.fingerprint.stp`` , ``Mg.fingerprint.stp`` という名前にしています。
 例として ``Al.fingerprint.stp`` の内容を示します：
 
-.. code-block ::
+::
 
   DESCR
    N. Artrith and A. Urban, Comput. Mater. Sci. 114 (2016) 135-150.
@@ -256,7 +258,7 @@ aenetでは、訓練用の原子配置とエネルギーのデータを、原子
 次に、
 ``generate.in.head`` という名前で以下の内容のファイルを準備します：
 
-.. code-block ::
+::
 
     OUTPUT aenet.train
 
@@ -285,7 +287,7 @@ train
 ``train.x`` 用の入力ファイルを ``train`` ディレクトリに設置します。
 ファイル名は ``train.in`` としてください：
 
-.. code-block ::
+::
 
     TRAININGSET aenet.train
     TESTPERCENT 10
@@ -317,7 +319,7 @@ predict
 評価するための ``predict.x`` 用の入力ファイル ``predict.in`` を、 ``predict``
 ディレクトリに設置します：
 
-.. code-block ::
+::
 
     TYPES
     2
@@ -348,7 +350,6 @@ predict
 
 入力ファイルの準備・設定が完了後、実際に計算する方法について説明します。
 サンプルスクリプトには、計算手順を簡略化するためのスクリプト  ``AL.sh`` が準備されています。
-シェルスクリプトの実行前に、あらかじめ ``chmod u+x run_pw.sh`` を実行して権限を変更する必要があります。
 ``run_pw.sh`` はQEの計算を実行するためのスクリプトで、後述する ``parallel_run.sh`` 内部で呼び出されます。
 ``AL.sh`` の中身は以下の通りです。
 
@@ -364,17 +365,17 @@ predict
 
     # Run reference DFT calc.
     echo start AL sample
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
     echo start parallel_run 1
     sh parallel_run.sh
 
     echo start AL final
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
     #train
     echo start training
-    abics_train input.toml > train.out
+    abics_train input.toml >> abics_train.out
 
     echo Done
 
@@ -387,7 +388,7 @@ predict
 
     # Run reference DFT calc.
     echo start AL sample
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
 まず、 ``abics_mlref`` を用いて訓練データの大元となる第一原理計算用の入力ファイルを生成します。
 初回実行時は、指定した数の原子配置をランダムに生成し、
@@ -411,7 +412,7 @@ QEの網羅計算により教師データが作成されましたので、次に
 .. code-block:: shell
 
     echo start AL final
-    srun -n 8 abics_mlref input.toml >> active.out
+    srun -n 8 abics_mlref input.toml >> abics_mlref.out
 
 次に、学習データをもとにaenetによりニューラルネットワークポテンシャルの作成を行います。
 ニューラルネットワークポテンシャルの計算には ``abics_train`` を使います。
@@ -422,21 +423,21 @@ QEの網羅計算により教師データが作成されましたので、次に
 
     #train
     echo start training
-    abics_train input.toml > train.out
+    abics_train input.toml >> abics_train.out
 
 以上の手続きで、能動学習を行うための ``AL.sh`` のプロセスが完了します。
 
 
 ***************************
-最適化構造の推定
+モンテカルロサンプリング
 ***************************
 
-次に、学習したニューラルネットワークポテンシャルを用い、abICSにより最適化構造を求めます。
+次に、学習したニューラルネットワークポテンシャルを用い、abICSによりモンテカルロサンプリングをします。
 
 入力ファイルの準備
 -----------------------
 
-abICS で最適化構造を推定するにはabICS制御ファイルでパラメータの設定をする必要があります。
+abICS でモンテカルロサンプリングを行うにはabICS制御ファイルでパラメータの設定をする必要があります。
 
 abICS制御ファイル (``input.toml``)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -534,6 +535,11 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
  #. MCxx ディレクトリに移動する。
  #. ``srun -n 8 abicsRXsepT ../input.toml`` を実行して ``Tseparate`` ディレクトリを作成する (並列数は ``abics_sampling`` を実行した際の並列数に揃える。本チュートリアルでは並列数を8にしているので8に設定)。
  #. sampleディレクトリにある ``calc_DOI.py`` と ``MgAl2O4.vasp`` をコピーする。
- #. ``srun -n 8 python3 calc_DOI.py ../input.toml`` を実行して温度ごとの反転率を計算する。 (並列数の指定は 2. と同様)。
+ #. ``srun -n 8 python3 calc_DOI.py ../input.toml`` を実行して温度ごとの反転度を計算する。 (並列数の指定は 2. と同様)。
 
-以上でチュートリアルは終わりです。
+一般的には、``MCxxx/Tseparate``の中に入っている温度ごとの構造ファイルから所望の熱力学平均を計算するスクリプト
+（今回の場合は``calc_DOI.py``）をユーザーが用意する必要があります。
+
+また、反転度の計算を完全に収束させるためには、例題のモンテカルロステップ数では不十分であることにご注意ください。
+能動学習のサイクルとは別にモンテカルロステップ数を増やした計算を行って、熱力学平均を計算することをおすすめ
+します。

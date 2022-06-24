@@ -99,22 +99,6 @@ Physical quantities such as the total energy is measured at each <code class="do
 </li>
 </ul>
 </section>
-<section id="active-learning">
-<h2><span class="section-number">8.3. </span>Active learning<a class="headerlink" href="#active-learning" title="Permalink to this heading">¶</a></h2>
-<p>abICS was originally developed with the intention of directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform the kind of calculations described above,
-but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
-In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
-dramatically improving the sampling speed <a class="reference external" href="https://arxiv.org/abs/2008.02572">[preprint]</a> .</p>
-<p>The general flow of the active learning method implemented in abICS is as follows.</p>
-<ol class="arabic simple">
-<li><p>Perform ab initio calculations on a large number of randomly generated atomic configurations and prepare training data (correspondence between configurations and energies).</p></li>
-<li><p>Build a neural network model that predicts energy from atomic configurations using the prepared training data.</p></li>
-<li><p>Perform statistical thermodynamic sampling of atomic configurations using a replica exchange Monte Carlo method with a neural network model.</p></li>
-<li><p>Evaluate the accuracy of the neural network model by sampling the ion configurations that appear in the Monte Carlo calculations and performing ab initio calculations on each of them.</p></li>
-<li><p>If the accuracy is not sufficient, add the results calculated in 4. to the training data and repeat from 2.</p></li>
-</ol>
-<a class="reference internal image-reference" href="../_images/schmatic_AR.png"><img alt="../_images/schmatic_AR.png" class="align-center" src="../_images/schmatic_AR.png" style="width: 800px;" /></a>
-</section>
 </section>
 
 
@@ -146,7 +130,6 @@ dramatically improving the sampling speed <a class="reference external" href="ht
 <li class="toctree-l1 current"><a class="current reference internal" href="#">8. Algorithm</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#replica-exchange-monte-carlo-method">8.1. Replica exchange Monte Carlo method</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#about-configuration-and-update">8.2. About configuration and update</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#active-learning">8.3. Active learning</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. Acknowledgement</a></li>

@@ -37,158 +37,27 @@
             
   <section id="basic-usage">
 <span id="sec-basic-usage"></span><h1><span class="section-number">3. </span>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">¶</a></h1>
-<p>In abICS, all solver and sampler parameters other than the position coordinates must be prepared in advance.
-To this end, abICS requires two input files: (1) a reference file for specifiying solver parameters that is formatted according to the solver input format,
-and (2) an input file for specifying parameters that control how abICS performs the configurational sampling.</p>
-<section id="preparing-a-reference-file-for-active-learning">
-<span id="subsec-basic-reference"></span><h2><span class="section-number">3.1. </span>Preparing a reference file for active learning<a class="headerlink" href="#preparing-a-reference-file-for-active-learning" title="Permalink to this heading">¶</a></h2>
-<p>The user must prepare a reference file for active learning according to the input format of the solver to be used.
-The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> section in the abICS input file (see below).
-The coordinate information should not be written here because it will obviously change in the course of the simulation.
-The following is an example of a QE reference file.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
-  calculation = &#39;relax&#39;
-  tstress = .false.
-  tprnfor = .false.
-  pseudo_dir = &#39;~/qe/pot&#39;
-  disk_io = &#39;low&#39;
-  wf_collect = .false.
-/
-&amp;SYSTEM
-  ecutwfc      =  60.0
-  occupations  = &quot;smearing&quot;
-  smearing     = &quot;gauss&quot;
-  degauss      = 0.01
-/
-&amp;electrons
-  mixing_beta = 0.7
-  conv_thr = 1.0d-8
-  electron_maxstep = 100
-/
-&amp;ions
-/
-ATOMIC_SPECIES
-Al 26.981 Al.pbe-nl-kjpaw_psl.1.0.0.UPF
-Mg 24.305 Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
-O  16.000 O.pbe-n-kjpaw_psl.1.0.0.UPF
-ATOMIC_POSITIONS crystal
-
-K_POINTS gamma
-</pre></div>
-</div>
-<section id="specific-notes-of-solvers-for-active-learning">
-<span id="solver-specific-notes"></span><h3><span class="section-number">3.1.1. </span>Specific notes of solvers for active learning<a class="headerlink" href="#specific-notes-of-solvers-for-active-learning" title="Permalink to this heading">¶</a></h3>
-<p>In abICS, the coordinates of atoms are updated. Other settings are basically specified on the reference file for each solver.
-However, the specification of atoms to be relaxed can be controlled by abICS.
-To enable the structural optimization option, please set the option to do structural optimization in the reference file of the solver, and also specify the related parameters such as the total number of steps for relaxation.
-Furthermore, in abICS, a reference file name, a rule of a reference file, and an executable format <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> in the input file of abICS must be set on a solver-by-solver basis. We’ll explain them below.</p>
-<section id="vasp">
-<h4>VASP<a class="headerlink" href="#vasp" title="Permalink to this heading">¶</a></h4>
-<ul class="simple">
-<li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
-<li><p>Rules of a reference file</p>
-<ul>
-<li><p>Please prepare INCAR, POTCAR, KPOINTS files.</p>
-<ul>
-<li><p>In POTCAR file, please arrange the atoms in alphabetical order.</p></li>
-<li><p>The POSCAR file is basically not needed, but maybe needed depending on the version of <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code>.
-In that case, please prepare a suitable file.</p></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
+<section id="active-learning">
+<h2><span class="section-number">3.1. </span>Active learning<a class="headerlink" href="#active-learning" title="Permalink to this heading">¶</a></h2>
+<p>abICS was originally developed for directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform configurational sampling,
+but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
+In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
+dramatically improving the sampling speed <a class="reference external" href="https://arxiv.org/abs/2008.02572">[preprint]</a> .</p>
+<p>The general flow of the active learning method implemented in abICS is as follows.</p>
+<ol class="arabic simple">
+<li><p>Perform ab initio calculations on a large number of randomly generated atomic configurations and prepare training data (correspondence between configurations and energies).</p></li>
+<li><p>Build a neural network model that predicts energy from atomic configurations using the prepared training data.</p></li>
+<li><p>Perform statistical thermodynamic sampling of atomic configurations using a replica exchange Monte Carlo method with a neural network model.</p></li>
+<li><p>Evaluate the accuracy of the neural network model by sampling the ion configurations that appear in the Monte Carlo calculations and performing ab initio calculations on each of them.</p></li>
+<li><p>If the accuracy is not sufficient, add the results calculated in 4. to the training data and repeat from 2.</p></li>
+</ol>
+<a class="reference internal image-reference" href="../_images/al_scheme.pdf"><img alt="../_images/al_scheme.pdf" class="align-center" src="../_images/al_scheme.pdf" style="width: 800px;" /></a>
+<p>Schematic of the active learning procedure using abICS</p>
 </section>
-<section id="quantum-espresso">
-<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="Permalink to this heading">¶</a></h4>
-<ul class="simple">
-<li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
-<li><p>Available version: 6.2 or higher</p>
-<ul>
-<li><p>“Old XML” format is not available</p></li>
-</ul>
-</li>
-<li><p>Rules of a reference file</p>
-<ul>
-<li><p>Please set a reference file name as <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> .</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">calculation</span></code> option must be <code class="docutils literal notranslate"><span class="pre">scf</span></code> or <code class="docutils literal notranslate"><span class="pre">relax</span></code> .</p></li>
-<li><p>If the calculation is done only at <span class="math notranslate nohighlight">\(\Gamma\)</span> point, the calculation becomes fast if you set <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> in <code class="docutils literal notranslate"><span class="pre">kpoints</span></code>.</p></li>
-</ul>
-</li>
-</ul>
-</section>
-<section id="openmx">
-<h4>OpenMX<a class="headerlink" href="#openmx" title="Permalink to this heading">¶</a></h4>
-<ul class="simple">
-<li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
-<li><p>Available version: 3.9</p></li>
-<li><p>A rule of reference file</p>
-<ul>
-<li><p>Please set a reference file name as <code class="docutils literal notranslate"><span class="pre">base.dat</span></code> .</p></li>
-</ul>
-</li>
-</ul>
-</section>
-</section>
-</section>
-<section id="preparing-a-reference-file">
-<h2><span class="section-number">3.2. </span>Preparing a reference file<a class="headerlink" href="#preparing-a-reference-file" title="Permalink to this heading">¶</a></h2>
-<p>The user must prepare a reference file according to the input format of the solver to be used.
-The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section in the abICS input file (see below).
-The coordinate information should not be written here because it will obviously change in the course of the simulation.
-The lattice sites are specified in a separate abICS input file (see below),
-and abICS will take care of generating the coordinates section at each sampling step.
-The following is an example of an aenet reference file.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>TYPES
-2
-Mg
-Al
-
-
-NETWORKS
-Mg    Mg.15t-15t.nn
-Al  Al.15t-15t.nn
-
-
-VERBOSITY low
-
-#FILES
-#1
-#structure.xsf
-</pre></div>
-</div>
-<section id="id1">
-<span id="id2"></span><h3><span class="section-number">3.2.1. </span>Solver specific notes<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
-<section id="aenet">
-<h4>aenet<a class="headerlink" href="#aenet" title="Permalink to this heading">¶</a></h4>
-<ul>
-<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
-<li><p>Checked with version 2.0.3 (2018-06-25).</p></li>
-<li><p>A rule of referene file</p>
-<ul class="simple">
-<li><p>Place the input files for aenet in the <code class="docutils literal notranslate"><span class="pre">generate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, and <code class="docutils literal notranslate"><span class="pre">predict</span></code> directories in the directory which is set in the <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section.</p></li>
-<li><p>aenet compiles the atomic configuration and energy data for training into an intermediate binary format that is converted to atomic environment descriptor-energy relationships before training. Please place the input files for this conversion <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">generate</span></code> directory.</p></li>
-<li><p>Place an input file for <code class="docutils literal notranslate"><span class="pre">train.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">train</span></code> directory that reads the training data generated by <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> and trains. The file should be named <code class="docutils literal notranslate"><span class="pre">train.in</span></code>.</p></li>
-<li><p>Place the input file <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> for <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">predict</span></code> directory to evaluate the energy for the input coordinates using the trained potential model.</p></li>
-</ul>
-</li>
-<li><p>A rule of an input file of abICS</p>
-<ul class="simple">
-<li><p>In the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section, for <code class="docutils literal notranslate"><span class="pre">type</span></code> , <code class="docutils literal notranslate"><span class="pre">perturb</span></code> , and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code>, set the following if using an active learning scheme.</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span> <span class="o">=</span> “aenet”
-<span class="nv">perturb</span> <span class="o">=</span> <span class="m">0</span>.0
-<span class="nv">run_scheme</span> <span class="o">=</span> ‘subprocess’
-</pre></div>
-</div>
-</li>
-</ul>
-</section>
-</section>
-</section>
-<section id="preparing-an-input-file-of-abics">
-<span id="subsec-basic-input"></span><h2><span class="section-number">3.3. </span>Preparing an input file of abICS<a class="headerlink" href="#preparing-an-input-file-of-abics" title="Permalink to this heading">¶</a></h2>
-<p>The input file of abICS is constructed by the following five sections:</p>
+<section id="preparing-an-abics-control-file">
+<span id="subsec-basic-reference"></span><h2><span class="section-number">3.2. </span>Preparing an abICS control file<a class="headerlink" href="#preparing-an-abics-control-file" title="Permalink to this heading">¶</a></h2>
+<p>First, we have to prepare an input file that controls the entire abICS framework.
+The input file of abICS is comprised of the following five sections:</p>
 <ol class="arabic simple">
 <li><p>[sampling] section specifies the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps. In addition, [sampling.solver] subsection specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,…), the path to the solver, and the directory containing immutable input files.</p></li>
 <li><p>[mlref] section specifies options for extracting only atomic configurations from the sampling results in order to evaluate the accuracy of the neural network model and to expand the training data. In addition, for generating training data, [mlref.solver] subsection specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,…), the path to the solver, and the directory containing immutable input files. This section is used for <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> .</p></li>
@@ -199,13 +68,11 @@ VERBOSITY low
 <p>For details, see <a class="reference internal" href="../inputfiles/index.html"><span class="doc">Input Files Format</span></a> .
 The following is an example of an input file selecting aenet as a solver.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
-nreplicas = 7
+nreplicas = 8
 nprocs_per_replica = 1 
-
 kTstart = 600.0
-kTend = 1400.0
-
-nsteps = 1600  # Number of steps for sampling
+kTend = 2000.0
+nsteps = 6400 # Number of steps for sampling
 RXtrial_frequency = 4
 sample_frequency = 16
 print_frequency = 1
@@ -213,11 +80,29 @@ reload = false
 
 [sampling.solver]
 type = &#39;aenet&#39;
-path= &#39;~/git/aenet/bin/predict.x-2.0.4-gfortran_serial&#39;
+path= &#39;predict.x-2.0.4-ifort_serial&#39;
 base_input_dir = &#39;./baseinput&#39;
 perturb = 0.0
 run_scheme = &#39;subprocess&#39; #&#39;mpi_spawn_ready&#39;
 ignore_species = [&quot;O&quot;]
+
+[mlref]
+nreplicas = 8
+ndata = 5
+
+[mlref.solver]
+type = &#39;qe&#39;
+base_input_dir = &#39;./baseinput_ref&#39;
+perturb = 0.05
+ignore_species = []
+
+[train]
+type = &#39;aenet&#39;
+base_input_dir = &#39;./aenet_train_input&#39;
+exe_command = [&#39;generate.x-2.0.4-ifort_serial&#39;, &#39;srun train.x-2.0.4-ifort_intelmpi&#39;]
+ignore_species = [&quot;O&quot;]
+vac_map = []
+restart = false
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
@@ -306,28 +191,157 @@ ignored_species = [&#39;O&#39;]
 </pre></div>
 </div>
 </section>
+<section id="preparing-a-reference-file-for-first-principles-solvers">
+<h2><span class="section-number">3.3. </span>Preparing a reference file for first-principles solvers<a class="headerlink" href="#preparing-a-reference-file-for-first-principles-solvers" title="Permalink to this heading">¶</a></h2>
+<p>The user must prepare reference input file(s) for first-principles solvers that are used for
+generating the training data according to the input format of the solver.
+The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> section in the abICS input file (see below).
+The coordinate information should not be written here; it will be written by abICS.
+The following is an example of a QE reference file.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
+  calculation = &#39;relax&#39;
+  tstress = .false.
+  tprnfor = .false.
+  pseudo_dir = &#39;./pseudo&#39;
+  disk_io = &#39;low&#39;
+  wf_collect = .false.
+/
+&amp;SYSTEM
+  ecutwfc      =  60.0
+  occupations  = &quot;smearing&quot;
+  smearing     = &quot;gauss&quot;
+  degauss      = 0.01
+/
+&amp;electrons
+  mixing_beta = 0.7
+  conv_thr = 1.0d-8
+  electron_maxstep = 100
+/
+&amp;ions
+/
+ATOMIC_SPECIES
+Al 26.981 Al.pbe-nl-kjpaw_psl.1.0.0.UPF
+Mg 24.305 Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
+O  16.000 O.pbe-n-kjpaw_psl.1.0.0.UPF
+ATOMIC_POSITIONS crystal
+
+K_POINTS gamma
+</pre></div>
+</div>
+<section id="specific-notes-for-first-principles-solvers">
+<span id="solver-specific-notes"></span><h3><span class="section-number">3.3.1. </span>Specific notes for first-principles solvers<a class="headerlink" href="#specific-notes-for-first-principles-solvers" title="Permalink to this heading">¶</a></h3>
+<p>Every setting other than those pertaining to the atomic coordinates should be set in the solver
+reference input file.
+However, the specification of atoms to be relaxed can be controlled by abICS.
+To enable the structural optimization option, please set the option to do structural optimization in the reference file of the solver, and also specify the related parameters such as the total number of steps for relaxation.
+Furthermore, to interoperate with abICS, there are a few rules regarding the file name and contents
+of the reference file for each solver. We’ll explain them below.</p>
+<section id="vasp">
+<h4>VASP<a class="headerlink" href="#vasp" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
+<li><p>Reference file rules</p>
+<ul>
+<li><p>Please prepare INCAR, POTCAR, KPOINTS files.</p>
+<ul>
+<li><p>In POTCAR file, please arrange the atoms in alphabetical order.</p></li>
+<li><p>The POSCAR file is basically not needed, but maybe needed depending on the version of <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code>.
+In that case, please prepare a suitable file.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="quantum-espresso">
+<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
+<li><p>Available version: 6.2 or higher</p>
+<ul>
+<li><p>“Old XML” format is not available</p></li>
+</ul>
+</li>
+<li><p>Reference file rules</p>
+<ul>
+<li><p>Please set the reference file name as <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> .</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculation</span></code> option must be <code class="docutils literal notranslate"><span class="pre">scf</span></code> or <code class="docutils literal notranslate"><span class="pre">relax</span></code> .</p></li>
+<li><p>If the calculation is done only at <span class="math notranslate nohighlight">\(\Gamma\)</span> point, the calculation becomes fast if you set <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> in <code class="docutils literal notranslate"><span class="pre">kpoints</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="openmx">
+<h4>OpenMX<a class="headerlink" href="#openmx" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
+<li><p>Available version: 3.9</p></li>
+<li><p>Reference file rule</p>
+<ul>
+<li><p>Please set the reference file name as <code class="docutils literal notranslate"><span class="pre">base.dat</span></code> .</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="preparing-a-reference-file-for-training-and-evaluating-the-machine-learning-model">
+<h2><span class="section-number">3.4. </span>Preparing a reference file for training and evaluating the machine learning model<a class="headerlink" href="#preparing-a-reference-file-for-training-and-evaluating-the-machine-learning-model" title="Permalink to this heading">¶</a></h2>
+<p>The user must prepare a reference file according to the input format of the
+machine learning model trainer and calculator to be used (only aenet is supported at the moment).
+The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section in the abICS input file (see below).
+The coordinate information should not be written here because it will obviously change in the course of the simulation.
+The lattice sites are specified in a separate abICS input file (see below),
+and abICS will take care of generating the coordinates section at each sampling step.</p>
+<section id="machine-learning-trainer-calculator-specific-notes">
+<span id="subsec-basic-input"></span><h3><span class="section-number">3.4.1. </span>Machine learning trainer/calculator-specific notes<a class="headerlink" href="#machine-learning-trainer-calculator-specific-notes" title="Permalink to this heading">¶</a></h3>
+<section id="aenet">
+<h4>aenet<a class="headerlink" href="#aenet" title="Permalink to this heading">¶</a></h4>
+<ul>
+<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
+<li><p>Checked with version 2.0.3 (2018-06-25).</p></li>
+<li><p>Reference file rules</p>
+<ul class="simple">
+<li><p>Place the input files for aenet in the <code class="docutils literal notranslate"><span class="pre">generate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, and <code class="docutils literal notranslate"><span class="pre">predict</span></code> directories in the directory which is set in the <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section.</p></li>
+<li><p>aenet compiles the atomic configuration and energy data for training into an intermediate binary format that is converted to atomic environment descriptor-energy relationships before training. Please place the input files for this conversion <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">generate</span></code> directory.</p></li>
+<li><p>Place an input file for <code class="docutils literal notranslate"><span class="pre">train.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">train</span></code> directory that reads the training data generated by <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> and trains. The file should be named <code class="docutils literal notranslate"><span class="pre">train.in</span></code>.</p></li>
+<li><p>Place the input file <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> for <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">predict</span></code> directory to evaluate the energy for the input coordinates using the trained potential model.</p></li>
+</ul>
+</li>
+<li><p>abICS control file</p>
+<ul class="simple">
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section, for <code class="docutils literal notranslate"><span class="pre">type</span></code> , <code class="docutils literal notranslate"><span class="pre">perturb</span></code> , and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code>, set the following if using an active learning scheme.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span> <span class="o">=</span> “aenet”
+<span class="nv">perturb</span> <span class="o">=</span> <span class="m">0</span>.0
+<span class="nv">run_scheme</span> <span class="o">=</span> ‘subprocess’
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+</section>
 <section id="creating-a-set-of-training-data">
-<h2><span class="section-number">3.4. </span>Creating a set of training data<a class="headerlink" href="#creating-a-set-of-training-data" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.5. </span>Creating a set of training data<a class="headerlink" href="#creating-a-set-of-training-data" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Generate a set of input files for the first-principle calculation using <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code>.</p></li>
-<li><p>Perform the first-principle calculation with these inputs. (In the tutorial GNU parallel is used for the exhaustive calculation.)</p></li>
+<li><p>Perform the first-principle calculation with these inputs. (In the tutorial GNU parallel is used for the high-throughput calculation.)</p></li>
 </ol>
 </section>
 <section id="creating-a-neural-network">
-<h2><span class="section-number">3.5. </span>Creating a neural network<a class="headerlink" href="#creating-a-neural-network" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.6. </span>Creating a neural network<a class="headerlink" href="#creating-a-neural-network" title="Permalink to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> again to convert the results of the first-principle calculation into a common format that <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> will read.</p></li>
 <li><p>Execute <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> to create a neural network. When the calculation is completed successfully, the trained neural network is output in <code class="docutils literal notranslate"><span class="pre">baseinput</span></code> directory.</p></li>
 </ol>
 </section>
-<section id="predicting-the-optimized-structure">
-<h2><span class="section-number">3.6. </span>Predicting the optimized structure<a class="headerlink" href="#predicting-the-optimized-structure" title="Permalink to this heading">¶</a></h2>
-<p>By using <code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> the optimized structure is found from the trained neural network.
+<section id="monte-carlo-sampling">
+<h2><span class="section-number">3.7. </span>Monte Carlo sampling<a class="headerlink" href="#monte-carlo-sampling" title="Permalink to this heading">¶</a></h2>
+<p>By using <code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code>, Monte Carlo sampling can be performed by using the trained neural network.
 (The number of MPI processes must be larger than the number of replicas.)
 Running the program will create directories named by the replica numbers under the current directory,
 and each replica runs the solver in it.</p>
-<a class="reference internal image-reference" href="../_images/schmatic_AR.png"><img alt="../_images/schmatic_AR.png" class="align-center" src="../_images/schmatic_AR.png" style="width: 800px;" /></a>
-<p>A schematic view of the active learning in abICS.</p>
 </section>
 </section>
 
@@ -353,12 +367,13 @@ and each replica runs the solver in it.</p>
 <li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. About abICS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. Basic Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#preparing-a-reference-file-for-active-learning">3.1. Preparing a reference file for active learning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#preparing-a-reference-file">3.2. Preparing a reference file</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#preparing-an-input-file-of-abics">3.3. Preparing an input file of abICS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-a-set-of-training-data">3.4. Creating a set of training data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-a-neural-network">3.5. Creating a neural network</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#predicting-the-optimized-structure">3.6. Predicting the optimized structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#active-learning">3.1. Active learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#preparing-an-abics-control-file">3.2. Preparing an abICS control file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#preparing-a-reference-file-for-first-principles-solvers">3.3. Preparing a reference file for first-principles solvers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#preparing-a-reference-file-for-training-and-evaluating-the-machine-learning-model">3.4. Preparing a reference file for training and evaluating the machine learning model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-set-of-training-data">3.5. Creating a set of training data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-a-neural-network">3.6. Creating a neural network</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#monte-carlo-sampling">3.7. Monte Carlo sampling</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. Tutorial</a></li>
