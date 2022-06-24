@@ -31,7 +31,7 @@ Schematic of the active learning procedure using abICS
 .. _subsec_basic_reference:
 
 Preparing an abICS control file
-================================
+------------------------------------------
 
 First, we have to prepare an input file that controls the entire abICS framework.
 The input file of abICS is comprised of the following five sections:
@@ -53,7 +53,7 @@ The following is an example of an input file selecting aenet as a solver.
 
 
 Preparing a reference file for first-principles solvers
-=========================================================
+-------------------------------------------------------
 
 The user must prepare reference input file(s) for first-principles solvers that are used for
 generating the training data according to the input format of the solver.
@@ -119,7 +119,7 @@ OpenMX
 
 
 Preparing a reference file for training and evaluating the machine learning model
-==================================================================================
+----------------------------------------------------------------------------------
 
 The user must prepare a reference file according to the input format of the 
 machine learning model trainer and calculator to be used (only aenet is supported at the moment).
@@ -164,21 +164,22 @@ aenet
 
 
 Creating a set of training data
-================================
+--------------------------------
 
 1. Generate a set of input files for the first-principle calculation using ``abics_mlref``.
 
 2. Perform the first-principle calculation with these inputs. (In the tutorial GNU parallel is used for the high-throughput calculation.)
 
 Creating a neural network
-==========================
+--------------------------
+
 
 1. Run ``abics_mlref`` again to convert the results of the first-principle calculation into a common format that ``abics_train`` will read.
 
 2. Execute ``abics_train`` to create a neural network. When the calculation is completed successfully, the trained neural network is output in ``baseinput`` directory.
 
 Monte Carlo sampling
-=============================
+---------------------
 
 By using ``abics_sampling``, Monte Carlo sampling can be performed by using the trained neural network.
 (The number of MPI processes must be larger than the number of replicas.)

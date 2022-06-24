@@ -61,7 +61,7 @@ Key words
 ..      **Description :**  The interval at which the placement is extracted is specified in the form of a list of [ ``nsteps`` , ``sample_frequency`` ]. Here, ``nsteps`` specifies the number of steps to be taken out of the number of configurations output by the RXMC calculation (the value of ``nsteps/sample_frequency`` in the ``[replica]`` section) and ``sample_frequency`` specifies the interval at which the configurations are taken out  (the first number of steps to be taken out is fixed at 0).  The input files for the ab initio solver corresponding to that arrangement are created in the respective folders.
  
 
-[sampling.solver] section
+[mlref.solver] section
 -------------------------------
 
 Configure the solver used to calculate the training data (configuration energy). This section specifies solver parameters such as solver type (VASP, QE, ...), path to solver, directory with solver-specific input file(s).
