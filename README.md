@@ -1,5 +1,11 @@
 # abICS
-ab-Initio Configuration Sampling tool kit (abICS) is a Python code (library and application) for Metropolice Monte Carlo.
+abICS is a software framework for training a machine learning model to
+reproduce first-principles energies and then using the model to perform
+configurational sampling in disordered systems.
+Specific emphasis is placed on multi-component solid state systems such as metal and oxide alloys.
+The current version of abics can use neural network models implemented in aenet to be used as 
+the machine learning model. As of this moment, abICS can also generate Quantum Espresso, VASP, 
+and OpenMX input files for obtaining the reference training data for the machine learning model.
 
 ## Requirement
 
@@ -38,8 +44,8 @@ $ pip3 install abics
 
 will install abICS and dependencies.
 
-If you want to change the directory where installed,
-add `--user` option or `--prefix=DIRECTORY` option into the above command as
+If you want to change the directory where abICS is installed,
+add `--user` option or `--prefix=DIRECTORY` option to the above command as
 
 ``` bash
 $ pip3 install --user abics
