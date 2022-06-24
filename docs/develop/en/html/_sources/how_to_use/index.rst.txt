@@ -138,7 +138,7 @@ aenet
 
 - URL : http://ann.atomistic.net
 
-- Checked with version 2.0.3 (2018-06-25).
+- Checked with version 2.0.4.
 
 - Reference file rules
 
