@@ -24,7 +24,7 @@ import numpy.random as rand
 
 # from mpi4py import MPI
 
-from pymatgen import Structure
+from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import pymatgen.analysis.structure_analyzer as analy
 
@@ -228,7 +228,7 @@ class dft_latgas(model):
             config.calc_history.append((energy, structure0.copy(), structure.copy()))
             if len(config.calc_history) == 25:
                 del config.calc_history[0:5]
-
+        config.structure_norel = structure0
         config.structure = structure
         return np.float64(energy)
 
@@ -254,59 +254,70 @@ class dft_latgas(model):
 
         # Back up structure and defect_sublattices
         structure0 = copy.deepcopy(config.structure)
+        structure_norel0 = copy.deepcopy(config.structure_norel)
         defect_sublattices0 = copy.deepcopy(config.defect_sublattices)
 
-        # for defect_sublattice in [rand.choice(config.defect_sublattices)]: #config.defect_sublattices:
+        while True:
+            # for defect_sublattice in [rand.choice(config.defect_sublattices)]: #config.defect_sublattices:
 
-        defect_sublattice = rand.choice(config.defect_sublattices)
-        latgas_rep = defect_sublattice.latgas_rep
-        # print(latgas_rep)
+            defect_sublattice = rand.choice(config.defect_sublattices)
+            latgas_rep = defect_sublattice.latgas_rep
+            # print(latgas_rep)
 
-        # If there is more than one group on the defect_sublattice,
-        # we either change orientation of one group, or  exchange groups between sites
-        if len(defect_sublattice.groups) > 1:
-            random_divide = 0.5
-        else:
-            random_divide = 2.0
-        if defect_sublattice.groups_orr and rand.rand() < random_divide:
-            # Change orientation of one group with orientation attributes
-            # Let's first locate sites that have such groups
-            rot_ids = []
-            for group in defect_sublattice.groups_orr:
-                rot_ids += match_latgas_group(latgas_rep, group)
-            # Choose the site to rotate and rotate
-            rot_id = rand.choice(rot_ids)
-            rot_group = defect_sublattice.group_dict[latgas_rep[rot_id][0]]
-            rot_group_orr = latgas_rep[rot_id][1]
-            # Remove the current orientation from the list of possible orientations
-            or_choices = [
-                orx for orx in range(rot_group.orientations) if orx != rot_group_orr
-            ]
-            latgas_rep[rot_id] = [rot_group.name, rand.choice(or_choices)]
+            # If there is more than one group on the defect_sublattice,
+            # we either change orientation of one group, or  exchange groups between sites
+            if len(defect_sublattice.groups) > 1:
+                random_divide = 0.5
+            else:
+                random_divide = 2.0
+            if defect_sublattice.groups_orr and rand.rand() < random_divide:
+                # Change orientation of one group with orientation attributes
+                # Let's first locate sites that have such groups
+                rot_ids = []
+                for group in defect_sublattice.groups_orr:
+                    rot_ids += match_latgas_group(latgas_rep, group)
+                # Choose the site to rotate and rotate
+                rot_id = rand.choice(rot_ids)
+                rot_group = defect_sublattice.group_dict[latgas_rep[rot_id][0]]
+                rot_group_orr = latgas_rep[rot_id][1]
+                # Remove the current orientation from the list of possible orientations
+                or_choices = [
+                    orx for orx in range(rot_group.orientations) if orx != rot_group_orr
+                ]
+                latgas_rep[rot_id] = [rot_group.name, rand.choice(or_choices)]
 
-        else:
-            # Exchange different groups between sites
-            ex1_group, ex2_group = rand.choice(defect_sublattice.groups, 2, replace=False)
-            ex1_id = rand.choice(match_latgas_group(latgas_rep, ex1_group))
-            ex2_id = rand.choice(match_latgas_group(latgas_rep, ex2_group))
-            latgas_rep[ex1_id], latgas_rep[ex2_id] = (
-                latgas_rep[ex2_id],
-                latgas_rep[ex1_id],
-            )
-        # print(latgas_rep)
-        config.set_latgas()
+            else:
+                # Exchange different groups between sites
+                ex1_group, ex2_group = rand.choice(
+                    defect_sublattice.groups, 2, replace=False
+                )
+                ex1_id = rand.choice(match_latgas_group(latgas_rep, ex1_group))
+                ex2_id = rand.choice(match_latgas_group(latgas_rep, ex2_group))
+                latgas_rep[ex1_id], latgas_rep[ex2_id] = (
+                    latgas_rep[ex2_id],
+                    latgas_rep[ex1_id],
+                )
+            # print(latgas_rep)
+            constraint_fulfilled = config.set_latgas()
+            if constraint_fulfilled:
+                break
+            else:
+                config.structure = copy.deepcopy(structure0)
+                config.defect_sublattices = copy.deepcopy(defect_sublattices0)
 
         # do vasp calculation on structure
         e1 = self.energy(config)
 
         # return old structure
         structure = config.structure
+        structure_norel = config.structure_norel
         config.structure = structure0
+        config.structure_norel = structure_norel0
         defect_sublattices = config.defect_sublattices
         config.defect_sublattices = defect_sublattices0
 
         # Simply pass new structure and latgas_rep  in dconfig to be used by newconfig():
-        dconfig = structure, defect_sublattices
+        dconfig = structure, structure_norel, defect_sublattices
         if e0 == float("inf"):
             dE = e1
         else:
@@ -330,7 +341,7 @@ class dft_latgas(model):
         config: config object
             New configuration
         """
-        config.structure, config.defect_sublattices = dconfig
+        config.structure, config.structure_norel, config.defect_sublattices = dconfig
         if self.l_update_basestruct:
             self.update_basestruct(config)
         return config
@@ -598,6 +609,7 @@ class config:
         defect_sublattices,
         num_defects,
         cellsize=[1, 1, 1],
+        constraint_func=bool,
         perfect_structure=None,
     ):
         """
@@ -612,6 +624,9 @@ class config:
             {group name: number of defects}
         cellsize : list, optional
             Cell size, by default [1, 1, 1]
+        constraint_func : function, optional
+            function that takes pymatgen.Structure as argument and returns True
+            when constraints are satisfied, by default bool
         perfect_structure : pymatgen.Structure, optional
             Strucure of all sites (union of base and defect), by default None
         """
@@ -632,6 +647,7 @@ class config:
         self.calc_history = []
         self.cellsize = cellsize
         self.base_structure = base_structure
+        self.constraint_func = constraint_func
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -693,7 +709,9 @@ class config:
         self.defect_sublattices = defect_sublattices
 
         assert num_sites == ntot_defects
-        self.set_latgas()
+        constraint_fullfilled = self.set_latgas()
+        if not constraint_fullfilled:
+            self.shuffle()
 
     def set_latgas(self, defect_sublattices=False):
         """
@@ -701,6 +719,10 @@ class config:
         Parameters
         ----------
         defect_sublattices: pymatgen.Structure
+
+        Returns
+        -------
+        True if resulting structure satisifies constraints, False if not
         """
         if defect_sublattices:
             self.defect_sublattices = defect_sublattices
@@ -723,7 +745,88 @@ class config:
                             "magnetization": group.magnetizations[j],
                         },
                     )
+        return self.constraint_func(self.structure)
 
+    def dummy_structure(self):
+        """
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        Structure where all atoms and vacancies are replaced by dummy atoms
+        """
+        dummy_structure = copy.deepcopy(self.base_structure)
+        for defect_sublattice in self.defect_sublattices:
+            latgas_rep = defect_sublattice.latgas_rep
+            assert len(latgas_rep) == len(defect_sublattice.site_centers_sc)
+            for isite in range(len(latgas_rep)):
+                grp_name = latgas_rep[isite][0]
+                orr = latgas_rep[isite][1]
+                group = defect_sublattice.group_dict[grp_name]
+                if group.natoms == 0:
+                    dummy_structure.append(
+                        "X",
+                        defect_sublattice.site_centers_sc[isite],
+                        properties={
+                            "seldyn": (True, True, True),
+                            "magnetization": (0, 0, 0),
+                        },
+                    )
+                for j in range(group.natoms):
+                    dummy_structure.append(
+                        "X",
+                        group.coords[orr][j] + defect_sublattice.site_centers_sc[isite],
+                        properties={
+                            "seldyn": group.relaxations[j, :],
+                            "magnetization": group.magnetizations[j],
+                        },
+                    )
+        return dummy_structure
+
+    def dummy_structure_sp(self, species_in):
+        """
+
+        Parameters
+        ----------
+        species (str): name of species for constructing dummy lattice
+
+        Returns
+        -------
+        Structure where all atoms and vacancies are replaced by dummy atoms
+        """
+        dummy_structure = copy.deepcopy(self.base_structure)
+        sp_remove = filter(lambda sp: sp != species_in, dummy_structure.symbol_set)
+        dummy_structure.remove_species(sp_remove)
+        for defect_sublattice in self.defect_sublattices:
+            latgas_rep = defect_sublattice.latgas_rep
+            assert len(latgas_rep) == len(defect_sublattice.site_centers_sc)
+            # find all species that can reside on this lattice
+            species_sublattice = set()
+            groups = defect_sublattice.group_dict.keys()
+            for grp_name in groups:
+                group = defect_sublattice.group_dict[grp_name]
+                if group.natoms > 1:
+                    print("dummy_structure_sp does not support multi-atom groups")
+                    sys.exit(1)
+                if group.natoms == 1:
+                    species_sublattice.add(group.species[0])
+            if species_in not in species_sublattice:
+                continue
+            for isite in range(len(latgas_rep)):
+                dummy_structure.append(
+                    "X",
+                    defect_sublattice.site_centers_sc[isite],
+                    properties={
+                        "seldyn": (True, True, True),
+                        "magnetization": (0, 0, 0),
+                    },
+                )
+                
+        return dummy_structure
+
+    
     def shuffle(self):
         for defect_sublattice in self.defect_sublattices:
             latgas_rep = defect_sublattice.latgas_rep
@@ -732,7 +835,8 @@ class config:
                 group = defect_sublattice.group_dict[site[0]]
                 norr = group.orientations
                 site[1] = rand.randint(norr)
-        self.set_latgas()
+        if not self.set_latgas():
+            self.shuffle()
 
     def count(self, group_name, orientation):
         """

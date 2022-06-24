@@ -22,19 +22,19 @@ tell ``st2abics`` how to break down the original structure file into ``config.ba
     optional arguments:
       -h, --help   show this help message and exit
 
-Examples are provided in ``examples/standard/st2abics`` and can be run as follows::
+Examples are provided in ``examples/st2abics`` and can be run as follows::
 
-    $ cd examples/standard/st2abics
+    $ cd examples/st2abics
     $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp abics_MgAl2O4.toml # spinel
     $ st2abics st2abics_CuZn.toml CuZn.vasp abics_CuZn.toml # brass
     $ st2abics st2abics_BZY.toml BaZrO3.vasp abics_BZY.toml # Y-doped BaZrO3
 
 The resulting files (abics_MgAl2O4.toml, abics_CuZn.toml, and abics_BZY.toml in the above example) can be used as abICS input after
-filling in the ``[replica]``, ``[solver]``, and ``[observer]`` sections.
+filling in the ``[mlref]``, ``[train]``, ``[sampling]`` and ``[observer]`` sections.
 
 Input Format
 ^^^^^^^^^^^^
-Examples of st2abics input files can be found in examples/standard/st2abics
+Examples of st2abics input files can be found in ``examples/st2abics``
 (``st2abics_CuZn.toml``, ``st2abics_MgAl2O4.toml``, and ``st2abics_BZY.toml`` in the above example). 
 
 The format is similar to ``[config]`` section of abICS input file.

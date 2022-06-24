@@ -1,12 +1,12 @@
 .. highlight:: none
 
-st2abics
+``st2abics``
 -------------------------------
 
 abICS :ref:`入力ファイル<input-format>` の :ref:`[config]セクション<config-section>` を比較的簡単に作成するために、 
 ``st2abics`` ツールを使うことができます。これはpymatgenで読める原子構造ファイルを読み取り、
-[config]セクションを埋めたabICS入力テンプレートファイルに変換します。元の構造ファイルからどのようにして
-config.base_structureとconfig.defect_structureを構成するか指定するため、 ``st2abics`` 専用の制御ファイルが必要です。
+``[config]`` セクションを埋めたabICS入力テンプレートファイルに変換します。元の構造ファイルからどのようにして
+``config.base_structure`` と ``config.defect_structure`` を構成するか指定するため、 ``st2abics`` 専用の制御ファイルが必要です。
 ``st2abics`` は以下のように使用します::
 
 
@@ -24,22 +24,22 @@ config.base_structureとconfig.defect_structureを構成するか指定するた
       -h, --help   show this help message and exit
 
 
-例がいくつか ``examples/standard/st2abics`` 用意されています::
+例がいくつか ``examples/st2abics`` に用意されています::
 
-    $ cd examples/standard/st2abics
+    $ cd examples/st2abics
     $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp abics_MgAl2O4.toml # spinel
     $ st2abics st2abics_CuZn.toml CuZn.vasp abics_CuZn.toml # brass
     $ st2abics st2abics_BZY.toml BaZrO3.vasp abics_BZY.toml # Y-doped BaZrO3
 
-結果として得られたファイル(上記の例ではabics_MgAl2O4.toml, abics_CuZn.toml, abics_BZY.toml)は、
-``[replica]`` 、``[solver]`` 、 ``[observer]`` セクションのキーワードが空になっており、
+結果として得られたファイル(上記の例では ``abics_MgAl2O4.toml``, ``abics_CuZn.toml``, ``abics_BZY.toml``)は、
+``[sampling]``, ``[mlref]``, ``[train]``, ``[observer]`` セクションのキーワードが空になっており、
 これらを記入した後、abICSの入力として使用することができます。
 
 入力フォーマット
 ^^^^^^^^^^^^^^^^^
-``st2abics`` の入力ファイルの例は、``examples/standard/st2abics`` にあります(上の例ではst2abics_CuZn.toml、st2abics_MgAl2O4.toml、st2abics_BZY.toml)。
+``st2abics`` の入力ファイルの例は、 ``examples/st2abics`` にあります(上の例では ``st2abics_CuZn.toml`` , ``st2abics_MgAl2O4.toml``, ``st2abics_BZY.toml``)。
 
-フォーマットはabICS入力ファイルの[config]セクションに似ています。
+フォーマットはabICS入力ファイルの ``[config]`` セクションに似ています。
 
 キーワード
 ^^^^^^^^^^
@@ -68,7 +68,7 @@ config.base_structureとconfig.defect_structureを構成するか指定するた
 -  ``[[config.defect_structure]]`` セクション
 
    このセクションは、配置サンプリングを行う副格子を指定します。
-   複数の[[config.defect_structure]]セクションが存在しても構いません。
+   複数の ``[[config.defect_structure]]`` セクションが存在しても構いません。
    例えば、陽イオンの配置サンプリングを行う副格子と、陰イオンの配置サンプリングを行う副格子を指定することが
    できます。
   
@@ -104,7 +104,7 @@ config.base_structureとconfig.defect_structureを構成するか指定するた
       
          **形式 :** listのlistのlist あるいは文字列
          
-         **説明 :** 原子グループがとることのできる配向ごとの原子グループ内の各原子の座標（入力ファイルのcoords定義 :ref:`参照 <coords-orr>`）。
+         **説明 :** 原子グループがとることのできる配向ごとの原子グループ内の各原子の座標（入力ファイルのcoords定義 :ref:`参照 <coords-orr>` ）。
          デフォルト値は[[[0.0, 0.0, 0.0]]です。
 
       -  ``num``

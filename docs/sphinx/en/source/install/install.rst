@@ -3,7 +3,7 @@
 Prerequisites
 ~~~~~~~~~~~~~~~~~~~~~~
 
-abICS requires Python3 (>=3.6).
+abICS requires Python3 (>=3.7).
 
 The following Python packages are required.
 
@@ -21,18 +21,18 @@ These are installed automatically but mpi4py and pymatgen need extra software-pa
 
    $ pip3 install cython
 
-To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` ).
+.. To use VASP as a solver, a patch must be applied to use MPI_COMM_SPAWN. If you wish to use it, please contact us (the e-mail address is written in :doc:`../contact/index` ).
 
 Install from PyPI
 ~~~~~~~~~~~~~~~~~~~~
 
 Since abICS is registered in PyPI users can install abICS easily::
 
-   $ pip3 install abICS
+   $ pip3 install abics
 
 If you want to install abICS locally because, for example, you have no permission to write files, the following command::
 
-   $ pip3 install --user abICS
+   $ pip3 install --user abics
 
 installs abICS below a directory ``~/.local`` .
 If you want to install abICS into another directory, use the ``--prefix=DIRECTORY`` option (``DIRECTORY`` is the path to the directory where abICS will be installed) .
@@ -61,22 +61,19 @@ The directory structure of abICS is given as follows:
  |-- abics/
  |   |-- __init__.py
  |   |-- applications/
+ |   |-- exception.py
  |   |-- mc.py
  |   |-- mc_mpi.py
+ |   |-- replica_params.py
  |   |-- scripts/
- |   `-- util.py
+ |   |-- util.py
  |-- docs/
- |   `-- sphinx/
+ |   |-- sphinx/
  |-- examples/
- |   |-- expert/
- |   `-- standard/
- |-- make_wheel.sh
- |-- setup.cfg
- `-- setup.py
+ |-- pyproject.toml
+ |-- test/
+ |-- tests/
  
-
-``examples/standard`` contains samples that can be run by simple files.
-``examples/expert`` contains examples by using python module.
 
 A set of python modules are located in the ``abics`` directory.
 
@@ -85,14 +82,11 @@ A set of python modules are located in the ``abics`` directory.
 Install
 ...........
 
-- Make wheel file by typing following command::
+- Pass the location of the root directory of abICS as an argument of ``pip3 install`` :
 
-   $ ./make_wheel.sh
+   $ pip3 install ./abICS
 
-- Install using the created file as follows::
+Uninstall
+~~~~~~~~~~
 
-   $ pip install dist/abics-*.whl
-
-- Or upgrade as the following::
-
-   $ pip install --no-deps --force-reinstall dist/abics-*.whl
+- ``pip3 uninstall abics`` uninstalls abics from your machine.

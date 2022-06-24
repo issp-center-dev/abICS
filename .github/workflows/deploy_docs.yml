@@ -1,0 +1,93 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      - ghactions
+      - '!gh-pages'
+    tags: ['*']
+
+jobs:
+  deploy:
+    timeout-minutes: 10.0
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Inject slug/short variables
+      uses: rlespinasse/github-slug-action@v3.x
+
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        path: main
+
+    - name: Checkout gh-pages
+      uses: actions/checkout@v2
+      with:
+        ref: gh-pages
+        path: gh-pages
+
+    - name: Set up Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.9
+
+    - name: Prepare LaTeX env
+      run: |
+        sudo apt update
+        sudo apt install \
+          texlive-latex-recommended texlive-latex-extra texlive-xetex \
+          texlive-lang-japanese texlive-fonts-recommended texlive-fonts-extra latexmk
+        kanji-config-updmap-sys ipaex
+
+    - name: Install python packages
+      run: |
+        python -m pip install --upgrade pip
+        pip install sphinx sphinx_rtd_theme
+
+    - name: Build
+      run: |
+        cd ${GITHUB_WORKSPACE}/main/docs
+        sh make.sh
+
+    - name: Deploy Configuration
+      run: |
+          mkdir ~/.ssh
+          ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+          echo "${{ secrets.GH_ACTIONS_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+          chmod 400 ~/.ssh/id_rsa
+
+    - name: Push
+      env:
+        GIT_USER: "abICS Developers"
+        GIT_EMAIL: "abics-dev@issp.u-tokyo.ac.jp"
+        TARGET_NAME: ${{ env.GITHUB_REF_SLUG }}
+      run: |
+          cd ${GITHUB_WORKSPACE}
+          is_tag=NO
+          test "_$(echo ${GITHUB_REF:-'//'} | cut -d/ -f2)" = "_tags" && is_tag=YES
+          # copy files
+          for lang in ja en; do
+            rm -rf "gh-pages/docs/${TARGET_NAME}/${lang}"
+            mkdir -p "gh-pages/docs/${TARGET_NAME}/${lang}"
+            cp -r "main/docs/sphinx/${lang}/build/html" "gh-pages/docs/${TARGET_NAME}/${lang}"
+            if [ $is_tag = "YES" ]; then
+              cp "main/docs/sphinx/${lang}/build/latex/abICS_${LANG}.pdf" "gh-pages/docs/${TARGET_NAME}/${lang}/abICS.pdf"
+            fi
+          done
+          # apidoc
+          rm -rf "gh-pages/docs/${TARGET_NAME}/api"
+          cp -r "main/docs/api/_build/html" "gh-pages/docs/${TARGET_NAME}/api"
+          # push
+          cd gh-pages
+          git config --local user.name "${GIT_USER}"
+          git config --local user.email "${GIT_EMAIL}"
+          git remote set-url origin git@github.com:${GITHUB_REPOSITORY}.git
+          git add docs
+          if git commit -m "Deploy docs to ${TARGET_NAME} by GitHub Actions triggered by ${GITHUB_SHA}"
+          then
+            git push origin gh-pages
+          else
+            echo "Nothing to deploy"
+          fi

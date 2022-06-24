@@ -27,7 +27,7 @@ import os.path
 
 import numpy as np
 import scipy.constants as spc
-from pymatgen import Structure
+from pymatgen.core import Structure
 from qe_tools.parsers import PwInputFile
 
 from .base_solver import SolverBase
@@ -180,7 +180,8 @@ class QESolver(SolverBase):
                     self.pwi.namelists[name] = {}
             self.pwi.namelists["CONTROL"]["prefix"] = "pwscf"
             self.pwi.namelists["CONTROL"]["pseudo_dir"] = expand_path(
-                self.pwi.namelists["CONTROL"]["pseudo_dir"], os.getcwd()
+                self.pwi.namelists["CONTROL"]["pseudo_dir"], base_input_dir
+                # self.pwi.namelists["CONTROL"]["pseudo_dir"], os.getcwd()
             )
 
         def update_info_by_structure(self, structure):

@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from pymatgen import Lattice
+from pymatgen.core import Lattice
 
 from .model_setup import config, defect_sublattice, base_structure
 
@@ -41,6 +41,18 @@ class DFTConfigParams:
         self.lat = Lattice(read_matrix(dconfig["unitcell"]))
 
         self.supercell = dconfig.get("supercell", [1, 1, 1])
+
+        constraint_module = dconfig.get("constraint_module", False)
+        if constraint_module:
+            import os, sys
+
+            sys.path.append(os.getcwd())
+            from constraint_module import constraint_func
+
+            self.constraint_func = constraint_func
+        else:
+            self.constraint_func = bool
+
         if "base_structure" not in dconfig:
             raise InputError('"base_structure" is not found in the "config" section.')
         self.base_structure = base_structure(self.lat, dconfig["base_structure"])
@@ -51,7 +63,8 @@ class DFTConfigParams:
             defect_sublattice.from_dict(ds) for ds in dconfig["defect_structure"]
         ]
         self.num_defects = [
-            {g["name"]: g["num"] for g in ds["groups"]} for ds in dconfig["defect_structure"]
+            {g["name"]: g["num"] for g in ds["groups"]}
+            for ds in dconfig["defect_structure"]
         ]
 
     @classmethod
@@ -98,6 +111,7 @@ def defect_config(cparam: DFTConfigParams):
         cparam.defect_sublattices,
         cparam.num_defects,
         cparam.supercell,
+        cparam.constraint_func,
     )
     spinel_config.shuffle()
     return spinel_config

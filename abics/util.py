@@ -16,6 +16,8 @@
 
 import os.path
 import pickle
+import time
+from itertools import groupby
 
 import numpy as np
 
@@ -134,6 +136,10 @@ def expand_path(path, basedir):
         path = os.path.join(basedir, path)
     return path
 
+def expand_cmd_path(path):
+    path = os.path.expanduser(path)
+    path = os.path.expandvars(path)
+    return path
 
 def pickle_dump(data, filename):
     with open(filename, 'wb') as f:
@@ -152,3 +158,30 @@ def numpy_save(data, filename, allow_pickle=False):
 def numpy_load(filename):
     with open(filename, 'rb') as f:
         return np.load(f)
+
+# all_equal function by kennytm
+# CC-BY-SA 4.0 https://stackoverflow.com/a/3844832
+def all_equal(iterable):
+    g = groupby(iterable)
+    return next(g, True) and not next(g, False)
+
+def exists_on_all_nodes(comm, path, check_interval = 1, max_wait = 30):
+    """ check ``path`` file is visible from all procs
+    """
+
+    counter = 0
+    while True:
+        exists = os.path.exists(path)
+        exists_gather = comm.allgather(exists)
+        # make sure all procs return same result
+        if all_equal(exists_gather):
+            break
+        counter += 1
+        if counter == max_wait:
+            raise TimeoutError("File system has been out of sync as seen from each process"
+                               " for {} seconds. Aborting.". format(check_interval * max_wait))
+        if comm.Get_rank() == 0:
+            print("File system seems to be out of sync as seen from each process."
+                  " Waiting for sync. (Don't worry, this happens often on network file systems)")
+        time.sleep(check_interval)
+    return exists_gather[0]

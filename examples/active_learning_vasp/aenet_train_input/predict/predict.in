@@ -1,0 +1,13 @@
+TYPES
+2
+Mg
+Al
+
+
+NETWORKS
+Mg    Mg.15t-15t.nn
+Al  Al.15t-15t.nn
+
+
+VERBOSITY low
+

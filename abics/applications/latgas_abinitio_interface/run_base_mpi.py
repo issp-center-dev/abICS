@@ -64,6 +64,7 @@ class runner(object):
         perturb=0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
     ):
         """
         Parameters
@@ -82,6 +83,8 @@ class runner(object):
             Number of threads which one solver process uses
         solver_run_scheme : str, default "mpi_spawn_ready"
             Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
 
         Raises
         ------
@@ -96,6 +99,14 @@ class runner(object):
         self.nthreads_per_proc = nthreads_per_proc
         self.output = Solver.output
         self.comm = comm
+        self.use_tmpdir = use_tmpdir
+
+        if self.use_tmpdir:
+            import tempfile
+            self.tmpdir = tempfile.TemporaryDirectory()
+        #    import shutil
+        #    shutil.copy(self.path_to_solver, self.tmpdir.name)
+        #    self.path_to_solver = os.path.join(self.tmpdir.name, os.path.basename(self.path_to_solver))
         if solver_run_scheme not in Solver.solver_run_schemes():
             print(
                 "{scheme} not implemented for {solver}".format(
@@ -117,6 +128,10 @@ class runner(object):
             )
         elif solver_run_scheme == "subprocess":
             self.run = run_subprocess(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
+        elif solver_run_scheme == "function":
+            self.run = run_function(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
         else:
@@ -146,6 +161,10 @@ class runner(object):
             perturb_structure(structure, self.perturb)
         solverinput = self.base_solver_input
         solverinput.update_info_by_structure(structure)
+        if self.use_tmpdir:
+            if output_dir[0] == "/":
+                output_dir = output_dir[1:]
+            output_dir = os.path.join(self.tmpdir.name, output_dir)
         self.run.submit(self.solver_name, solverinput, output_dir)
         results = self.output.get_results(output_dir)
         return np.float64(results.energy), results.structure
@@ -171,6 +190,7 @@ class runner_multistep(object):
         perturb=0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
     ):
         """
         Parameters
@@ -189,6 +209,8 @@ class runner_multistep(object):
             Number of threads which one solver process uses
         solver_run_scheme : str, default "mpi_spawn_ready"
             Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
         """
 
         self.runners = []
@@ -202,6 +224,7 @@ class runner_multistep(object):
                 perturb,
                 nthreads_per_proc,
                 solver_run_scheme,
+                use_tmpdir,
             )
         )
         for i in range(1, len(base_input_dirs)):
@@ -214,6 +237,7 @@ class runner_multistep(object):
                     perturb=0,
                     nthreads_per_proc=nthreads_per_proc,
                     solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
                 )
             )
 
@@ -222,11 +246,99 @@ class runner_multistep(object):
         energy, newstructure = self.runners[0].submit(structure, output_dir)
         newstructure = newstructure.copy(site_properties)
         for i in range(1, len(self.runners)):
-            energy, newstructure = self.runners[i].submit(
-                newstructure, output_dir
-            )
+            energy, newstructure = self.runners[i].submit(newstructure, output_dir)
             newstructure = newstructure.copy(site_properties)
         return energy, newstructure
+
+class runner_ensemble(object):
+    """
+    Ensemble runner
+
+    Attributes
+    ----------
+    runners : list[runner]
+        Runners
+    """
+
+    def __init__(
+        self,
+        base_input_dirs,
+        Solver,
+        runner,
+        nprocs_per_solver,
+        comm,
+        perturb=0,
+        nthreads_per_proc=1,
+        solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
+    ):
+        """
+        Parameters
+        ----------
+        base_input_dirs : list[str]
+            List of paths to directories including base input files
+        Solver : SolverBase
+            Solver
+        nprocs_per_solver : int
+            Number of processes which one solver program uses
+        comm : MPI.Comm
+            MPI Communicator
+        perturb : float, default 0.0
+            Perturbation of atom position
+        nthreads_per_proc : int, default 1
+            Number of threads which one solver process uses
+        solver_run_scheme : str, default "mpi_spawn_ready"
+            Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
+        """
+
+        self.runners = []
+        assert len(base_input_dirs) > 1
+        self.runners.append(
+            runner(
+                base_input_dirs[0],
+                copy.deepcopy(Solver),
+                nprocs_per_solver,
+                comm,
+                perturb,
+                nthreads_per_proc,
+                solver_run_scheme,
+                use_tmpdir=use_tmpdir,
+            )
+        )
+        for i in range(1, len(base_input_dirs)):
+            self.runners.append(
+                runner(
+                    base_input_dirs[i],
+                    copy.deepcopy(Solver),
+                    nprocs_per_solver,
+                    comm,
+                    perturb=0,
+                    nthreads_per_proc=nthreads_per_proc,
+                    solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
+                )
+            )
+        self.comm = comm
+
+    def submit(self, structure, output_dir):
+        
+        npar = self.comm.Get_size()
+        if npar > 1:
+            assert(npar == len(self.runners))
+            myrank = self.comm.Get_rank()
+            energy, _ = self.runners[myrank].submit(structure, os.path.join(output_dir,"ensemble{}".format(myrank)))
+            energies = self.comm.allgather(energy)
+        else:
+            energies = []
+            for i in range(len(self.runners)):
+                energy, _ = self.runners[i].submit(structure, os.path.join(output_dir,"ensemble{}".format(i)))
+                energies.append(energy)
+
+        return np.mean(energies), structure
+
+
 
 class run_mpispawn:
     """
@@ -446,7 +558,7 @@ class run_mpispawn_ready:
         -----
         If a solver failed (returned nonzero),
         this calls `MPI_Abort` on `MPI_COMM_WORLD` .
-        
+
         """
         solverinput.write_input(output_dir=output_dir)
 
@@ -524,7 +636,6 @@ class run_mpispawn_ready:
         # commspawn.Disconnect()
         # os.chdir(cwd)
         return 0
-
 
 
 class run_mpispawn_wrapper:
@@ -613,9 +724,7 @@ class run_mpispawn_wrapper:
 
             wrappers = [
                 "rm -f {checkfile}; {solvername} {cl_args}; echo $? > {checkfile}".format(
-                    checkfile=shlex.quote(
-                        os.path.join(output_dir, checkfilename)
-                    ),
+                    checkfile=shlex.quote(os.path.join(output_dir, checkfilename)),
                     solvername=self.path_to_solver,
                     cl_args=" ".join(map(shlex.quote, cl_args)),
                 )
@@ -625,7 +734,7 @@ class run_mpispawn_wrapper:
             start = timer()
             commspawn = [
                 MPI.COMM_SELF.Spawn(
-                    os.getenv('SHELL'), args=["-c", wrapper], maxprocs=self.nprocs
+                    os.getenv("SHELL"), args=["-c", wrapper], maxprocs=self.nprocs
                 )
                 for wrapper in wrappers
             ]
@@ -729,13 +838,88 @@ class run_subprocess:
         command = [self.path_to_solver]
         command.extend(args)
         to_rerun = False
-        #print(' '.join(command))
+        # print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 # subprocess.run(command, check=True, shell=True)
-                #subprocess.run(' '.join(command), check=True, shell=True)
+                # subprocess.run(' '.join(command), check=True, shell=True)
                 subprocess.run(command, stdout=fi, stderr=subprocess.STDOUT, check=True)
             except subprocess.CalledProcessError as e:
+                if rerun > 0:
+                    to_rerun = True
+                else:
+                    raise
+        if to_rerun:
+            self.submit(solver_name, solverinput, output_dir, rerun - 1)
+
+        os.chdir(cwd)
+        return 0
+
+
+class run_function:
+    """
+    Invoker via function call
+
+    Attributes
+    ----------
+    path_to_solver : str
+        function name
+    """
+
+    def __init__(self, path_to_solver, nprocs, nthreads, comm):
+        """
+        Parameters
+        ----------
+        path_to_solver : str
+            Path to solver program
+        nprocs : int
+            Number of process which one solver uses
+            (Never used)
+        nthreads : int
+            Number of threads which one solver process uses
+            (Never used)
+        comm : MPI.Comm or NoneType
+            Never used
+        """
+        self.path_to_solver = path_to_solver
+        self.nprocs = nprocs
+        self.nthreads = nthreads
+
+    def submit(self, solver_name, solverinput, output_dir, rerun=0):
+        """
+        Run solver
+
+        Parameters
+        ----------
+        solver_name : str
+            Name of solver (e.g., VASP)
+        solverinput : Solver.Input
+            Input manager
+        output_dir : str
+            Path to directory where a solver saves output
+        rerun : int, default = 2
+            How many times to restart solver on failed
+
+        Returns
+        -------
+        status : int
+            Always returns 0
+
+        Raises
+        ------
+        RuntimeError
+            Raises RuntimeError when solver failed.
+        """
+        solverinput.write_input(output_dir=output_dir)
+        cwd = os.getcwd()
+        os.chdir(output_dir)
+        args = solverinput.cl_args(self.nprocs, self.nthreads, output_dir)
+        to_rerun = False
+        # print(' '.join(command))
+        with open(os.path.join(output_dir, "stdout"), "w") as fi:
+            try:
+                self.path_to_solver(fi, *args)
+            except RuntimeError as e:
                 if rerun > 0:
                     to_rerun = True
                 else:
