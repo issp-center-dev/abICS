@@ -17,7 +17,7 @@
 import typing
 from typing import Any, Dict, List, MutableMapping
 
-from pymatgen.core import Lattice
+from pymatgen.core import Lattice, Structure
 
 from .model_setup import Config, DefectSublattice, base_structure
 
