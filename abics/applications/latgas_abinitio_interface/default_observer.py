@@ -14,14 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from abics.mc import observer_base
-from ...util import expand_path
-
 import os
 import numpy as np
 
+from abics import __version__
+from abics.util import expand_path
+from abics.mc import ObserverBase
 
-class default_observer(observer_base):
+
+class DefaultObserver(ObserverBase):
     """
     Default observer.
 
@@ -30,6 +31,7 @@ class default_observer(observer_base):
     minE : float
         Minimum of energy
     """
+
     def __init__(self, comm, Lreload=False):
         """
 
@@ -40,7 +42,7 @@ class default_observer(observer_base):
         Lreload: bool
             Reload or not
         """
-        super(default_observer, self).__init__()
+        super(DefaultObserver, self).__init__()
         self.minE = 100000.0
         myrank = comm.Get_rank()
         if Lreload:
@@ -84,7 +86,8 @@ class default_observer(observer_base):
             fmt="POSCAR", filename="structure_norel." + str(self.lprintcount) + ".vasp"
         )
 
-class ensemble_error_observer(default_observer):
+
+class EnsembleErrorObserver(DefaultObserver):
     def __init__(self, comm, energy_calculators, Lreload=False):
         """
 
@@ -97,7 +100,7 @@ class ensemble_error_observer(default_observer):
         Lreload: bool
             Reload or not
         """
-        super(ensemble_error_observer, self).__init__(comm, Lreload)
+        super(EnsembleErrorObserver, self).__init__(comm, Lreload)
         self.calculators = energy_calculators
         self.comm = comm
 
@@ -110,9 +113,12 @@ class ensemble_error_observer(default_observer):
         energies = [calc_state.energy]
         npar = self.comm.Get_size()
         if npar > 1:
-            assert(npar == len(self.calculators))
+            assert npar == len(self.calculators)
             myrank = self.comm.Get_rank()
-            energy, _ = self.calculators[myrank].submit(calc_state.config.structure, os.path.join(os.getcwd(),"ensemble{}".format(myrank)))
+            energy, _ = self.calculators[myrank].submit(
+                calc_state.config.structure,
+                os.path.join(os.getcwd(), "ensemble{}".format(myrank)),
+            )
             energies_tmp = self.comm.allgather(energy)
             std = np.std(energies_tmp, ddof=1)
 
@@ -120,14 +126,14 @@ class ensemble_error_observer(default_observer):
             energies_tmp = []
             for i, calculator in enumerate(self.calculators):
                 energy, _ = calculator.submit(
-                        calc_state.config.structure, os.path.join(os.getcwd(), "ensemble{}".format(i))
+                    calc_state.config.structure,
+                    os.path.join(os.getcwd(), "ensemble{}".format(i)),
                 )
                 energies_tmp.append(energy)
             std = np.std(energies_tmp, ddof=1)
         energies.extend(energies_tmp)
         energies.append(std)
         return np.asarray(energies)
-
 
 
 class EnsembleParams:
@@ -186,3 +192,9 @@ class EnsembleParams:
         import toml
 
         return cls.from_dict(toml.load(f))
+
+
+# For backward compatibility
+if __version__ < "3":
+    default_observer = DefaultObserver
+    ensemble_error_observer = EnsembleErrorObserver

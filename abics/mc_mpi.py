@@ -23,7 +23,7 @@ from mpi4py import MPI
 import numpy as np
 import numpy.random as rand
 
-from abics.mc import observer_base, obs_decode, verylargeint
+from abics.mc import ObserverBase, obs_decode, verylargeint
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
@@ -541,7 +541,7 @@ class EmbarrassinglyParallelSampling:
         nsteps,
         sample_frequency=verylargeint,
         print_frequency=verylargeint,
-        observer=observer_base(),
+        observer=ObserverBase(),
         subdirs=True,
         save_obs=True,
     ):
@@ -684,7 +684,7 @@ class ParallelMC(object):
         mytemp = kTs[self.rank]
         self.mycalc = MCalgo(model, mytemp, myconfig)
 
-    def run(self, nsteps, sample_frequency, observer=observer_base()):
+    def run(self, nsteps, sample_frequency, observer=ObserverBase()):
         """
 
         Parameters
@@ -877,7 +877,7 @@ class TemperatureRX_MPI(ParallelMC):
         RXtrial_frequency,
         sample_frequency=verylargeint,
         print_frequency=verylargeint,
-        observer=observer_base(),
+        observer=ObserverBase(),
         subdirs=True,
         save_obs=True,
     ):

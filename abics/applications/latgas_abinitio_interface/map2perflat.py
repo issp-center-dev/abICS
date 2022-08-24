@@ -26,7 +26,7 @@ def map2perflat(
     perf_st = perf_st.copy()
     N = perf_st.num_sites
     seldyn = np.array(
-        perf_st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float
+        perf_st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float64
     )
     perf_st.replace_species(vac_spaceholder)
     mapping = naive_mapping(st, perf_st)

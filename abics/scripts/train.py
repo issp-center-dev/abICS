@@ -16,6 +16,15 @@
 
 import sys, datetime
 
+import os, sys
+import threading
+import itertools
+
+import numpy as np
+import networkx as nx
+from pymatgen.core import Structure
+
+from abics import __version__
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
 from abics.applications.latgas_abinitio_interface import map2perflat
@@ -25,12 +34,6 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 
-from pymatgen.core import Structure
-import numpy as np
-import os, sys
-import threading
-import networkx as nx
-import itertools
 
 
 def main_impl(tomlfile):
@@ -234,7 +237,7 @@ def main_impl(tomlfile):
 
 def main():
     now = datetime.datetime.now()
-    print("Running abics_train (abICS v.2.0.0) on {}".format(now))
+    print(f"Running abics_train (abICS v{__version__}) on {now}")
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     print("-Reading input from: {}".format(tomlfile))
     main_impl(tomlfile)

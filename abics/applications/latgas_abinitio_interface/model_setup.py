@@ -28,8 +28,9 @@ from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import pymatgen.analysis.structure_analyzer as analy
 
+from abics import __version__
 from abics.exception import InputError
-from abics.mc import model
+from abics.mc import Model
 from abics.util import read_vector, read_matrix, read_tensor
 
 
@@ -133,7 +134,7 @@ def perturb_structure(st: Structure, distance: float) -> None:
         strength of perturb
     """
     N = st.num_sites
-    seldyn = np.array(st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float)
+    seldyn = np.array(st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float64)
     assert seldyn.shape == (N, 3)
     seldyn *= rand.randn(N, 3)
     for i in range(N):
@@ -143,12 +144,12 @@ def perturb_structure(st: Structure, distance: float) -> None:
             st.sites[i].coords += seldyn[i, :] / norm * distance
 
 
-class dft_latgas(model):
+class DFTLatticeGas(Model):
     """
-    This class defines the DFT lattice gas mapping  model
+    This class defines the DFT lattice gas mapping model
     """
 
-    model_name = "dft_latgas"
+    model_name = "DFTLatticeGas"
 
     def __init__(
         self,
@@ -347,7 +348,7 @@ class dft_latgas(model):
         return config
 
 
-class energy_lst(dft_latgas):
+class EnergyList(DFTLatticeGas):
     def __init__(
         self,
         calcode,
@@ -403,7 +404,7 @@ class energy_lst(dft_latgas):
         return np.float64(self.energy_list[rep_id])
 
 
-class group(object):
+class Group:
     def __init__(
         self, name, species, *, coords=None, relaxations=None, magnetizations=None
     ):
@@ -439,7 +440,7 @@ class group(object):
         self.natoms = len(species)
 
 
-class defect_sublattice(object):
+class DefectSublattice:
     def __init__(self, site_centers, groups):
         """
 
@@ -460,7 +461,7 @@ class defect_sublattice(object):
             self.group_dict[group.name] = group
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d) -> "DefectSublattice":
         """
 
         Parameters
@@ -508,7 +509,7 @@ class defect_sublattice(object):
                     )
                 )
             groups.append(
-                group(
+                Group(
                     name,
                     species,
                     coords=coords,
@@ -519,7 +520,7 @@ class defect_sublattice(object):
         return cls(site_centers, groups)
 
 
-def base_structure(lat, dict_str):
+def base_structure(lat, dict_str) -> Structure:
     """
 
     Parameters
@@ -600,12 +601,12 @@ def base_structure(lat, dict_str):
     )
 
 
-class config:
+class Config:
     """This class defines the config with lattice gas mapping"""
 
     def __init__(
         self,
-        base_structure,
+        base_structure: Structure,
         defect_sublattices,
         num_defects,
         cellsize=[1, 1, 1],
@@ -937,3 +938,12 @@ class ObserverParams:
         import toml
 
         return cls.from_dict(toml.load(f))
+
+
+# For backward compatibility
+if __version__ < "3":
+    dft_latgas = DFTLatticeGas
+    energy_lst = EnergyList
+    group = Group
+    defect_sublattice = DefectSublattice
+    config = Config

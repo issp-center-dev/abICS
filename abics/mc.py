@@ -14,7 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import Any, List, Tuple
+from numpy.typing import NDArray
+
 from math import exp
+
+from abc import ABCMeta, abstractmethod
 
 # import SFMT_cython.sfmt_random as sfmt_random
 # from multiprocessing import Process, Queue, Pool, TimeoutError
@@ -23,22 +28,25 @@ import sys
 import numpy as np
 import numpy.random as rand
 
+from abics import __version__
+
 verylargeint = sys.maxsize
 
 
 """Defines base classes for Monte Carlo simulations"""
 
 
-class model:
+class Model(metaclass=ABCMeta):
     """This class defines a model whose energy equals 0 no matter the configuration, and the configuration
     never changes.
     This is a base template for building useful models."""
 
-    model_name = None
+    model_name = ""
 
     # def __init__(self):
 
-    def energy(self, config):
+    @abstractmethod
+    def energy(self, config) -> float:
         """
         Calculate energy of configuration: input: config
 
@@ -49,37 +57,42 @@ class model:
 
         Returns
         -------
+        energy: float
 
         """
-        return 0.0
+        ...
 
-    def trialstep(self, config, energy):
-        """
-        Define a trial step on config. Returns dconfig, which can contain the minimal information for
+    @abstractmethod
+    def trialstep(self, config, energy: float) -> Tuple[Any, float]:
+        """ Define a trial step on config
+
+        Returns dconfig, which can contain the minimal information for
         constructing the trial configuration from config to be used in newconfig().
         Make sure that config is unchanged.
 
         Parameters
         ----------
         config: config object
-            configuration
+            current configuration
 
         energy: float
-            energy
+            current energy
+
         Returns
         -------
         dconfig: config object
-            The minimal information for constructing the trial configuration from config to be used in newconfig()
+            The minimal information for constructing the trial configuration
+            from config to be used in newconfig()
         dE: float
-            Energy diffence
+            Energy difference
         """
-        dE = 0.0
-        dconfig = None
+
         # Return only change in configuration dconfig so that
         # you don't have to copy entire configurations,
         # which can sometimes be costly
-        return dconfig, dE
+        ...
 
+    @abstractmethod
     def newconfig(self, config, dconfig):
         """
         Update config by using the trial step, dconfig
@@ -99,8 +112,7 @@ class model:
         """
         return config
 
-
-class grid_1D:
+class Grid1D:
     def __init__(self, dx, minx, maxx):
         """
 
@@ -136,7 +148,7 @@ def binning(x, nlevels):
     error_estimate = []
     x = np.array(x, dtype=np.float64)
     # assert 2**nlevels*10 < len(x)
-    throwout = len(x) % (2 ** nlevels)
+    throwout = len(x) % (2**nlevels)
     if throwout != 0:
         # The number of measurements must be divisible by 2**nlevels
         # If not, throw out initial measurements
@@ -228,7 +240,7 @@ def obs_decode(args_info, obs_array):
     return args
 
 
-class observer_base:
+class ObserverBase:
     def __init__(self):
         self.lprintcount = 0
 
@@ -340,46 +352,24 @@ class observer_base:
             return obs_log
 
 
-class CanonicalMonteCarlo:
-    def __init__(self, model, kT, config):
-        """
+class MCAlgorithm(metaclass=ABCMeta):
 
-        Parameters
-        ----------
-        model: dft_latgas object
-            DFT lattice gas mapping model
-        kT: float
-            Temperature
-        config: config object
-            Configuration
-        """
-        self.model = model
-        self.config = config
-        self.kT = kT
-        self.obs_save = []
+    model: Model
+    config: Any
+    obs_save: List[NDArray]
 
-    # @profile
+    @abstractmethod
     def MCstep(self):
-        dconfig, dE = self.model.trialstep(self.config, self.energy)
-        # if self.energy == float("inf"):
-        #    self.config = self.model.newconfig(self.config, dconfig)
-        #    self.energy = dE
-        if dE < 0.0:
-            self.config = self.model.newconfig(self.config, dconfig)
-            self.energy += dE
-        else:
-            accept_probability = exp(-dE / self.kT)
-            if rand.random() <= accept_probability:
-                self.config = self.model.newconfig(self.config, dconfig)
-                self.energy += dE
+        """perform one MC step"""
+        ...
 
     def run(
         self,
-        nsteps,
-        sample_frequency=verylargeint,
-        print_frequency=verylargeint,
-        observer=observer_base(),
-        save_obs=False,
+        nsteps: int,
+        sample_frequency: int = verylargeint,
+        print_frequency: int = verylargeint,
+        observer: ObserverBase = ObserverBase(),
+        save_obs: bool = False,
     ):
         """
 
@@ -428,82 +418,48 @@ class CanonicalMonteCarlo:
             return None
 
 
+class CanonicalMonteCarlo(MCAlgorithm):
+    def __init__(self, model, kT, config):
+        """
+
+        Parameters
+        ----------
+        model: dft_latgas object
+            DFT lattice gas mapping model
+        kT: float
+            Temperature
+        config: config object
+            Configuration
+        """
+        self.model = model
+        self.config = config
+        self.kT = kT
+        self.obs_save = []
+
+    # @profile
+    def MCstep(self):
+        dconfig, dE = self.model.trialstep(self.config, self.energy)
+        # if self.energy == float("inf"):
+        #    self.config = self.model.newconfig(self.config, dconfig)
+        #    self.energy = dE
+        if dE < 0.0:
+            self.config = self.model.newconfig(self.config, dconfig)
+            self.energy += dE
+        else:
+            accept_probability = exp(-dE / self.kT)
+            if rand.random() <= accept_probability:
+                self.config = self.model.newconfig(self.config, dconfig)
+                self.energy += dE
+
+
 class RandomSampling(CanonicalMonteCarlo):
     def MCstep(self):
         self.config.shuffle()
         self.energy = self.model.energy(self.config)
 
 
-# def swap_configs(MCreplicas, rep, accept_count):
-#     """
-#
-#     Parameters
-#     ----------
-#     MCreplicas:
-#     rep:
-#     accept_count:
-#
-#     Returns
-#     -------
-#
-#     """
-#     # swap configs, energy
-#     tmp = MCreplicas[rep + 1].config
-#     tmpe = MCreplicas[rep + 1].energy
-#     MCreplicas[rep + 1].config = MCreplicas[rep].config
-#     MCreplicas[rep + 1].energy = MCreplicas[rep].energy
-#     MCreplicas[rep].config = tmp
-#     MCreplicas[rep].energy = tmpe
-#     accept_count += 1
-#     return MCreplicas, accept_count
-
-
-"""
-class TemperatureReplicaExchange:
-
-    def __init__(self, model, kTs, configs, MCalgo, swap_algo=swap_configs):
-        assert len(kTs) == len(configs)
-        self.model = model
-        self.kTs = kTs
-        self.betas = 1.0/kTs
-        self.n_replicas = len(kTs)
-        self.MCreplicas = []
-        self.accept_count = 0
-        self.swap_algo = swap_algo
-        self.writefunc = writefunc
-        self.configs = configs
-        for i in range(self.n_replicas):
-            self.MCreplicas.append(MCalgo(model, kTs[i], configs[i], writefunc))
-
-    def Xtrial(self):
-        # pick a replica
-        rep = randrange(self.n_replicas - 1)
-        delta = (self.betas[rep + 1] - self.betas[rep]) \
-                *(self.MCreplicas[rep].energy -
-                  self.MCreplicas[rep+1].energy)
-        #print self.MCreplicas[rep].energy, self.model.energy(self.MCreplicas[rep].config)
-
-        if delta < 0.0:
-            self.MCreplicas, self.accept_count = self.swap_algo(self.MCreplicas,
-                                                           rep, self.accept_count)
-            print("RXtrial accepted")
-        else:
-            accept_probability = exp(-delta)
-            #print accept_probability, "accept prob"
-            if rand.random() <= accept_probability:
-                self.MCreplicas, self.accept_count = self.swap_algo(self.MCreplicas,
-                                                           rep, self.accept_count)
-                print("RXtrial accepted")
-            else:
-                print("RXtrial rejected")
-
-    def run(self, nsteps, RXtrial_frequency, pool, sample_frequency=0, subdirs=False):
-        self.accept_count = 0
-        outerloop = nsteps//RXtrial_frequency
-        for i in range(outerloop):
-            self.MCreplicas = MultiProcessReplicaRun(self.MCreplicas, RXtrial_frequency, pool, sample_frequency, subdirs)
-            self.Xtrial()
-        self.configs = [MCreplica.config for MCreplica in self.MCreplicas]
-        #print self.accept_count
-        #self.accept_count = 0
-"""
+# For backward compatibility
+if __version__ < "3":
+    model = Model
+    grid_1D = Grid1D
+    observer_base = ObserverBase
