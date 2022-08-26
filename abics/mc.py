@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, TextIO, Union
 from numpy.typing import NDArray
 
 from math import exp
@@ -64,7 +64,7 @@ class Model(metaclass=ABCMeta):
 
     @abstractmethod
     def trialstep(self, config, energy: float) -> Tuple[Any, float]:
-        """ Define a trial step on config
+        """Define a trial step on config
 
         Returns dconfig, which can contain the minimal information for
         constructing the trial configuration from config to be used in newconfig().
@@ -112,6 +112,7 @@ class Model(metaclass=ABCMeta):
         """
         return config
 
+
 class Grid1D:
     def __init__(self, dx, minx, maxx):
         """
@@ -130,7 +131,7 @@ class Grid1D:
         self.x = np.arange(minx, maxx, dx)
 
 
-def binning(x, nlevels):
+def binning(x, nlevels: int):
     """
 
     Parameters
@@ -161,12 +162,53 @@ def binning(x, nlevels):
     return error_estimate
 
 
-empty_array = np.array([])
+class ObsInfo:
+    nargs: int
+    lengths: List[int]
+
+    def __init__(self, *args):
+        """
+
+        Parameters
+        ----------
+        args: list
+        """
+        self.nargs = len(args)
+        self.lengths = []
+        for arg in args:
+            # Inelegant way to make everything a 1D array
+            arg = np.array([arg])
+            arg = arg.ravel()
+            self.lengths.append(len(arg))
+
+    def decode(self, obs_array):
+        """
+
+        Parameters
+        ----------
+        obs_array: numpy array
+
+        Returns
+        -------
+        obs: list
+
+        """
+
+        obs = []
+        idx = 0
+        for i in range(self.nargs):
+            length = self.lengths[i]
+            if length == 1:
+                obs.append(obs_array[idx])
+            else:
+                obs.append(obs_array[idx : idx + length])
+            idx += length
+        return obs
 
 
 # @profile
 def obs_encode(*args):
-    """
+    """make pure 1D data
 
     Parameters
     ----------
@@ -179,7 +221,7 @@ def obs_encode(*args):
     """
     # nargs = np.array([len(args)])
     # args_length_list = []
-    obs_array = empty_array
+    obs_array = np.array([])
     for arg in args:
         # Inelegant way to make everything a 1D array
         arg = np.array([arg])
@@ -191,65 +233,16 @@ def obs_encode(*args):
     return obs_array
 
 
-def args_info(*args):
-    """
-
-    Parameters
-    ----------
-    args: list
-
-    Returns
-    -------
-    args_info: numpy array
-    """
-    nargs = np.array([len(args)])
-    args_length_list = []
-    for arg in args:
-        # Inelegant way to make everything a 1D array
-        arg = np.array([arg])
-        arg = arg.ravel()
-        args_length_list.append(len(arg))
-    args_length_array = np.array(args_length_list)
-    args_info = np.concatenate((nargs, args_length_array))
-    return args_info
-
-
-def obs_decode(args_info, obs_array):
-    """
-
-    Parameters
-    ----------
-    args_info: numpy array
-    obs_array: numpy array
-
-    Returns
-    -------
-    args: list
-    """
-    nargs = args_info[0]
-    args_length_array = args_info[1 : nargs + 1]
-    args = []
-    idx = 0
-    for i in range(nargs):
-        length = args_length_array[i]
-        if length == 1:
-            args.append(obs_array[idx])
-        else:
-            args.append(obs_array[idx : idx + length])
-        idx += length
-    return args
-
-
 class ObserverBase:
     def __init__(self):
         self.lprintcount = 0
 
-    def obs_info(self, calc_state):
+    def obs_info(self, calc_state: "MCAlgorithm") -> ObsInfo:
         """
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
@@ -261,21 +254,21 @@ class ObserverBase:
         if not isinstance(obs_log, tuple):
             obs_log = (obs_log,)
         obs_ND = []
-        obs_save = self.savefuncs(calc_state)
-        if obs_save is not None:
+        obs_save = self.savefunc(calc_state)
+        if len(obs_save) > 0:
             if isinstance(obs_save, tuple):
                 for obs in obs_save:
                     obs_ND.append(obs)
             else:
                 obs_ND.append(obs_save)
-        return args_info(*obs_log, *obs_ND)
+        return ObsInfo(*obs_log, *obs_ND)
 
-    def logfunc(self, calc_state):
-        """
+    def logfunc(self, calc_state: "MCAlgorithm") -> Tuple[float]:
+        """returns values of observables
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
@@ -285,25 +278,25 @@ class ObserverBase:
         """
         return (calc_state.energy,)
 
-    def savefuncs(self, calc_state):
-        """
+    def savefunc(self, calc_state: "MCAlgorithm") -> Union[Tuple[float], Tuple[()]]:
+        """returns values of observables, which will be not printed in observe method.
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
         -------
         """
-        return None
+        return ()
 
-    def writefile(self, calc_state):
+    def writefile(self, calc_state: "MCAlgorithm") -> None:
         """
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
@@ -312,12 +305,12 @@ class ObserverBase:
         """
         return None
 
-    def observe(self, calc_state, outputfi, lprint=True):
+    def observe(self, calc_state: "MCAlgorithm", outputfi: TextIO, lprint=True):
         """
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
         outputfi: _io.TextIOWrapper
             TextIOWrapper for output
@@ -331,19 +324,18 @@ class ObserverBase:
         """
         obs_log = np.atleast_1d(self.logfunc(calc_state))
         if lprint:
-            outputfi.write(
-                str(self.lprintcount)
-                + "\t"
-                + str(calc_state.kT)
-                + "\t"
-                + "\t".join([str(x) for x in obs_log])
-                + "\n"
-            )
+            line = f"{self.lprintcount}\t"
+            for p in calc_state.parameters():
+                line += f"{p}\t"
+            for x in obs_log:
+                line += f"{x}\t"
+            line += "\n"
+            outputfi.write(line)
             outputfi.flush()
             self.writefile(calc_state)
             self.lprintcount += 1
-        obs_save = self.savefuncs(calc_state)
-        if obs_save is not None:
+        obs_save = np.atleast_1d(self.savefunc(calc_state))
+        if len(obs_save) > 0:
             obs_save = np.atleast_1d(obs_save)
             obs_save = obs_save.ravel()
             print(obs_log.shape, obs_save.shape)
@@ -359,8 +351,17 @@ class MCAlgorithm(metaclass=ABCMeta):
     obs_save: List[NDArray]
 
     @abstractmethod
-    def MCstep(self):
+    def __init__(self, *args):
+        ...
+
+    @abstractmethod
+    def MCstep(self) -> None:
         """perform one MC step"""
+        ...
+
+    @abstractmethod
+    def parameters(self) -> List:
+        """returns parameters (e.g., temperature)"""
         ...
 
     def run(
@@ -386,18 +387,19 @@ class MCAlgorithm(metaclass=ABCMeta):
 
         Returns
         -------
-        obs_decode: list
+        observables: list
         """
+
         observables = 0.0
         nsample = 0
         self.energy = self.model.energy(self.config)
+
         output = open("obs.dat", "a")
         with open(os.devnull, "w") as f:
             if hasattr(observer.observe(self, f), "__add__"):
                 observe = True
             else:
                 observe = False
-
         for i in range(1, nsteps + 1):
             self.MCstep()
             sys.stdout.flush()
@@ -408,24 +410,24 @@ class MCAlgorithm(metaclass=ABCMeta):
                 if save_obs:
                     self.obs_save.append(obs_step)
         output.close()
+
         if save_obs:
             np.save(open("obs_save.npy", "wb"), np.array(self.obs_save))
         if nsample > 0:
             observables /= nsample
-            args_info = observer.obs_info(self)
-            return obs_decode(args_info, observables)
+            obs_info = observer.obs_info(self)
+            return obs_info.decode(observables)
         else:
             return None
 
 
 class CanonicalMonteCarlo(MCAlgorithm):
-    def __init__(self, model, kT, config):
+    def __init__(self, model: Model, kT: float, config):
         """
 
         Parameters
         ----------
-        model: dft_latgas object
-            DFT lattice gas mapping model
+        model: Model
         kT: float
             Temperature
         config: config object
@@ -450,6 +452,9 @@ class CanonicalMonteCarlo(MCAlgorithm):
             if rand.random() <= accept_probability:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
+
+    def parameters(self):
+        return [self.kT]
 
 
 class RandomSampling(CanonicalMonteCarlo):

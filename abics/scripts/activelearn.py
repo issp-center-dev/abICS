@@ -44,8 +44,8 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    runner,
-    runner_multistep,
+    Runner,
+    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver

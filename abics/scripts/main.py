@@ -46,9 +46,9 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    runner,
-    runner_ensemble,
-    runner_multistep,
+    Runner,
+    RunnerEnsemble,
+    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
@@ -163,10 +163,10 @@ def main_impl(tomlfile):
                 "You must specify more than one base_input_dir for ensemble calculator"
             )
             sys.exit(1)
-        energy_calculator = runner_ensemble(
+        energy_calculator = RunnerEnsemble(
             base_input_dirs=dftparams.base_input_dir,
             Solver=solver,
-            runner=runner,
+            runner=Runner,
             nprocs_per_solver=nprocs_per_replica,
             comm=commEnsemble,
             perturb=dftparams.perturb,
@@ -175,7 +175,7 @@ def main_impl(tomlfile):
         )
     else:
         if len(dftparams.base_input_dir) == 1:
-            energy_calculator = runner(
+            energy_calculator = Runner(
                 base_input_dir=dftparams.base_input_dir[0],
                 Solver=solver,
                 nprocs_per_solver=nprocs_per_replica,
@@ -185,10 +185,10 @@ def main_impl(tomlfile):
                 use_tmpdir=dftparams.use_tmpdir,
             )
         else:
-            energy_calculator = runner_multistep(
+            energy_calculator = RunnerMultistep(
                 base_input_dirs=dftparams.base_input_dir,
                 Solver=solver,
-                runner=runner,
+                runner=Runner,
                 nprocs_per_solver=nprocs_per_replica,
                 comm=MPI.COMM_SELF,
                 perturb=dftparams.perturb,
@@ -243,7 +243,7 @@ def main_impl(tomlfile):
             sys.exit(1)
 
         energy_calculators = [
-            runner(
+            Runner(
                 base_input_dir=base_input_dir,
                 Solver=copy.deepcopy(solver),
                 nprocs_per_solver=nprocs_per_replica,

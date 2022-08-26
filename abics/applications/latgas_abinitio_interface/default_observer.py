@@ -14,12 +14,14 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import Tuple
+
 import os
 import numpy as np
 
 from abics import __version__
 from abics.util import expand_path
-from abics.mc import ObserverBase
+from abics.mc import ObserverBase, MCAlgorithm
 
 
 class DefaultObserver(ObserverBase):
@@ -51,34 +53,15 @@ class DefaultObserver(ObserverBase):
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
-    def logfunc(self, calc_state):
-        """
-
-        Parameters
-        ----------
-        calc_state: MCalgo
-        Object of Monte Carlo algorithm
-        Returns
-        -------
-        calc_state.energy : float
-        Minimum energy
-        """
+    def logfunc(self, calc_state: MCAlgorithm) -> Tuple[float]:
         if calc_state.energy < self.minE:
             self.minE = calc_state.energy
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             calc_state.config.structure_norel.to(fmt="POSCAR", filename="minE.vasp")
-        return calc_state.energy
+        return (calc_state.energy,)
 
-    def writefile(self, calc_state):
-        """
-
-        Parameters
-        ----------
-        calc_state: MCalgo
-        Object of Monte Carlo algorithm
-
-        """
+    def writefile(self, calc_state: MCAlgorithm) -> None:
         calc_state.config.structure.to(
             fmt="POSCAR", filename="structure." + str(self.lprintcount) + ".vasp"
         )
@@ -104,7 +87,7 @@ class EnsembleErrorObserver(DefaultObserver):
         self.calculators = energy_calculators
         self.comm = comm
 
-    def logfunc(self, calc_state):
+    def logfunc(self, calc_state: MCAlgorithm):
         if calc_state.energy < self.minE:
             self.minE = calc_state.energy
             with open("minEfi.dat", "a") as f:

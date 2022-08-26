@@ -46,10 +46,10 @@ if __name__ == '__main__':
     phys.structure.add_site_property("seldyn", [[False, False, False]] * len(phys.structure.sites))
     input.update_info_by_structure(phys.structure)
     # test subprocess mode and seldyn
-    from abics.applications.latgas_abinitio_interface.run_base_mpi import runner
+    from abics.applications.latgas_abinitio_interface.run_base_mpi import Runner
     from mpi4py import MPI
     nprocs_per_replica = 1
-    energy_calculator = runner(
+    energy_calculator = Runner(
         base_input_dir=base_dir,
         Solver=solver,
         nprocs_per_solver=nprocs_per_replica,

@@ -38,8 +38,8 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    runner,
-    runner_multistep,
+    Runner,
+    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
@@ -82,7 +82,7 @@ def main_impl(tomlfile):
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
     if len(alparams.base_input_dir) == 1:
-        energy_calculator = runner(
+        energy_calculator = Runner(
             base_input_dir=alparams.base_input_dir[0],
             Solver=solver,
             nprocs_per_solver=nprocs_per_replica,
@@ -91,10 +91,10 @@ def main_impl(tomlfile):
             solver_run_scheme=alparams.solver_run_scheme,
         )
     else:
-        energy_calculator = runner_multistep(
+        energy_calculator = RunnerMultistep(
             base_input_dirs=alparams.base_input_dir,
             Solver=solver,
-            runner=runner,
+            runner=Runner,
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
             perturb=alparams.perturb,

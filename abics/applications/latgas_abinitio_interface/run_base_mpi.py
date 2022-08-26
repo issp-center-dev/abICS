@@ -14,6 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import Type, List
+from abc import ABCMeta, abstractmethod
+
 import copy
 import os
 import shlex
@@ -26,321 +29,36 @@ from mpi4py import MPI
 
 import numpy as np
 
+from abics import __version__
 from .model_setup import perturb_structure
 
 
-class runner(object):
-    """
-    Base class of runner (manager) of external solver program
-
-    Attributes
-    ----------
-    solver_name : str
-        Name of solver program
-    path_to_solver : str
-        Path to solver program
-    run : Any
-        Runner object
-    nprocs_per_solver : int
-        Number of processes which solver program uses
-    nthreads_per_proc : int
-        Number of threads which a solver process uses
-    comm : MPI.Comm
-        MPI Communicator
-    perturb : float
-        perturbation of atom position for structure optimization
-    base_solver_input : Solver.Input
-        Input manager
-    output : Solver.Output
-        Output manager
-    """
-
-    def __init__(
-        self,
-        base_input_dir,
-        Solver,
-        nprocs_per_solver,
-        comm,
-        perturb=0,
-        nthreads_per_proc=1,
-        solver_run_scheme="mpi_spawn_ready",
-        use_tmpdir=False,
-    ):
+class Run(metaclass=ABCMeta):
+    @abstractmethod
+    def submit(self, solver_name, solverinput, output_dir, rerun=0) -> int:
         """
-        Parameters
-        -----------
-        base_input_dir : str
-            Path to the directory including input file templates
-        Solver : SolverBase
-            Solver
-        nprocs_per_solver : int
-            Number of processes which one solver program uses
-        comm : MPI.Comm
-            MPI Communicator
-        perturb : float, default 0.0
-            Perturbation of atom position
-        nthreads_per_proc : int, default 1
-            Number of threads which one solver process uses
-        solver_run_scheme : str, default "mpi_spawn_ready"
-            Scheme how to invoke a solver program
-        use_tmpdir : bool, default False
-            Whether to use temporary directory for solver run
-
-        Raises
-        ------
-        ValueError
-            Raises ValueError if unknown `solver_run_scheme` is passed
-        """
-        self.solver_name = Solver.name()
-        self.path_to_solver = Solver.path_to_solver
-        self.base_solver_input = Solver.input
-        self.base_solver_input.from_directory(base_input_dir)
-        self.nprocs_per_solver = nprocs_per_solver
-        self.nthreads_per_proc = nthreads_per_proc
-        self.output = Solver.output
-        self.comm = comm
-        self.use_tmpdir = use_tmpdir
-
-        if self.use_tmpdir:
-            import tempfile
-            self.tmpdir = tempfile.TemporaryDirectory()
-        #    import shutil
-        #    shutil.copy(self.path_to_solver, self.tmpdir.name)
-        #    self.path_to_solver = os.path.join(self.tmpdir.name, os.path.basename(self.path_to_solver))
-        if solver_run_scheme not in Solver.solver_run_schemes():
-            print(
-                "{scheme} not implemented for {solver}".format(
-                    scheme=solver_run_scheme, solver=Solver.name()
-                )
-            )
-            sys.exit(1)
-        if solver_run_scheme == "mpi_spawn_ready":
-            self.run = run_mpispawn_ready(
-                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
-            )
-        elif solver_run_scheme == "mpi_spawn":
-            self.run = run_mpispawn(
-                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
-            )
-        elif solver_run_scheme == "mpi_spawn_wrapper":
-            self.run = run_mpispawn_wrapper(
-                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
-            )
-        elif solver_run_scheme == "subprocess":
-            self.run = run_subprocess(
-                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
-            )
-        elif solver_run_scheme == "function":
-            self.run = run_function(
-                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
-            )
-        else:
-            msg = "Unknown scheme: {}".format(solver_run_scheme)
-            raise ValueError(msg)
-        self.perturb = perturb
-
-    def submit(self, structure, output_dir):
-        """
-        Run a solver program and return results
+        Run solver
 
         Parameters
         ----------
-        structure : pymatgen.Structure
-            Structure of compounds
+        solver_name : str
+            Name of solver (e.g., VASP)
+        solverinput : Solver.Input
+            Input manager
         output_dir : str
-            Name of directory where solver program saves output files
+            Path to directory where a solver saves output
+        rerun : int, default = 2
+            How many times to restart solver on failed
 
         Returns
         -------
-        energy : float
-            Total energy
-        structure : pymatgen.Structure
-            Structure of compounds after optimization
+        status : int
+            Always returns 0
         """
-        if self.perturb:
-            perturb_structure(structure, self.perturb)
-        solverinput = self.base_solver_input
-        solverinput.update_info_by_structure(structure)
-        if self.use_tmpdir:
-            if output_dir[0] == "/":
-                output_dir = output_dir[1:]
-            output_dir = os.path.join(self.tmpdir.name, output_dir)
-        self.run.submit(self.solver_name, solverinput, output_dir)
-        results = self.output.get_results(output_dir)
-        return np.float64(results.energy), results.structure
+        ...
 
 
-class runner_multistep(object):
-    """
-    Sequential runner
-
-    Attributes
-    ----------
-    runners : list[runner]
-        Runners
-    """
-
-    def __init__(
-        self,
-        base_input_dirs,
-        Solver,
-        runner,
-        nprocs_per_solver,
-        comm,
-        perturb=0,
-        nthreads_per_proc=1,
-        solver_run_scheme="mpi_spawn_ready",
-        use_tmpdir=False,
-    ):
-        """
-        Parameters
-        ----------
-        base_input_dirs : list[str]
-            List of paths to directories including base input files
-        Solver : SolverBase
-            Solver
-        nprocs_per_solver : int
-            Number of processes which one solver program uses
-        comm : MPI.Comm
-            MPI Communicator
-        perturb : float, default 0.0
-            Perturbation of atom position
-        nthreads_per_proc : int, default 1
-            Number of threads which one solver process uses
-        solver_run_scheme : str, default "mpi_spawn_ready"
-            Scheme how to invoke a solver program
-        use_tmpdir : bool, default False
-            Whether to use temporary directory for solver run
-        """
-
-        self.runners = []
-        assert len(base_input_dirs) > 1
-        self.runners.append(
-            runner(
-                base_input_dirs[0],
-                copy.deepcopy(Solver),
-                nprocs_per_solver,
-                comm,
-                perturb,
-                nthreads_per_proc,
-                solver_run_scheme,
-                use_tmpdir,
-            )
-        )
-        for i in range(1, len(base_input_dirs)):
-            self.runners.append(
-                runner(
-                    base_input_dirs[i],
-                    copy.deepcopy(Solver),
-                    nprocs_per_solver,
-                    comm,
-                    perturb=0,
-                    nthreads_per_proc=nthreads_per_proc,
-                    solver_run_scheme=solver_run_scheme,
-                    use_tmpdir=use_tmpdir,
-                )
-            )
-
-    def submit(self, structure, output_dir):
-        site_properties = structure.site_properties
-        energy, newstructure = self.runners[0].submit(structure, output_dir)
-        newstructure = newstructure.copy(site_properties)
-        for i in range(1, len(self.runners)):
-            energy, newstructure = self.runners[i].submit(newstructure, output_dir)
-            newstructure = newstructure.copy(site_properties)
-        return energy, newstructure
-
-class runner_ensemble(object):
-    """
-    Ensemble runner
-
-    Attributes
-    ----------
-    runners : list[runner]
-        Runners
-    """
-
-    def __init__(
-        self,
-        base_input_dirs,
-        Solver,
-        runner,
-        nprocs_per_solver,
-        comm,
-        perturb=0,
-        nthreads_per_proc=1,
-        solver_run_scheme="mpi_spawn_ready",
-        use_tmpdir=False,
-    ):
-        """
-        Parameters
-        ----------
-        base_input_dirs : list[str]
-            List of paths to directories including base input files
-        Solver : SolverBase
-            Solver
-        nprocs_per_solver : int
-            Number of processes which one solver program uses
-        comm : MPI.Comm
-            MPI Communicator
-        perturb : float, default 0.0
-            Perturbation of atom position
-        nthreads_per_proc : int, default 1
-            Number of threads which one solver process uses
-        solver_run_scheme : str, default "mpi_spawn_ready"
-            Scheme how to invoke a solver program
-        use_tmpdir : bool, default False
-            Whether to use temporary directory for solver run
-        """
-
-        self.runners = []
-        assert len(base_input_dirs) > 1
-        self.runners.append(
-            runner(
-                base_input_dirs[0],
-                copy.deepcopy(Solver),
-                nprocs_per_solver,
-                comm,
-                perturb,
-                nthreads_per_proc,
-                solver_run_scheme,
-                use_tmpdir=use_tmpdir,
-            )
-        )
-        for i in range(1, len(base_input_dirs)):
-            self.runners.append(
-                runner(
-                    base_input_dirs[i],
-                    copy.deepcopy(Solver),
-                    nprocs_per_solver,
-                    comm,
-                    perturb=0,
-                    nthreads_per_proc=nthreads_per_proc,
-                    solver_run_scheme=solver_run_scheme,
-                    use_tmpdir=use_tmpdir,
-                )
-            )
-        self.comm = comm
-
-    def submit(self, structure, output_dir):
-        
-        npar = self.comm.Get_size()
-        if npar > 1:
-            assert(npar == len(self.runners))
-            myrank = self.comm.Get_rank()
-            energy, _ = self.runners[myrank].submit(structure, os.path.join(output_dir,"ensemble{}".format(myrank)))
-            energies = self.comm.allgather(energy)
-        else:
-            energies = []
-            for i in range(len(self.runners)):
-                energy, _ = self.runners[i].submit(structure, os.path.join(output_dir,"ensemble{}".format(i)))
-                energies.append(energy)
-
-        return np.mean(energies), structure
-
-
-
-class run_mpispawn:
+class Run_mpispawn(Run):
     """
     Invoker via mpi_comm_spawn
 
@@ -405,45 +123,14 @@ class run_mpispawn:
             Always returns 0
         """
         solverinput.write_input(output_dir)
-
-        # Barrier so that spawn is atomic between processes.
-        # This is to make sure that vasp processes are spawned one by one according to
-        # MPI policy (hopefully on adjacent nodes)
-        # (might be MPI implementation dependent...)
-
-        # for i in range(self.commsize):
-        #    self.comm.Barrier()
-        #    if i == self.commrank:
-        failed_dir = []
         cl_argslist = self.comm.gather(
             solverinput.cl_args(self.nprocs, self.nthreads, output_dir), root=0
         )
         solverrundirs = self.comm.gather(output_dir, root=0)
 
-        # checkfilename = "abacus_solver_finished"
-
         if self.commrank == 0:
             for rundir in solverrundirs:
                 solverinput.cleanup(rundir)
-
-            # wrappers = [
-            #     "rm -f {checkfile}; {solvername} {cl_args}; echo $? > {checkfile}".format(
-            #         checkfile=shlex.quote(
-            #             os.path.join(rundir, checkfilename)
-            #         ),
-            #         solvername=self.path_to_solver,
-            #         cl_args=" ".join(map(shlex.quote, cl_args)),
-            #     )
-            #     for cl_args in cl_argslist
-            # ]
-            #
-            # start = timer()
-            # commspawn = [
-            #     MPI.COMM_SELF.Spawn(
-            #         os.getenv('SHELL'), args=["-c", wrapper], maxprocs=self.nprocs
-            #     )
-            #     for wrapper in wrappers
-            # ]
 
             start = timer()
             commspawn = [
@@ -470,27 +157,11 @@ class run_mpispawn:
                 end - start,
                 " for " + solver_name + "execution",
             )
-
-            # if len(failed_dir) != 0:
-            #     print(
-            #         solver_name + " failed in directories: \n " + "\n".join(failed_dir)
-            #     )
-            #     sys.stdout.flush()
-            #     if rerun == 0:
-            #         MPI.COMM_WORLD.Abort()
         self.comm.Barrier()
-
-        # Rerun if Solver failed
-        # failed_dir = self.comm.bcast(failed_dir, root=0)
-        # if len(failed_dir) != 0:
-        #     solverinput.update_info_from_files(output_dir, rerun)
-        #     rerun -= 1
-        #     self.submit(solverinput, output_dir, rerun)
-
         return 0
 
 
-class run_mpispawn_ready:
+class Run_mpispawn_ready(Run):
     """
     Invoker via mpi_comm_spawn for solvers which is MPI_Comm_spawn-ready
 
@@ -638,7 +309,7 @@ class run_mpispawn_ready:
         return 0
 
 
-class run_mpispawn_wrapper:
+class Run_mpispawn_wrapper(Run):
     """
     Invoker via mpi_comm_spawn
 
@@ -775,7 +446,7 @@ class run_mpispawn_wrapper:
         return 0
 
 
-class run_subprocess:
+class Run_subprocess(Run):
     """
     Invoker via subprocess
 
@@ -856,7 +527,7 @@ class run_subprocess:
         return 0
 
 
-class run_function:
+class Run_function(Run):
     """
     Invoker via function call
 
@@ -929,3 +600,333 @@ class run_function:
 
         os.chdir(cwd)
         return 0
+
+
+## Runners ##################################
+class Runner:
+    """
+    Base class of runner (manager) of external solver program
+
+    Attributes
+    ----------
+    solver_name : str
+        Name of solver program
+    path_to_solver : str
+        Path to solver program
+    run : Any
+        Runner object
+    nprocs_per_solver : int
+        Number of processes which solver program uses
+    nthreads_per_proc : int
+        Number of threads which a solver process uses
+    comm : MPI.Comm
+        MPI Communicator
+    perturb : float
+        perturbation of atom position for structure optimization
+    base_solver_input : Solver.Input
+        Input manager
+    output : Solver.Output
+        Output manager
+    """
+
+    run: Run
+
+    def __init__(
+        self,
+        base_input_dir,
+        Solver,
+        nprocs_per_solver,
+        comm,
+        perturb=0,
+        nthreads_per_proc=1,
+        solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
+    ):
+        """
+        Parameters
+        -----------
+        base_input_dir : str
+            Path to the directory including input file templates
+        Solver : SolverBase
+            Solver
+        nprocs_per_solver : int
+            Number of processes which one solver program uses
+        comm : MPI.Comm
+            MPI Communicator
+        perturb : float, default 0.0
+            Perturbation of atom position
+        nthreads_per_proc : int, default 1
+            Number of threads which one solver process uses
+        solver_run_scheme : str, default "mpi_spawn_ready"
+            Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
+
+        Raises
+        ------
+        ValueError
+            Raises ValueError if unknown `solver_run_scheme` is passed
+        """
+        self.solver_name = Solver.name()
+        self.path_to_solver = Solver.path_to_solver
+        self.base_solver_input = Solver.input
+        self.base_solver_input.from_directory(base_input_dir)
+        self.nprocs_per_solver = nprocs_per_solver
+        self.nthreads_per_proc = nthreads_per_proc
+        self.output = Solver.output
+        self.comm = comm
+        self.use_tmpdir = use_tmpdir
+
+        if self.use_tmpdir:
+            import tempfile
+
+            self.tmpdir = tempfile.TemporaryDirectory()
+        #    import shutil
+        #    shutil.copy(self.path_to_solver, self.tmpdir.name)
+        #    self.path_to_solver = os.path.join(self.tmpdir.name, os.path.basename(self.path_to_solver))
+        if solver_run_scheme not in Solver.solver_run_schemes():
+            print(
+                "{scheme} not implemented for {solver}".format(
+                    scheme=solver_run_scheme, solver=Solver.name()
+                )
+            )
+            sys.exit(1)
+        if solver_run_scheme == "mpi_spawn_ready":
+            self.run = Run_mpispawn_ready(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
+        elif solver_run_scheme == "mpi_spawn":
+            self.run = Run_mpispawn(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
+        elif solver_run_scheme == "mpi_spawn_wrapper":
+            self.run = Run_mpispawn_wrapper(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
+        elif solver_run_scheme == "subprocess":
+            self.run = Run_subprocess(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
+        elif solver_run_scheme == "function":
+            self.run = Run_function(
+                self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
+            )
+        else:
+            msg = "Unknown scheme: {}".format(solver_run_scheme)
+            raise ValueError(msg)
+        self.perturb = perturb
+
+    def submit(self, structure, output_dir):
+        """
+        Run a solver program and return results
+
+        Parameters
+        ----------
+        structure : pymatgen.Structure
+            Structure of compounds
+        output_dir : str
+            Name of directory where solver program saves output files
+
+        Returns
+        -------
+        energy : float
+            Total energy
+        structure : pymatgen.Structure
+            Structure of compounds after optimization
+        """
+        if self.perturb:
+            perturb_structure(structure, self.perturb)
+        solverinput = self.base_solver_input
+        solverinput.update_info_by_structure(structure)
+        if self.use_tmpdir:
+            if output_dir[0] == "/":
+                output_dir = output_dir[1:]
+            output_dir = os.path.join(self.tmpdir.name, output_dir)
+        self.run.submit(self.solver_name, solverinput, output_dir)
+        results = self.output.get_results(output_dir)
+        return np.float64(results.energy), results.structure
+
+
+class RunnerMultistep:
+    """
+    Sequential runner
+
+    Attributes
+    ----------
+    runners : list[Runner]
+        Runners
+    """
+
+    def __init__(
+        self,
+        base_input_dirs,
+        Solver,
+        runner: Type[Runner],
+        nprocs_per_solver,
+        comm,
+        perturb=0,
+        nthreads_per_proc=1,
+        solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
+    ):
+        """
+        Parameters
+        ----------
+        base_input_dirs : list[str]
+            List of paths to directories including base input files
+        Solver : SolverBase
+            Solver
+        nprocs_per_solver : int
+            Number of processes which one solver program uses
+        comm : MPI.Comm
+            MPI Communicator
+        perturb : float, default 0.0
+            Perturbation of atom position
+        nthreads_per_proc : int, default 1
+            Number of threads which one solver process uses
+        solver_run_scheme : str, default "mpi_spawn_ready"
+            Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
+        """
+
+        self.runners = []
+        assert len(base_input_dirs) > 1
+        self.runners.append(
+            runner(
+                base_input_dirs[0],
+                copy.deepcopy(Solver),
+                nprocs_per_solver,
+                comm,
+                perturb,
+                nthreads_per_proc,
+                solver_run_scheme,
+                use_tmpdir,
+            )
+        )
+        for i in range(1, len(base_input_dirs)):
+            self.runners.append(
+                runner(
+                    base_input_dirs[i],
+                    copy.deepcopy(Solver),
+                    nprocs_per_solver,
+                    comm,
+                    perturb=0,
+                    nthreads_per_proc=nthreads_per_proc,
+                    solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
+                )
+            )
+
+    def submit(self, structure, output_dir):
+        site_properties = structure.site_properties
+        energy, newstructure = self.runners[0].submit(structure, output_dir)
+        newstructure = newstructure.copy(site_properties)
+        for i in range(1, len(self.runners)):
+            energy, newstructure = self.runners[i].submit(newstructure, output_dir)
+            newstructure = newstructure.copy(site_properties)
+        return energy, newstructure
+
+
+class RunnerEnsemble:
+    """
+    Ensemble runner
+
+    Attributes
+    ----------
+    runners : list[Runner]
+        Runners
+    """
+
+    def __init__(
+        self,
+        base_input_dirs,
+        Solver,
+        runner: Type[Runner],
+        nprocs_per_solver,
+        comm,
+        perturb=0,
+        nthreads_per_proc=1,
+        solver_run_scheme="mpi_spawn_ready",
+        use_tmpdir=False,
+    ):
+        """
+        Parameters
+        ----------
+        base_input_dirs : list[str]
+            List of paths to directories including base input files
+        Solver : SolverBase
+            Solver
+        nprocs_per_solver : int
+            Number of processes which one solver program uses
+        comm : MPI.Comm
+            MPI Communicator
+        perturb : float, default 0.0
+            Perturbation of atom position
+        nthreads_per_proc : int, default 1
+            Number of threads which one solver process uses
+        solver_run_scheme : str, default "mpi_spawn_ready"
+            Scheme how to invoke a solver program
+        use_tmpdir : bool, default False
+            Whether to use temporary directory for solver run
+        """
+
+        self.runners = []
+        assert len(base_input_dirs) > 1
+        self.runners.append(
+            runner(
+                base_input_dirs[0],
+                copy.deepcopy(Solver),
+                nprocs_per_solver,
+                comm,
+                perturb,
+                nthreads_per_proc,
+                solver_run_scheme,
+                use_tmpdir=use_tmpdir,
+            )
+        )
+        for i in range(1, len(base_input_dirs)):
+            self.runners.append(
+                runner(
+                    base_input_dirs[i],
+                    copy.deepcopy(Solver),
+                    nprocs_per_solver,
+                    comm,
+                    perturb=0,
+                    nthreads_per_proc=nthreads_per_proc,
+                    solver_run_scheme=solver_run_scheme,
+                    use_tmpdir=use_tmpdir,
+                )
+            )
+        self.comm = comm
+
+    def submit(self, structure, output_dir):
+
+        npar = self.comm.Get_size()
+        if npar > 1:
+            assert npar == len(self.runners)
+            myrank = self.comm.Get_rank()
+            energy, _ = self.runners[myrank].submit(
+                structure, os.path.join(output_dir, "ensemble{}".format(myrank))
+            )
+            energies = self.comm.allgather(energy)
+        else:
+            energies = []
+            for i in range(len(self.runners)):
+                energy, _ = self.runners[i].submit(
+                    structure, os.path.join(output_dir, "ensemble{}".format(i))
+                )
+                energies.append(energy)
+
+        return np.mean(energies), structure
+
+
+if __version__ < "3":
+    runner = Runner
+    runner_multistep = RunnerMultistep
+    runner_ensemble = RunnerEnsemble
+    run_mpispawn = Run_mpispawn
+    run_mpispawn_ready = Run_mpispawn_ready
+    run_mpispawn_wrapper = Run_mpispawn_wrapper
+    run_subprocess = Run_subprocess
+    run_function = Run_function
