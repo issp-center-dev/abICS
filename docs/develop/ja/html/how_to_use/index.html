@@ -37,9 +37,9 @@
           <div class="body" role="main">
             
   <section id="sec-basic-usage">
-<span id="id1"></span><h1><span class="section-number">3. </span>基本的な使用方法<a class="headerlink" href="#sec-basic-usage" title="Permalink to this heading">¶</a></h1>
+<span id="id1"></span><h1><span class="section-number">3. </span>基本的な使用方法<a class="headerlink" href="#sec-basic-usage" title="この見出しへのパーマリンク">¶</a></h1>
 <section id="id2">
-<h2><span class="section-number">3.1. </span>能動学習について<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.1. </span>能動学習について<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
 <p>abICSは元々、第一原理計算とレプリカ交換モンテカルロ法を直接組み合わせて統計熱力学計算を行うことを念頭に開発されましたが、
 計算できるモデル規模やステップ数が、第一原理計算の大きな計算コストのために限られてしまいます。
 これに対して、Ver. 2では、構造最適化後のエネルギーを高速に予測する機械学習モデルを構成するための能動学習手法を実装し、
@@ -56,7 +56,7 @@
 <p>abICSを用いた能動学習のイメージ図</p>
 </section>
 <section id="abics">
-<span id="subsec-basic-reference"></span><h2><span class="section-number">3.2. </span>abICS制御用入力ファイルの準備<a class="headerlink" href="#abics" title="Permalink to this heading">¶</a></h2>
+<span id="subsec-basic-reference"></span><h2><span class="section-number">3.2. </span>abICS制御用入力ファイルの準備<a class="headerlink" href="#abics" title="この見出しへのパーマリンク">¶</a></h2>
 <p>まず、abICSの動作全般を制御する入力ファイルを作成します。
 abICSの入力ファイルは, 以下の5つのセクションから構成されます.</p>
 <ol class="arabic">
@@ -203,7 +203,7 @@ ignored_species = [&#39;O&#39;]
 </div>
 </section>
 <section id="id4">
-<h2><span class="section-number">3.3. </span>第一原理ソルバー用参照ファイルの準備<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.3. </span>第一原理ソルバー用参照ファイルの準備<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
 <p>訓練データの生成に用いる第一原理ソルバーの入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
 座標情報については記載する必要はありません。
@@ -239,12 +239,12 @@ K_POINTS gamma
 </pre></div>
 </div>
 <section id="solver-specific-notes">
-<span id="id5"></span><h3><span class="section-number">3.3.1. </span>第一原理ソルバー利用時の注意点<a class="headerlink" href="#solver-specific-notes" title="Permalink to this heading">¶</a></h3>
+<span id="id5"></span><h3><span class="section-number">3.3.1. </span>第一原理ソルバー利用時の注意点<a class="headerlink" href="#solver-specific-notes" title="この見出しへのパーマリンク">¶</a></h3>
 <p>原子座標以外の設定については基本的にソルバーごとに指定する必要があります。ただし、構造最適化をする原子の指定についてはabICS側で制御することが可能です。構造最適化機能を有効にする場合には、ソルバーの参照ファイルで構造最適化オプションを有効にした上で、構造最適化のステップ数なども指定することで最適化が行われます。
 また、abICSではソルバー毎に、参照ファイル名、実装時に仮定している参照ファイルのルールなどがあります。
 以下、それらについて説明します。</p>
 <section id="vasp">
-<h4>VASP<a class="headerlink" href="#vasp" title="Permalink to this heading">¶</a></h4>
+<h4>VASP<a class="headerlink" href="#vasp" title="この見出しへのパーマリンク">¶</a></h4>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
 <li><p>参照ファイル</p>
@@ -260,7 +260,7 @@ K_POINTS gamma
 </ul>
 </section>
 <section id="quantum-espresso">
-<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="Permalink to this heading">¶</a></h4>
+<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="この見出しへのパーマリンク">¶</a></h4>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
 <li><p>バージョンは 6.2 以上を利用してください。</p>
@@ -278,7 +278,7 @@ K_POINTS gamma
 </ul>
 </section>
 <section id="openmx">
-<h4>OpenMX<a class="headerlink" href="#openmx" title="Permalink to this heading">¶</a></h4>
+<h4>OpenMX<a class="headerlink" href="#openmx" title="この見出しへのパーマリンク">¶</a></h4>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
 <li><p>バージョンは 3.9 を利用してください。</p></li>
@@ -292,14 +292,14 @@ K_POINTS gamma
 </section>
 </section>
 <section id="id6">
-<h2><span class="section-number">3.4. </span>機械学習モデル訓練および評価用参照ファイルの準備<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.4. </span>機械学習モデル訓練および評価用参照ファイルの準備<a class="headerlink" href="#id6" title="この見出しへのパーマリンク">¶</a></h2>
 <p>使用する機械学習モデルソルバー（現在はaenetのみに対応）の入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。</p>
 <section id="subsec-basic-input">
-<span id="id7"></span><h3><span class="section-number">3.4.1. </span>機械学習モデルソルバー利用時の注意点<a class="headerlink" href="#subsec-basic-input" title="Permalink to this heading">¶</a></h3>
+<span id="id7"></span><h3><span class="section-number">3.4.1. </span>機械学習モデルソルバー利用時の注意点<a class="headerlink" href="#subsec-basic-input" title="この見出しへのパーマリンク">¶</a></h3>
 <section id="aenet">
-<h4>aenet<a class="headerlink" href="#aenet" title="Permalink to this heading">¶</a></h4>
+<h4>aenet<a class="headerlink" href="#aenet" title="この見出しへのパーマリンク">¶</a></h4>
 <ul>
 <li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
 <li><p>バージョン2.0.4 で動作確認済。</p></li>
@@ -326,21 +326,21 @@ K_POINTS gamma
 </section>
 </section>
 <section id="id8">
-<h2><span class="section-number">3.5. </span>学習データの作成<a class="headerlink" href="#id8" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.5. </span>学習データの作成<a class="headerlink" href="#id8" title="この見出しへのパーマリンク">¶</a></h2>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を用いて訓練データの大元となる第一原理計算用の入力ファイルを生成します。</p></li>
 <li><p>1で生成した入力ファイルに対して第一原理計算を実施します(チュートリアルでは <code class="docutils literal notranslate"><span class="pre">GNU</span> <span class="pre">parallel</span></code> を利用し網羅計算を実行しています)。</p></li>
 </ol>
 </section>
 <section id="id9">
-<h2><span class="section-number">3.6. </span>機械学習モデルの作成<a class="headerlink" href="#id9" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.6. </span>機械学習モデルの作成<a class="headerlink" href="#id9" title="この見出しへのパーマリンク">¶</a></h2>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を再度実行して、学習で用いる <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> が読み込めるよう第一原理計算の結果を変換します。</p></li>
 <li><p>次に <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> を実行して機械学習モデルの作成を行います。 計算が無事終了すると、 <code class="docutils literal notranslate"><span class="pre">baseinput</span></code> ディレクトリに学習済みの機械学習モデル（ニューラルネットワーク）が出力されます。</p></li>
 </ol>
 </section>
 <section id="id10">
-<h2><span class="section-number">3.7. </span>モンテカルロサンプリングの実行<a class="headerlink" href="#id10" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.7. </span>モンテカルロサンプリングの実行<a class="headerlink" href="#id10" title="この見出しへのパーマリンク">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> を用いてモンテカルロサンプリングを行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
 実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。</p>
 </section>
@@ -420,7 +420,7 @@ K_POINTS gamma
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

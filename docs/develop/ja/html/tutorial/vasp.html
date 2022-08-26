@@ -34,9 +34,9 @@
           <div class="body" role="main">
             
   <section id="vasp">
-<h1>VASP を用いた例<a class="headerlink" href="#vasp" title="Permalink to this heading">¶</a></h1>
+<h1>VASP を用いた例<a class="headerlink" href="#vasp" title="この見出しへのパーマリンク">¶</a></h1>
 <section id="abics">
-<h2>abICS の入力ファイルの準備<a class="headerlink" href="#abics" title="Permalink to this heading">¶</a></h2>
+<h2>abICS の入力ファイルの準備<a class="headerlink" href="#abics" title="この見出しへのパーマリンク">¶</a></h2>
 <p>abICS の入力ファイルは <code class="docutils literal notranslate"><span class="pre">input_vasp.toml</span></code> です。
 以下、 <code class="docutils literal notranslate"><span class="pre">examples/spinel</span></code> にある <code class="docutils literal notranslate"><span class="pre">input_vasp.toml</span></code> を例に説明します。
 <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> セクションのみ、QuantumESPRESSOと異なり、以下のように指定しています。</p>
@@ -55,7 +55,7 @@ run_scheme = &#39;mpi_spawn_ready&#39;
 abICS は <code class="docutils literal notranslate"><span class="pre">vasp</span></code> を <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> で起動するため、 <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> として <code class="docutils literal notranslate"><span class="pre">mpi_spawn_ready</span></code> を与えます(VASPをソルバーとして利用する際には、MPI_COMM_SPAWNを利用するためのパッチをあてる必要があります。利用されたい場合には、<a class="reference internal" href="../contact/index.html"><span class="doc">お問い合わせ</span></a> のその他に記載された連絡先までご連絡ください)。</p>
 </section>
 <section id="id1">
-<h2>VASP の入力ファイルの準備<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+<h2>VASP の入力ファイルの準備<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h2>
 <p>abICS では、内部で保持した原子座標をもとに VASP の入力ファイルを生成します。それ以外の情報は、ユーザが与える必要があります。
 この情報は <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定したディレクトリの中に <code class="docutils literal notranslate"><span class="pre">INCAR</span></code> 、 <code class="docutils literal notranslate"><span class="pre">POSCAR</span></code> 、 <code class="docutils literal notranslate"><span class="pre">KPOINTS</span></code> があります。
 上記のファイル以外にも、 <code class="docutils literal notranslate"><span class="pre">POTCAR</span></code> がVASPの実行には必要となりますが、ライセンスの関係上、サンプルファイルにはおいてありません。
@@ -71,7 +71,7 @@ abICS は <code class="docutils literal notranslate"><span class="pre">vasp</spa
 </ul>
 </section>
 <section id="id2">
-<h2>実行・解析<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h2>
+<h2>実行・解析<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
 <p>実行・解析の手順はQEの場合と同様です.
 QEの例と同じように、17 レプリカ、1000 ステップで計算をすると</p>
 <a class="reference internal image-reference" href="../_images/doi_vasp.png"><img alt="../_images/doi_vasp.png" class="align-center" src="../_images/doi_vasp.png" style="width: 400px;" /></a>
@@ -142,7 +142,7 @@ QEの例と同じように、17 レプリカ、1000 ステップで計算をす�
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
