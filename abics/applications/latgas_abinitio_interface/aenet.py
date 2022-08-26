@@ -124,7 +124,7 @@ def from_XSF(input_string):
     return s
 
 
-class aenetSolver(SolverBase):
+class AenetSolver(SolverBase):
     """
     This class defines the aenet solver.
     """
@@ -138,10 +138,10 @@ class aenetSolver(SolverBase):
         path_to_solver : str
                       Path to the solver.
         """
-        super(aenetSolver, self).__init__(path_to_solver)
+        super(AenetSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = aenetSolver.Input(ignore_species, run_scheme)
-        self.output = aenetSolver.Output()
+        self.input = AenetSolver.Input(ignore_species, run_scheme)
+        self.output = AenetSolver.Output()
 
     def name(self):
         return "aenet"

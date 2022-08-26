@@ -36,6 +36,10 @@ abicsRXsepT = "abics.scripts.abicsRXsepT:main"
 abics_mlref = "abics.scripts.activelearn:main"
 abics_train = "abics.scripts.train:main"
 
+[tool.mypy]
+files = "abics"
+ignore_missing_imports = true
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

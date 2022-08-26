@@ -23,7 +23,7 @@ from numpy.linalg import inv
 from pymatgen.core import Structure
 
 from abics.mc_mpi import RXParams
-from abics.applications.latgas_abinitio_interface.model_setup import group, perturb_structure
+from abics.applications.latgas_abinitio_interface.model_setup import Group, perturb_structure
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -99,8 +99,8 @@ class TestInput(unittest.TestCase):
         self.assertEqual(spinel_config.base_structure.sites[0].coords[2], 0.0)
 
         gs = [
-            group("Al", ["Al"], coords=[[[0.0, 0.0, 0.0]]]),
-            group("OH", ["O", "H"], coords=[[[0.0, 0.0, 0.0], [0.1, 0.1, 0.1]]]),
+            Group("Al", ["Al"], coords=[[[0.0, 0.0, 0.0]]]),
+            Group("OH", ["O", "H"], coords=[[[0.0, 0.0, 0.0], [0.1, 0.1, 0.1]]]),
         ]
 
         for i in range(2):

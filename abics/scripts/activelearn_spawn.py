@@ -28,9 +28,9 @@ from abics.mc_mpi import (
     EmbarrassinglyParallelSampling,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
-from abics.applications.latgas_abinitio_interface import default_observer
+from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
-    dft_latgas,
+    DFTLatticeGas,
     ObserverParams,
 )
 from abics.applications.latgas_abinitio_interface.defect import (
@@ -38,12 +38,12 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    runner,
-    runner_multistep,
+    Runner,
+    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
+from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
@@ -67,7 +67,7 @@ def main_impl(tomlfile):
         parallel_level = alparams.properties.get("parallel_level", {})
         solver = QESolver(alparams.path, parallel_level=parallel_level)
     elif alparams.solver == "aenet":
-        solver = aenetSolver(
+        solver = AenetSolver(
             alparams.path, alparams.ignore_species, alparams.solver_run_scheme
         )
     elif alparams.solver == "openmx":
@@ -82,7 +82,7 @@ def main_impl(tomlfile):
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
     if len(alparams.base_input_dir) == 1:
-        energy_calculator = runner(
+        energy_calculator = Runner(
             base_input_dir=alparams.base_input_dir[0],
             Solver=solver,
             nprocs_per_solver=nprocs_per_replica,
@@ -91,10 +91,10 @@ def main_impl(tomlfile):
             solver_run_scheme=alparams.solver_run_scheme,
         )
     else:
-        energy_calculator = runner_multistep(
+        energy_calculator = RunnerMultistep(
             base_input_dirs=alparams.base_input_dir,
             Solver=solver,
-            runner=runner,
+            runner=Runner,
             nprocs_per_solver=nprocs_per_replica,
             comm=MPI.COMM_SELF,
             perturb=alparams.perturb,
@@ -115,7 +115,7 @@ def main_impl(tomlfile):
                 "It seems you've already run the first active learning step. You should train now."
             )
             sys.exit(1)
-        model = dft_latgas(energy_calculator, save_history=False)
+        model = DFTLatticeGas(energy_calculator, save_history=False)
         configparams = DFTConfigParams.from_toml(tomlfile)
         config = defect_config(configparams)
         configs = [config] * nreplicas
@@ -139,7 +139,7 @@ def main_impl(tomlfile):
                 nsteps=nsteps // sample_frequency,
                 sample_frequency=1,
                 print_frequency=1,
-                observer=default_observer(comm, False),
+                observer=Observer(comm, False),
                 subdirs=True,
             )
 

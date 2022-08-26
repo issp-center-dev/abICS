@@ -14,7 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import Any, List, Tuple, TextIO, Union
+from numpy.typing import NDArray
+
 from math import exp
+
+from abc import ABCMeta, abstractmethod
 
 # import SFMT_cython.sfmt_random as sfmt_random
 # from multiprocessing import Process, Queue, Pool, TimeoutError
@@ -23,22 +28,25 @@ import sys
 import numpy as np
 import numpy.random as rand
 
+from abics import __version__
+
 verylargeint = sys.maxsize
 
 
 """Defines base classes for Monte Carlo simulations"""
 
 
-class model:
+class Model(metaclass=ABCMeta):
     """This class defines a model whose energy equals 0 no matter the configuration, and the configuration
     never changes.
     This is a base template for building useful models."""
 
-    model_name = None
+    model_name = ""
 
     # def __init__(self):
 
-    def energy(self, config):
+    @abstractmethod
+    def energy(self, config) -> float:
         """
         Calculate energy of configuration: input: config
 
@@ -49,37 +57,42 @@ class model:
 
         Returns
         -------
+        energy: float
 
         """
-        return 0.0
+        ...
 
-    def trialstep(self, config, energy):
-        """
-        Define a trial step on config. Returns dconfig, which can contain the minimal information for
+    @abstractmethod
+    def trialstep(self, config, energy: float) -> Tuple[Any, float]:
+        """Define a trial step on config
+
+        Returns dconfig, which can contain the minimal information for
         constructing the trial configuration from config to be used in newconfig().
         Make sure that config is unchanged.
 
         Parameters
         ----------
         config: config object
-            configuration
+            current configuration
 
         energy: float
-            energy
+            current energy
+
         Returns
         -------
         dconfig: config object
-            The minimal information for constructing the trial configuration from config to be used in newconfig()
+            The minimal information for constructing the trial configuration
+            from config to be used in newconfig()
         dE: float
-            Energy diffence
+            Energy difference
         """
-        dE = 0.0
-        dconfig = None
+
         # Return only change in configuration dconfig so that
         # you don't have to copy entire configurations,
         # which can sometimes be costly
-        return dconfig, dE
+        ...
 
+    @abstractmethod
     def newconfig(self, config, dconfig):
         """
         Update config by using the trial step, dconfig
@@ -100,7 +113,7 @@ class model:
         return config
 
 
-class grid_1D:
+class Grid1D:
     def __init__(self, dx, minx, maxx):
         """
 
@@ -118,7 +131,7 @@ class grid_1D:
         self.x = np.arange(minx, maxx, dx)
 
 
-def binning(x, nlevels):
+def binning(x, nlevels: int):
     """
 
     Parameters
@@ -136,7 +149,7 @@ def binning(x, nlevels):
     error_estimate = []
     x = np.array(x, dtype=np.float64)
     # assert 2**nlevels*10 < len(x)
-    throwout = len(x) % (2 ** nlevels)
+    throwout = len(x) % (2**nlevels)
     if throwout != 0:
         # The number of measurements must be divisible by 2**nlevels
         # If not, throw out initial measurements
@@ -149,12 +162,53 @@ def binning(x, nlevels):
     return error_estimate
 
 
-empty_array = np.array([])
+class ObsInfo:
+    nargs: int
+    lengths: List[int]
+
+    def __init__(self, *args):
+        """
+
+        Parameters
+        ----------
+        args: list
+        """
+        self.nargs = len(args)
+        self.lengths = []
+        for arg in args:
+            # Inelegant way to make everything a 1D array
+            arg = np.array([arg])
+            arg = arg.ravel()
+            self.lengths.append(len(arg))
+
+    def decode(self, obs_array):
+        """
+
+        Parameters
+        ----------
+        obs_array: numpy array
+
+        Returns
+        -------
+        obs: list
+
+        """
+
+        obs = []
+        idx = 0
+        for i in range(self.nargs):
+            length = self.lengths[i]
+            if length == 1:
+                obs.append(obs_array[idx])
+            else:
+                obs.append(obs_array[idx : idx + length])
+            idx += length
+        return obs
 
 
 # @profile
 def obs_encode(*args):
-    """
+    """make pure 1D data
 
     Parameters
     ----------
@@ -167,7 +221,7 @@ def obs_encode(*args):
     """
     # nargs = np.array([len(args)])
     # args_length_list = []
-    obs_array = empty_array
+    obs_array = np.array([])
     for arg in args:
         # Inelegant way to make everything a 1D array
         arg = np.array([arg])
@@ -179,65 +233,16 @@ def obs_encode(*args):
     return obs_array
 
 
-def args_info(*args):
-    """
-
-    Parameters
-    ----------
-    args: list
-
-    Returns
-    -------
-    args_info: numpy array
-    """
-    nargs = np.array([len(args)])
-    args_length_list = []
-    for arg in args:
-        # Inelegant way to make everything a 1D array
-        arg = np.array([arg])
-        arg = arg.ravel()
-        args_length_list.append(len(arg))
-    args_length_array = np.array(args_length_list)
-    args_info = np.concatenate((nargs, args_length_array))
-    return args_info
-
-
-def obs_decode(args_info, obs_array):
-    """
-
-    Parameters
-    ----------
-    args_info: numpy array
-    obs_array: numpy array
-
-    Returns
-    -------
-    args: list
-    """
-    nargs = args_info[0]
-    args_length_array = args_info[1 : nargs + 1]
-    args = []
-    idx = 0
-    for i in range(nargs):
-        length = args_length_array[i]
-        if length == 1:
-            args.append(obs_array[idx])
-        else:
-            args.append(obs_array[idx : idx + length])
-        idx += length
-    return args
-
-
-class observer_base:
+class ObserverBase:
     def __init__(self):
         self.lprintcount = 0
 
-    def obs_info(self, calc_state):
+    def obs_info(self, calc_state: "MCAlgorithm") -> ObsInfo:
         """
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
@@ -249,21 +254,21 @@ class observer_base:
         if not isinstance(obs_log, tuple):
             obs_log = (obs_log,)
         obs_ND = []
-        obs_save = self.savefuncs(calc_state)
-        if obs_save is not None:
+        obs_save = self.savefunc(calc_state)
+        if len(obs_save) > 0:
             if isinstance(obs_save, tuple):
                 for obs in obs_save:
                     obs_ND.append(obs)
             else:
                 obs_ND.append(obs_save)
-        return args_info(*obs_log, *obs_ND)
+        return ObsInfo(*obs_log, *obs_ND)
 
-    def logfunc(self, calc_state):
-        """
+    def logfunc(self, calc_state: "MCAlgorithm") -> Tuple[float]:
+        """returns values of observables
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
@@ -273,25 +278,25 @@ class observer_base:
         """
         return (calc_state.energy,)
 
-    def savefuncs(self, calc_state):
-        """
+    def savefunc(self, calc_state: "MCAlgorithm") -> Union[Tuple[float], Tuple[()]]:
+        """returns values of observables, which will be not printed in observe method.
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
         -------
         """
-        return None
+        return ()
 
-    def writefile(self, calc_state):
+    def writefile(self, calc_state: "MCAlgorithm") -> None:
         """
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
 
         Returns
@@ -300,12 +305,12 @@ class observer_base:
         """
         return None
 
-    def observe(self, calc_state, outputfi, lprint=True):
+    def observe(self, calc_state: "MCAlgorithm", outputfi: TextIO, lprint=True):
         """
 
         Parameters
         ----------
-        calc_state: MonteCarlo algorithm object
+        calc_state: MCAlgorithm
             MonteCarlo algorithm
         outputfi: _io.TextIOWrapper
             TextIOWrapper for output
@@ -319,19 +324,18 @@ class observer_base:
         """
         obs_log = np.atleast_1d(self.logfunc(calc_state))
         if lprint:
-            outputfi.write(
-                str(self.lprintcount)
-                + "\t"
-                + str(calc_state.kT)
-                + "\t"
-                + "\t".join([str(x) for x in obs_log])
-                + "\n"
-            )
+            line = f"{self.lprintcount}\t"
+            for p in calc_state.parameters():
+                line += f"{p}\t"
+            for x in obs_log:
+                line += f"{x}\t"
+            line += "\n"
+            outputfi.write(line)
             outputfi.flush()
             self.writefile(calc_state)
             self.lprintcount += 1
-        obs_save = self.savefuncs(calc_state)
-        if obs_save is not None:
+        obs_save = np.atleast_1d(self.savefunc(calc_state))
+        if len(obs_save) > 0:
             obs_save = np.atleast_1d(obs_save)
             obs_save = obs_save.ravel()
             print(obs_log.shape, obs_save.shape)
@@ -340,14 +344,90 @@ class observer_base:
             return obs_log
 
 
-class CanonicalMonteCarlo:
-    def __init__(self, model, kT, config):
+class MCAlgorithm(metaclass=ABCMeta):
+
+    model: Model
+    config: Any
+    obs_save: List[NDArray]
+
+    @abstractmethod
+    def __init__(self, *args):
+        ...
+
+    @abstractmethod
+    def MCstep(self) -> None:
+        """perform one MC step"""
+        ...
+
+    @abstractmethod
+    def parameters(self) -> List:
+        """returns parameters (e.g., temperature)"""
+        ...
+
+    def run(
+        self,
+        nsteps: int,
+        sample_frequency: int = verylargeint,
+        print_frequency: int = verylargeint,
+        observer: ObserverBase = ObserverBase(),
+        save_obs: bool = False,
+    ):
         """
 
         Parameters
         ----------
-        model: dft_latgas object
-            DFT lattice gas mapping model
+        nsteps: int
+            The number of Monte Carlo steps for running.
+        sample_frequency: int
+            The number of Monte Carlo steps for observation of physical quantities.
+        print_frequency: int
+            The number of Monte Carlo steps for saving physical quantities.
+        observer: observer object
+        save_obs: boolean
+
+        Returns
+        -------
+        observables: list
+        """
+
+        observables = 0.0
+        nsample = 0
+        self.energy = self.model.energy(self.config)
+
+        output = open("obs.dat", "a")
+        with open(os.devnull, "w") as f:
+            if hasattr(observer.observe(self, f), "__add__"):
+                observe = True
+            else:
+                observe = False
+        for i in range(1, nsteps + 1):
+            self.MCstep()
+            sys.stdout.flush()
+            if observe and i % sample_frequency == 0:
+                obs_step = observer.observe(self, output, i % print_frequency == 0)
+                observables += obs_step
+                nsample += 1
+                if save_obs:
+                    self.obs_save.append(obs_step)
+        output.close()
+
+        if save_obs:
+            np.save(open("obs_save.npy", "wb"), np.array(self.obs_save))
+        if nsample > 0:
+            observables /= nsample
+            obs_info = observer.obs_info(self)
+            return obs_info.decode(observables)
+        else:
+            return None
+
+
+class CanonicalMonteCarlo(MCAlgorithm):
+    def __init__(self, model: Model, kT: float, config):
+        """
+
+        Parameters
+        ----------
+        model: Model
         kT: float
             Temperature
         config: config object
@@ -373,59 +453,8 @@ class CanonicalMonteCarlo:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
 
-    def run(
-        self,
-        nsteps,
-        sample_frequency=verylargeint,
-        print_frequency=verylargeint,
-        observer=observer_base(),
-        save_obs=False,
-    ):
-        """
-
-        Parameters
-        ----------
-        nsteps: int
-            The number of Monte Carlo steps for running.
-        sample_frequency: int
-            The number of Monte Carlo steps for observation of physical quantities.
-        print_frequency: int
-            The number of Monte Carlo steps for saving physical quantities.
-        observer: observer object
-        save_obs: boolean
-
-        Returns
-        -------
-        obs_decode: list
-        """
-        observables = 0.0
-        nsample = 0
-        self.energy = self.model.energy(self.config)
-        output = open("obs.dat", "a")
-        with open(os.devnull, "w") as f:
-            if hasattr(observer.observe(self, f), "__add__"):
-                observe = True
-            else:
-                observe = False
-
-        for i in range(1, nsteps + 1):
-            self.MCstep()
-            sys.stdout.flush()
-            if observe and i % sample_frequency == 0:
-                obs_step = observer.observe(self, output, i % print_frequency == 0)
-                observables += obs_step
-                nsample += 1
-                if save_obs:
-                    self.obs_save.append(obs_step)
-        output.close()
-        if save_obs:
-            np.save(open("obs_save.npy", "wb"), np.array(self.obs_save))
-        if nsample > 0:
-            observables /= nsample
-            args_info = observer.obs_info(self)
-            return obs_decode(args_info, observables)
-        else:
-            return None
+    def parameters(self):
+        return [self.kT]
 
 
 class RandomSampling(CanonicalMonteCarlo):
@@ -434,76 +463,8 @@ class RandomSampling(CanonicalMonteCarlo):
         self.energy = self.model.energy(self.config)
 
 
-# def swap_configs(MCreplicas, rep, accept_count):
-#     """
-#
-#     Parameters
-#     ----------
-#     MCreplicas:
-#     rep:
-#     accept_count:
-#
-#     Returns
-#     -------
-#
-#     """
-#     # swap configs, energy
-#     tmp = MCreplicas[rep + 1].config
-#     tmpe = MCreplicas[rep + 1].energy
-#     MCreplicas[rep + 1].config = MCreplicas[rep].config
-#     MCreplicas[rep + 1].energy = MCreplicas[rep].energy
-#     MCreplicas[rep].config = tmp
-#     MCreplicas[rep].energy = tmpe
-#     accept_count += 1
-#     return MCreplicas, accept_count
-
-
-"""
-class TemperatureReplicaExchange:
-
-    def __init__(self, model, kTs, configs, MCalgo, swap_algo=swap_configs):
-        assert len(kTs) == len(configs)
-        self.model = model
-        self.kTs = kTs
-        self.betas = 1.0/kTs
-        self.n_replicas = len(kTs)
-        self.MCreplicas = []
-        self.accept_count = 0
-        self.swap_algo = swap_algo
-        self.writefunc = writefunc
-        self.configs = configs
-        for i in range(self.n_replicas):
-            self.MCreplicas.append(MCalgo(model, kTs[i], configs[i], writefunc))
-
-    def Xtrial(self):
-        # pick a replica
-        rep = randrange(self.n_replicas - 1)
-        delta = (self.betas[rep + 1] - self.betas[rep]) \
-                *(self.MCreplicas[rep].energy -
-                  self.MCreplicas[rep+1].energy)
-        #print self.MCreplicas[rep].energy, self.model.energy(self.MCreplicas[rep].config)
-
-        if delta < 0.0:
-            self.MCreplicas, self.accept_count = self.swap_algo(self.MCreplicas,
-                                                           rep, self.accept_count)
-            print("RXtrial accepted")
-        else:
-            accept_probability = exp(-delta)
-            #print accept_probability, "accept prob"
-            if rand.random() <= accept_probability:
-                self.MCreplicas, self.accept_count = self.swap_algo(self.MCreplicas,
-                                                           rep, self.accept_count)
-                print("RXtrial accepted")
-            else:
-                print("RXtrial rejected")
-
-    def run(self, nsteps, RXtrial_frequency, pool, sample_frequency=0, subdirs=False):
-        self.accept_count = 0
-        outerloop = nsteps//RXtrial_frequency
-        for i in range(outerloop):
-            self.MCreplicas = MultiProcessReplicaRun(self.MCreplicas, RXtrial_frequency, pool, sample_frequency, subdirs)
-            self.Xtrial()
-        self.configs = [MCreplica.config for MCreplica in self.MCreplicas]
-        #print self.accept_count
-        #self.accept_count = 0
-"""
+# For backward compatibility
+if __version__ < "3":
+    model = Model
+    grid_1D = Grid1D
+    observer_base = ObserverBase

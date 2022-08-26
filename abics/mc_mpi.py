@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import Type
+
 import os
-from shutil import move
 import sys
 
 from mpi4py import MPI
@@ -23,7 +24,7 @@ from mpi4py import MPI
 import numpy as np
 import numpy.random as rand
 
-from abics.mc import observer_base, obs_decode, verylargeint
+from abics.mc import ObserverBase, verylargeint, MCAlgorithm, Model
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
@@ -415,7 +416,7 @@ class RXParams:
         return cls.from_dict(d["sampling"])
 
 
-def RX_MPI_init(rxparams, dftparams=None):
+def RX_MPI_init(rxparams: RXParams, dftparams=None):
     """
 
     Parameters
@@ -479,9 +480,16 @@ def RX_MPI_init(rxparams, dftparams=None):
     return commRX, commEnsemble, comm
 
 
-class EmbarrassinglyParallelSampling:
+class ParallelMC(object):
     def __init__(
-        self, comm, MCalgo, model, configs, kTs=None, subdirs=True, write_node=True
+        self,
+        comm,
+        MCalgo: Type[MCAlgorithm],
+        model: Model,
+        configs,
+        kTs,
+        subdirs=True,
+        write_node=True,
     ):
         """
 
@@ -491,8 +499,91 @@ class EmbarrassinglyParallelSampling:
             MPI communicator
         MCalgo: object for MonteCarlo algorithm
             MonteCarlo algorithm
-        model: dft_latgas
-            DFT lattice gas mapping  model
+        model: dft_latgas object
+            DFT lattice gas mapping model
+        configs: config object
+            Configurations
+        kTs: list
+            Temperature list
+        subdirs: boolean
+            if true,  working directory for this rank is made
+        """
+        self.comm = comm
+        self.rank = self.comm.Get_rank()
+        self.procs = self.comm.Get_size()
+        self.kTs = kTs
+        self.model = model
+        self.subdirs = subdirs
+        self.nreplicas = len(configs)
+        self.write_node = write_node
+
+        if not (self.procs == self.nreplicas == len(self.kTs)):
+            if self.rank == 0:
+                print(
+                    "ERROR: You have to set the number of replicas equal to the"
+                    + "number of temperatures equal to the number of processes"
+                )
+            sys.exit(1)
+
+        myconfig = configs[self.rank]
+        mytemp = kTs[self.rank]
+        self.mycalc = MCalgo(model, mytemp, myconfig)
+
+    def run(self, nsteps, sample_frequency, observer=ObserverBase()):
+        """
+
+        Parameters
+        ----------
+        nsteps: int
+            Number of Monte Carlo steps for running.
+        sample_frequency: int
+            Number of Monte Carlo steps for running.
+        observer: observer object
+
+        Returns
+        -------
+        obs_buffer: numpy array
+            Observables
+        """
+        if self.subdirs:
+            # make working directory for this rank
+            try:
+                os.mkdir(str(self.rank))
+            except FileExistsError:
+                pass
+            os.chdir(str(self.rank))
+        observables = self.mycalc.run(nsteps, sample_frequency, observer)
+        if self.write_node:
+            pickle_dump(self.mycalc.config, "config.pickle")
+        if self.subdirs:
+            os.chdir("../")
+        if sample_frequency:
+            obs_buffer = np.empty([self.procs, len(observables)])
+            self.comm.Allgather(observables, obs_buffer)
+            return obs_buffer
+
+
+class EmbarrassinglyParallelSampling:
+    def __init__(
+        self,
+        comm,
+        MCalgo: Type[MCAlgorithm],
+        model: Model,
+        configs,
+        kTs=None,
+        subdirs=True,
+        write_node=True,
+    ):
+        """
+
+        Parameters
+        ----------
+        comm: comm world
+            MPI communicator
+        MCalgo: Type[MCAlgorithm]
+            MonteCarlo algorithm class (not instance)
+        model: Model
+            Model
         configs: config object
             Configuration
         kTs: list
@@ -541,7 +632,7 @@ class EmbarrassinglyParallelSampling:
         nsteps,
         sample_frequency=verylargeint,
         print_frequency=verylargeint,
-        observer=observer_base(),
+        observer=ObserverBase(),
         subdirs=True,
         save_obs=True,
     ):
@@ -636,86 +727,10 @@ class EmbarrassinglyParallelSampling:
             obs /= nsample
             self.comm.Allreduce(obs, obs_buffer, op=MPI.SUM)
             obs_list = []
-            args_info = observer.obs_info(self.mycalc)
+            obs_info = observer.obs_info(self.mycalc)
             for i in range(len(self.kTs)):
-                obs_list.append(obs_decode(args_info, obs_buffer[i]))
+                obs_list.append(obs_info.decode(obs_buffer[i]))
             return obs_list
-
-
-class ParallelMC(object):
-    def __init__(
-        self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True
-    ):
-        """
-
-        Parameters
-        ----------
-        comm: comm world
-            MPI communicator
-        MCalgo: object for MonteCarlo algorithm
-            MonteCarlo algorithm
-        model: dft_latgas object
-            DFT lattice gas mapping model
-        configs: config object
-            Configurations
-        kTs: list
-            Temperature list
-        subdirs: boolean
-            if true,  working directory for this rank is made
-        """
-        self.comm = comm
-        self.rank = self.comm.Get_rank()
-        self.procs = self.comm.Get_size()
-        self.kTs = kTs
-        self.model = model
-        self.subdirs = subdirs
-        self.nreplicas = len(configs)
-        self.write_node = write_node
-
-        if not (self.procs == self.nreplicas == len(self.kTs)):
-            if self.rank == 0:
-                print(
-                    "ERROR: You have to set the number of replicas equal to the"
-                    + "number of temperatures equal to the number of processes"
-                )
-            sys.exit(1)
-
-        myconfig = configs[self.rank]
-        mytemp = kTs[self.rank]
-        self.mycalc = MCalgo(model, mytemp, myconfig)
-
-    def run(self, nsteps, sample_frequency, observer=observer_base()):
-        """
-
-        Parameters
-        ----------
-        nsteps: int
-            Number of Monte Carlo steps for running.
-        sample_frequency: int
-            Number of Monte Carlo steps for running.
-        observer: observer object
-
-        Returns
-        -------
-        obs_buffer: numpy array
-            Observables
-        """
-        if self.subdirs:
-            # make working directory for this rank
-            try:
-                os.mkdir(str(self.rank))
-            except FileExistsError:
-                pass
-            os.chdir(str(self.rank))
-        observables = self.mycalc.run(nsteps, sample_frequency, observer)
-        if self.write_node:
-            pickle_dump(self.mycalc.config, "config.pickle")
-        if self.subdirs:
-            os.chdir("../")
-        if sample_frequency:
-            obs_buffer = np.empty([self.procs, len(observables)])
-            self.comm.Allgather(observables, obs_buffer)
-            return obs_buffer
 
 
 class RandomSampling_MPI(ParallelMC):
@@ -877,7 +892,7 @@ class TemperatureRX_MPI(ParallelMC):
         RXtrial_frequency,
         sample_frequency=verylargeint,
         print_frequency=verylargeint,
-        observer=observer_base(),
+        observer=ObserverBase(),
         subdirs=True,
         save_obs=True,
     ):
@@ -984,9 +999,9 @@ class TemperatureRX_MPI(ParallelMC):
             obs /= nsample
             self.comm.Allreduce(obs, obs_buffer, op=MPI.SUM)
             obs_list = []
-            args_info = observer.obs_info(self.mycalc)
+            obs_info = observer.obs_info(self.mycalc)
             for i in range(len(self.kTs)):
-                obs_list.append(obs_decode(args_info, obs_buffer[i]))
+                obs_list.append(obs_info.decode(obs_buffer[i]))
             if subdirs:
                 os.chdir("../")
             return obs_list

@@ -22,6 +22,7 @@ import datetime
 import numpy as np
 import scipy.constants as constants
 
+from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
 from abics.mc_mpi import (
     RX_MPI_init,
@@ -32,12 +33,12 @@ from abics.mc_mpi import (
     EmbarrassinglyParallelSampling,
 )
 from abics.applications.latgas_abinitio_interface import (
-    default_observer,
+    DefaultObserver,
     EnsembleParams,
-    ensemble_error_observer,
+    EnsembleErrorObserver,
 )
 from abics.applications.latgas_abinitio_interface.model_setup import (
-    dft_latgas,
+    DFTLatticeGas,
     ObserverParams,
 )
 from abics.applications.latgas_abinitio_interface.defect import (
@@ -45,13 +46,13 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    runner,
-    runner_ensemble,
-    runner_multistep,
+    Runner,
+    RunnerEnsemble,
+    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
+from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
@@ -139,7 +140,7 @@ def main_impl(tomlfile):
         parallel_level = dftparams.properties.get("parallel_level", {})
         solver = QESolver(dftparams.path, parallel_level=parallel_level)
     elif dftparams.solver == "aenet":
-        solver = aenetSolver(
+        solver = AenetSolver(
             dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme
         )
     elif dftparams.solver == "openmx":
@@ -162,10 +163,10 @@ def main_impl(tomlfile):
                 "You must specify more than one base_input_dir for ensemble calculator"
             )
             sys.exit(1)
-        energy_calculator = runner_ensemble(
+        energy_calculator = RunnerEnsemble(
             base_input_dirs=dftparams.base_input_dir,
             Solver=solver,
-            runner=runner,
+            runner=Runner,
             nprocs_per_solver=nprocs_per_replica,
             comm=commEnsemble,
             perturb=dftparams.perturb,
@@ -174,7 +175,7 @@ def main_impl(tomlfile):
         )
     else:
         if len(dftparams.base_input_dir) == 1:
-            energy_calculator = runner(
+            energy_calculator = Runner(
                 base_input_dir=dftparams.base_input_dir[0],
                 Solver=solver,
                 nprocs_per_solver=nprocs_per_replica,
@@ -184,17 +185,17 @@ def main_impl(tomlfile):
                 use_tmpdir=dftparams.use_tmpdir,
             )
         else:
-            energy_calculator = runner_multistep(
+            energy_calculator = RunnerMultistep(
                 base_input_dirs=dftparams.base_input_dir,
                 Solver=solver,
-                runner=runner,
+                runner=Runner,
                 nprocs_per_solver=nprocs_per_replica,
                 comm=MPI.COMM_SELF,
                 perturb=dftparams.perturb,
                 solver_run_scheme=dftparams.solver_run_scheme,
                 use_tmpdir=dftparams.use_tmpdir,
             )
-    model = dft_latgas(energy_calculator, save_history=False)
+    model = DFTLatticeGas(energy_calculator, save_history=False)
     if commAll.Get_rank() == 0:
         print("--Success.")
 
@@ -228,7 +229,7 @@ def main_impl(tomlfile):
             parallel_level = ensembleparams.properties.get("parallel_level", {})
             solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
         elif ensembleparams.solver == "aenet":
-            solver = aenetSolver(
+            solver = AenetSolver(
                 ensembleparams.path,
                 ensembleparams.ignore_species,
                 ensembleparams.solver_run_scheme,
@@ -242,7 +243,7 @@ def main_impl(tomlfile):
             sys.exit(1)
 
         energy_calculators = [
-            runner(
+            Runner(
                 base_input_dir=base_input_dir,
                 Solver=copy.deepcopy(solver),
                 nprocs_per_solver=nprocs_per_replica,
@@ -253,9 +254,9 @@ def main_impl(tomlfile):
             )
             for base_input_dir in ensembleparams.base_input_dirs
         ]
-        observer = ensemble_error_observer(commEnsemble, energy_calculators, Lreload)
+        observer = EnsembleErrorObserver(commEnsemble, energy_calculators, Lreload)
     else:
-        observer = default_observer(comm, Lreload)
+        observer = DefaultObserver(comm, Lreload)
 
     ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 
@@ -386,7 +387,7 @@ def main():
     now = datetime.datetime.now()
     
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print("Running abics_sampling (abICS v.2.0.0) on {}".format(now))
+        print(f"Running abics_sampling (abICS v{__version__}) on {now}")
         
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     if MPI.COMM_WORLD.Get_rank() == 0:

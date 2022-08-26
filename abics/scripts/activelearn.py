@@ -23,6 +23,8 @@ import datetime
 
 import numpy as np
 
+from abics import __version__
+
 from abics.mc import RandomSampling
 
 from abics.mc_mpi import (
@@ -31,9 +33,9 @@ from abics.mc_mpi import (
     EmbarrassinglyParallelSampling,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
-from abics.applications.latgas_abinitio_interface import default_observer
+from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
-    dft_latgas,
+    DFTLatticeGas,
     ObserverParams,
     perturb_structure,
 )
@@ -42,12 +44,12 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    runner,
-    runner_multistep,
+    Runner,
+    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
+from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
@@ -73,7 +75,7 @@ def main_impl(tomlfile):
         parallel_level = alparams.properties.get("parallel_level", {})
         solver = QESolver(alparams.path, parallel_level=parallel_level)
     elif alparams.solver == "aenet":
-        solver = aenetSolver(
+        solver = AenetSolver(
             alparams.path, alparams.ignore_species, alparams.solver_run_scheme
         )
     elif alparams.solver == "openmx":
@@ -480,7 +482,7 @@ def main_impl(tomlfile):
 def main():
     now = datetime.datetime.now()
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print("Running abics_mlref (abICS v.2.0.0) on {}".format(now))
+        print(f"Running abics_mlref (abICS v{__version__}) on {now}")
 
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     if MPI.COMM_WORLD.Get_rank() == 0:
