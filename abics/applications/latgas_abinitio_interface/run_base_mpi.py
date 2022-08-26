@@ -58,7 +58,7 @@ class Run(metaclass=ABCMeta):
         ...
 
 
-class Run_mpispawn(Run):
+class RunMpispawn(Run):
     """
     Invoker via mpi_comm_spawn
 
@@ -161,7 +161,7 @@ class Run_mpispawn(Run):
         return 0
 
 
-class Run_mpispawn_ready(Run):
+class RunMpispawnReady(Run):
     """
     Invoker via mpi_comm_spawn for solvers which is MPI_Comm_spawn-ready
 
@@ -309,7 +309,7 @@ class Run_mpispawn_ready(Run):
         return 0
 
 
-class Run_mpispawn_wrapper(Run):
+class RunMpispawnWrapper(Run):
     """
     Invoker via mpi_comm_spawn
 
@@ -446,7 +446,7 @@ class Run_mpispawn_wrapper(Run):
         return 0
 
 
-class Run_subprocess(Run):
+class RunSubprocess(Run):
     """
     Invoker via subprocess
 
@@ -527,7 +527,7 @@ class Run_subprocess(Run):
         return 0
 
 
-class Run_function(Run):
+class RunFunction(Run):
     """
     Invoker via function call
 
@@ -692,23 +692,23 @@ class Runner:
             )
             sys.exit(1)
         if solver_run_scheme == "mpi_spawn_ready":
-            self.run = Run_mpispawn_ready(
+            self.run = RunMpispawnReady(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
         elif solver_run_scheme == "mpi_spawn":
-            self.run = Run_mpispawn(
+            self.run = RunMpispawn(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
         elif solver_run_scheme == "mpi_spawn_wrapper":
-            self.run = Run_mpispawn_wrapper(
+            self.run = RunMpispawnWrapper(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
         elif solver_run_scheme == "subprocess":
-            self.run = Run_subprocess(
+            self.run = RunSubprocess(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
         elif solver_run_scheme == "function":
-            self.run = Run_function(
+            self.run = RunFunction(
                 self.path_to_solver, nprocs_per_solver, nthreads_per_proc, comm
             )
         else:
@@ -925,8 +925,8 @@ if __version__ < "3":
     runner = Runner
     runner_multistep = RunnerMultistep
     runner_ensemble = RunnerEnsemble
-    run_mpispawn = Run_mpispawn
-    run_mpispawn_ready = Run_mpispawn_ready
-    run_mpispawn_wrapper = Run_mpispawn_wrapper
-    run_subprocess = Run_subprocess
-    run_function = Run_function
+    run_mpispawn = RunMpispawn
+    run_mpispawn_ready = RunMpispawnReady
+    run_mpispawn_wrapper = RunMpispawnWrapper
+    run_subprocess = RunSubprocess
+    run_function = RunFunction
