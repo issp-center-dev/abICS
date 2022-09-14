@@ -55,8 +55,6 @@ class SamplerParams:
         params: SamplerParams object
             self
         """
-        if "sampler" in d:
-            d = d["sampler"]
         params = cls()
         params.sampler = d.get("sampler", "RXMC")
         return params
@@ -78,7 +76,8 @@ class SamplerParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(fname))
+        d = toml.load(fname)
+        return cls.from_dict(d["sampler"])
 
 
 class RefParams:
@@ -416,7 +415,7 @@ class RXParams:
         return cls.from_dict(d["sampling"])
 
 
-def RX_MPI_init(rxparams: RXParams, dftparams=None):
+def RX_MPI_init(rxparams: RXParams, nensemble=None):
     """
 
     Parameters
@@ -429,11 +428,11 @@ def RX_MPI_init(rxparams: RXParams, dftparams=None):
     comm: comm world
         MPI communicator
     """
-    if dftparams != None and dftparams.ensemble and dftparams.par_ensemble:
-        nensemble = len(dftparams.base_input_dir)
+    if nensemble is None:
+        nensemble_ = 1
     else:
-        nensemble = 1
-    nreplicas = rxparams.nreplicas * nensemble
+        nensemble_ = nensemble
+    nreplicas = rxparams.nreplicas * nensemble_
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
@@ -462,7 +461,7 @@ def RX_MPI_init(rxparams: RXParams, dftparams=None):
     else:
         comm = commworld
     comm = comm.Create_cart(
-        dims=[rxparams.nreplicas, nensemble], periods=[False, False], reorder=True
+        dims=[rxparams.nreplicas, nensemble_], periods=[False, False], reorder=True
     )
     commRX = comm.Sub(remain_dims=[True, False])
     commEnsemble = comm.Sub(remain_dims=[False, True])
@@ -475,9 +474,10 @@ def RX_MPI_init(rxparams: RXParams, dftparams=None):
         rand.seed(rand_seed)
 
     # return commRX
-    if dftparams == None:
+    if nensemble is None:
         return commRX
-    return commRX, commEnsemble, comm
+    else:
+        return commRX, commEnsemble, comm
 
 
 class ParallelMC(object):
@@ -879,7 +879,7 @@ class TemperatureRX_MPI(ParallelMC):
         else:
             myTrankm1 = myTrank - 1
             exchange_rank = self.find_procrank_from_Trank(myTrankm1)
-            self.comm.Send(self.mycalc.energy, dest=exchange_rank, tag=1)
+            self.comm.Send(np.array([self.mycalc.energy]), dest=exchange_rank, tag=1)
             self.comm.Recv([self.int_buffer, 1, MPI.INT], source=exchange_rank, tag=2)
             self.rank_to_T[self.rank] = self.int_buffer
         self.comm.Allgather(self.rank_to_T[self.rank], self.rank_to_T)

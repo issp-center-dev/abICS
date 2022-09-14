@@ -135,10 +135,6 @@ class EnsembleParams:
         params: EnsembleParams object
             self
         """
-        if "ensemble" in d:
-            d = d["ensemble"]
-        else:
-            return None
 
         params = cls()
         base_input_dirs = d.get("base_input_dirs", ["./baseinput"])
@@ -174,7 +170,8 @@ class EnsembleParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(f))
+        d = toml.load(f)
+        return cls.from_dict(d["ensemble"])
 
 
 # For backward compatibility

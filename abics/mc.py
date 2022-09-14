@@ -444,14 +444,13 @@ class CanonicalMonteCarlo(MCAlgorithm):
         # if self.energy == float("inf"):
         #    self.config = self.model.newconfig(self.config, dconfig)
         #    self.energy = dE
-        if dE < 0.0:
+        accepted = True
+        if dE >= 0.0:
+            accept_probability = exp(-dE / self.kT)
+            accepted = rand.random() <= accept_probability
+        if accepted:
             self.config = self.model.newconfig(self.config, dconfig)
             self.energy += dE
-        else:
-            accept_probability = exp(-dE / self.kT)
-            if rand.random() <= accept_probability:
-                self.config = self.model.newconfig(self.config, dconfig)
-                self.energy += dE
 
     def parameters(self):
         return [self.kT]
