@@ -355,7 +355,7 @@ class MCAlgorithm(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def MCstep(self) -> None:
+    def MCstep(self, nstep_in_sweep: int = 1) -> None:
         """perform one MC step"""
         ...
 
@@ -366,7 +366,8 @@ class MCAlgorithm(metaclass=ABCMeta):
 
     def run(
         self,
-        nsteps: int,
+        nsweeps: int,
+        nsteps_in_sweep: int = 1,
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
         observer: ObserverBase = ObserverBase(),
@@ -376,8 +377,10 @@ class MCAlgorithm(metaclass=ABCMeta):
 
         Parameters
         ----------
-        nsteps: int
-            The number of Monte Carlo steps for running.
+        nsweeps: int
+            The number of Monte Carlo sweeps for running.
+        nsteps_in_sweep: int
+            The number of Monte Carlo steps in one MC sweep
         sample_frequency: int
             The number of Monte Carlo steps for observation of physical quantities.
         print_frequency: int
@@ -390,22 +393,21 @@ class MCAlgorithm(metaclass=ABCMeta):
         observables: list
         """
 
-        observables = 0.0
         nsample = 0
         self.energy = self.model.energy(self.config)
 
         output = open("obs.dat", "a")
+        nobs = 0
         with open(os.devnull, "w") as f:
-            if hasattr(observer.observe(self, f), "__add__"):
-                observe = True
-            else:
-                observe = False
-        for i in range(1, nsteps + 1):
-            self.MCstep()
+            o = observer.observe(self, f)
+            nobs = np.atleast_1d(o).flatten().size
+        observables = np.zeros(nobs)
+        for i in range(1, nsweeps + 1):
+            self.MCstep(nsteps_in_sweep)
             sys.stdout.flush()
-            if observe and i % sample_frequency == 0:
+            if i % sample_frequency == 0:
                 obs_step = observer.observe(self, output, i % print_frequency == 0)
-                observables += obs_step
+                observables += np.atleast_1d(obs_step).flatten()
                 nsample += 1
                 if save_obs:
                     self.obs_save.append(obs_step)
@@ -439,25 +441,26 @@ class CanonicalMonteCarlo(MCAlgorithm):
         self.obs_save = []
 
     # @profile
-    def MCstep(self):
-        dconfig, dE = self.model.trialstep(self.config, self.energy)
-        # if self.energy == float("inf"):
-        #    self.config = self.model.newconfig(self.config, dconfig)
-        #    self.energy = dE
-        accepted = True
-        if dE >= 0.0:
-            accept_probability = exp(-dE / self.kT)
-            accepted = rand.random() <= accept_probability
-        if accepted:
-            self.config = self.model.newconfig(self.config, dconfig)
-            self.energy += dE
+    def MCstep(self, nsteps_in_sweep: int = 1):
+        for istep in range(nsteps_in_sweep):
+            dconfig, dE = self.model.trialstep(self.config, self.energy)
+            # if self.energy == float("inf"):
+            #    self.config = self.model.newconfig(self.config, dconfig)
+            #    self.energy = dE
+            accepted = True
+            if dE >= 0.0:
+                accept_probability = exp(-dE / self.kT)
+                accepted = rand.random() <= accept_probability
+            if accepted:
+                self.config = self.model.newconfig(self.config, dconfig)
+                self.energy += dE
 
     def parameters(self):
         return [self.kT]
 
 
 class RandomSampling(CanonicalMonteCarlo):
-    def MCstep(self):
+    def MCstep(self, nsteps_in_sweep: int = 1):
         self.config.shuffle()
         self.energy = self.model.energy(self.config)
 

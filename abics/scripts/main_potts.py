@@ -14,6 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+import typing
 from typing import MutableMapping
 
 import sys
@@ -22,7 +23,7 @@ import datetime
 import numpy as np
 
 from abics import __version__
-from abics.mc import CanonicalMonteCarlo, RandomSampling, ObserverBase
+from abics.mc import CanonicalMonteCarlo, RandomSampling
 from abics.mc_mpi import (
     RX_MPI_init,
     TemperatureRX_MPI,
@@ -32,16 +33,20 @@ from abics.mc_mpi import (
     EmbarrassinglyParallelSampling,
 )
 
-from abics.applications.lattice_model.potts import Potts, Configuration
+from abics.applications.lattice_model.potts import Potts, Configuration, Observer
+
 
 def main_potts(params_root: MutableMapping):
     # TODO: read from inputs
-    Q = 2
-    Ls = [8, 8]
+
+    p_sol = params_root["sampling"]["solver"]
+    Q = p_sol.get("Q", 2)
+    Ls = p_sol["L"]
+    nspins = typing.cast(int, np.product(Ls))
     write_node = True
 
     model = Potts()
-    observer = ObserverBase()
+    observer = Observer()
     sampler_type = params_root["sampling"].get("sampler", "RXMC")
     if sampler_type == "RXMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
@@ -59,7 +64,7 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsteps
+        nsweeps = rxparams.nsweeps
         RXtrial_frequency = rxparams.RXtrial_frequency
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
@@ -80,10 +85,11 @@ def main_potts(params_root: MutableMapping):
             print("-Starting RXMC calculation")
             sys.stdout.flush()
         obs = RXcalc.run(
-            nsteps,
-            RXtrial_frequency,
-            sample_frequency,
-            print_frequency,
+            nsweeps,
+            nsteps_in_sweep=nspins,
+            RXtrial_frequency=RXtrial_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
         )
@@ -96,7 +102,7 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsteps
+        nsweeps = rxparams.nsweeps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if comm.Get_rank() == 0:
@@ -108,9 +114,10 @@ def main_potts(params_root: MutableMapping):
         if Lreload:
             calc.reload()
         obs = calc.run(
-            nsteps,
-            sample_frequency,
-            print_frequency,
+            nsweeps,
+            nsteps_in_sweep=nspins,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
         )
@@ -129,7 +136,7 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsteps
+        nsweeps = rxparams.nsweeps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if comm.Get_rank() == 0:
@@ -141,9 +148,10 @@ def main_potts(params_root: MutableMapping):
         if Lreload:
             calc.reload()
         obs = calc.run(
-            nsteps,
-            sample_frequency,
-            print_frequency,
+            nsweeps,
+            nsteps_in_sweep=nspins,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
         )
