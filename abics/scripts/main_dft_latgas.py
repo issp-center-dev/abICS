@@ -65,8 +65,8 @@ from abics.util import exists_on_all_nodes
 
 def main_dft_latgas(params_root: MutableMapping):
     dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
-    samplerparams = SamplerParams.from_dict(params_root["sampler"])
-    if samplerparams.sampler == "RXMC":
+    sampler_type = params_root["sampling"].get("sampler", "RXMC")
+    if sampler_type == "RXMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
@@ -85,7 +85,7 @@ def main_dft_latgas(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsteps
+        nsteps = rxparams.nsweeps
         RXtrial_frequency = rxparams.RXtrial_frequency
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
@@ -95,7 +95,7 @@ def main_dft_latgas(params_root: MutableMapping):
             print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
             sys.stdout.flush()
 
-    elif samplerparams.sampler == "parallelRand":
+    elif sampler_type == "parallelRand":
         rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
@@ -105,13 +105,13 @@ def main_dft_latgas(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsteps
+        nsteps = rxparams.nsweeps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if commAll.Get_rank() == 0:
             print(f"-Running parallel random sampling")
             sys.stdout.flush()
-    elif samplerparams.sampler == "parallelMC":
+    elif sampler_type == "parallelMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
@@ -130,7 +130,7 @@ def main_dft_latgas(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsteps
+        nsteps = rxparams.nsweeps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if commAll.Get_rank() == 0:
@@ -313,7 +313,7 @@ def main_dft_latgas(params_root: MutableMapping):
         write_node = True
     else:
         write_node = False
-    if samplerparams.sampler == "RXMC":
+    if sampler_type == "RXMC":
         # RXMC calculation
         RXcalc = TemperatureRX_MPI(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
@@ -330,8 +330,8 @@ def main_dft_latgas(params_root: MutableMapping):
         obs = RXcalc.run(
             nsteps,
             RXtrial_frequency,
-            sample_frequency,
-            print_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
         )
@@ -339,7 +339,7 @@ def main_dft_latgas(params_root: MutableMapping):
         #if comm.Get_rank() == 0 and write_node:
         #    print(obs)
 
-    elif samplerparams.sampler == "parallelRand":
+    elif sampler_type == "parallelRand":
         calc = EmbarrassinglyParallelSampling(
             comm, RandomSampling, model, configs, write_node=write_node
         )
@@ -347,8 +347,8 @@ def main_dft_latgas(params_root: MutableMapping):
             calc.reload()
         obs = calc.run(
             nsteps,
-            sample_frequency,
-            print_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
         )
@@ -356,7 +356,7 @@ def main_dft_latgas(params_root: MutableMapping):
         #if comm.Get_rank() == 0 and write_node:
         #    print(obs)
 
-    elif samplerparams.sampler == "parallelMC":
+    elif sampler_type == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
@@ -364,8 +364,8 @@ def main_dft_latgas(params_root: MutableMapping):
             calc.reload()
         obs = calc.run(
             nsteps,
-            sample_frequency,
-            print_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
         )

@@ -64,7 +64,7 @@ def main_impl(params_root: MutableMapping):
     trainer_type = trainerparams.solver
     trainer_input_dirs = trainerparams.base_input_dir
 
-    configparams = DFTConfigParams.from_dict(params_root["sampling"])
+    configparams = DFTConfigParams.from_dict(params_root["config"])
     config = defect_config(configparams)
     species = config.structure.symbol_set
     dummy_sts = {sp: config.dummy_structure_sp(sp) for sp in species}
