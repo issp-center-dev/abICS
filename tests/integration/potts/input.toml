@@ -11,5 +11,7 @@ reload = false
 
 [sampling.solver]
 type = 'potts'
+
+[config]
 Q = 2
 L = [8, 8]

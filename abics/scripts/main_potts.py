@@ -39,9 +39,9 @@ from abics.applications.lattice_model.potts import Potts, Configuration, Observe
 def main_potts(params_root: MutableMapping):
     # TODO: read from inputs
 
-    p_sol = params_root["sampling"]["solver"]
-    Q = p_sol.get("Q", 2)
-    Ls = p_sol["L"]
+    param_config = params_root["config"]
+    Q = param_config.get("Q", 2)
+    Ls = param_config["L"]
     nspins = typing.cast(int, np.product(Ls))
     write_node = True
 
