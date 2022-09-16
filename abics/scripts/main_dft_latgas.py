@@ -60,10 +60,6 @@ from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
-from abics.applications.lattice_model.potts import Potts
-
-import abics.applications.lattice_model.potts as potts
-
 from abics.util import exists_on_all_nodes
 
 
@@ -231,7 +227,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     
     # NNP ensemble error estimation
-    if "ensemble" in params_root
+    if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
         if ensembleparams.solver == "vasp":
             solver = VASPSolver(ensembleparams.path)
