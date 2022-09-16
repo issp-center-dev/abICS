@@ -171,7 +171,7 @@ class ParallelRandomParams:
         The number of replicas
     nprocs_per_replica : int
         The number of processes which a replica uses
-    nsweeps : int
+    nsteps : int
         The number of MC steps
     sample_frequency :
         The number of MC steps between measurements observables
@@ -187,7 +187,7 @@ class ParallelRandomParams:
     def __init__(self):
         self.nreplicas = None
         self.nprocs_per_replica = 1
-        self.nsweeps = 0
+        self.nsteps = 0
         self.sample_frequency = 1
         self.print_frequency = 1
         self.reload = False
@@ -213,7 +213,7 @@ class ParallelRandomParams:
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
-        params.nsweeps = d["nsteps"]
+        params.nsteps = d["nsteps"]
         params.sample_frequency = d.get("sample_frequency", 1)
         params.print_frequency = d.get("print_frequency", 1)
         params.reload = d.get("reload", False)
@@ -253,7 +253,7 @@ class ParalleMCParams:
         The lower bound of temperature range
     kTend : float
         The upper bound of temperature range
-    nsweeps : int
+    nsteps : int
         The number of MC steps
     sample_frequency :
         The number of MC steps between measurements observables
@@ -271,7 +271,7 @@ class ParalleMCParams:
         self.nprocs_per_replica = 1
         self.kTstart = None
         self.kTend = None
-        self.nsweeps = 0
+        self.nsteps = 0
         self.sample_frequency = 1
         self.print_frequency = 1
         self.reload = False
@@ -299,7 +299,7 @@ class ParalleMCParams:
         params.nprocs_per_replica = d["nprocs_per_replica"]
         params.kTstart = d["kTstart"]
         params.kTend = d["kTend"]
-        params.nsweeps = d["nsteps"]
+        params.nsteps = d["nsteps"]
         params.sample_frequency = d.get("sample_frequency", 1)
         params.print_frequency = d.get("print_frequency", 1)
         params.reload = d.get("reload", False)
@@ -339,7 +339,7 @@ class RXParams:
         The lower bound of temperature range
     kTend : float
         The upper bound of temperature range
-    nsweeps : int
+    nsteps : int
         The number of MC steps
     RXtrial_frequency :
         The number of MC steps between replica exchange operations
@@ -359,7 +359,7 @@ class RXParams:
         self.nprocs_per_replica = 1
         self.kTstart = None
         self.kTend = None
-        self.nsweeps = 0
+        self.nsteps = 0
         self.RXtrial_frequency = 1
         self.sample_frequency = 1
         self.print_frequency = 1
@@ -386,7 +386,7 @@ class RXParams:
         params.nprocs_per_replica = d["nprocs_per_replica"]
         params.kTstart = d["kTstart"]
         params.kTend = d["kTend"]
-        params.nsweeps = d["nsteps"]
+        params.nsteps = d["nsteps"]
         params.RXtrial_frequency = d.get("RXtrial_frequency", 1)
         params.sample_frequency = d.get("sample_frequency", 1)
         params.print_frequency = d.get("print_frequency", 1)
@@ -531,21 +531,21 @@ class ParallelMC(object):
 
     def run(
         self,
-        nsweeps: int,
-        nsteps_in_sweep: int = 1,
+        nsteps: int,
         sample_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
         observer: ObserverBase = ObserverBase(),
     ):
         """
 
         Parameters
         ----------
-        nsweeps: int
-            Number of Monte Carlo sweeps for running.
-        nsteps_in_sweep: int
-            Number of Monte Carlo steps in one MC sweep.
+        nsteps: int
+            Number of Monte Carlo steps for running.
         sample_frequency: int
-            Number of Monte Carlo sweeps for running.
+            Number of Monte Carlo steps for running.
+        nsubsteps_in_step: int
+            Number of Monte Carlo substeps in one MC step.
         observer: observer object
 
         Returns
@@ -561,9 +561,9 @@ class ParallelMC(object):
                 pass
             os.chdir(str(self.rank))
         observables = self.mycalc.run(
-            nsweeps,
-            nsteps_in_sweep=nsteps_in_sweep,
+            nsteps,
             sample_frequency=sample_frequency,
+            nsubsteps_in_step=nsubsteps_in_step,
             observer=observer,
         )
         if self.write_node:
@@ -642,10 +642,10 @@ class EmbarrassinglyParallelSampling:
 
     def run(
         self,
-        nsweeps: int,
-        nsteps_in_sweep: int = 1,
+        nsteps: int,
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
         observer: ObserverBase = ObserverBase(),
         subdirs: bool = True,
         save_obs: bool = True,
@@ -654,14 +654,14 @@ class EmbarrassinglyParallelSampling:
 
         Parameters
         ----------
-        nsweeps: int
-            The number of Monte Carlo sweeps for running.
         nsteps: int
-            The number of Monte Carlo steps in one MC sweep
+            The number of Monte Carlo steps for running.
         sample_frequency: int
-            The number of Monte Carlo sweeps for observation of physical quantities.
+            The number of Monte Carlo steps for observation of physical quantities.
         print_frequency: int
-            The number of Monte Carlo sweeps for saving physical quantities.
+            The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step
         observer: observer object
         subdirs: boolean
             If true, working directory for this rank is made
@@ -692,8 +692,8 @@ class EmbarrassinglyParallelSampling:
             observe = False
         nsample = 0
         with open("obs.dat", "a") as output:
-            for i in range(1, nsweeps + 1):
-                self.mycalc.MCstep(nsteps_in_sweep)
+            for i in range(1, nsteps + 1):
+                self.mycalc.MCstep(nsubsteps_in_step)
 
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
@@ -904,11 +904,11 @@ class TemperatureRX_MPI(ParallelMC):
 
     def run(
         self,
-        nsweeps: int,
+        nsteps: int,
         RXtrial_frequency: int,
-        nsteps_in_sweep: int = 1,
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
         observer: ObserverBase = ObserverBase(),
         subdirs: bool = True,
         save_obs: bool = True,
@@ -918,15 +918,15 @@ class TemperatureRX_MPI(ParallelMC):
         Parameters
         ----------
         nsteps: int
-            The number of Monte Carlo sweeps for running.
+            The number of Monte Carlo steps for running.
         RXtrial_frequency: int
-            The number of Monte Carlo sweeps for replica exchange.
-        nsteps_in_sweep: int
-            The number of Monte Carlo steps in one MC sweep.
+            The number of Monte Carlo steps for replica exchange.
         sample_frequency: int
-            The number of Monte Carlo sweeps for observation of physical quantities.
+            The number of Monte Carlo steps for observation of physical quantities.
         print_frequency: int
-            The number of Monte Carlo sweeps for saving physical quantities.
+            The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step.
         observer: observer object
         subdirs: boolean
             If true, working directory for this rank is made
@@ -958,8 +958,8 @@ class TemperatureRX_MPI(ParallelMC):
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
-            for i in range(1, nsweeps + 1):
-                self.mycalc.MCstep(nsteps_in_sweep)
+            for i in range(1, nsteps + 1):
+                self.mycalc.MCstep(nsubsteps_in_step)
                 if i % RXtrial_frequency == 0:
                     self.Xtrial(XCscheme)
                     XCscheme = (XCscheme + 1) % 2

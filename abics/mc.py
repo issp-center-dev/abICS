@@ -355,7 +355,7 @@ class MCAlgorithm(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def MCstep(self, nstep_in_sweep: int = 1) -> None:
+    def MCstep(self, nsubstep_in_step: int = 1) -> None:
         """perform one MC step"""
         ...
 
@@ -366,10 +366,10 @@ class MCAlgorithm(metaclass=ABCMeta):
 
     def run(
         self,
-        nsweeps: int,
-        nsteps_in_sweep: int = 1,
+        nsteps: int,
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
         observer: ObserverBase = ObserverBase(),
         save_obs: bool = False,
     ):
@@ -377,14 +377,14 @@ class MCAlgorithm(metaclass=ABCMeta):
 
         Parameters
         ----------
-        nsweeps: int
-            The number of Monte Carlo sweeps for running.
-        nsteps_in_sweep: int
-            The number of Monte Carlo steps in one MC sweep
+        nsteps: int
+            The number of Monte Carlo steps for running.
         sample_frequency: int
             The number of Monte Carlo steps for observation of physical quantities.
         print_frequency: int
             The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step
         observer: observer object
         save_obs: boolean
 
@@ -402,8 +402,8 @@ class MCAlgorithm(metaclass=ABCMeta):
             o = observer.observe(self, f)
             nobs = np.atleast_1d(o).flatten().size
         observables = np.zeros(nobs)
-        for i in range(1, nsweeps + 1):
-            self.MCstep(nsteps_in_sweep)
+        for i in range(1, nsteps + 1):
+            self.MCstep(nsubsteps_in_step)
             sys.stdout.flush()
             if i % sample_frequency == 0:
                 obs_step = observer.observe(self, output, i % print_frequency == 0)
@@ -441,8 +441,8 @@ class CanonicalMonteCarlo(MCAlgorithm):
         self.obs_save = []
 
     # @profile
-    def MCstep(self, nsteps_in_sweep: int = 1):
-        for istep in range(nsteps_in_sweep):
+    def MCstep(self, nsubsteps_in_step: int = 1):
+        for istep in range(nsubsteps_in_step):
             dconfig, dE = self.model.trialstep(self.config, self.energy)
             # if self.energy == float("inf"):
             #    self.config = self.model.newconfig(self.config, dconfig)
@@ -460,7 +460,7 @@ class CanonicalMonteCarlo(MCAlgorithm):
 
 
 class RandomSampling(CanonicalMonteCarlo):
-    def MCstep(self, nsteps_in_sweep: int = 1):
+    def MCstep(self, nsubsteps_in_step: int = 1):
         self.config.shuffle()
         self.energy = self.model.energy(self.config)
 

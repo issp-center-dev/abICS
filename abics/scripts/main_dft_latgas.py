@@ -85,7 +85,7 @@ def main_dft_latgas(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsweeps
+        nsteps = rxparams.nsteps
         RXtrial_frequency = rxparams.RXtrial_frequency
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
@@ -105,7 +105,7 @@ def main_dft_latgas(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsweeps
+        nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if commAll.Get_rank() == 0:
@@ -130,7 +130,7 @@ def main_dft_latgas(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsteps = rxparams.nsweeps
+        nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if commAll.Get_rank() == 0:

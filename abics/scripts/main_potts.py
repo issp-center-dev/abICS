@@ -64,7 +64,7 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsweeps = rxparams.nsweeps
+        nsteps = rxparams.nsteps
         RXtrial_frequency = rxparams.RXtrial_frequency
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
@@ -85,11 +85,11 @@ def main_potts(params_root: MutableMapping):
             print("-Starting RXMC calculation")
             sys.stdout.flush()
         obs = RXcalc.run(
-            nsweeps,
-            nsteps_in_sweep=nspins,
+            nsteps,
             RXtrial_frequency=RXtrial_frequency,
             sample_frequency=sample_frequency,
             print_frequency=print_frequency,
+            nsubsteps_in_step=nspins,
             observer=observer,
             subdirs=True,
         )
@@ -102,7 +102,7 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsweeps = rxparams.nsweeps
+        nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if comm.Get_rank() == 0:
@@ -114,10 +114,10 @@ def main_potts(params_root: MutableMapping):
         if Lreload:
             calc.reload()
         obs = calc.run(
-            nsweeps,
-            nsteps_in_sweep=nspins,
+            nsteps,
             sample_frequency=sample_frequency,
             print_frequency=print_frequency,
+            nsubsteps_in_step=nspins,
             observer=observer,
             subdirs=True,
         )
@@ -136,7 +136,7 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
-        nsweeps = rxparams.nsweeps
+        nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
         if comm.Get_rank() == 0:
@@ -148,10 +148,10 @@ def main_potts(params_root: MutableMapping):
         if Lreload:
             calc.reload()
         obs = calc.run(
-            nsweeps,
-            nsteps_in_sweep=nspins,
+            nsteps,
             sample_frequency=sample_frequency,
             print_frequency=print_frequency,
+            nsubsteps_in_step=nspins,
             observer=observer,
             subdirs=True,
         )

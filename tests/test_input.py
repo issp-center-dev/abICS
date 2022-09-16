@@ -46,7 +46,7 @@ class TestInput(unittest.TestCase):
         self.assertEqual(rxparams.nprocs_per_replica, 1)
         self.assertEqual(rxparams.kTstart, 1000.0)
         self.assertEqual(rxparams.kTend, 1200.0)
-        self.assertEqual(rxparams.nsweeps, 2)
+        self.assertEqual(rxparams.nsteps, 2)
         self.assertEqual(rxparams.RXtrial_frequency, 3)
         self.assertEqual(rxparams.sample_frequency, 4)
         self.assertEqual(rxparams.print_frequency, 5)
