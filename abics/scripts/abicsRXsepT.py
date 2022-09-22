@@ -15,13 +15,17 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from mpi4py import MPI
+
 import shutil
 import os, sys
 import datetime
 import argparse
-from abics.mc_mpi import RXParams, RX_MPI_init
+
 import numpy as np
 import scipy.constants as constants
+import toml
+
+from abics.mc_mpi import RXParams, RX_MPI_init
 
 
 def main():
@@ -37,7 +41,8 @@ def main():
         nargs="?",
         type=int,
         default=0,
-        help="number of thermalization steps to skip in energy averaging." + " Default: 0",
+        help="number of thermalization steps to skip in energy averaging."
+        + " Default: 0",
     )
 
     args = parser.parse_args()
@@ -46,6 +51,9 @@ def main():
     rxparams = RXParams.from_toml(inputfi)
     nreplicas = rxparams.nreplicas
     comm = RX_MPI_init(rxparams)
+
+    param = toml.load(inputfi)
+    solver_type = param["sampling"]["solver"]["type"]
 
     myreplica = comm.Get_rank()
 
@@ -60,16 +68,21 @@ def main():
     Trank_hist = np.load(os.path.join(str(myreplica), "Trank_hist.npy"))
     os.chdir(str(myreplica))
     for j in range(len(Trank_hist)):
-        shutil.copy(
-            "structure.{}.vasp".format(j),
-            os.path.join(os.pardir, "Tseparate", str(Trank_hist[j])),
-        )
+        str_file = f"structure.{j}.vasp"
+        if os.path.exists(str_file):
+            shutil.copy(
+                str_file,
+                os.path.join(os.pardir, "Tseparate", str(Trank_hist[j])),
+            )
 
     # Separate energies
-    myreplica_energies = np.load("obs_save.npy")[:, 0]
+    myreplica_energies = np.load("obs_save.npy")
     for Tid in range(nreplicas):
-        T_energies = np.where(Trank_hist == Tid, myreplica_energies, 0)
-        T_energies_rcvbuf = np.zeros(T_energies.shape[0], "d")
+        mask = Trank_hist == Tid
+        if myreplica_energies.ndim == 2:
+            mask = np.repeat(mask.reshape(-1,1), myreplica_energies.shape[1], axis=1)
+        T_energies = np.where(mask, myreplica_energies, 0)
+        T_energies_rcvbuf = np.zeros(T_energies.shape, "d")
         comm.Reduce(
             [T_energies, MPI.DOUBLE],
             [T_energies_rcvbuf, MPI.DOUBLE],
@@ -88,12 +101,19 @@ def main():
         os.chdir(os.path.join(os.pardir, "Tseparate"))
         with open("energies_T.dat", "w") as fi:
             kTs = np.load(os.path.join(os.pardir, "kTs.npy"))
-            Ts = kTs / constants.value(u"Boltzmann constant in eV/K")
+            if solver_type != "potts":
+                Ts = kTs / constants.value("Boltzmann constant in eV/K")
+            else:
+                Ts = kTs
             for Tid in range(nreplicas):
                 energy_mean = np.mean(
-                    np.loadtxt(os.path.join(str(Tid), "energies.dat"))[nskip:]
+                    np.loadtxt(os.path.join(str(Tid), "energies.dat"))[nskip:, :],
+                    axis = 0
                 )
-                fi.write("{}\t{}\n".format(Ts[Tid], energy_mean))
+                fi.write(f"{Ts[Tid]}")
+                for en in energy_mean:
+                    fi.write(f"\t{en}")
+                fi.write("\n")
 
 
 if __name__ == "__main__":

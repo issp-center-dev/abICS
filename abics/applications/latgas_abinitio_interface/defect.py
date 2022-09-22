@@ -43,9 +43,6 @@ class DFTConfigParams:
             Dictionary
         """
 
-        if "config" in dconfig:
-            dconfig = dconfig["config"]
-
         if "unitcell" not in dconfig:
             raise InputError('"config.unitcell" is not found in the "config" section.')
         self.lat = Lattice(read_matrix(dconfig["unitcell"]))
@@ -103,7 +100,8 @@ class DFTConfigParams:
         """
         import toml
 
-        return cls(toml.load(f))
+        d = toml.load(f)
+        return cls(d["config"])
 
 
 def defect_config(cparam: DFTConfigParams) -> Config:

@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import MutableMapping
+
 from mpi4py import MPI
 
 import sys
@@ -58,16 +60,16 @@ from abics.util import exists_on_all_nodes
 from pymatgen.core import Structure
 
 
-def main_impl(tomlfile):
-    rxparams = RefParams.from_toml(tomlfile)
+def main_impl(params_root: MutableMapping):
+    rxparams = RefParams.from_dict(params_root["mlref"])
     # nprocs_per_replica = rxparams.nprocs_per_replica
     # nreplicas = rxparams.nreplicas
     # nsteps = rxparams.nsteps
     # sample_frequency = rxparams.sample_frequency
     ndata = rxparams.ndata
     comm = RX_MPI_init(rxparams)
-    alparams = ALParams.from_toml(tomlfile)
-    configparams = DFTConfigParams.from_toml(tomlfile)
+    alparams = ALParams.from_dict(params_root["mlref"]["solver"])
+    configparams = DFTConfigParams.from_dict(params_root["config"])
 
     if alparams.solver == "vasp":
         solver = VASPSolver(alparams.path, alparams.ignore_species)
@@ -222,7 +224,7 @@ def main_impl(tomlfile):
                 print("-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(alparams.solver))
                 print("--Input files will be prepared in AL0/*/input*/baseinput0")
 
-            configparams = DFTConfigParams.from_toml(tomlfile)
+            configparams = DFTConfigParams.from_dict(params_root["config"])
             config = defect_config(configparams)
             comm.Barrier()
             if myreplica == 0:
@@ -480,14 +482,16 @@ def main_impl(tomlfile):
 
 
 def main():
+    import toml
     now = datetime.datetime.now()
     if MPI.COMM_WORLD.Get_rank() == 0:
         print(f"Running abics_mlref (abICS v{__version__}) on {now}")
 
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print("-Reading input from: {}".format(tomlfile))
-    main_impl(tomlfile)
+        print(f"-Reading input from: {tomlfile}")
+    params_root = toml.load(tomlfile)
+    main_impl(params_root)
 
 
 if __name__ == "__main__":

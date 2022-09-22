@@ -47,7 +47,7 @@ class TestMC(unittest.TestCase):
         S = 0.0
         S2 =0.0
         for i in range(N):
-            E = self.mc.run(100, 1)[0]
+            E = self.mc.run(100, sample_frequency=1)[0]
             S += E
             S2 += E*E
         m = S/N

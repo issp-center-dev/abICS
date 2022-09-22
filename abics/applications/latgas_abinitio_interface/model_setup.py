@@ -917,8 +917,6 @@ class ObserverParams:
         oparams: ObserverParams
             self
         """
-        if "observer" in d:
-            d = d["observer"]
         params = cls()
         # params.ignored_species = d["ignored_species"]
         return params
@@ -939,7 +937,8 @@ class ObserverParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(f))
+        d = toml.load(f)
+        return cls.from_dict(d["observer"])
 
 
 # For backward compatibility

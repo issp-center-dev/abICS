@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from typing import MutableMapping
+
 import sys, datetime
 
 import os, sys
@@ -35,8 +37,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
 )
 
 
-
-def main_impl(tomlfile):
+def main_impl(params_root: MutableMapping):
     if not os.path.exists("ALloop.progress"):
         print("abics_mlref has not run yet.")
         sys.exit(1)
@@ -53,17 +54,17 @@ def main_impl(tomlfile):
         print("Either abics_sampling or abics_mlref first.")
         sys.exit(1)
 
-    dftparams = DFTParams.from_toml(tomlfile)
+    dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     ensemble = dftparams.ensemble
     base_input_dir = dftparams.base_input_dir
 
-    trainerparams = TrainerParams.from_toml(tomlfile)
+    trainerparams = TrainerParams.from_dict(params_root["train"])
     ignore_species = trainerparams.ignore_species
     trainer_commands = trainerparams.exe_command
     trainer_type = trainerparams.solver
     trainer_input_dirs = trainerparams.base_input_dir
 
-    configparams = DFTConfigParams.from_toml(tomlfile)
+    configparams = DFTConfigParams.from_dict(params_root["config"])
     config = defect_config(configparams)
     species = config.structure.symbol_set
     dummy_sts = {sp: config.dummy_structure_sp(sp) for sp in species}
@@ -236,11 +237,13 @@ def main_impl(tomlfile):
 
 
 def main():
+    import toml
     now = datetime.datetime.now()
     print(f"Running abics_train (abICS v{__version__}) on {now}")
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    print("-Reading input from: {}".format(tomlfile))
-    main_impl(tomlfile)
+    print(f"-Reading input from: {tomlfile}")
+    params_root = toml.load(tomlfile)
+    main_impl(params_root)
 
 
 if __name__ == "__main__":

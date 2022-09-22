@@ -55,8 +55,6 @@ class SamplerParams:
         params: SamplerParams object
             self
         """
-        if "sampler" in d:
-            d = d["sampler"]
         params = cls()
         params.sampler = d.get("sampler", "RXMC")
         return params
@@ -78,7 +76,8 @@ class SamplerParams:
         """
         import toml
 
-        return cls.from_dict(toml.load(fname))
+        d = toml.load(fname)
+        return cls.from_dict(d["sampler"])
 
 
 class RefParams:
@@ -188,7 +187,7 @@ class ParallelRandomParams:
     def __init__(self):
         self.nreplicas = None
         self.nprocs_per_replica = 1
-        self.nsteps = None
+        self.nsteps = 0
         self.sample_frequency = 1
         self.print_frequency = 1
         self.reload = False
@@ -272,7 +271,7 @@ class ParalleMCParams:
         self.nprocs_per_replica = 1
         self.kTstart = None
         self.kTend = None
-        self.nsteps = None
+        self.nsteps = 0
         self.sample_frequency = 1
         self.print_frequency = 1
         self.reload = False
@@ -360,7 +359,7 @@ class RXParams:
         self.nprocs_per_replica = 1
         self.kTstart = None
         self.kTend = None
-        self.nsteps = None
+        self.nsteps = 0
         self.RXtrial_frequency = 1
         self.sample_frequency = 1
         self.print_frequency = 1
@@ -416,7 +415,7 @@ class RXParams:
         return cls.from_dict(d["sampling"])
 
 
-def RX_MPI_init(rxparams: RXParams, dftparams=None):
+def RX_MPI_init(rxparams: RXParams, nensemble=None):
     """
 
     Parameters
@@ -429,11 +428,11 @@ def RX_MPI_init(rxparams: RXParams, dftparams=None):
     comm: comm world
         MPI communicator
     """
-    if dftparams != None and dftparams.ensemble and dftparams.par_ensemble:
-        nensemble = len(dftparams.base_input_dir)
+    if nensemble is None:
+        nensemble_ = 1
     else:
-        nensemble = 1
-    nreplicas = rxparams.nreplicas * nensemble
+        nensemble_ = nensemble
+    nreplicas = rxparams.nreplicas * nensemble_
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
@@ -462,7 +461,7 @@ def RX_MPI_init(rxparams: RXParams, dftparams=None):
     else:
         comm = commworld
     comm = comm.Create_cart(
-        dims=[rxparams.nreplicas, nensemble], periods=[False, False], reorder=True
+        dims=[rxparams.nreplicas, nensemble_], periods=[False, False], reorder=True
     )
     commRX = comm.Sub(remain_dims=[True, False])
     commEnsemble = comm.Sub(remain_dims=[False, True])
@@ -475,9 +474,10 @@ def RX_MPI_init(rxparams: RXParams, dftparams=None):
         rand.seed(rand_seed)
 
     # return commRX
-    if dftparams == None:
+    if nensemble is None:
         return commRX
-    return commRX, commEnsemble, comm
+    else:
+        return commRX, commEnsemble, comm
 
 
 class ParallelMC(object):
@@ -529,7 +529,13 @@ class ParallelMC(object):
         mytemp = kTs[self.rank]
         self.mycalc = MCalgo(model, mytemp, myconfig)
 
-    def run(self, nsteps, sample_frequency, observer=ObserverBase()):
+    def run(
+        self,
+        nsteps: int,
+        sample_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
+        observer: ObserverBase = ObserverBase(),
+    ):
         """
 
         Parameters
@@ -538,6 +544,8 @@ class ParallelMC(object):
             Number of Monte Carlo steps for running.
         sample_frequency: int
             Number of Monte Carlo steps for running.
+        nsubsteps_in_step: int
+            Number of Monte Carlo substeps in one MC step.
         observer: observer object
 
         Returns
@@ -552,7 +560,12 @@ class ParallelMC(object):
             except FileExistsError:
                 pass
             os.chdir(str(self.rank))
-        observables = self.mycalc.run(nsteps, sample_frequency, observer)
+        observables = self.mycalc.run(
+            nsteps,
+            sample_frequency=sample_frequency,
+            nsubsteps_in_step=nsubsteps_in_step,
+            observer=observer,
+        )
         if self.write_node:
             pickle_dump(self.mycalc.config, "config.pickle")
         if self.subdirs:
@@ -629,12 +642,13 @@ class EmbarrassinglyParallelSampling:
 
     def run(
         self,
-        nsteps,
-        sample_frequency=verylargeint,
-        print_frequency=verylargeint,
-        observer=ObserverBase(),
-        subdirs=True,
-        save_obs=True,
+        nsteps: int,
+        sample_frequency: int = verylargeint,
+        print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
+        observer: ObserverBase = ObserverBase(),
+        subdirs: bool = True,
+        save_obs: bool = True,
     ):
         """
 
@@ -646,6 +660,8 @@ class EmbarrassinglyParallelSampling:
             The number of Monte Carlo steps for observation of physical quantities.
         print_frequency: int
             The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step
         observer: observer object
         subdirs: boolean
             If true, working directory for this rank is made
@@ -677,7 +693,7 @@ class EmbarrassinglyParallelSampling:
         nsample = 0
         with open("obs.dat", "a") as output:
             for i in range(1, nsteps + 1):
-                self.mycalc.MCstep()
+                self.mycalc.MCstep(nsubsteps_in_step)
 
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
@@ -879,7 +895,7 @@ class TemperatureRX_MPI(ParallelMC):
         else:
             myTrankm1 = myTrank - 1
             exchange_rank = self.find_procrank_from_Trank(myTrankm1)
-            self.comm.Send(self.mycalc.energy, dest=exchange_rank, tag=1)
+            self.comm.Send(np.array([self.mycalc.energy]), dest=exchange_rank, tag=1)
             self.comm.Recv([self.int_buffer, 1, MPI.INT], source=exchange_rank, tag=2)
             self.rank_to_T[self.rank] = self.int_buffer
         self.comm.Allgather(self.rank_to_T[self.rank], self.rank_to_T)
@@ -888,13 +904,14 @@ class TemperatureRX_MPI(ParallelMC):
 
     def run(
         self,
-        nsteps,
-        RXtrial_frequency,
-        sample_frequency=verylargeint,
-        print_frequency=verylargeint,
-        observer=ObserverBase(),
-        subdirs=True,
-        save_obs=True,
+        nsteps: int,
+        RXtrial_frequency: int,
+        sample_frequency: int = verylargeint,
+        print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
+        observer: ObserverBase = ObserverBase(),
+        subdirs: bool = True,
+        save_obs: bool = True,
     ):
         """
 
@@ -908,6 +925,8 @@ class TemperatureRX_MPI(ParallelMC):
             The number of Monte Carlo steps for observation of physical quantities.
         print_frequency: int
             The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step.
         observer: observer object
         subdirs: boolean
             If true, working directory for this rank is made
@@ -940,7 +959,7 @@ class TemperatureRX_MPI(ParallelMC):
         XCscheme = 0
         with open("obs.dat", "a") as output:
             for i in range(1, nsteps + 1):
-                self.mycalc.MCstep()
+                self.mycalc.MCstep(nsubsteps_in_step)
                 if i % RXtrial_frequency == 0:
                     self.Xtrial(XCscheme)
                     XCscheme = (XCscheme + 1) % 2

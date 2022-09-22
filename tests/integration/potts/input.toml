@@ -1,0 +1,17 @@
+[sampling]
+nreplicas = 2
+nprocs_per_replica = 1 
+kTstart = 1.0
+kTend = 1.2
+nsteps = 1024 # Number of steps for sampling
+RXtrial_frequency = 32
+sample_frequency = 8
+print_frequency = 1
+reload = false
+
+[sampling.solver]
+type = 'potts'
+
+[config]
+Q = 2
+L = [8, 8]
