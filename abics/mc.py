@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import Any, List, Tuple, TextIO, Union
+from __future__ import annotations
+
+from typing import Any, TextIO, Union
 from numpy.typing import NDArray
 
 from math import exp
@@ -31,7 +33,6 @@ import numpy.random as rand
 from abics import __version__
 
 verylargeint = sys.maxsize
-
 
 """Defines base classes for Monte Carlo simulations"""
 
@@ -63,7 +64,7 @@ class Model(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def trialstep(self, config, energy: float) -> Tuple[Any, float]:
+    def trialstep(self, config, energy: float) -> tuple[Any, float]:
         """Define a trial step on config
 
         Returns dconfig, which can contain the minimal information for
@@ -164,7 +165,7 @@ def binning(x, nlevels: int):
 
 class ObsInfo:
     nargs: int
-    lengths: List[int]
+    lengths: list[int]
 
     def __init__(self, *args):
         """
@@ -263,7 +264,7 @@ class ObserverBase:
                 obs_ND.append(obs_save)
         return ObsInfo(*obs_log, *obs_ND)
 
-    def logfunc(self, calc_state: "MCAlgorithm") -> Tuple[float]:
+    def logfunc(self, calc_state: "MCAlgorithm") -> tuple[float]:
         """returns values of observables
 
         Parameters
@@ -278,7 +279,7 @@ class ObserverBase:
         """
         return (calc_state.energy,)
 
-    def savefunc(self, calc_state: "MCAlgorithm") -> Union[Tuple[float], Tuple[()]]:
+    def savefunc(self, calc_state: "MCAlgorithm") -> Union[tuple[float], tuple[()]]:
         """returns values of observables, which will be not printed in observe method.
 
         Parameters
@@ -348,7 +349,7 @@ class MCAlgorithm(metaclass=ABCMeta):
 
     model: Model
     config: Any
-    obs_save: List[NDArray]
+    obs_save: list[NDArray]
 
     @abstractmethod
     def __init__(self, *args):
@@ -360,7 +361,7 @@ class MCAlgorithm(metaclass=ABCMeta):
         ...
 
     @abstractmethod
-    def parameters(self) -> List:
+    def parameters(self) -> list:
         """returns parameters (e.g., temperature)"""
         ...
 

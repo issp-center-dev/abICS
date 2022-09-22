@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple
+from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -74,7 +74,7 @@ class Configuration:
 @dataclass
 class DConfig:
     newspin: int
-    index: Tuple[int]
+    index: tuple[int]
 
 
 class Observer(ObserverBase):
@@ -95,7 +95,7 @@ class Potts(Model):
     def energy(self, config: Configuration) -> float:
         return config.energy
 
-    def trialstep(self, config: Configuration, energy: float) -> Tuple[DConfig, float]:
+    def trialstep(self, config: Configuration, energy: float) -> tuple[DConfig, float]:
         index = tuple(np.random.randint(config.spins.shape))
         newspin = (config.spins[index] + np.random.randint(1, config.Q)) % config.Q
         denergy = config.diff_energy(newspin, index)

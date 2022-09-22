@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-import typing
-from typing import Any, Dict, List, MutableMapping
+from __future__ import annotations
+
+from typing import Any, MutableMapping
 
 from pymatgen.core import Lattice, Structure
 
@@ -28,10 +29,10 @@ from abics.util import read_matrix
 class DFTConfigParams:
 
     lat: Lattice
-    supercell: List[int]
+    supercell: list[int]
     base_structure: Structure
-    defect_sublattices: List[DefectSublattice]
-    num_defects: List[Dict[str, int]]
+    defect_sublattices: list[DefectSublattice]
+    num_defects: list[dict[str, int]]
 
     def __init__(self, dconfig: MutableMapping[str, Any]) -> None:
         """
@@ -47,7 +48,7 @@ class DFTConfigParams:
             raise InputError('"config.unitcell" is not found in the "config" section.')
         self.lat = Lattice(read_matrix(dconfig["unitcell"]))
 
-        self.supercell = typing.cast(List[int], dconfig.get("supercell", [1, 1, 1]))
+        self.supercell = dconfig.get("supercell", [1, 1, 1])
         if not isinstance(self.supercell, list):
             raise InputError('"config.supercell" should be a list of integers')
 

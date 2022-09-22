@@ -1,10 +1,10 @@
-from typing import List
+from __future__ import annotations
 
 import numpy as np
 from pymatgen.core import Structure
 
 
-def naive_mapping(st0: Structure, st1: Structure) -> List[int]:
+def naive_mapping(st0: Structure, st1: Structure) -> list[int]:
     """
 
     Arguments
@@ -14,7 +14,7 @@ def naive_mapping(st0: Structure, st1: Structure) -> List[int]:
 
     Returns
     =======
-    mapping: List[int]
+    mapping: list[int]
         mapping atoms from st0 to st1.
         st0[i] corresponds to st1[mapping[i]]
     """

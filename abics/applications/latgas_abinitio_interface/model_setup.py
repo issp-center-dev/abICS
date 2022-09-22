@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import List
+from __future__ import annotations
 
 from itertools import product
 import sys
@@ -647,7 +647,7 @@ class Config:
             comparator=FrameworkComparator(),
         )
 
-        self.calc_history: List = []
+        self.calc_history: list = []
         self.cellsize = cellsize
         self.base_structure = base_structure
         self.constraint_func = constraint_func

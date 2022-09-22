@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import Tuple
+from __future__ import annotations
 
 import os
 import numpy as np
@@ -53,7 +53,7 @@ class DefaultObserver(ObserverBase):
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
-    def logfunc(self, calc_state: MCAlgorithm) -> Tuple[float]:
+    def logfunc(self, calc_state: MCAlgorithm) -> tuple[float]:
         if calc_state.energy < self.minE:
             self.minE = calc_state.energy
             with open("minEfi.dat", "a") as f:

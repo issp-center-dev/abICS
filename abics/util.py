@@ -24,15 +24,15 @@ import numpy as np
 from .exception import InputError
 
 
-def read_vector(v, *, dtype=np.float):
+def read_vector(v, *, dtype=np.float64):
     return read_tensor(v, rank=1, dtype=dtype)
 
 
-def read_matrix(v, *, dtype=np.float):
+def read_matrix(v, *, dtype=np.float64):
     return read_tensor(v, rank=2, dtype=dtype)
 
 
-def read_tensor(v, *, rank=2, dtype=np.float):
+def read_tensor(v, *, rank=2, dtype=np.float64):
     """
     Read tensor
 
@@ -42,7 +42,7 @@ def read_tensor(v, *, rank=2, dtype=np.float):
         tensor
 
     dtype: type
-        type of elements, default: np.float
+        type of elements, default: np.float64
 
     Returns
     -------
