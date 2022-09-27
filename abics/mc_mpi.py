@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import Type
+from __future__ import annotations
 
 import os
 import sys
@@ -355,7 +355,7 @@ class RXParams:
     """
 
     def __init__(self):
-        self.nreplicas = None
+        self.nreplicas = 1
         self.nprocs_per_replica = 1
         self.kTstart = None
         self.kTend = None
@@ -457,7 +457,8 @@ def RX_MPI_init(rxparams: RXParams, nensemble=None):
             comm.Free()
             sys.exit()  # Wait for MPI_finalize
         else:
-            comm = commworld.Split(color=0, key=worldrank)
+            comm = MPI.Intracomm(commworld.Split(color=0, key=worldrank))
+            #comm = commworld.Split(color=0, key=worldrank)
     else:
         comm = commworld
     comm = comm.Create_cart(
@@ -484,11 +485,10 @@ class ParallelMC(object):
     def __init__(
         self,
         comm,
-        MCalgo: Type[MCAlgorithm],
+        MCalgo: type[MCAlgorithm],
         model: Model,
         configs,
         kTs,
-        subdirs=True,
         write_node=True,
     ):
         """
@@ -505,15 +505,12 @@ class ParallelMC(object):
             Configurations
         kTs: list
             Temperature list
-        subdirs: boolean
-            if true,  working directory for this rank is made
         """
         self.comm = comm
         self.rank = self.comm.Get_rank()
         self.procs = self.comm.Get_size()
         self.kTs = kTs
         self.model = model
-        self.subdirs = subdirs
         self.nreplicas = len(configs)
         self.write_node = write_node
 
@@ -535,6 +532,7 @@ class ParallelMC(object):
         sample_frequency: int = verylargeint,
         nsubsteps_in_step: int = 1,
         observer: ObserverBase = ObserverBase(),
+        subdirs: bool = True,
     ):
         """
 
@@ -547,13 +545,15 @@ class ParallelMC(object):
         nsubsteps_in_step: int
             Number of Monte Carlo substeps in one MC step.
         observer: observer object
+        subdirs: boolean
+            if true,  working directory for this rank is made
 
         Returns
         -------
         obs_buffer: numpy array
             Observables
         """
-        if self.subdirs:
+        if subdirs:
             # make working directory for this rank
             try:
                 os.mkdir(str(self.rank))
@@ -568,7 +568,7 @@ class ParallelMC(object):
         )
         if self.write_node:
             pickle_dump(self.mycalc.config, "config.pickle")
-        if self.subdirs:
+        if subdirs:
             os.chdir("../")
         if sample_frequency:
             obs_buffer = np.empty([self.procs, len(observables)])
@@ -580,11 +580,10 @@ class EmbarrassinglyParallelSampling:
     def __init__(
         self,
         comm,
-        MCalgo: Type[MCAlgorithm],
+        MCalgo: type[MCAlgorithm],
         model: Model,
         configs,
         kTs=None,
-        subdirs=True,
         write_node=True,
     ):
         """
@@ -593,7 +592,7 @@ class EmbarrassinglyParallelSampling:
         ----------
         comm: comm world
             MPI communicator
-        MCalgo: Type[MCAlgorithm]
+        MCalgo: type[MCAlgorithm]
             MonteCarlo algorithm class (not instance)
         model: Model
             Model
@@ -601,8 +600,6 @@ class EmbarrassinglyParallelSampling:
             Configuration
         kTs: list
             Temperature list
-        subdirs: boolean
-            If true, working directory for this rank is made
         """
         self.comm = comm
         self.rank = self.comm.Get_rank()
@@ -611,7 +608,6 @@ class EmbarrassinglyParallelSampling:
             kTs = [0] * self.procs
         self.kTs = kTs
         self.model = model
-        self.subdirs = subdirs
         self.nreplicas = len(configs)
         self.write_node = write_node
 
@@ -626,8 +622,8 @@ class EmbarrassinglyParallelSampling:
         myconfig = configs[self.rank]
         mytemp = kTs[self.rank]
         self.mycalc = MCalgo(model, mytemp, myconfig)
-        self.obs_save = []
-        self.kT_hist = []
+        self.obs_save: list[np.ndarray] = []
+        self.kT_hist: list[float] = []
         self.Lreload = False
 
     def reload(self):
@@ -750,7 +746,7 @@ class EmbarrassinglyParallelSampling:
 
 
 class RandomSampling_MPI(ParallelMC):
-    def __init__(self, comm, MCalgo, model, configs, subdirs=True, write_node=True):
+    def __init__(self, comm, MCalgo, model, configs, write_node=True):
         """
 
         Parameters
@@ -763,12 +759,10 @@ class RandomSampling_MPI(ParallelMC):
             DFT lattice gas mapping  model
         configs: config object
             Configuration
-        subdirs: boolean
-            If true, working directory for this rank is made
         """
 
         super(TemperatureRX_MPI, self).__init__(
-            comm, MCalgo, model, configs, kTs, subdirs
+            comm, MCalgo, model, configs, kTs, write_node=write_node
         )
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int)
@@ -782,7 +776,7 @@ class RandomSampling_MPI(ParallelMC):
 
 class TemperatureRX_MPI(ParallelMC):
     def __init__(
-        self, comm, MCalgo, model, configs, kTs, subdirs=True, write_node=True
+        self, comm, MCalgo, model, configs, kTs, write_node=True
     ):
         """
 
@@ -802,7 +796,7 @@ class TemperatureRX_MPI(ParallelMC):
             If true, working directory for this rank is made
         """
         super(TemperatureRX_MPI, self).__init__(
-            comm, MCalgo, model, configs, kTs, subdirs, write_node
+            comm, MCalgo, model, configs, kTs, write_node=write_node
         )
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int)

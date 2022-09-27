@@ -74,7 +74,7 @@ class Configuration:
 @dataclass
 class DConfig:
     newspin: int
-    index: tuple[int]
+    index: tuple[int, ...]
 
 
 class Observer(ObserverBase):
@@ -96,11 +96,11 @@ class Potts(Model):
         return config.energy
 
     def trialstep(self, config: Configuration, energy: float) -> tuple[DConfig, float]:
-        index = tuple(np.random.randint(config.spins.shape))
+        index: tuple[int, ...] = tuple(np.random.randint(config.spins.shape))
         newspin = (config.spins[index] + np.random.randint(1, config.Q)) % config.Q
         denergy = config.diff_energy(newspin, index)
         return DConfig(newspin, index), denergy
 
-    def newconfig(self, config: Configuration, dconfig: DConfig):
+    def newconfig(self, config: Configuration, dconfig: DConfig) -> Configuration:
         config.flip_spin(dconfig.newspin, dconfig.index)
         return config

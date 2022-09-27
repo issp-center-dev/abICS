@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Any
+from collections.abc import MutableMapping
+
 class SamplerParams:
     """Parameter set for specifying sampling algorithm
 
@@ -7,11 +12,11 @@ class SamplerParams:
         Sampler name
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.sampler = "RXMC"
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: MutableMapping[str, Any]) -> "SamplerParams":
         """
         Read information from dictionary
 
@@ -32,7 +37,7 @@ class SamplerParams:
         return params
 
     @classmethod
-    def from_toml(cls, fname):
+    def from_toml(cls, fname: str) -> "SamplerParams":
         """
         Read information from toml file
 
@@ -49,65 +54,6 @@ class SamplerParams:
         import toml
 
         return cls.from_dict(toml.load(fname))
-
-
-# class TrainParams:
-#     """Parameter set for reference calculations in active learning run
-#
-#     Attributes
-#     ----------
-#     nreplicas : int
-#         The number of replicas
-#     nprocs_per_replica : int
-#         The number of processes which a replica uses
-#     """
-#
-#     def __init__(self):
-#         self.nreplicas = None
-#         self.nprocs_per_replica = 1
-#         self.seed = 0
-#
-#     @classmethod
-#     def from_dict(cls, d):
-#         """
-#         Read information from dictionary
-#
-#         Parameters
-#         ----------
-#         d: dict
-#             Dictionary including parameters for parallel random sampling
-#
-#         Returns
-#         -------
-#         params: DFTParams object
-#             self
-#         """
-#         if "replicaRef" in d:
-#             d = d["replicaRef"]
-#         params = cls()
-#         params.nreplicas = d["nreplicas"]
-#         params.nprocs_per_replica = d.get("nprocs_per_replica", 1)
-#         return params
-#
-#     @classmethod
-#     def from_toml(cls, fname):
-#         """
-#         Read information from toml file
-#
-#         Parameters
-#         ----------
-#         f: str
-#             The name of input toml File
-#
-#         Returns
-#         -------
-#         DFTParams: DFTParams object
-#             self
-#         """
-#         import toml
-#
-#         d = toml.load(fname)
-#         return cls.from_dict(d["train"])
 
 
 class ParallelRandomParams:
@@ -132,8 +78,8 @@ class ParallelRandomParams:
         If 0, some random number is used (e.g., system time or some random noise).
     """
 
-    def __init__(self):
-        self.nreplicas = None
+    def __init__(self) -> None:
+        self.nreplicas = 1
         self.nprocs_per_replica = 1
         self.nsteps = None
         self.sample_frequency = 1
@@ -142,7 +88,7 @@ class ParallelRandomParams:
         self.seed = 0
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: MutableMapping[str, Any]) -> "ParallelRandomParams":
         """
         Read information from dictionary
 
@@ -169,7 +115,7 @@ class ParallelRandomParams:
         return params
 
     @classmethod
-    def from_toml(cls, fname):
+    def from_toml(cls, fname: str) -> "ParallelRandomParams":
         """
         Read information from toml file
 
@@ -188,7 +134,7 @@ class ParallelRandomParams:
         return cls.from_dict(toml.load(fname))
 
 
-class ParalleMCParams:
+class ParallelMCParams:
     """Parameter set for embarrasingly parallel Monte Carlo
 
     Attributes
@@ -214,19 +160,19 @@ class ParalleMCParams:
         If 0, some random number is used (e.g., system time or some random noise).
     """
 
-    def __init__(self):
-        self.nreplicas = None
+    def __init__(self) -> None:
+        self.nreplicas = -1
         self.nprocs_per_replica = 1
-        self.kTstart = None
-        self.kTend = None
-        self.nsteps = None
+        self.kTstart = -1.0
+        self.kTend = -1.0
+        self.nsteps = -1
         self.sample_frequency = 1
         self.print_frequency = 1
         self.reload = False
         self.seed = 0
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: MutableMapping[str, Any]) -> "ParallelMCParams":
         """
         Read information from dictionary
 
@@ -255,7 +201,7 @@ class ParalleMCParams:
         return params
 
     @classmethod
-    def from_toml(cls, fname):
+    def from_toml(cls, fname: str) -> "ParallelMCParams":
         """
         Read information from toml file
 
@@ -302,7 +248,7 @@ class RXParams:
         If 0, some random number is used (e.g., system time or some random noise).
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.nreplicas = None
         self.nprocs_per_replica = 1
         self.kTstart = None
@@ -315,7 +261,7 @@ class RXParams:
         self.seed = 0
 
     @classmethod
-    def from_dict(cls, d):
+    def from_dict(cls, d: MutableMapping[str, Any]) -> "RXParams":
         """
         Read information from dictionary
 
@@ -345,7 +291,7 @@ class RXParams:
         return params
 
     @classmethod
-    def from_toml(cls, fname):
+    def from_toml(cls, fname: str) -> "RXParams":
         """
         Read information from toml file
 

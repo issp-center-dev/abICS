@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import MutableMapping
+from __future__ import annotations
+from typing import MutableMapping, Any
 
 import sys, datetime
 
@@ -100,7 +101,7 @@ def main_impl(params_root: MutableMapping):
     sp_groups = nx.connected_components(G)
     # print(list(sp_groups))
     # sys.exit(0)
-    dummy_sts_share = []
+    dummy_sts_share : list[tuple[Structure, list]] = []
     for c in nx.connected_components(G):
         # merge dummy structures for species that share sublattices
         sps = list(c)
@@ -111,8 +112,8 @@ def main_impl(params_root: MutableMapping):
             species=["X"] * coords.shape[0],
             coords=coords,
         )
-        st_tmp.merge_sites(mode="del")
-        dummy_sts_share.append([st_tmp, sps])
+        st_tmp.merge_sites(mode="delete")
+        dummy_sts_share.append((st_tmp, sps))
 
     # for i,st in enumerate(dummy_sts_share):
     #    st.to("POSCAR","{}.dummy.vasp".format(i))
@@ -129,12 +130,12 @@ def main_impl(params_root: MutableMapping):
                     energies_ref.append(float(words[1]))
                     step_ids.append(int(words[2]))
             for step_id, energy in zip(step_ids, energies_ref):
-                structure = Structure.from_file(f"structure.{step_id}.vasp")
+                structure: Structure = Structure.from_file(f"structure.{step_id}.vasp")
                 mapped_sts = []
                 mapping_success = True
                 for dummy_st, specs in dummy_sts_share:
                     # perform sublattice by sublattice mapping
-                    sp_rm = filter(lambda s: s not in specs, species)
+                    sp_rm = list(filter(lambda s: s not in specs, species))
                     st_tmp = structure.copy()
                     st_tmp.remove_species(sp_rm)
                     num_sp = len(st_tmp)
