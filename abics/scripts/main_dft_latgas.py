@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from typing import MutableMapping
+from typing import MutableMapping, Union
 
 from mpi4py import MPI
 import copy
@@ -53,6 +53,7 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerEnsemble,
     RunnerMultistep,
 )
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
@@ -140,6 +141,7 @@ def main_dft_latgas(params_root: MutableMapping):
         print("Unknown sampler. Exiting...")
         sys.exit(1)
 
+    solver: SolverBase
     if dftparams.solver == "vasp":
         solver = VASPSolver(dftparams.path)
     elif dftparams.solver == "qe":
@@ -163,6 +165,7 @@ def main_dft_latgas(params_root: MutableMapping):
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
+    energy_calculator: Union[Runner, RunnerEnsemble, RunnerMultistep]
     if dftparams.ensemble:
         if len(dftparams.base_input_dir) == 1:
             print(
@@ -260,7 +263,7 @@ def main_dft_latgas(params_root: MutableMapping):
             )
             for base_input_dir in ensembleparams.base_input_dirs
         ]
-        observer = EnsembleErrorObserver(commEnsemble, energy_calculators, Lreload)
+        observer: DefaultObserver = EnsembleErrorObserver(commEnsemble, energy_calculators, Lreload)
     else:
         observer = DefaultObserver(comm, Lreload)
 

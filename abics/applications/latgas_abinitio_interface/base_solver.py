@@ -14,7 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from __future__ import annotations
+
 from collections import namedtuple
+
+from pymatgen.core.structure import Structure
 
 
 class SolverBase(object):
@@ -43,11 +47,11 @@ class SolverBase(object):
             Information of position.
         """
 
-        def __init__(self):
+        def __init__(self) -> None:
             self.base_info = None
             self.pos_info = None
 
-        def update_info_by_structure(self, structure):
+        def update_info_by_structure(self, structure: Structure) -> None:
             """
             Update information by structure.
 
@@ -59,7 +63,7 @@ class SolverBase(object):
             """
             return None
 
-        def update_info_from_files(self, workdir, rerun):
+        def update_info_from_files(self, workdir, rerun) -> None:
             """
             Update information by result files.
 
@@ -72,7 +76,7 @@ class SolverBase(object):
 
             return None
 
-        def write_input(self, workdir):
+        def write_input(self, workdir) -> None:
             """
             Generate input files of the solver program.
 
@@ -83,7 +87,7 @@ class SolverBase(object):
             """
             return None
 
-        def from_directory(self, base_input_dir):
+        def from_directory(self, base_input_dir) -> None:
             """
             Set information, base_input and pos_info, from files in the base_input_dir
 
@@ -96,7 +100,7 @@ class SolverBase(object):
             self.base_info = {}
             self.pos_info = {}
 
-        def cl_args(self, nprocs, nthreads, workdir):
+        def cl_args(self, nprocs, nthreads, workdir) -> list[str]:
             """
             Generate command line arguments of the solver program.
 
@@ -114,7 +118,8 @@ class SolverBase(object):
             args : list[str]
                 Arguments of command
             """
-            return []
+            ret: list[str] = []
+            return ret
 
     class Output(object):
         """

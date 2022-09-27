@@ -16,8 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any, TextIO, Union
-from numpy.typing import NDArray
+from typing import Any, TextIO, Union, TypeVar
 
 from math import exp
 
@@ -349,7 +348,8 @@ class MCAlgorithm(metaclass=ABCMeta):
 
     model: Model
     config: Any
-    obs_save: list[NDArray]
+    obs_save: list[np.ndarray]
+    kT: float
 
     @abstractmethod
     def __init__(self, *args):

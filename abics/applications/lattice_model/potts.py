@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-from numpy.typing import NDArray
 import numpy.random
 
 from abics.mc import Model, ObserverBase, MCAlgorithm
@@ -11,7 +10,7 @@ from abics.mc import Model, ObserverBase, MCAlgorithm
 
 class Configuration:
     Q: int
-    spins: NDArray[np.int64]
+    spins: np.ndarray
     energy: float
     N: int
     N_zero: int
@@ -55,7 +54,7 @@ class Configuration:
         npara_new = np.count_nonzero(neighbors == newspin)
         return npara_old - npara_new
 
-    def neighbor_spins(self, index) -> NDArray[np.int64]:
+    def neighbor_spins(self, index) -> np.ndarray:
         ret = np.zeros(2*self.spins.ndim, dtype=np.int64)
         index_neighbor = np.array(index)
         for d in range(self.spins.ndim):
@@ -74,7 +73,7 @@ class Configuration:
 @dataclass
 class DConfig:
     newspin: int
-    index: tuple[int]
+    index: tuple[int, ...]
 
 
 class Observer(ObserverBase):
@@ -96,11 +95,11 @@ class Potts(Model):
         return config.energy
 
     def trialstep(self, config: Configuration, energy: float) -> tuple[DConfig, float]:
-        index = tuple(np.random.randint(config.spins.shape))
+        index: tuple[int, ...] = tuple(np.random.randint(config.spins.shape))
         newspin = (config.spins[index] + np.random.randint(1, config.Q)) % config.Q
         denergy = config.diff_energy(newspin, index)
         return DConfig(newspin, index), denergy
 
-    def newconfig(self, config: Configuration, dconfig: DConfig):
+    def newconfig(self, config: Configuration, dconfig: DConfig) -> Configuration:
         config.flip_spin(dconfig.newspin, dconfig.index)
         return config

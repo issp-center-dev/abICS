@@ -27,28 +27,20 @@ import numpy as np
 
 from abics import __version__
 
-from abics.mc import RandomSampling
-
 from abics.mc_mpi import (
     RX_MPI_init,
     RefParams,
-    EmbarrassinglyParallelSampling,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
 from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
-    DFTLatticeGas,
-    ObserverParams,
     perturb_structure,
 )
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.run_base_mpi import (
-    Runner,
-    RunnerMultistep,
-)
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
@@ -71,6 +63,7 @@ def main_impl(params_root: MutableMapping):
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
+    solver: SolverBase
     if alparams.solver == "vasp":
         solver = VASPSolver(alparams.path, alparams.ignore_species)
     elif alparams.solver == "qe":
@@ -334,10 +327,8 @@ def main_impl(params_root: MutableMapping):
             relax_max = []
             rundir_list = []
             sample_list = []
-            for f in glob.iglob(
-                os.path.join(ALdir, "input*")
-            ):
-                sample_list.append(int(os.path.basename(f).split("t")[1]))
+            for path in glob.iglob(os.path.join(ALdir, "input*")):
+                sample_list.append(int(os.path.basename(path).split("t")[1]))
             sample_list.sort()
             for i in sample_list:
                 energy, st_rel = solver_output.get_results(
