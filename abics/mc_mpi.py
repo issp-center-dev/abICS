@@ -106,7 +106,7 @@ class RefParams:
 
     def sampling(self, nsamples: int) -> np.ndarray:
         if self.sampler == "linspace":
-            ret = np.linspace(0, nsamples - 1, num=self.ndata, dtype=int)
+            ret = np.linspace(0, nsamples - 1, num=self.ndata, dtype=np.int64)
             return ret
         elif self.sampler == "random":
             ret = rand.choice(np.arange(nsamples), size=self.ndata, replace=False)
@@ -269,8 +269,8 @@ class ParalleMCParams:
     def __init__(self):
         self.nreplicas = None
         self.nprocs_per_replica = 1
-        self.kTstart = None
-        self.kTend = None
+        self.kTstart = 0.0
+        self.kTend = 1.0
         self.nsteps = 0
         self.sample_frequency = 1
         self.print_frequency = 1
@@ -357,8 +357,8 @@ class RXParams:
     def __init__(self):
         self.nreplicas = 1
         self.nprocs_per_replica = 1
-        self.kTstart = None
-        self.kTend = None
+        self.kTstart = 0.0
+        self.kTend = 1.0
         self.nsteps = 0
         self.RXtrial_frequency = 1
         self.sample_frequency = 1
@@ -415,7 +415,100 @@ class RXParams:
         return cls.from_dict(d["sampling"])
 
 
-def RX_MPI_init(rxparams: RXParams, nensemble=None):
+class PAMCParams:
+    """Parameter set for population annealing Monte Carlo
+
+    Attributes
+    ----------
+    nreplicas : int
+        The number of replicas
+    nprocs_per_replica : int
+        The number of processes which a replica uses
+    kTstart : float
+        The lower bound of temperature range
+    kTend : float
+        The upper bound of temperature range
+    kTnum : int
+        The number of temperature points
+    nsteps : int
+        The number of MC steps between annaling
+    resample_frequency :
+        The number of annealing between resampling
+    sample_frequency :
+        The number of MC steps between measurements observables
+    print_frequency :
+        The number of MC steps between show information
+    reload : bool
+        Whether to restart simulation or not
+    seed : int
+        The seed of the random number generator
+        If 0, some random number is used (e.g., system time or some random noise).
+    """
+
+    def __init__(self):
+        self.nreplicas = 1
+        self.nprocs_per_replica = 1
+        self.kTstart = 0.0
+        self.kTend = 1.0
+        self.kTnum = 1
+        self.nsteps = 0
+        self.resample_frequency = 1
+        self.sample_frequency = 1
+        self.print_frequency = 1
+        self.reload = False
+        self.seed = 0
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Read information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for replica exchange Monte Carlo method
+
+        Returns
+        -------
+        params: DFTParams object
+            self
+        """
+        params = cls()
+        params.nreplicas = d["nreplicas"]
+        params.nprocs_per_replica = d["nprocs_per_replica"]
+        params.kTstart = d["kTstart"]
+        params.kTend = d["kTend"]
+        params.kTnum = d["kTnum"]
+        params.nsteps = d["nsteps"]
+        params.resample_frequency = d.get("resample_frequency", 1)
+        params.sample_frequency = d.get("sample_frequency", 1)
+        params.print_frequency = d.get("print_frequency", 1)
+        params.reload = d.get("reload", False)
+        params.seed = d.get("seed", 0)
+        return params
+
+    @classmethod
+    def from_toml(cls, fname):
+        """
+        Read information from toml file
+
+        Parameters
+        ----------
+        f: str
+            The name of input toml File
+
+        Returns
+        -------
+        DFTParams: DFTParams object
+            self
+        """
+        import toml
+
+        d = toml.load(fname)
+        return cls.from_dict(d["sampling"])
+
+
+def RX_MPI_init(rxparams: RXParams | PAMCParams, nensemble=None):
     """
 
     Parameters
@@ -458,7 +551,7 @@ def RX_MPI_init(rxparams: RXParams, nensemble=None):
             sys.exit()  # Wait for MPI_finalize
         else:
             comm = MPI.Intracomm(commworld.Split(color=0, key=worldrank))
-            #comm = commworld.Split(color=0, key=worldrank)
+            # comm = commworld.Split(color=0, key=worldrank)
     else:
         comm = commworld
     comm = comm.Create_cart(
@@ -513,14 +606,6 @@ class ParallelMC(object):
         self.model = model
         self.nreplicas = len(configs)
         self.write_node = write_node
-
-        if not (self.procs == self.nreplicas == len(self.kTs)):
-            if self.rank == 0:
-                print(
-                    "ERROR: You have to set the number of replicas equal to the"
-                    + "number of temperatures equal to the number of processes"
-                )
-            sys.exit(1)
 
         myconfig = configs[self.rank]
         mytemp = kTs[self.rank]
@@ -746,7 +831,9 @@ class EmbarrassinglyParallelSampling:
 
 
 class RandomSampling_MPI(ParallelMC):
-    def __init__(self, comm, MCalgo, model, configs, write_node=True):
+    def __init__(
+        self, comm, MCalgo: type[MCAlgorithm], model: Model, configs, write_node=True
+    ):
         """
 
         Parameters
@@ -761,13 +848,11 @@ class RandomSampling_MPI(ParallelMC):
             Configuration
         """
 
-        super(TemperatureRX_MPI, self).__init__(
-            comm, MCalgo, model, configs, kTs, write_node=write_node
-        )
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
         self.betas = 1.0 / np.array(kTs)
-        self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int)
-        self.float_buffer = np.array(0.0, dtype=np.float)
-        self.int_buffer = np.array(0, dtype=np.int)
+        self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
+        self.float_buffer = np.array(0.0, dtype=np.float64)
+        self.int_buffer = np.array(0, dtype=np.int64)
         self.obs_save = []
         self.Trank_hist = []
         self.kT_hist = []
@@ -776,7 +861,13 @@ class RandomSampling_MPI(ParallelMC):
 
 class TemperatureRX_MPI(ParallelMC):
     def __init__(
-        self, comm, MCalgo, model, configs, kTs, write_node=True
+        self,
+        comm,
+        MCalgo: type[MCAlgorithm],
+        model: Model,
+        configs,
+        kTs,
+        write_node=True,
     ):
         """
 
@@ -795,17 +886,23 @@ class TemperatureRX_MPI(ParallelMC):
         subdirs: boolean
             If true, working directory for this rank is made
         """
-        super(TemperatureRX_MPI, self).__init__(
-            comm, MCalgo, model, configs, kTs, write_node=write_node
-        )
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
         self.betas = 1.0 / np.array(kTs)
-        self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int)
-        self.float_buffer = np.array(0.0, dtype=np.float)
-        self.int_buffer = np.array(0, dtype=np.int)
+        self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
+        self.float_buffer = np.array(0.0, dtype=np.float64)
+        self.int_buffer = np.array(0, dtype=np.int64)
         self.obs_save = []
         self.Trank_hist = []
         self.kT_hist = []
         self.Lreload = False
+        if not (self.procs == self.nreplicas == len(self.kTs)):
+            if self.rank == 0:
+                print(
+                    "ERROR: You have to set the number of replicas equal to the "
+                    + "number of temperatures equal to the number of processes"
+                )
+            sys.exit(1)
+
 
     def reload(self):
         self.rank_to_T = pickle_load("rank_to_T.pickle")
@@ -1005,6 +1102,176 @@ class TemperatureRX_MPI(ParallelMC):
                             numpy_save(self.kTs, "kTs.npy")
                     if subdirs:
                         os.chdir(str(self.rank))
+
+        if nsample != 0:
+            obs = np.array(obs)
+            obs_buffer = np.empty(obs.shape)
+            obs /= nsample
+            self.comm.Allreduce(obs, obs_buffer, op=MPI.SUM)
+            obs_list = []
+            obs_info = observer.obs_info(self.mycalc)
+            for i in range(len(self.kTs)):
+                obs_list.append(obs_info.decode(obs_buffer[i]))
+            if subdirs:
+                os.chdir("../")
+            return obs_list
+
+        if subdirs:
+            os.chdir("../")
+
+
+class PopulationAnnealing(ParallelMC):
+    Tindex: int
+    weight: float
+    weight_history: list[float]
+
+    def __init__(
+        self,
+        comm,
+        MCalgo: type[MCAlgorithm],
+        model: Model,
+        configs,
+        kTs,
+        write_node=True,
+    ):
+        """
+
+        Parameters
+        ----------
+        comm: comm world
+            MPI communicator
+        MCalgo: object for MonteCarlo algorithm
+            MonteCarlo algorithm
+        model: dft_latgas
+            DFT lattice gas mapping  model
+        configs: config object
+            Configuration
+        kTs: list
+            Temperature list
+        subdirs: boolean
+            If true, working directory for this rank is made
+        """
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
+        self.betas = 1.0 / np.array(kTs)
+        self.float_buffer = np.array(0.0, dtype=np.float64)
+        self.int_buffer = np.array(0, dtype=np.int64)
+        self.obs_save = []
+        self.Tindex = 0
+        self.weight = 1.0
+        self.weight_history = []
+        self.Lreload = False
+
+    def reload(self):
+        self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
+        self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
+        self.mycalc.energy = self.obs_save0[-1, 0]
+        wh = numpy_load(os.path.join(str(self.rank), "weight_hist.npy"))
+        self.weight_history = [w for w in wh]
+        self.weight = self.weight_history[-1]
+        self.Tindex = len(self.weight_history)
+        rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
+        rand.set_state(rand_state)
+        self.Lreload = True
+
+    def save(self, save_obs: bool):
+        # save information for restart
+        pickle_dump(self.mycalc.config, "calc.pickle")
+        rand_state = rand.get_state()
+        pickle_dump(rand_state, "rand_state.pickle")
+        if save_obs:
+            if hasattr(self, "obs_save0"):
+                obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
+            else:
+                obs_save_ = np.array(self.obs_save)
+            numpy_save(obs_save_, "obs_save.npy")
+            numpy_save(self.weight_history, "weight_hist.npy")
+
+    def anneal(self, energy: float):
+        assert 0 < self.Tindex < len(self.kTs)
+        mdbeta = self.betas[self.Tindex - 1] - self.betas[self.Tindex]
+        self.weight *= np.exp(mdbeta * energy)
+        self.mycalc.kT = self.kTs[self.Tindex]
+
+    def resample(self):
+        pass
+
+    def run(
+        self,
+        nsteps_between_anneal: int,
+        resample_frequency: int = 1,
+        sample_frequency: int = verylargeint,
+        print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
+        observer: ObserverBase = ObserverBase(),
+        subdirs: bool = True,
+        save_obs: bool = True,
+    ):
+        """
+
+        Parameters
+        ----------
+        nsteps_between_anneal: int
+            The number of Monte Carlo steps netween annealing.
+        resample_frequency: int
+            The number of anneals between resampling.
+        sample_frequency: int
+            The number of Monte Carlo steps for observation of physical quantities.
+        print_frequency: int
+            The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step.
+        observer: observer object
+        subdirs: boolean
+            If true, working directory for this rank is made
+        save_obs: boolean
+
+        Returns
+        -------
+        obs_list: list
+            Observation list
+        """
+        if subdirs:
+            try:
+                os.mkdir(str(self.rank))
+            except FileExistsError:
+                pass
+            os.chdir(str(self.rank))
+        self.accept_count = 0
+        if not self.Lreload:
+            self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
+        with open(os.devnull, "w") as f:
+            test_observe = observer.observe(self.mycalc, f, lprint=False)
+        obs_len = len(test_observe)
+        obs = np.zeros([len(self.kTs), obs_len])
+        if hasattr(test_observe, "__add__"):
+            observe = True
+        else:
+            observe = False
+        nsample = 0
+        output = open("obs.dat", "a")
+        numT = self.betas.size
+        while self.Tindex < numT:
+            if self.Tindex > 0:
+                self.anneal(self.mycalc.energy)
+                if self.Tindex % resample_frequency == 0:
+                    self.resample()
+            for i in range(nsteps_between_anneal):
+                self.mycalc.MCstep(nsubsteps_in_step)
+                if observe and i % sample_frequency == 0:
+                    obs_step = observer.observe(
+                        self.mycalc,
+                        output,
+                        i % print_frequency == 0 and self.write_node,
+                    )
+                    obs[self.Tindex, :] += obs_step
+                    if save_obs:
+                        self.obs_save.append(obs_step)
+                        self.weight_history.append(self.weight)
+                    nsample += 1
+                    if self.write_node:
+                        self.save(save_obs)
+            self.Tindex += 1
+        output.close()
 
         if nsample != 0:
             obs = np.array(obs)

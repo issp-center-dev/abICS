@@ -29,8 +29,9 @@ from abics.mc import CanonicalMonteCarlo, RandomSampling
 from abics.mc_mpi import (
     RX_MPI_init,
     TemperatureRX_MPI,
+    PopulationAnnealing,
     RXParams,
-    SamplerParams,
+    PAMCParams,
     ParallelRandomParams,
     EmbarrassinglyParallelSampling,
 )
@@ -88,6 +89,36 @@ def main_dft_latgas(params_root: MutableMapping):
 
         nsteps = rxparams.nsteps
         RXtrial_frequency = rxparams.RXtrial_frequency
+        sample_frequency = rxparams.sample_frequency
+        print_frequency = rxparams.print_frequency
+
+        if commAll.Get_rank() == 0:
+            print(f"-Running RXMC calculation with {nreplicas} replicas")
+            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+            sys.stdout.flush()
+
+    elif sampler_type == "PAMC":
+        rxparams = PAMCParams.from_dict(params_root["sampling"])
+        nreplicas = rxparams.nreplicas
+        nprocs_per_replica = rxparams.nprocs_per_replica
+
+        kB = constants.value("Boltzmann constant in eV/K")
+
+        nensemble = len(dftparams.base_input_dir)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+
+        # RXMC parameters
+        # specify temperatures for each replica, number of steps, etc.
+        kTstart = rxparams.kTstart
+        kTend = rxparams.kTend
+        kTnum = rxparams.kTnum
+        kTs = kB * np.linspace(kTstart, kTend, kTnum)
+
+        # Set Lreload to True when restarting
+        Lreload = rxparams.reload
+
+        nsteps = rxparams.nsteps
+        resample_frequency = rxparams.resample_frequency
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
 
@@ -341,6 +372,29 @@ def main_dft_latgas(params_root: MutableMapping):
 
         #if comm.Get_rank() == 0 and write_node:
         #    print(obs)
+
+    elif sampler_type == "PAMC":
+        # RXMC calculation
+        RXcalc = PopulationAnnealing(
+            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+        )
+        if Lreload:
+            if commAll.Get_rank() == 0:
+                print("-Reloading from previous calculation")
+            RXcalc.reload()
+
+        if commAll.Get_rank() == 0:
+            print("-Starting RXMC calculation")
+            sys.stdout.flush()
+            
+        obs = RXcalc.run(
+            nsteps,
+            resample_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
+            observer=observer,
+            subdirs=True,
+        )
 
     elif sampler_type == "parallelRand":
         calc = EmbarrassinglyParallelSampling(

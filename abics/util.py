@@ -22,22 +22,22 @@ import time
 from itertools import groupby
 
 import numpy as np
-from numpy.typing import DTypeLike, NDArray
+from numpy.typing import DTypeLike
 
 from .exception import InputError
 
 
-def read_vector(v: str | list[float] | NDArray, *, dtype: DTypeLike = np.float64) -> NDArray:
+def read_vector(v: str | list[float] | np.ndarray, *, dtype: DTypeLike = np.float64) -> np.ndarray:
     return read_tensor(v, rank=1, dtype=dtype)
 
 
-def read_matrix(v: str | list[float] | NDArray, *, dtype: DTypeLike = np.float64) -> NDArray:
+def read_matrix(v: str | list[float] | np.ndarray, *, dtype: DTypeLike = np.float64) -> np.ndarray:
     return read_tensor(v, rank=2, dtype=dtype)
 
 
 def read_tensor(
-    v: str | list[float] | list[list] | NDArray, *, rank: int = 2, dtype: DTypeLike = np.float64
-) -> NDArray:
+    v: str | list[float] | list[list] | np.ndarray, *, rank: int = 2, dtype: DTypeLike = np.float64
+) -> np.ndarray:
     """
     Read tensor
 

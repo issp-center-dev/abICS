@@ -27,8 +27,9 @@ from abics.mc import CanonicalMonteCarlo, RandomSampling
 from abics.mc_mpi import (
     RX_MPI_init,
     TemperatureRX_MPI,
+    PopulationAnnealing,
     RXParams,
-    SamplerParams,
+    PAMCParams,
     ParallelRandomParams,
     EmbarrassinglyParallelSampling,
 )
@@ -37,8 +38,6 @@ from abics.applications.lattice_model.potts import Potts, Configuration, Observe
 
 
 def main_potts(params_root: MutableMapping):
-    # TODO: read from inputs
-
     param_config = params_root["config"]
     Q = param_config.get("Q", 2)
     Ls = param_config["L"]
@@ -87,6 +86,53 @@ def main_potts(params_root: MutableMapping):
         obs = RXcalc.run(
             nsteps,
             RXtrial_frequency=RXtrial_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
+            nsubsteps_in_step=nspins,
+            observer=observer,
+            subdirs=True,
+        )
+
+    elif sampler_type == "PAMC":
+        rxparams = PAMCParams.from_dict(params_root["sampling"])
+        nreplicas = rxparams.nreplicas
+        configs = [Configuration(Q, Ls) for _ in range(nreplicas)]
+
+        comm = RX_MPI_init(rxparams)
+
+        # RXMC parameters
+        # specify temperatures for each replica, number of steps, etc.
+        kTstart = rxparams.kTstart
+        kTend = rxparams.kTend
+        kTnum = rxparams.kTnum
+        kTs = np.linspace(kTstart, kTend, kTnum)
+
+        # Set Lreload to True when restarting
+        Lreload = rxparams.reload
+
+        nsteps = rxparams.nsteps
+        resample_frequency = rxparams.resample_frequency
+        sample_frequency = rxparams.sample_frequency
+        print_frequency = rxparams.print_frequency
+
+        if comm.Get_rank() == 0:
+            print(f"-Running RXMC calculation with {nreplicas} replicas")
+            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+            sys.stdout.flush()
+
+        calc = PopulationAnnealing(
+            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+        )
+        if Lreload:
+            if comm.Get_rank() == 0:
+                print("-Reloading from previous calculation")
+            calc.reload()
+        if comm.Get_rank() == 0:
+            print("-Starting RXMC calculation")
+            sys.stdout.flush()
+        obs = calc.run(
+            nsteps,
+            resample_frequency=resample_frequency,
             sample_frequency=sample_frequency,
             print_frequency=print_frequency,
             nsubsteps_in_step=nspins,
