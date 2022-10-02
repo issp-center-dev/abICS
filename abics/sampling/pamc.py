@@ -1,0 +1,293 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
+from __future__ import annotations
+
+import os
+
+from mpi4py import MPI
+
+import numpy as np
+import numpy.random as rand
+
+from abics.model import Model
+from abics.observer import ObserverBase
+from abics.sampling.mc import verylargeint, MCAlgorithm
+from abics.sampling.mc_mpi import ParallelMC
+from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
+
+
+class PAMCParams:
+    """Parameter set for population annealing Monte Carlo
+
+    Attributes
+    ----------
+    nreplicas : int
+        The number of replicas
+    nprocs_per_replica : int
+        The number of processes which a replica uses
+    kTstart : float
+        The lower bound of temperature range
+    kTend : float
+        The upper bound of temperature range
+    kTnum : int
+        The number of temperature points
+    nsteps : int
+        The number of MC steps between annaling
+    resample_frequency :
+        The number of annealing between resampling
+    sample_frequency :
+        The number of MC steps between measurements observables
+    print_frequency :
+        The number of MC steps between show information
+    reload : bool
+        Whether to restart simulation or not
+    seed : int
+        The seed of the random number generator
+        If 0, some random number is used (e.g., system time or some random noise).
+    """
+
+    def __init__(self):
+        self.nreplicas = 1
+        self.nprocs_per_replica = 1
+        self.kTstart = 0.0
+        self.kTend = 1.0
+        self.kTnum = 1
+        self.nsteps = 0
+        self.resample_frequency = 1
+        self.sample_frequency = 1
+        self.print_frequency = 1
+        self.reload = False
+        self.seed = 0
+
+    @classmethod
+    def from_dict(cls, d):
+        """
+        Read information from dictionary
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary including parameters for replica exchange Monte Carlo method
+
+        Returns
+        -------
+        params: DFTParams object
+            self
+        """
+        params = cls()
+        params.nreplicas = d["nreplicas"]
+        params.nprocs_per_replica = d["nprocs_per_replica"]
+        params.kTstart = d["kTstart"]
+        params.kTend = d["kTend"]
+        params.kTnum = d["kTnum"]
+        params.nsteps = d["nsteps"]
+        params.resample_frequency = d.get("resample_frequency", 1)
+        params.sample_frequency = d.get("sample_frequency", 1)
+        params.print_frequency = d.get("print_frequency", 1)
+        params.reload = d.get("reload", False)
+        params.seed = d.get("seed", 0)
+        return params
+
+    @classmethod
+    def from_toml(cls, fname):
+        """
+        Read information from toml file
+
+        Parameters
+        ----------
+        f: str
+            The name of input toml File
+
+        Returns
+        -------
+        DFTParams: DFTParams object
+            self
+        """
+        import toml
+
+        d = toml.load(fname)
+        return cls.from_dict(d["sampling"])
+
+
+class PopulationAnnealing(ParallelMC):
+    Tindex: int
+    weight: float
+    weight_history: list[float]
+
+    def __init__(
+        self,
+        comm,
+        MCalgo: type[MCAlgorithm],
+        model: Model,
+        configs,
+        kTs,
+        write_node=True,
+    ):
+        """
+
+        Parameters
+        ----------
+        comm: comm world
+            MPI communicator
+        MCalgo: object for MonteCarlo algorithm
+            MonteCarlo algorithm
+        model: dft_latgas
+            DFT lattice gas mapping  model
+        configs: config object
+            Configuration
+        kTs: list
+            Temperature list
+        subdirs: boolean
+            If true, working directory for this rank is made
+        """
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
+        self.betas = 1.0 / np.array(kTs)
+        self.float_buffer = np.array(0.0, dtype=np.float64)
+        self.int_buffer = np.array(0, dtype=np.int64)
+        self.obs_save = []
+        self.Tindex = 0
+        self.weight = 1.0
+        self.weight_history = []
+        self.Lreload = False
+
+    def reload(self):
+        self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
+        self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
+        self.mycalc.energy = self.obs_save0[-1, 0]
+        wh = numpy_load(os.path.join(str(self.rank), "weight_hist.npy"))
+        self.weight_history = [w for w in wh]
+        self.weight = self.weight_history[-1]
+        self.Tindex = len(self.weight_history)
+        rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
+        rand.set_state(rand_state)
+        self.Lreload = True
+
+    def save(self, save_obs: bool):
+        # save information for restart
+        pickle_dump(self.mycalc.config, "calc.pickle")
+        rand_state = rand.get_state()
+        pickle_dump(rand_state, "rand_state.pickle")
+        if save_obs:
+            if hasattr(self, "obs_save0"):
+                obs_save_ = np.concatenate((self.obs_save0, np.array(self.obs_save)))
+            else:
+                obs_save_ = np.array(self.obs_save)
+            numpy_save(obs_save_, "obs_save.npy")
+            numpy_save(self.weight_history, "weight_hist.npy")
+
+    def anneal(self, energy: float):
+        assert 0 < self.Tindex < len(self.kTs)
+        mdbeta = self.betas[self.Tindex - 1] - self.betas[self.Tindex]
+        self.weight *= np.exp(mdbeta * energy)
+        self.mycalc.kT = self.kTs[self.Tindex]
+
+    def resample(self):
+        pass
+
+    def run(
+        self,
+        nsteps_between_anneal: int,
+        resample_frequency: int = 1,
+        sample_frequency: int = verylargeint,
+        print_frequency: int = verylargeint,
+        nsubsteps_in_step: int = 1,
+        observer: ObserverBase = ObserverBase(),
+        subdirs: bool = True,
+        save_obs: bool = True,
+    ):
+        """
+
+        Parameters
+        ----------
+        nsteps_between_anneal: int
+            The number of Monte Carlo steps netween annealing.
+        resample_frequency: int
+            The number of anneals between resampling.
+        sample_frequency: int
+            The number of Monte Carlo steps for observation of physical quantities.
+        print_frequency: int
+            The number of Monte Carlo steps for saving physical quantities.
+        nsubsteps_in_step: int
+            The number of Monte Carlo substeps in one MC step.
+        observer: observer object
+        subdirs: boolean
+            If true, working directory for this rank is made
+        save_obs: boolean
+
+        Returns
+        -------
+        obs_list: list
+            Observation list
+        """
+        if subdirs:
+            try:
+                os.mkdir(str(self.rank))
+            except FileExistsError:
+                pass
+            os.chdir(str(self.rank))
+        self.accept_count = 0
+        if not self.Lreload:
+            self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
+        with open(os.devnull, "w") as f:
+            test_observe = observer.observe(self.mycalc, f, lprint=False)
+        obs_len = len(test_observe)
+        obs = np.zeros([len(self.kTs), obs_len])
+        if hasattr(test_observe, "__add__"):
+            observe = True
+        else:
+            observe = False
+        nsample = 0
+        output = open("obs.dat", "a")
+        numT = self.betas.size
+        while self.Tindex < numT:
+            if self.Tindex > 0:
+                self.anneal(self.mycalc.energy)
+                if self.Tindex % resample_frequency == 0:
+                    self.resample()
+            for i in range(nsteps_between_anneal):
+                self.mycalc.MCstep(nsubsteps_in_step)
+                if observe and i % sample_frequency == 0:
+                    obs_step = observer.observe(
+                        self.mycalc,
+                        output,
+                        i % print_frequency == 0 and self.write_node,
+                    )
+                    obs[self.Tindex, :] += obs_step
+                    if save_obs:
+                        self.obs_save.append(obs_step)
+                        self.weight_history.append(self.weight)
+                    nsample += 1
+                    if self.write_node:
+                        self.save(save_obs)
+            self.Tindex += 1
+        output.close()
+
+        if nsample != 0:
+            obs = np.array(obs)
+            obs_buffer = np.empty(obs.shape)
+            obs /= nsample
+            self.comm.Allreduce(obs, obs_buffer, op=MPI.SUM)
+            obs_list = []
+            obs_info = observer.obs_info(self.mycalc)
+            for i in range(len(self.kTs)):
+                obs_list.append(obs_info.decode(obs_buffer[i]))
+            if subdirs:
+                os.chdir("../")
+            return obs_list
+
+        if subdirs:
+            os.chdir("../")

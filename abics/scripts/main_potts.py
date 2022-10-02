@@ -24,15 +24,10 @@ import numpy as np
 
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
-from abics.mc_mpi import (
-    RX_MPI_init,
-    TemperatureRX_MPI,
-    PopulationAnnealing,
-    RXParams,
-    PAMCParams,
-    ParallelRandomParams,
-    EmbarrassinglyParallelSampling,
-)
+from abics.sampling.mc_mpi import RX_MPI_init
+from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
+from abics.sampling.pamc import PopulationAnnealing, PAMCParams
+from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, ParallelRandomParams
 
 from abics.applications.lattice_model.potts import Potts, Configuration, Observer
 

@@ -25,7 +25,8 @@ import numpy as np
 import scipy.constants as constants
 import toml
 
-from abics.mc_mpi import RXParams, RX_MPI_init
+from abics.sampling.mc_mpi import RX_MPI_init
+from abics.sampling.rxmc import RXParams
 
 
 def main():
