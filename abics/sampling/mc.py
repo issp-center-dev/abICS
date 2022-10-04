@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Optional
 
 from abc import ABCMeta, abstractmethod
 
@@ -29,6 +29,7 @@ import numpy.random as rand
 
 from abics import __version__
 from abics.observer import ObserverBase
+from abics.model import Model
 
 verylargeint = sys.maxsize
 
@@ -66,7 +67,7 @@ def binning(x, nlevels: int):
 class MCAlgorithm(metaclass=ABCMeta):
 
     model: Model
-    config: Any
+    config: Optional[Any]
     obs_save: list[np.ndarray]
     kT: float
 
@@ -181,5 +182,7 @@ class CanonicalMonteCarlo(MCAlgorithm):
 
 class RandomSampling(CanonicalMonteCarlo):
     def MCstep(self, nsubsteps_in_step: int = 1):
+        if self.config is None:
+            raise RuntimeError("config is not set")
         self.config.shuffle()
         self.energy = self.model.energy(self.config)

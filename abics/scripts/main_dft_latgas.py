@@ -72,7 +72,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -101,7 +101,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(pamcparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(pamcparams.nreplicas, pamcparams.seed, nensemble)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -128,7 +128,7 @@ def main_dft_latgas(params_root: MutableMapping):
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -147,7 +147,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.

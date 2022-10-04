@@ -119,70 +119,6 @@ class RXParams:
         d = toml.load(fname)
         return cls.from_dict(d["sampling"])
 
-def RX_MPI_init(rxparams: RXParams | PAMCParams, nensemble=None):
-    """
-
-    Parameters
-    ----------
-    rxparams: RXParams
-        Parameters for replica exchange Monte Carlo method.
-
-    Returns:
-    -------
-    comm: comm world
-        MPI communicator
-    """
-    if nensemble is None:
-        nensemble_ = 1
-    else:
-        nensemble_ = nensemble
-    nreplicas = rxparams.nreplicas * nensemble_
-    commworld = MPI.COMM_WORLD
-    worldrank = commworld.Get_rank()
-    worldprocs = commworld.Get_size()
-
-    if worldprocs < nreplicas:
-        if worldrank == 0:
-            print(
-                "ERROR! Please run with at least as many MPI processes as the number of replicas"
-            )
-        sys.exit(1)
-
-    if worldprocs > nreplicas:
-        if worldrank == 0:
-            print(
-                "Setting number of replicas smaller than MPI processes; I hope you"
-                + " know what you're doing..."
-            )
-            sys.stdout.flush()
-        if worldrank >= nreplicas:
-            # belong to comm that does nothing
-            comm = commworld.Split(color=1, key=worldrank)
-            comm.Free()
-            sys.exit()  # Wait for MPI_finalize
-        else:
-            comm = MPI.Intracomm(commworld.Split(color=0, key=worldrank))
-            # comm = commworld.Split(color=0, key=worldrank)
-    else:
-        comm = commworld
-    comm = comm.Create_cart(
-        dims=[rxparams.nreplicas, nensemble_], periods=[False, False], reorder=True
-    )
-    commRX = comm.Sub(remain_dims=[True, False])
-    commEnsemble = comm.Sub(remain_dims=[False, True])
-    RXrank = commRX.Get_rank()
-    if rxparams.seed > 0:
-        rand.seed(rxparams.seed + RXrank * 137)
-    else:
-        rand_seeds = [rand.randint(10000) for i in range(commRX.Get_size())]
-        rand_seed = commEnsemble.bcast(rand_seeds[RXrank], root=0)
-        rand.seed(rand_seed)
-
-    # return commRX
-    if nensemble is None:
-        return commRX
-    else:
-        return commRX, commEnsemble, comm
 
 class TemperatureRX_MPI(ParallelMC):
     def __init__(
@@ -191,7 +127,7 @@ class TemperatureRX_MPI(ParallelMC):
         MCalgo: type[MCAlgorithm],
         model: Model,
         configs,
-        kTs,
+        kTs : list[float],
         write_node=True,
     ):
         """
@@ -212,6 +148,8 @@ class TemperatureRX_MPI(ParallelMC):
             If true, working directory for this rank is made
         """
         super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
+        self.mycalc.kT = kTs[self.rank]
+        self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
         self.float_buffer = np.array(0.0, dtype=np.float64)
@@ -227,7 +165,6 @@ class TemperatureRX_MPI(ParallelMC):
                     + "number of temperatures equal to the number of processes"
                 )
             sys.exit(1)
-
 
     def reload(self):
         self.rank_to_T = pickle_load("rank_to_T.pickle")

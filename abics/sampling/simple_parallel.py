@@ -383,6 +383,8 @@ class RandomSampling_MPI(ParallelMC):
         """
 
         super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
+        self.mycalc.kT = kTs[self.rank]
+        self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
         self.float_buffer = np.array(0.0, dtype=np.float64)

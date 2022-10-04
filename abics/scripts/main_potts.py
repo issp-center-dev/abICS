@@ -47,7 +47,7 @@ def main_potts(params_root: MutableMapping):
         nreplicas = rxparams.nreplicas
         configs = [Configuration(Q, Ls) for _ in range(nreplicas)]
 
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -93,7 +93,7 @@ def main_potts(params_root: MutableMapping):
         nreplicas = pamcparams.nreplicas
         configs = [Configuration(Q, Ls) for _ in range(nreplicas)]
 
-        comm = RX_MPI_init(pamcparams)
+        comm = RX_MPI_init(pamcparams.nreplicas, pamcparams.seed)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -138,7 +138,7 @@ def main_potts(params_root: MutableMapping):
     elif sampler_type == "parallelRand":
         rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -166,7 +166,7 @@ def main_potts(params_root: MutableMapping):
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
 
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.

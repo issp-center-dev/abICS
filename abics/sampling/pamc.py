@@ -136,7 +136,7 @@ class PopulationAnnealing(ParallelMC):
         MCalgo: type[MCAlgorithm],
         model: Model,
         configs,
-        kTs,
+        kTs: list[float],
         write_node=True,
     ):
         """
@@ -157,6 +157,8 @@ class PopulationAnnealing(ParallelMC):
             If true, working directory for this rank is made
         """
         super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
+        self.mycalc.kT = kTs[0]
+        self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
         self.float_buffer = np.array(0.0, dtype=np.float64)
         self.int_buffer = np.array(0, dtype=np.int64)
@@ -305,7 +307,56 @@ class PopulationAnnealing(ParallelMC):
                 obs_list.append(obs_info.decode(obs_buffer[i]))
             if subdirs:
                 os.chdir("../")
+            if save_obs:
+                self.postproc()
             return obs_list
 
         if subdirs:
             os.chdir("../")
+
+    def postproc(self):
+        nT = len(self.kTs)
+        logweights = numpy_load(os.path.join(str(self.rank), "logweight_hist.npy"))
+        nsamples = logweights.shape[0] // nT
+        logweights = np.array(logweights[::nsamples])
+        obs1 = numpy_load(os.path.join(str(self.rank), "obs_save.npy")).reshape(
+            nT, nsamples, -1
+        )
+        nobs = obs1.shape[2]
+        obs2 = (obs1 * obs1).mean(axis=1)
+        obs1 = obs1.mean(axis=1)
+        obs = np.zeros((nT, 2 * nobs), dtype=np.float64)
+        for iobs in range(nobs):
+            obs[:, 2 * iobs] = obs1[:, iobs]
+            obs[:, 2 * iobs + 1] = obs2[:, iobs]
+
+        nreplicas = self.procs
+        logweights_all = np.zeros((nreplicas, nT), dtype=np.float64)
+        obs_all = np.zeros((nreplicas, nT, 2 * nobs), dtype=np.float64)
+        self.comm.Allgather(logweights, logweights_all)
+        self.comm.Allgather(obs, obs_all)
+
+        weights = np.exp(logweights_all - logweights_all.max(axis=0))
+        ow = np.einsum("ito,it->ito", obs_all, weights)
+
+        # bootstrap
+        index = np.random.randint(nreplicas, size=nreplicas)
+        numer = ow[index, :, :].mean(axis=0)
+        denom = weights[index, :].mean(axis=0)
+        o = np.zeros((nT, 3 * nobs), dtype=np.float64)
+        for iobs in range(nobs):
+            o[:, 3 * iobs] = numer[:, 2 * iobs] / denom[:]
+            o[:, 3 * iobs + 1] = numer[:, 2 * iobs + 1] / denom[:]
+            o[:, 3 * iobs + 2] = o[:, 3 * iobs + 1] - o[:, 3 * iobs] ** 2
+        o_all = np.zeros((nreplicas, nT, 3 * nobs), dtype=np.float64)
+        self.comm.Allgather(o, o_all)
+        if self.rank==0:
+            o_mean = o_all.mean(axis=0)
+            o_err = np.sqrt(o_all.var(axis=0) / (nreplicas-1))
+            with open("result.dat", "w") as f:
+                for iT in range(nT):
+                    f.write(str(self.kTs[iT]))
+                    for iobs in range(3*nobs):
+                        f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
+                    f.write("\n")
+        self.comm.Barrier()

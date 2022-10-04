@@ -57,7 +57,7 @@ def main_impl(params_root: MutableMapping):
     # nsteps = rxparams.nsteps
     # sample_frequency = rxparams.sample_frequency
     ndata = rxparams.ndata
-    comm = RX_MPI_init(rxparams)
+    comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 

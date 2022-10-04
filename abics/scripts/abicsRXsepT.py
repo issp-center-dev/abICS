@@ -51,7 +51,7 @@ def main():
     nskip = args.skipsteps
     rxparams = RXParams.from_toml(inputfi)
     nreplicas = rxparams.nreplicas
-    comm = RX_MPI_init(rxparams)
+    comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
     param = toml.load(inputfi)
     solver_type = param["sampling"]["solver"]["type"]

@@ -112,7 +112,7 @@ class RefParams:
         return cls.from_dict(d["mlref"])
 
 
-def RX_MPI_init(rxparams: RXParams | PAMCParams, nensemble=None):
+def RX_MPI_init(nreplicas: int, seed: int = 0, nensemble=None):
     """
 
     Parameters
@@ -129,7 +129,7 @@ def RX_MPI_init(rxparams: RXParams | PAMCParams, nensemble=None):
         nensemble_ = 1
     else:
         nensemble_ = nensemble
-    nreplicas = rxparams.nreplicas * nensemble_
+    nreplicas = nreplicas * nensemble_
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
@@ -159,13 +159,13 @@ def RX_MPI_init(rxparams: RXParams | PAMCParams, nensemble=None):
     else:
         comm = commworld
     comm = comm.Create_cart(
-        dims=[rxparams.nreplicas, nensemble_], periods=[False, False], reorder=True
+        dims=[nreplicas, nensemble_], periods=[False, False], reorder=True
     )
     commRX = comm.Sub(remain_dims=[True, False])
     commEnsemble = comm.Sub(remain_dims=[False, True])
     RXrank = commRX.Get_rank()
-    if rxparams.seed > 0:
-        rand.seed(rxparams.seed + RXrank * 137)
+    if seed > 0:
+        rand.seed(seed + RXrank * 137)
     else:
         rand_seeds = [rand.randint(10000) for i in range(commRX.Get_size())]
         rand_seed = commEnsemble.bcast(rand_seeds[RXrank], root=0)
@@ -231,8 +231,9 @@ class ParallelMC(object):
         self.nreplicas = len(configs)
         self.write_node = write_node
 
-        myconfig = configs[self.rank]
-        mytemp = kTs[self.rank]
+        ## mycalc.kT and mycalc.config should be set later
+        myconfig = configs[0]
+        mytemp = kTs[0]
         self.mycalc = MCalgo(model, mytemp, myconfig)
 
     def run(
