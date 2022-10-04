@@ -179,6 +179,26 @@ def RX_MPI_init(rxparams: RXParams | PAMCParams, nensemble=None):
 
 
 class ParallelMC(object):
+    comm: MPI.Comm
+    "MPI Communicator"
+    rank: int
+    "MPI rank"
+    procs: int
+    "MPI size"
+    kTs: list[float]
+    "Temperatures"
+    nreplicas: int
+    "The number of replicas"
+    model: Model
+    mycalc: MCAlgorithm
+    write_node: bool
+    obs_save: list[np.ndarray]
+    "Observed data (e.g., energy)"
+    obs_save0: np.ndarray
+    "Observed data before reloading"
+    Lreload: bool
+    "Have reloaded or not"
+
     def __init__(
         self,
         comm,

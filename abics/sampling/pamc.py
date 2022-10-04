@@ -125,8 +125,10 @@ class PAMCParams:
 
 class PopulationAnnealing(ParallelMC):
     Tindex: int
-    weight: float
-    weight_history: list[float]
+    logweight: float
+    "Logarithm of Neal-Jarzynski weight"
+    logweight_history: list[float]
+    kT_history: list[float]
 
     def __init__(
         self,
@@ -160,18 +162,21 @@ class PopulationAnnealing(ParallelMC):
         self.int_buffer = np.array(0, dtype=np.int64)
         self.obs_save = []
         self.Tindex = 0
-        self.weight = 1.0
-        self.weight_history = []
+        self.logweight = 0.0
+        self.logweight_history = []
+        self.kT_history = []
         self.Lreload = False
 
     def reload(self):
         self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
         self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
         self.mycalc.energy = self.obs_save0[-1, 0]
-        wh = numpy_load(os.path.join(str(self.rank), "weight_hist.npy"))
-        self.weight_history = [w for w in wh]
-        self.weight = self.weight_history[-1]
-        self.Tindex = len(self.weight_history)
+        wh = numpy_load(os.path.join(str(self.rank), "logweight_hist.npy"))
+        self.logweight_history = [w for w in wh]
+        self.logweight = self.logweight_history[-1]
+        kh = numpy_load(os.path.join(str(self.rank), "kT_hist.npy"))
+        self.kT_history = [T for T in kh]
+        self.Tindex = np.unique(kh).size
         rand_state = pickle_load(os.path.join(str(self.rank), "rand_state.pickle"))
         rand.set_state(rand_state)
         self.Lreload = True
@@ -187,16 +192,28 @@ class PopulationAnnealing(ParallelMC):
             else:
                 obs_save_ = np.array(self.obs_save)
             numpy_save(obs_save_, "obs_save.npy")
-            numpy_save(self.weight_history, "weight_hist.npy")
+            numpy_save(self.logweight_history, "logweight_hist.npy")
+            numpy_save(self.kT_history, "kT_hist.npy")
 
     def anneal(self, energy: float):
         assert 0 < self.Tindex < len(self.kTs)
         mdbeta = self.betas[self.Tindex - 1] - self.betas[self.Tindex]
-        self.weight *= np.exp(mdbeta * energy)
+        self.logweight += mdbeta * energy
         self.mycalc.kT = self.kTs[self.Tindex]
 
     def resample(self):
-        pass
+        buffer = np.zeros((self.procs, 2), dtype=np.float64)
+        self.comm.Allgather(np.array((self.logweight, self.mycalc.energy)), buffer)
+        logweights = buffer[:, 0]
+        energies = buffer[:, 1]
+        configs = self.comm.allgather(self.mycalc.config)
+        weights = np.exp(logweights - np.max(logweights))  # avoid overflow
+        acc_weights = np.add.accumulate(weights)
+        r = rand.rand() * acc_weights[-1]
+        i = np.searchsorted(acc_weights, r)
+        self.mycalc.config = configs[i]
+        self.mycalc.energy = energies[i]
+        self.logweight = 0.0
 
     def run(
         self,
@@ -269,7 +286,8 @@ class PopulationAnnealing(ParallelMC):
                     obs[self.Tindex, :] += obs_step
                     if save_obs:
                         self.obs_save.append(obs_step)
-                        self.weight_history.append(self.weight)
+                        self.logweight_history.append(self.logweight)
+                        self.kT_history.append(self.mycalc.kT)
                     nsample += 1
                     if self.write_node:
                         self.save(save_obs)

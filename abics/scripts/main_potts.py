@@ -89,29 +89,29 @@ def main_potts(params_root: MutableMapping):
         )
 
     elif sampler_type == "PAMC":
-        rxparams = PAMCParams.from_dict(params_root["sampling"])
-        nreplicas = rxparams.nreplicas
+        pamcparams = PAMCParams.from_dict(params_root["sampling"])
+        nreplicas = pamcparams.nreplicas
         configs = [Configuration(Q, Ls) for _ in range(nreplicas)]
 
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(pamcparams)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTstart = rxparams.kTstart
-        kTend = rxparams.kTend
-        kTnum = rxparams.kTnum
+        kTstart = pamcparams.kTstart
+        kTend = pamcparams.kTend
+        kTnum = pamcparams.kTnum
         kTs = np.linspace(kTstart, kTend, kTnum)
 
         # Set Lreload to True when restarting
-        Lreload = rxparams.reload
+        Lreload = pamcparams.reload
 
-        nsteps = rxparams.nsteps
-        resample_frequency = rxparams.resample_frequency
-        sample_frequency = rxparams.sample_frequency
-        print_frequency = rxparams.print_frequency
+        nsteps = pamcparams.nsteps
+        resample_frequency = pamcparams.resample_frequency
+        sample_frequency = pamcparams.sample_frequency
+        print_frequency = pamcparams.print_frequency
 
         if comm.Get_rank() == 0:
-            print(f"-Running RXMC calculation with {nreplicas} replicas")
+            print(f"-Running PAMC calculation with {nreplicas} replicas")
             print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
             sys.stdout.flush()
 
@@ -123,7 +123,7 @@ def main_potts(params_root: MutableMapping):
                 print("-Reloading from previous calculation")
             calc.reload()
         if comm.Get_rank() == 0:
-            print("-Starting RXMC calculation")
+            print("-Starting PAMC calculation")
             sys.stdout.flush()
         obs = calc.run(
             nsteps,
