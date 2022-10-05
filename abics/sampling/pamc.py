@@ -275,8 +275,16 @@ class PopulationAnnealing(ParallelMC):
         while self.Tindex < numT:
             if self.Tindex > 0:
                 self.anneal(self.mycalc.energy)
+                if self.rank == 0:
+                    print(
+                        "--Anneal from T={} to {}".format(
+                            self.kTs[self.Tindex - 1], self.kTs[self.Tindex]
+                        )
+                    )
                 if self.Tindex % resample_frequency == 0:
                     self.resample()
+                    if self.rank == 0:
+                        print("--Resampling finishes")
             for i in range(nsteps_between_anneal):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if observe and i % sample_frequency == 0:
@@ -350,13 +358,13 @@ class PopulationAnnealing(ParallelMC):
             o[:, 3 * iobs + 2] = o[:, 3 * iobs + 1] - o[:, 3 * iobs] ** 2
         o_all = np.zeros((nreplicas, nT, 3 * nobs), dtype=np.float64)
         self.comm.Allgather(o, o_all)
-        if self.rank==0:
+        if self.rank == 0:
             o_mean = o_all.mean(axis=0)
-            o_err = np.sqrt(o_all.var(axis=0) / (nreplicas-1))
+            o_err = np.sqrt(o_all.var(axis=0) / (nreplicas - 1))
             with open("result.dat", "w") as f:
                 for iT in range(nT):
                     f.write(str(self.kTs[iT]))
-                    for iobs in range(3*nobs):
+                    for iobs in range(3 * nobs):
                         f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
                     f.write("\n")
         self.comm.Barrier()
