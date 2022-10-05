@@ -15,6 +15,7 @@
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -65,7 +66,12 @@
            <div itemprop="articleBody">
              
   <h1>Source code for abics.replica_params</h1><div class="highlight"><pre>
-<div class="viewcode-block" id="SamplerParams"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.SamplerParams">[docs]</a><span></span><span class="k">class</span> <span class="nc">SamplerParams</span><span class="p">:</span>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">MutableMapping</span>
+
+<div class="viewcode-block" id="SamplerParams"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.SamplerParams">[docs]</a><span class="k">class</span> <span class="nc">SamplerParams</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parameter set for specifying sampling algorithm</span>
 
 <span class="sd">    Attributes</span>
@@ -74,11 +80,11 @@
 <span class="sd">        Sampler name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="s2">&quot;RXMC&quot;</span>
 
 <div class="viewcode-block" id="SamplerParams.from_dict"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.SamplerParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;SamplerParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from dictionary</span>
 
@@ -99,7 +105,7 @@
         <span class="k">return</span> <span class="n">params</span></div>
 
 <div class="viewcode-block" id="SamplerParams.from_toml"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.SamplerParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SamplerParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from toml file</span>
 
@@ -116,65 +122,6 @@
         <span class="kn">import</span> <span class="nn">toml</span>
 
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span></div></div>
-
-
-<span class="c1"># class TrainParams:</span>
-<span class="c1">#     &quot;&quot;&quot;Parameter set for reference calculations in active learning run</span>
-<span class="c1">#</span>
-<span class="c1">#     Attributes</span>
-<span class="c1">#     ----------</span>
-<span class="c1">#     nreplicas : int</span>
-<span class="c1">#         The number of replicas</span>
-<span class="c1">#     nprocs_per_replica : int</span>
-<span class="c1">#         The number of processes which a replica uses</span>
-<span class="c1">#     &quot;&quot;&quot;</span>
-<span class="c1">#</span>
-<span class="c1">#     def __init__(self):</span>
-<span class="c1">#         self.nreplicas = None</span>
-<span class="c1">#         self.nprocs_per_replica = 1</span>
-<span class="c1">#         self.seed = 0</span>
-<span class="c1">#</span>
-<span class="c1">#     @classmethod</span>
-<span class="c1">#     def from_dict(cls, d):</span>
-<span class="c1">#         &quot;&quot;&quot;</span>
-<span class="c1">#         Read information from dictionary</span>
-<span class="c1">#</span>
-<span class="c1">#         Parameters</span>
-<span class="c1">#         ----------</span>
-<span class="c1">#         d: dict</span>
-<span class="c1">#             Dictionary including parameters for parallel random sampling</span>
-<span class="c1">#</span>
-<span class="c1">#         Returns</span>
-<span class="c1">#         -------</span>
-<span class="c1">#         params: DFTParams object</span>
-<span class="c1">#             self</span>
-<span class="c1">#         &quot;&quot;&quot;</span>
-<span class="c1">#         if &quot;replicaRef&quot; in d:</span>
-<span class="c1">#             d = d[&quot;replicaRef&quot;]</span>
-<span class="c1">#         params = cls()</span>
-<span class="c1">#         params.nreplicas = d[&quot;nreplicas&quot;]</span>
-<span class="c1">#         params.nprocs_per_replica = d.get(&quot;nprocs_per_replica&quot;, 1)</span>
-<span class="c1">#         return params</span>
-<span class="c1">#</span>
-<span class="c1">#     @classmethod</span>
-<span class="c1">#     def from_toml(cls, fname):</span>
-<span class="c1">#         &quot;&quot;&quot;</span>
-<span class="c1">#         Read information from toml file</span>
-<span class="c1">#</span>
-<span class="c1">#         Parameters</span>
-<span class="c1">#         ----------</span>
-<span class="c1">#         f: str</span>
-<span class="c1">#             The name of input toml File</span>
-<span class="c1">#</span>
-<span class="c1">#         Returns</span>
-<span class="c1">#         -------</span>
-<span class="c1">#         DFTParams: DFTParams object</span>
-<span class="c1">#             self</span>
-<span class="c1">#         &quot;&quot;&quot;</span>
-<span class="c1">#         import toml</span>
-<span class="c1">#</span>
-<span class="c1">#         d = toml.load(fname)</span>
-<span class="c1">#         return cls.from_dict(d[&quot;train&quot;])</span>
 
 
 <div class="viewcode-block" id="ParallelRandomParams"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParallelRandomParams">[docs]</a><span class="k">class</span> <span class="nc">ParallelRandomParams</span><span class="p">:</span>
@@ -199,8 +146,8 @@
 <span class="sd">        If 0, some random number is used (e.g., system time or some random noise).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sample_frequency</span> <span class="o">=</span> <span class="mi">1</span>
@@ -209,7 +156,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="ParallelRandomParams.from_dict"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParallelRandomParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ParallelRandomParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from dictionary</span>
 
@@ -236,7 +183,7 @@
         <span class="k">return</span> <span class="n">params</span></div>
 
 <div class="viewcode-block" id="ParallelRandomParams.from_toml"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParallelRandomParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ParallelRandomParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from toml file</span>
 
@@ -255,7 +202,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span></div></div>
 
 
-<div class="viewcode-block" id="ParalleMCParams"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParalleMCParams">[docs]</a><span class="k">class</span> <span class="nc">ParalleMCParams</span><span class="p">:</span>
+<div class="viewcode-block" id="ParallelMCParams"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParallelMCParams">[docs]</a><span class="k">class</span> <span class="nc">ParallelMCParams</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Parameter set for embarrasingly parallel Monte Carlo</span>
 
 <span class="sd">    Attributes</span>
@@ -281,19 +228,19 @@
 <span class="sd">        If 0, some random number is used (e.g., system time or some random noise).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kTstart</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kTend</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kTstart</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kTend</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sample_frequency</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">print_frequency</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reload</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span>
 
-<div class="viewcode-block" id="ParalleMCParams.from_dict"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParalleMCParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<div class="viewcode-block" id="ParallelMCParams.from_dict"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParallelMCParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;ParallelMCParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from dictionary</span>
 
@@ -321,8 +268,8 @@
         <span class="n">params</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">params</span></div>
 
-<div class="viewcode-block" id="ParalleMCParams.from_toml"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParalleMCParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+<div class="viewcode-block" id="ParallelMCParams.from_toml"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.ParallelMCParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;ParallelMCParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from toml file</span>
 
@@ -369,7 +316,7 @@
 <span class="sd">        If 0, some random number is used (e.g., system time or some random noise).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kTstart</span> <span class="o">=</span> <span class="kc">None</span>
@@ -382,7 +329,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span>
 
 <div class="viewcode-block" id="RXParams.from_dict"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.RXParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="s2">&quot;RXParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from dictionary</span>
 
@@ -412,7 +359,7 @@
         <span class="k">return</span> <span class="n">params</span></div>
 
 <div class="viewcode-block" id="RXParams.from_toml"><a class="viewcode-back" href="../../abics.replica_params.html#abics.replica_params.RXParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;RXParams&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Read information from toml file</span>
 
