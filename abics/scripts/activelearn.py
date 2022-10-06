@@ -27,8 +27,10 @@ import numpy as np
 
 from abics import __version__
 
-from abics.sampling.mc_mpi import RX_MPI_init
-from abics.mc_mpi import RefParams
+from abics.mc_mpi import (
+    RX_MPI_init,
+    RefParams,
+)
 from abics.applications.latgas_abinitio_interface import map2perflat
 from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
