@@ -157,6 +157,10 @@ class PopulationAnnealing(ParallelMC):
         subdirs: boolean
             If true, working directory for this rank is made
         """
+        if kTs[0] < kTs[-1]:
+            if comm.Get_rank() == 0:
+                print("Warning: kTs[0] < kTs[-1]. Hense kTs will be reversed")
+            kTs.reverse()
         super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
         self.mycalc.kT = kTs[0]
         self.mycalc.config = configs[self.rank]
