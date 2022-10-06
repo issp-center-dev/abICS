@@ -27,6 +27,7 @@ from abics.model import Model
 from abics.observer import ObserverBase
 from abics.sampling.mc import verylargeint, MCAlgorithm
 from abics.sampling.mc_mpi import ParallelMC
+from abics.sampling.resampling import WalkerTable
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
@@ -168,6 +169,7 @@ class PopulationAnnealing(ParallelMC):
         self.logweight_history = []
         self.kT_history = []
         self.Lreload = False
+        self.use_resample_old = False
 
     def reload(self):
         self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
@@ -204,17 +206,51 @@ class PopulationAnnealing(ParallelMC):
         self.mycalc.kT = self.kTs[self.Tindex]
 
     def resample(self):
+        if self.use_resample_old:
+            self.__resample_old()
+        else:
+            self.__resample_new()
+
+    def __resample_old(self):
         buffer = np.zeros((self.procs, 2), dtype=np.float64)
         self.comm.Allgather(np.array((self.logweight, self.mycalc.energy)), buffer)
         logweights = buffer[:, 0]
         energies = buffer[:, 1]
+
         configs = self.comm.allgather(self.mycalc.config)
+
         weights = np.exp(logweights - np.max(logweights))  # avoid overflow
         acc_weights = np.add.accumulate(weights)
         r = rand.rand() * acc_weights[-1]
         i = np.searchsorted(acc_weights, r)
+
         self.mycalc.config = configs[i]
         self.mycalc.energy = energies[i]
+        self.logweight = 0.0
+
+    def __resample_new(self):
+        buffer = np.zeros((self.procs, 2), dtype=np.float64)
+        self.comm.Allgather(np.array((self.logweight, self.mycalc.energy)), buffer)
+        logweights = buffer[:, 0]
+        energies = buffer[:, 1]
+
+        weights = np.exp(logweights - np.max(logweights))  # avoid overflow
+        resampler = WalkerTable(weights)
+        index = resampler.sample(size=self.procs)
+        self.comm.Bcast(index, root=0)
+        mysrc = index[self.rank]
+        mydst: list[int] = []
+        for dst, src in enumerate(index):
+            if src == self.rank:
+                mydst.append(dst)
+        send_reqs = [self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst]
+        recv_req = self.comm.irecv(source=mysrc, tag=self.rank)
+        for req in send_reqs:
+            req.wait()
+        newconfig = recv_req.wait()
+        self.comm.Barrier()
+        self.mycalc.config = newconfig
+        self.mycalc.energy = energies[mysrc]
         self.logweight = 0.0
 
     def run(
@@ -324,6 +360,7 @@ class PopulationAnnealing(ParallelMC):
 
     def postproc(self):
         nT = len(self.kTs)
+        ## TODO: Don't load from files
         logweights = numpy_load(os.path.join(str(self.rank), "logweight_hist.npy"))
         nsamples = logweights.shape[0] // nT
         logweights = np.array(logweights[::nsamples])
@@ -360,7 +397,7 @@ class PopulationAnnealing(ParallelMC):
         self.comm.Allgather(o, o_all)
         if self.rank == 0:
             o_mean = o_all.mean(axis=0)
-            o_err = np.sqrt(o_all.var(axis=0) / (nreplicas - 1))
+            o_err = o_all.std(axis=0)
             with open("result.dat", "w") as f:
                 for iT in range(nT):
                     f.write(str(self.kTs[iT]))
