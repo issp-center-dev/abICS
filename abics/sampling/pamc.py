@@ -329,7 +329,7 @@ class PopulationAnnealing(ParallelMC):
                     if self.rank == 0:
                         print("--Resampling finishes")
                         sys.stdout.flush()
-            for i in range(nsteps_between_anneal):
+            for i in range(1, nsteps_between_anneal+1):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
