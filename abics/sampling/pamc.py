@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import os
+import sys
 
 from mpi4py import MPI
 
@@ -160,6 +161,7 @@ class PopulationAnnealing(ParallelMC):
         if kTs[0] < kTs[-1]:
             if comm.Get_rank() == 0:
                 print("Warning: kTs[0] < kTs[-1]. Hense kTs will be reversed")
+                sys.stdout.flush()
             kTs.reverse()
         super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
         self.mycalc.kT = kTs[0]
@@ -321,10 +323,12 @@ class PopulationAnnealing(ParallelMC):
                             self.kTs[self.Tindex - 1], self.kTs[self.Tindex]
                         )
                     )
+                    sys.stdout.flush()
                 if self.Tindex % resample_frequency == 0:
                     self.resample()
                     if self.rank == 0:
                         print("--Resampling finishes")
+                        sys.stdout.flush()
             for i in range(nsteps_between_anneal):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if observe and i % sample_frequency == 0:
