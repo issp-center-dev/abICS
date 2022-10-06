@@ -106,10 +106,14 @@ def main():
             else:
                 Ts = kTs
             for Tid in range(nreplicas):
-                energy_mean = np.mean(
-                    np.loadtxt(os.path.join(str(Tid), "energies.dat"))[nskip:, :],
-                    axis = 0
-                )
+                energies_data = np.loadtxt(os.path.join(str(Tid), "energies.dat"))
+                if energies_data.ndim == 1:
+                    energy_mean = [np.mean(energies_data[nskip:])]
+                else:
+                    energy_mean = np.mean(energies_data[nskip:,:],
+                                          axis = 0
+                    )
+
                 fi.write(f"{Ts[Tid]}")
                 for en in energy_mean:
                     fi.write(f"\t{en}")
