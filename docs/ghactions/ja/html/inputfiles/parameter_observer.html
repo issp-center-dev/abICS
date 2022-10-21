@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>5.6. [observer] セクション &#8212; abICS 2.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="5.7. [config] セクション" href="parameter_config.html" />
+    <link rel="prev" title="5.5. [train] セクション" href="parameter_train.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="observer">
+<h1><span class="section-number">5.6. </span>[observer] セクション<a class="headerlink" href="#observer" title="この見出しへのパーマリンク">¶</a></h1>
+<p>取得する物理量の種類などを指定します.
+以下のようなファイルフォーマットをしています.</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[observer]
+type = &#39;default&#39;
+</pre></div>
+</div>
+</div></blockquote>
+<section id="id1">
+<h2><span class="section-number">5.6.1. </span>入力形式<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">keyword</span> <span class="pre">=</span> <span class="pre">value</span></code> の形式でキーワードとその値を指定します.
+また, #をつけることでコメントを入力することができます(それ以降の文字は無視されます).</p>
+</section>
+<section id="id2">
+<h2><span class="section-number">5.6.2. </span>キーワード<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+物理量セットを指定します.</p>
+</li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. 入力ファイルフォーマット</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parameter_sampling.html">5.1. [sampling] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_sampling.html#sampling-solver">5.2. [sampling.solver] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_mlref.html">5.3. [mlref] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_mlref.html#mlref-solver">5.4. [mlref.solver] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_train.html">5.5. [train] セクション</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.6. [observer] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_config.html">5.7. [config] セクション</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html"><span class="section-number">5. </span>入力ファイルフォーマット</a><ul>
+      <li>Previous: <a href="parameter_train.html" title="前の章へ"><span class="section-number">5.5. </span>[train] セクション</a></li>
+      <li>Next: <a href="parameter_config.html" title="次の章へ"><span class="section-number">5.7. </span>[config] セクション</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/inputfiles/parameter_observer.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

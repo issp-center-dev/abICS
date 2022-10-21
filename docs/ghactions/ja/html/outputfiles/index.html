@@ -1,0 +1,200 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>6. 出力ファイルフォーマット &#8212; abICS 2.0.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="7. 付属ツール" href="../tools/index.html" />
+    <link rel="prev" title="5.7. [config] セクション" href="../inputfiles/parameter_config.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1><span class="section-number">6. </span>出力ファイルフォーマット<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<p>各レプリカディレクトリ以下に計算結果が出力されます。</p>
+<section id="structure-xxx-vasp">
+<h2><span class="section-number">6.1. </span><code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code><a class="headerlink" href="#structure-xxx-vasp" title="この見出しへのパーマリンク">¶</a></h2>
+<p>各ステップごとの原子配置が VASP の POSCAR ファイル形式で出力されます。
+ステップ番号がファイル名の <code class="docutils literal notranslate"><span class="pre">XXX</span></code> に入ります。</p>
+<p>例:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Mg8 Al16 O32
+1.0
+8.113600 0.000000 0.000000
+0.000000 8.113600 0.000000
+0.000000 0.000000 8.113600
+Al Mg O
+16 8 32
+direct
+0.011208 0.995214 0.998158 Al
+0.758187 0.240787 0.499981 Al
+... skipped ...
+0.746308 0.744706 0.233021 O
+0.257199 0.255424 0.771040 O
+</pre></div>
+</div>
+</section>
+<section id="mine-vasp">
+<h2><span class="section-number">6.2. </span><code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code><a class="headerlink" href="#mine-vasp" title="この見出しへのパーマリンク">¶</a></h2>
+<p>最低エネルギーを与えた原子位置が VASP の POSCAR ファイル形式で出力されます。</p>
+</section>
+<section id="obs-dat">
+<h2><span class="section-number">6.3. </span><code class="docutils literal notranslate"><span class="pre">obs.dat</span></code><a class="headerlink" href="#obs-dat" title="この見出しへのパーマリンク">¶</a></h2>
+<p>各ステップごとの温度とエネルギーが電子ボルト単位で出力されます。</p>
+<p>例:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>0      0.1034076       -41690.28269769395
+1      0.1034076       -41692.06763035158
+2      0.1034076       -41692.06763035158
+3      0.1034076       -41691.98205990787
+4      0.1034076       -41692.74143710456
+</pre></div>
+</div>
+</section>
+<section id="obs-save-npy">
+<h2><span class="section-number">6.4. </span><code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code><a class="headerlink" href="#obs-save-npy" title="この見出しへのパーマリンク">¶</a></h2>
+<p>各ステップごとのエネルギーが電子ボルト単位で出力されます。
+<code class="docutils literal notranslate"><span class="pre">numpy.load('obs_save.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
+<p>例:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ python -c &quot;import numpy; print(numpy.load(&#39;obs_save.npy&#39;))&quot;
+[[-41690.28269769]
+ [-41692.06763035]
+ [-41692.06763035]
+ [-41691.98205991]
+ [-41692.7414371 ]]
+</pre></div>
+</div>
+</section>
+<section id="kt-hist-npy">
+<h2><span class="section-number">6.5. </span><code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code><a class="headerlink" href="#kt-hist-npy" title="この見出しへのパーマリンク">¶</a></h2>
+<p>各ステップごとの温度（電子ボルト単位）が Numpy バイナリ形式で出力されます。
+<code class="docutils literal notranslate"><span class="pre">numpy.load('kT_hist.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
+<p>例:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ python -c &quot;import numpy; print(numpy.load(&#39;kT_hist.npy&#39;))&quot;
+[0.1034076 0.1034076 0.1034076 0.1034076 0.1034076]
+</pre></div>
+</div>
+</section>
+<section id="trank-hist-npy">
+<h2><span class="section-number">6.6. </span><code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code><a class="headerlink" href="#trank-hist-npy" title="この見出しへのパーマリンク">¶</a></h2>
+<p>各ステップごとの温度インデックスが Numpy バイナリ形式で出力されます。
+<code class="docutils literal notranslate"><span class="pre">numpy.load('Trank_hist.npy')</span></code> で、 <code class="docutils literal notranslate"><span class="pre">darray</span></code> として読み取ることができます。</p>
+<p>例:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ python -c &quot;import numpy; print(numpy.load(&#39;Trank_hist.npy&#39;))&quot;
+[1 1 1 1 1]
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">6. 出力ファイルフォーマット</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../inputfiles/parameter_config.html" title="前の章へ"><span class="section-number">5.7. </span>[config] セクション</a></li>
+      <li>Next: <a href="../tools/index.html" title="次の章へ"><span class="section-number">7. </span>付属ツール</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/outputfiles/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
