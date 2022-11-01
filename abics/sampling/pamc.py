@@ -96,7 +96,17 @@ class PAMCParams:
         params.kTstart = d["kTstart"]
         params.kTend = d["kTend"]
         params.kTnum = d["kTnum"]
-        params.nsteps = d["nsteps"]
+        if "nsteps_between_anneal" in d:
+            params.nsteps = d["nsteps_between_anneal"] * self.kTnum
+            if "nsteps" in d:
+                msg = f"Error: Both nsteps and nsteps_between_anneal are specified"
+                raise RuntimeError(msg)
+        else:
+            if "nsteps" in d:
+                params.nsteps = d["nsteps"]
+            else:
+                msg = f"Error: Neither nsteps nor nsteps_between_anneal are specified"
+                raise RuntimeError(msg)
         params.resample_frequency = d.get("resample_frequency", 1)
         params.sample_frequency = d.get("sample_frequency", 1)
         params.print_frequency = d.get("print_frequency", 1)
@@ -130,6 +140,7 @@ class PopulationAnnealing(ParallelMC):
     logweight: float
     "Logarithm of Neal-Jarzynski weight"
     logweight_history: list[float]
+    dlogz: list[float]
     kT_history: list[float]
 
     def __init__(
@@ -173,6 +184,7 @@ class PopulationAnnealing(ParallelMC):
         self.Tindex = 0
         self.logweight = 0.0
         self.logweight_history = []
+        self.dlogz = []
         self.kT_history = []
         self.Lreload = False
         self.use_resample_old = False
@@ -208,7 +220,9 @@ class PopulationAnnealing(ParallelMC):
     def anneal(self, energy: float):
         assert 0 < self.Tindex < len(self.kTs)
         mdbeta = self.betas[self.Tindex - 1] - self.betas[self.Tindex]
-        self.logweight += mdbeta * energy
+        dlogz = mdbeta * energy
+        self.dlogz.append(dlogz)
+        self.logweight += dlogz
         self.mycalc.kT = self.kTs[self.Tindex]
 
     def resample(self):
@@ -249,7 +263,9 @@ class PopulationAnnealing(ParallelMC):
         for dst, src in enumerate(index):
             if src == self.rank:
                 mydst.append(dst)
-        send_reqs = [self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst]
+        send_reqs = [
+            self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst
+        ]
         recv_req = self.comm.irecv(source=mysrc, tag=self.rank)
         for req in send_reqs:
             req.wait()
@@ -261,7 +277,7 @@ class PopulationAnnealing(ParallelMC):
 
     def run(
         self,
-        nsteps_between_anneal: int,
+        nsteps: int,
         resample_frequency: int = 1,
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
@@ -274,8 +290,8 @@ class PopulationAnnealing(ParallelMC):
 
         Parameters
         ----------
-        nsteps_between_anneal: int
-            The number of Monte Carlo steps netween annealing.
+        nsteps: int
+            The number of Monte Carlo steps.
         resample_frequency: int
             The number of anneals between resampling.
         sample_frequency: int
@@ -294,6 +310,13 @@ class PopulationAnnealing(ParallelMC):
         obs_list: list
             Observation list
         """
+
+        kTnum = len(self.kTs)
+        nba = nsteps // kTnum
+        nsteps_between_anneal = nba * np.ones(kTnum, dtype=int)
+        if nsteps - nba*kTnum > 0:
+            nsteps_between_anneal[-(nsteps - nba*kTnum):] += 1
+
         if subdirs:
             try:
                 os.mkdir(str(self.rank))
@@ -329,7 +352,7 @@ class PopulationAnnealing(ParallelMC):
                     if self.rank == 0:
                         print("--Resampling finishes")
                         sys.stdout.flush()
-            for i in range(1, nsteps_between_anneal+1):
+            for i in range(1, nsteps_between_anneal[self.Tindex] + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if observe and i % sample_frequency == 0:
                     obs_step = observer.observe(
@@ -368,13 +391,20 @@ class PopulationAnnealing(ParallelMC):
 
     def postproc(self):
         nT = len(self.kTs)
-        ## TODO: Don't load from files
-        logweights = numpy_load(os.path.join(str(self.rank), "logweight_hist.npy"))
+        # logweights = numpy_load(os.path.join(str(self.rank), "logweight_hist.npy"))
+        logweights = np.array(self.logweight_history)
         nsamples = logweights.shape[0] // nT
         logweights = np.array(logweights[::nsamples])
-        obs1 = numpy_load(os.path.join(str(self.rank), "obs_save.npy")).reshape(
-            nT, nsamples, -1
-        )
+        dlogz = np.array(self.dlogz + [0.0])
+
+        if hasattr(self, "obs_save0"):
+            obs1 = np.concatenate((self.obs_save0, np.array(self.obs_save)))
+        else:
+            obs1 = np.array(self.obs_save)
+        obs1 = obs1.reshape(nT, nsamples, -1)
+        # obs1 = numpy_load(os.path.join(str(self.rank), "obs_save.npy")).reshape(
+        # nT, nsamples, -1
+        # )
         nobs = obs1.shape[2]
         obs2 = (obs1 * obs1).mean(axis=1)
         obs1 = obs1.mean(axis=1)
@@ -384,24 +414,41 @@ class PopulationAnnealing(ParallelMC):
             obs[:, 2 * iobs + 1] = obs2[:, iobs]
 
         nreplicas = self.procs
-        logweights_all = np.zeros((nreplicas, nT), dtype=np.float64)
-        obs_all = np.zeros((nreplicas, nT, 2 * nobs), dtype=np.float64)
-        self.comm.Allgather(logweights, logweights_all)
-        self.comm.Allgather(obs, obs_all)
+        # wall = np.zeros((nreplicas, nT, 2), dtype=np.float64)
+        # obs_all = np.zeros((nreplicas, nT, 2 * nobs), dtype=np.float64)
+        buffer_all = np.zeros((nreplicas, nT, 2 + 2 * nobs), dtype=np.float64)
+        self.comm.Allgather(
+            np.concatenate(
+                [logweights.reshape(-1, 1), dlogz.reshape(-1, 1), obs], axis=1
+            ),
+            buffer_all,
+        )
+        # self.comm.Allgather(obs, obs_all)
 
-        weights = np.exp(logweights_all - logweights_all.max(axis=0))
+        logweights_all = buffer_all[:, :, 0]
+        dlogz_all = buffer_all[:, :, 1]
+        obs_all = buffer_all[:, :, 2:]
+
+        logweights_max = logweights_all.max(axis=0)
+        weights = np.exp(logweights_all - logweights_max)
         ow = np.einsum("ito,it->ito", obs_all, weights)
+
+        lzw = logweights_all + dlogz_all - logweights_max
+        lzw_max = lzw.max(axis=0)
+        zw = np.exp(lzw - lzw_max)
 
         # bootstrap
         index = np.random.randint(nreplicas, size=nreplicas)
         numer = ow[index, :, :].mean(axis=0)
+        zw_numer = zw[index, :].mean(axis=0)
         denom = weights[index, :].mean(axis=0)
-        o = np.zeros((nT, 3 * nobs), dtype=np.float64)
+        o = np.zeros((nT, 3 * nobs + 1), dtype=np.float64)
         for iobs in range(nobs):
             o[:, 3 * iobs] = numer[:, 2 * iobs] / denom[:]
             o[:, 3 * iobs + 1] = numer[:, 2 * iobs + 1] / denom[:]
             o[:, 3 * iobs + 2] = o[:, 3 * iobs + 1] - o[:, 3 * iobs] ** 2
-        o_all = np.zeros((nreplicas, nT, 3 * nobs), dtype=np.float64)
+        o[:, 3 * nobs] = zw_numer / denom
+        o_all = np.zeros((nreplicas, nT, 3 * nobs + 1), dtype=np.float64)
         self.comm.Allgather(o, o_all)
         if self.rank == 0:
             o_mean = o_all.mean(axis=0)
@@ -412,4 +459,11 @@ class PopulationAnnealing(ParallelMC):
                     for iobs in range(3 * nobs):
                         f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
                     f.write("\n")
+            dlogZ = np.log(o_mean[:-1, 3 * nobs]) + lzw_max[:-1]
+            with open("dlogZ.dat", "w") as f:
+                F = 0.0
+                for i, dlz in enumerate(dlogZ):
+                    F += dlz
+                    f.write(f"{self.kTs[i]} {F} {dlz}\n")
+
         self.comm.Barrier()
