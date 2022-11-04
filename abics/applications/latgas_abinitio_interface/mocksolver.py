@@ -121,7 +121,7 @@ class MockSolver(SolverBase):
                 Path to working directory.
             """
             os.makedirs(output_dir, exist_ok=True)
-            self.st.to("POSCAR", os.path.join(output_dir, "structure.vasp"))
+            self.st.to(fmt="POSCAR", filename=os.path.join(output_dir, "structure.vasp"))
 
         def cl_args(self, nprocs, nthreads, workdir):
             """
