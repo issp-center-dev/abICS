@@ -1,0 +1,436 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>3. 基本的な使用方法 &#8212; abICS 2.0.1 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="4. チュートリアル" href="../tutorial/index.html" />
+    <link rel="prev" title="2.1. 必要なライブラリ・環境" href="../install/install.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sec-basic-usage">
+<span id="id1"></span><h1><span class="section-number">3. </span>基本的な使用方法<a class="headerlink" href="#sec-basic-usage" title="この見出しへのパーマリンク">¶</a></h1>
+<section id="id2">
+<h2><span class="section-number">3.1. </span>能動学習について<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>abICSは元々、第一原理計算とレプリカ交換モンテカルロ法を直接組み合わせて統計熱力学計算を行うことを念頭に開発されましたが、
+計算できるモデル規模やステップ数が、第一原理計算の大きな計算コストのために限られてしまいます。
+これに対して、Ver. 2では、構造最適化後のエネルギーを高速に予測する機械学習モデルを構成するための能動学習手法を実装し、
+飛躍的にサンプリング速度を向上させました <a class="reference external" href="https://arxiv.org/abs/2008.02572">[論文プレプリント]</a> 。</p>
+<p>abICSに実装されている能動学習手法の大まかな流れは以下の通りです。</p>
+<ol class="arabic simple">
+<li><p>ランダムに生成した多数の原子配置に対して第一原理計算を行い、訓練データ（原子配置とエネルギーの対応関係）を用意する</p></li>
+<li><p>用意した訓練データを使って、原子配置からエネルギーを予測する機械学習モデルを構築する</p></li>
+<li><p>機械学習モデルを使って、レプリカ交換モンテカルロ法による原子配置の統計熱力学サンプリングを行う</p></li>
+<li><p>モンテカルロ計算で出現したイオン配置をサンプリングし、それぞれに対して第一原理計算を行うことで、機械学習モデルの精度の評価を行う</p></li>
+<li><p>不十分であった場合は、4.で計算した結果を訓練データに追加し、2.から繰り返す。</p></li>
+</ol>
+<a class="reference internal image-reference" href="../_images/al_scheme.png"><img alt="../_images/al_scheme.png" class="align-center" src="../_images/al_scheme.png" style="width: 800px;" /></a>
+<p>abICSを用いた能動学習のイメージ図</p>
+</section>
+<section id="abics">
+<span id="subsec-basic-reference"></span><h2><span class="section-number">3.2. </span>abICS制御用入力ファイルの準備<a class="headerlink" href="#abics" title="この見出しへのパーマリンク">¶</a></h2>
+<p>まず、abICSの動作全般を制御する入力ファイルを作成します。
+abICSの入力ファイルは, 以下の5つのセクションから構成されます.</p>
+<ol class="arabic">
+<li><p>[sampling] セクション</p>
+<p>レプリカ数や温度の幅, モンテカルロステップ数など,レプリカ交換モンテカルロ部分のパラメータを指定します.また、利用するソルバーの種類 (VASP, QE, ...)、ソルバーへのパス、不変な入力ファイルのあるディレクトリなど（第一原理計算）ソルバーのパラメータを指定します.</p>
+</li>
+<li><p>[mlref] セクション</p>
+<p>ニューラルネットワークモデルの精度評価と訓練データの拡張などを行うため、サンプリングの結果から原子配置のみを取り出す際のオプションを設定します. <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> のみで使用されます. また、訓練データを作成するために利用するソルバーの種類 (VASP, QE, ...)、ソルバーへのパス、不変な入力ファイルのあるディレクトリなど（第一原理計算）ソルバーのパラメータを指定します.</p>
+</li>
+<li><p>[train] セクション</p>
+<p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います. <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> のみで使用されます.</p>
+</li>
+<li><p>[observer] セクション</p>
+<p>取得する物理量の種類などを指定します.</p>
+</li>
+<li><p>[config] セクション</p>
+<p>合金の配位などを指定します.</p>
+</li>
+</ol>
+<p>これらの詳細については <a class="reference internal" href="../inputfiles/index.html"><span class="doc">入力ファイルフォーマット</span></a> をご覧ください。
+以下に入力ファイルの例を記載します。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
+nreplicas = 8
+nprocs_per_replica = 1 
+kTstart = 600.0
+kTend = 2000.0
+nsteps = 6400 # Number of steps for sampling
+RXtrial_frequency = 4
+sample_frequency = 16
+print_frequency = 1
+reload = false
+
+[sampling.solver]
+type = &#39;aenet&#39;
+path= &#39;predict.x-2.0.4-ifort_serial&#39;
+base_input_dir = &#39;./baseinput&#39;
+perturb = 0.0
+run_scheme = &#39;subprocess&#39; #&#39;mpi_spawn_ready&#39;
+ignore_species = [&quot;O&quot;]
+
+[mlref]
+nreplicas = 8
+ndata = 5
+
+[mlref.solver]
+type = &#39;qe&#39;
+base_input_dir = &#39;./baseinput_ref&#39;
+perturb = 0.05
+ignore_species = []
+
+[train]
+type = &#39;aenet&#39;
+base_input_dir = &#39;./aenet_train_input&#39;
+exe_command = [&#39;generate.x-2.0.4-ifort_serial&#39;, &#39;srun train.x-2.0.4-ifort_intelmpi&#39;]
+ignore_species = [&quot;O&quot;]
+vac_map = []
+restart = false
+
+[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+
+[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+     [0.237399980, 0.237399980, 0.237399980],
+     [0.762599945, 0.762599945, 0.762599945],
+     [0.512599945, 0.012600004, 0.737399936],
+     [0.487399966, 0.987399936, 0.262599975],
+     [0.012600004, 0.737399936, 0.512599945],
+     [0.987399936, 0.262599975, 0.487399966],
+     [0.737399936, 0.512599945, 0.012600004],
+     [0.262599975, 0.487399966, 0.987399936],
+     [0.987399936, 0.487399966, 0.262599975],
+     [0.012600004, 0.512599945, 0.737399936],
+     [0.487399966, 0.262599975, 0.987399936],
+     [0.512599945, 0.737399936, 0.012600004],
+     [0.262599975, 0.987399936, 0.487399966],
+     [0.737399936, 0.012600004, 0.512599945],
+     [0.237399980, 0.737399936, 0.737399936],
+     [0.762599945, 0.262599975, 0.262599975],
+     [0.512599945, 0.512599945, 0.237399980],
+     [0.487399966, 0.487399966, 0.762599945],
+     [0.012600004, 0.237399980, 0.012600004],
+     [0.987399936, 0.762599945, 0.987399936],
+     [0.987399936, 0.987399936, 0.762599945],
+     [0.012600004, 0.012600004, 0.237399980],
+     [0.487399966, 0.762599945, 0.487399966],
+     [0.512599945, 0.237399980, 0.512599945],
+     [0.737399936, 0.237399980, 0.737399936],
+     [0.262599975, 0.762599945, 0.262599975],
+     [0.237399980, 0.512599945, 0.512599945],
+     [0.762599945, 0.487399966, 0.487399966],
+     [0.762599945, 0.987399936, 0.987399936],
+     [0.237399980, 0.012600004, 0.012600004],
+     [0.737399936, 0.737399936, 0.237399980],
+     [0.262599975, 0.262599975, 0.762599945],
+     ]
+
+[[config.defect_structure]]
+coords = [
+     [0.000000000, 0.000000000, 0.000000000],
+     [0.749999940, 0.249999985, 0.499999970],
+     [0.249999985, 0.749999940, 0.499999970],
+     [0.249999985, 0.499999970, 0.749999940],
+     [0.749999940, 0.499999970, 0.249999985],
+     [0.499999970, 0.749999940, 0.249999985],
+     [0.499999970, 0.249999985, 0.749999940],
+     [0.000000000, 0.499999970, 0.499999970],
+     [0.749999940, 0.749999940, 0.000000000],
+     [0.249999985, 0.249999985, 0.000000000],
+     [0.249999985, 0.000000000, 0.249999985],
+     [0.749999940, 0.000000000, 0.749999940],
+     [0.499999970, 0.000000000, 0.499999970],
+     [0.000000000, 0.749999940, 0.749999940],
+     [0.000000000, 0.249999985, 0.249999985],
+     [0.499999970, 0.499999970, 0.000000000],
+     [0.374999970, 0.374999970, 0.374999970],
+     [0.624999940, 0.624999940, 0.624999940],
+     [0.374999970, 0.874999940, 0.874999940],
+     [0.624999940, 0.124999993, 0.124999993],
+     [0.874999940, 0.874999940, 0.374999970],
+     [0.124999993, 0.124999993, 0.624999940],
+     [0.874999940, 0.374999970, 0.874999940],
+     [0.124999993, 0.624999940, 0.124999993],
+     ]
+[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 16 #432 #16000
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 8 #216 #8000
+
+
+[observer]
+ignored_species = [&#39;O&#39;]
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h2><span class="section-number">3.3. </span>第一原理ソルバー用参照ファイルの準備<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<p>訓練データの生成に用いる第一原理ソルバーの入力形式に従った入力ファイルを用意します。
+参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
+座標情報については記載する必要はありません。
+以下、Quantum ESPRESSOの参照ファイルの例について記載します。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
+  calculation = &#39;relax&#39;
+  tstress = .false.
+  tprnfor = .false.
+  pseudo_dir = &#39;./pseudo&#39;
+  disk_io = &#39;low&#39;
+  wf_collect = .false.
+/
+&amp;SYSTEM
+  ecutwfc      =  60.0
+  occupations  = &quot;smearing&quot;
+  smearing     = &quot;gauss&quot;
+  degauss      = 0.01
+/
+&amp;electrons
+  mixing_beta = 0.7
+  conv_thr = 1.0d-8
+  electron_maxstep = 100
+/
+&amp;ions
+/
+ATOMIC_SPECIES
+Al 26.981 Al.pbe-nl-kjpaw_psl.1.0.0.UPF
+Mg 24.305 Mg.pbe-spnl-kjpaw_psl.1.0.0.UPF
+O  16.000 O.pbe-n-kjpaw_psl.1.0.0.UPF
+ATOMIC_POSITIONS crystal
+
+K_POINTS gamma
+</pre></div>
+</div>
+<section id="solver-specific-notes">
+<span id="id5"></span><h3><span class="section-number">3.3.1. </span>第一原理ソルバー利用時の注意点<a class="headerlink" href="#solver-specific-notes" title="この見出しへのパーマリンク">¶</a></h3>
+<p>原子座標以外の設定については基本的にソルバーごとに指定する必要があります。ただし、構造最適化をする原子の指定についてはabICS側で制御することが可能です。構造最適化機能を有効にする場合には、ソルバーの参照ファイルで構造最適化オプションを有効にした上で、構造最適化のステップ数なども指定することで最適化が行われます。
+また、abICSではソルバー毎に、参照ファイル名、実装時に仮定している参照ファイルのルールなどがあります。
+以下、それらについて説明します。</p>
+<section id="vasp">
+<h4>VASP<a class="headerlink" href="#vasp" title="この見出しへのパーマリンク">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
+<li><p>参照ファイル</p>
+<ul>
+<li><p>INCAR, POTCAR, KPOINTS ファイルを用意してください。</p>
+<ul>
+<li><p>POTCARファイルは元素をアルファベット順に並べてください。</p></li>
+<li><p>POSCARファイルは不要ですが、依存パッケージである <code class="docutils literal notranslate"><span class="pre">pymatgen</span></code> のバージョンによっては必要になります。その場合、なにか適当なファイルを用意してください。</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="quantum-espresso">
+<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="この見出しへのパーマリンク">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
+<li><p>バージョンは 6.2 以上を利用してください。</p>
+<ul>
+<li><p>いわゆる旧形式 XML バージョンは利用できません。</p></li>
+</ul>
+</li>
+<li><p>参照ファイル</p>
+<ul>
+<li><p>参照ファイル名は <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> にしてください。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculation</span></code> は <code class="docutils literal notranslate"><span class="pre">scf</span></code> と <code class="docutils literal notranslate"><span class="pre">relax</span></code> のみ対応しています。</p></li>
+<li><p><span class="math notranslate nohighlight">\(\Gamma\)</span> 点のみで計算する場合には、 <code class="docutils literal notranslate"><span class="pre">kpoints</span></code> を <code class="docutils literal notranslate"><span class="pre">Gamma</span></code> に指定すると高速化します。</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="openmx">
+<h4>OpenMX<a class="headerlink" href="#openmx" title="この見出しへのパーマリンク">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
+<li><p>バージョンは 3.9 を利用してください。</p></li>
+<li><p>参照ファイル</p>
+<ul>
+<li><p>参照ファイル名は <code class="docutils literal notranslate"><span class="pre">base.dat</span></code> にしてください。</p></li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id6">
+<h2><span class="section-number">3.4. </span>機械学習モデル訓練および評価用参照ファイルの準備<a class="headerlink" href="#id6" title="この見出しへのパーマリンク">¶</a></h2>
+<p>使用する機械学習モデルソルバー（現在はaenetのみに対応）の入力形式に従った入力ファイルを用意します。
+参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
+座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。</p>
+<section id="subsec-basic-input">
+<span id="id7"></span><h3><span class="section-number">3.4.1. </span>機械学習モデルソルバー利用時の注意点<a class="headerlink" href="#subsec-basic-input" title="この見出しへのパーマリンク">¶</a></h3>
+<section id="aenet">
+<h4>aenet<a class="headerlink" href="#aenet" title="この見出しへのパーマリンク">¶</a></h4>
+<ul>
+<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
+<li><p>バージョン2.0.4 で動作確認済。</p></li>
+<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
+<ul class="simple">
+<li><p>aenet用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で設定したディレクトリ内の <code class="docutils literal notranslate"><span class="pre">generate</span></code> 、 <code class="docutils literal notranslate"><span class="pre">train</span></code> 、および <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。</p></li>
+<li><p>aenetでは、訓練用の原子配置とエネルギーのデータを、原子環境記述子とエネルギーの関係に変換した中間バイナリフォーマットにまとめてから訓練を行います。この変換を行う <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> 用の 入力ファイルを <code class="docutils literal notranslate"><span class="pre">generate</span></code> ディレクトリに設置してください。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate.x</span></code> で生成された訓練データを読み込み、訓練を行う <code class="docutils literal notranslate"><span class="pre">train.x</span></code> 用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">train</span></code> ディレクトリに設置します。 ファイル名は <code class="docutils literal notranslate"><span class="pre">train.in</span></code> としてください。</p></li>
+<li><p>訓練したポテンシャルモデルを使って入力座標に対してエネルギーを 評価するための <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> 用の入力ファイル <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> を、 <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。</p></li>
+</ul>
+</li>
+<li><p>abICS 入力ファイル</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションで <code class="docutils literal notranslate"><span class="pre">type</span></code> , <code class="docutils literal notranslate"><span class="pre">perturb</span></code> , <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> に関しては、能動学習スキームを用いる場合は以下に設定してください。</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span> <span class="o">=</span> “aenet”
+<span class="nv">perturb</span> <span class="o">=</span> <span class="m">0</span>.0
+<span class="nv">run_scheme</span> <span class="o">=</span> ‘subprocess’
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+</section>
+<section id="id8">
+<h2><span class="section-number">3.5. </span>学習データの作成<a class="headerlink" href="#id8" title="この見出しへのパーマリンク">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を用いて訓練データの大元となる第一原理計算用の入力ファイルを生成します。</p></li>
+<li><p>1で生成した入力ファイルに対して第一原理計算を実施します(チュートリアルでは <code class="docutils literal notranslate"><span class="pre">GNU</span> <span class="pre">parallel</span></code> を利用し網羅計算を実行しています)。</p></li>
+</ol>
+</section>
+<section id="id9">
+<h2><span class="section-number">3.6. </span>機械学習モデルの作成<a class="headerlink" href="#id9" title="この見出しへのパーマリンク">¶</a></h2>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を再度実行して、学習で用いる <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> が読み込めるよう第一原理計算の結果を変換します。</p></li>
+<li><p>次に <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> を実行して機械学習モデルの作成を行います。 計算が無事終了すると、 <code class="docutils literal notranslate"><span class="pre">baseinput</span></code> ディレクトリに学習済みの機械学習モデル（ニューラルネットワーク）が出力されます。</p></li>
+</ol>
+</section>
+<section id="id10">
+<h2><span class="section-number">3.7. </span>モンテカルロサンプリングの実行<a class="headerlink" href="#id10" title="この見出しへのパーマリンク">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> を用いてモンテカルロサンプリングを行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
+実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. 基本的な使用方法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">3.1. 能動学習について</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#abics">3.2. abICS制御用入力ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">3.3. 第一原理ソルバー用参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">3.4. 機械学習モデル訓練および評価用参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">3.5. 学習データの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">3.6. 機械学習モデルの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">3.7. モンテカルロサンプリングの実行</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../install/install.html" title="前の章へ"><span class="section-number">2.1. </span>必要なライブラリ・環境</a></li>
+      <li>Next: <a href="../tutorial/index.html" title="次の章へ"><span class="section-number">4. </span>チュートリアル</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/how_to_use/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
