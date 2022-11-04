@@ -1,0 +1,27 @@
+name: upload package to PyPI
+
+on:
+  push:
+    tags: ['*']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install python packages
+      run: |
+        python -m pip install --upgrade pip
+        pip install poetry
+
+    - name: Publish
+      run: |
+          cd ${GITHUB_WORKSPACE}
+          poetry publish --build -u __token__ -p "${{ secrets.PYPI_TOKEN }}"
