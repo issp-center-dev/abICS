@@ -82,7 +82,7 @@
        **説明 :**
        超格子の大きさをリスト形式で [ :math:`\bf{a}, \bf{b}, \bf{c}` ] 指定します.
 
-- [[config.base_structure]] セクション
+- ``[[config.base_structure]]`` セクション
 
     ``type`` と ``coords`` によりモンテカルロ計算で動かさない原子種とその座標を指定します. 
     原子種が複数ある場合には, 複数の [[config.base_strucure]] セクションを指定します.
@@ -115,7 +115,7 @@
       **説明 :**  原子ごとに磁化（up/down 電子個数差）を指定します.
       デフォルトはすべて 0.0 です。
 
-- [[config.defect_structure]] セクション
+- ``[[config.defect_structure]]`` セクション
 
     モンテカルロで更新する原子が入る座標 (coords)と入りうる原子（団） (group) を指定します.
     Ver. 1.0ではPOSCAR や cif からの変換ツールが利用出来るようになる予定です.
@@ -128,7 +128,7 @@
       **説明 :**  原子が入る座標を指定します.
       3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか, 座標を N 行 3列に並べた文字列で指定します.
 
-    - [[config.defect_structure.groups]] セクション
+    - ``[[config.defect_structure.groups]]`` セクション
 
       モンテカルロで更新する原子グループの情報を指定します.
 

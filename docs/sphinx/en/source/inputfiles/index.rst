@@ -23,8 +23,8 @@ The following sections describe the detail of each section.
 
    parameter_sampling
    parameter_mlref
+   parameter_solver
    parameter_train
    parameter_observer
    parameter_config
-   
    

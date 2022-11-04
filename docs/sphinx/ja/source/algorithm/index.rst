@@ -43,7 +43,7 @@ abICSでは、入力ファイルの ``[replica]`` セクションでレプリカ
   - `K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996) <https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604>`_.
   - `R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986) <https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607>`_.
 
-ポピュレーションアニーリングモンテカルロ法について
+ポピュレーションアニーリングモンテカルロ法
 ------------------------------------------------------
 
 基底状態を得るためのモンテカルロ法として、シミュレーテッドアニーリング (SA) 法が知られています。
@@ -66,8 +66,8 @@ AIS では計算が進むごとに NJ重みのばらつきが大きくなり、�
   - `K. Hukushima and Y. Iba, AIP Conf. Proc. 690, 200 (2003) <https://aip.scitation.org/doi/abs/10.1063/1.1632130>`_.
 
 
-配置と更新について
----------------------------
+配置と更新
+-------------
 
 ここでは、 :numref:`alg_sampling` を例にabICSでの格子配置の定義とモンテカルロ法での更新の概要を説明します。
 (a)-(c)は ``unitcell`` 、 ``base_structure`` 、 ``defect_structure`` の概念図で、青丸、緑丸、黒丸はそれぞれ ``base_structure`` で定義される原子種、星印は ``defect_structure`` で定義される欠陥が入る位置を表します。
