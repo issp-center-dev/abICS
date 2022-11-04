@@ -158,8 +158,8 @@ def main_impl(tomlfile):
                             st.append(site.species_string, site.frac_coords)
 
                     st.to(
-                        "POSCAR",
-                        os.path.join(str(myreplica), f"structure.{i}.vasp"),
+                        fmt="POSCAR",
+                        filename=os.path.join(str(myreplica), f"structure.{i}.vasp"),
                     )
                     energies.append([energy])
                 else:
@@ -361,7 +361,7 @@ def main_impl(tomlfile):
                         for site in ignore_structure:
                             st_rel.append(site.species_string, site.frac_coords)
 
-                    st_rel.to("POSCAR", f"structure.{i}.vasp")
+                    st_rel.to(fmt="POSCAR", filename=f"structure.{i}.vasp")
                     energy_corrlist.append([energy_ref[i], energy, i])
 
                     # Examine relaxation
