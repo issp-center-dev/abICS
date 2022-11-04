@@ -116,7 +116,7 @@ def main_impl(params_root: MutableMapping):
         dummy_sts_share.append((st_tmp, sps))
 
     # for i,st in enumerate(dummy_sts_share):
-    #    st.to("POSCAR","{}.dummy.vasp".format(i))
+    #    st.to(fmt="POSCAR", filename="{}.dummy.vasp".format(i))
 
     for dir in ALdirs:
         rpl = 0
