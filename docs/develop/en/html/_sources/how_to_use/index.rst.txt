@@ -21,7 +21,7 @@ The general flow of the active learning method implemented in abICS is as follow
 4. Evaluate the accuracy of the neural network model by sampling the ion configurations that appear in the Monte Carlo calculations and performing ab initio calculations on each of them.
 5. If the accuracy is not sufficient, add the results calculated in 4. to the training data and repeat from 2.
 
-.. image:: ../../../image/al_scheme.pdf
+.. image:: ../../../image/al_scheme.*
    :width: 800px
    :align: center
 
