@@ -82,11 +82,11 @@ Example::
 ``RANK/logweight_hist.npy``
 =============================
 (ONLY for PAMC)
-The logarithm of the Neal-Jarzynski weithgt for each step in the Numpy binary format.
+The logarithm of the Neal-Jarzynski weight for each step in the Numpy binary format.
 
 Example::
 
- $ python -c "import numpy; print(numpy.load('Trank_hist.npy'))"
+ $ python -c "import numpy; print(numpy.load('logweight_hist.npy'))"
  [0 0 0 0 0]
 
 
