@@ -51,7 +51,8 @@ Keywords
        **Format :** str
 
        **Description :**
-       The solver type (``OpenMX, QE, VASP, aenet``).
+       The solver type (``OpenMX, QE, VASP, aenet, potts``).
+       When ``potts``, the following parameters are not used.
 
     -  ``path``
 
