@@ -4,8 +4,10 @@
 Output Files Format
 ***************************
 
+``RANK`` means the rank of process (replica) (``0, 1, ...``).
+
 ``RANK/structure.XXX.vasp``
-=========================
+==============================
 The atomic coordinates for each step are saved in the POSCAR file format of VASP.
 ``XXX`` in the filename corresponds to the index of the step.
 
@@ -42,7 +44,7 @@ Example::
  4	0.1034076	-41692.74143710456
 
 ``RANK/obs_save.npy``
-==================
+========================
 The total energy for each step in units of eV in the Numpy binary format.
 Users can load it as ``darray`` by using ``numpy.load('obs_save.npy')``.
 
@@ -56,7 +58,7 @@ Example::
   [-41692.7414371 ]]
 
 ``RANK/kT_hist.npy``
-==================
+=======================
 The temperature for each step in units of eV in the Numpy binary format.
 Users can load it as ``darray`` by using ``numpy.load('kT_hist.npy')``.
 
@@ -78,7 +80,7 @@ Example::
  [1 1 1 1 1]
 
 ``RANK/logweight_hist.npy``
-========================
+=============================
 (ONLY for PAMC)
 The logarithm of the Neal-Jarzynski weithgt for each step in the Numpy binary format.
 
