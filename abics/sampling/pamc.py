@@ -142,6 +142,7 @@ class PopulationAnnealing(ParallelMC):
     logweight_history: list[float]
     dlogz: list[float]
     kT_history: list[float]
+    acceptance_ratios: list[float]
 
     def __init__(
         self,
@@ -186,6 +187,7 @@ class PopulationAnnealing(ParallelMC):
         self.logweight_history = []
         self.dlogz = []
         self.kT_history = []
+        self.acceptance_ratios = []
         self.Lreload = False
         self.use_resample_old = False
 
@@ -216,6 +218,9 @@ class PopulationAnnealing(ParallelMC):
             numpy_save(obs_save_, "obs_save.npy")
             numpy_save(self.logweight_history, "logweight_hist.npy")
             numpy_save(self.kT_history, "kT_hist.npy")
+        with open("acceptance_ratio.dat", "w") as f:
+            for T, ar in zip(self.kTs, self.acceptance_ratios):
+                f.write(f"{T} {ar}\n")
 
     def anneal(self, energy: float):
         assert 0 < self.Tindex < len(self.kTs)
@@ -323,7 +328,6 @@ class PopulationAnnealing(ParallelMC):
             except FileExistsError:
                 pass
             os.chdir(str(self.rank))
-        self.accept_count = 0
         if not self.Lreload:
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
@@ -352,6 +356,8 @@ class PopulationAnnealing(ParallelMC):
                     if self.rank == 0:
                         print("--Resampling finishes")
                         sys.stdout.flush()
+            ntrials = self.mycalc.ntrials
+            naccepted = self.mycalc.naccepted
             for i in range(1, nsteps_between_anneal[self.Tindex] + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if observe and i % sample_frequency == 0:
@@ -368,6 +374,10 @@ class PopulationAnnealing(ParallelMC):
                     nsample += 1
                     if self.write_node:
                         self.save(save_obs)
+
+            naccepted = self.mycalc.naccepted - naccepted
+            ntrials = self.mycalc.ntrials - ntrials
+            self.acceptance_ratios.append(naccepted / ntrials)
             self.Tindex += 1
         output.close()
 

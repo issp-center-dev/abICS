@@ -90,6 +90,12 @@ Example::
  [0 0 0 0 0]
 
 
+``RANK/acceptance_ratio.dat``
+===============================
+(ONLY for PAMC)
+Acceptance ratio of Monte Carlo steps for each temperature.
+The first column is temperature and the second column is acceptance ratio (number of accepted / number of trials).
+
 ``logZ.dat``
 ==============
 (ONLY for PAMC)

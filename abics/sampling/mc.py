@@ -70,10 +70,13 @@ class MCAlgorithm(metaclass=ABCMeta):
     config: Optional[Any]
     obs_save: list[np.ndarray]
     kT: float
+    naccepted: int
+    ntrials: int
 
     @abstractmethod
     def __init__(self, *args):
-        ...
+        self.naccepted = 0
+        self.ntrials = 0
 
     @abstractmethod
     def MCstep(self, nsubstep_in_step: int = 1) -> None:
@@ -156,6 +159,7 @@ class CanonicalMonteCarlo(MCAlgorithm):
         config: config object
             Configuration
         """
+        super().__init__()
         self.model = model
         self.config = config
         self.kT = kT
@@ -175,6 +179,8 @@ class CanonicalMonteCarlo(MCAlgorithm):
             if accepted:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
+                self.naccepted += 1
+            self.ntrials += 1
 
     def parameters(self):
         return [self.kT]
@@ -186,3 +192,5 @@ class RandomSampling(CanonicalMonteCarlo):
             raise RuntimeError("config is not set")
         self.config.shuffle()
         self.energy = self.model.energy(self.config)
+        self.ntrials += 1
+        self.naccepted += 1
