@@ -39,6 +39,8 @@ jobs:
                    sh ./run.sh
                    cd ../potts
                    sh ./run.sh
+                   cd ../potts_pamc
+                   sh ./run.sh
                    ;;
         ActiveLearn ) cd tests/integration/active_learn
                       sh ./install_aenet.sh

@@ -97,7 +97,7 @@ class PAMCParams:
         params.kTend = d["kTend"]
         params.kTnum = d["kTnum"]
         if "nsteps_between_anneal" in d:
-            params.nsteps = d["nsteps_between_anneal"] * self.kTnum
+            params.nsteps = d["nsteps_between_anneal"] * params.kTnum
             if "nsteps" in d:
                 msg = f"Error: Both nsteps and nsteps_between_anneal are specified"
                 raise RuntimeError(msg)
