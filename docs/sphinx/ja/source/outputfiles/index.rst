@@ -98,11 +98,11 @@ Example::
 分配関数の対数 :math:`\log Z_i/Z_0` (:math:`i` は温度点の番号)。
 
 - 1列目は温度 :math:`T_i`
-- 2列目は分配関数 :math:`\log Z_i/Z_0`
-- 3列目は直前の温度との比 :math:`\log Z_i/Z_{i-1}`
+- 2列目、3列目は分配関数 :math:`\log Z_i/Z_0` とその誤差
+- 4列目、5列目は直前の温度との比 :math:`\log Z_i/Z_{i-1}` とその誤差
 
 ``result.dat``
-===============
+=================
 (PAMC のみ)
 温度ごとの物理量 :math:`O` のカノニカル平均 :math:`\langle O \rangle` とその統計誤差 :math:`\sigma[O]` 。
 

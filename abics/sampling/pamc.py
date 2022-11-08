@@ -460,11 +460,14 @@ class PopulationAnnealing(ParallelMC):
                         f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
                     f.write("\n")
             dlogZ = np.log(o_mean[:-1, 3 * nobs]) + lzw_max[:-1]
+            dlogZ_err = o_err[:-1, 3 * nobs] / o_mean[:-1, 3 * nobs]
             with open("logZ.dat", "w") as f:
                 F = 0.0
-                f.write(f"{self.kTs[0]} {F} {0.0}\n")
-                for i, dlz in enumerate(dlogZ):
+                dF = 0.0
+                f.write(f"{self.kTs[0]} {F} {dF} {0.0} {0.0}\n")
+                for i, (dlz, dlz_e) in enumerate(zip(dlogZ, dlogZ_err)):
                     F += dlz
-                    f.write(f"{self.kTs[i+1]} {F} {dlz}\n")
+                    dF += dlz_e
+                    f.write(f"{self.kTs[i+1]} {F} {dF} {dlz} {dlz_e}\n")
 
         self.comm.Barrier()

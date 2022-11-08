@@ -94,9 +94,10 @@ Example::
 ==============
 (ONLY for PAMC)
 The logarithm of the partition function, :math:`\log Z_i/Z_0` where :math:`i` is the index of temperature.
-The 1st column is temperature :math:`T_i`.
-The 2nd column is :math:`\log Z_i/Z_0`.
-The 3rd colum is :math:`\log Z_i/Z_{i-1}`.
+
+- The 1st column is temperature :math:`T_i`.
+- The 2nd and 3rd columns are :math:`\log Z_i/Z_0` and its error.
+- The 4th and 5th columms are :math:`\log Z_i/Z_{i-1}` and its error.
 
 ``result.dat``
 ===============
