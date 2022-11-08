@@ -218,9 +218,6 @@ class PopulationAnnealing(ParallelMC):
             numpy_save(obs_save_, "obs_save.npy")
             numpy_save(self.logweight_history, "logweight_hist.npy")
             numpy_save(self.kT_history, "kT_hist.npy")
-        with open("acceptance_ratio.dat", "w") as f:
-            for T, ar in zip(self.kTs, self.acceptance_ratios):
-                f.write(f"{T} {ar}\n")
 
     def anneal(self, energy: float):
         assert 0 < self.Tindex < len(self.kTs)
@@ -374,10 +371,12 @@ class PopulationAnnealing(ParallelMC):
                     nsample += 1
                     if self.write_node:
                         self.save(save_obs)
-
             naccepted = self.mycalc.naccepted - naccepted
             ntrials = self.mycalc.ntrials - ntrials
             self.acceptance_ratios.append(naccepted / ntrials)
+            with open("acceptance_ratio.dat", "w") as f:
+                for T, ar in zip(self.kTs, self.acceptance_ratios):
+                    f.write(f"{T} {ar}\n")
             self.Tindex += 1
         output.close()
 
