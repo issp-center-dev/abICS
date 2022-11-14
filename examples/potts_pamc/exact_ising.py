@@ -27,6 +27,8 @@ from scipy.integrate import quad
 
 
 def Ising_m2(beta: float, J: float = 1.0) -> float:
+    if beta == 0.0:
+        return 0.0
     res = 1.0 - np.sinh(2.0 * beta * J) ** (-4)
     if res < 0.0:
         return 0.0
@@ -36,6 +38,8 @@ def Ising_m2(beta: float, J: float = 1.0) -> float:
 
 def Ising_U(beta: float, J: float = 1.0) -> float:
     assert beta >= 0.0
+    if beta == 0.0:
+        return 0.0
     K = beta * J
     k: float = 1.0 / (np.sinh(2 * K) ** 2)
 
@@ -51,6 +55,8 @@ def Ising_U(beta: float, J: float = 1.0) -> float:
 
 def Ising_mbF(beta: float, J: float = 1.0) -> float:
     assert beta >= 0.0
+    if beta == 0.0:
+        return np.log(2.0)
     K = beta * J
     L = K
     k: float = 1.0 / (np.sinh(2 * K) * np.sinh(2 * L))
@@ -77,12 +83,11 @@ def Potts_mbF(beta: float, J: float = 1.0) -> float:
 
 
 if __name__ == "__main__":
-    Ts = np.linspace(0.5, 2.0, num=101)
-    lastT = Ts[-1]
-    mbf_offset = Potts_mbF(1.0 / lastT, J=1.0)
-    print("# T U logZ m2")
-    for T in Ts:
-        u = Potts_U(1.0 / T, J=1.0)
-        mbf = Potts_mbF(1.0 / T, J=1.0) - mbf_offset
-        m2 = Potts_m2(1.0 / T, J=1.0)
-        print(T, u, mbf, m2)
+    # Ts = np.concatenate((np.linspace(0.5, 2.0, num=101), np.array([1e8])))
+    betas = np.linspace(0.0, 2.0, num=201)
+    print("# beta U logZ m2")
+    for beta in betas:
+        u = Potts_U(beta, J=1.0)
+        mbf = Potts_mbF(beta, J=1.0)
+        m2 = Potts_m2(beta, J=1.0)
+        print(beta, u, mbf, m2)

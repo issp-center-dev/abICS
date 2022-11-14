@@ -150,7 +150,7 @@ class PopulationAnnealing(ParallelMC):
         MCalgo: type[MCAlgorithm],
         model: Model,
         configs,
-        kTs: list[float],
+        kTs: np.ndarray,
         write_node=True,
     ):
         """
@@ -172,9 +172,11 @@ class PopulationAnnealing(ParallelMC):
         """
         if kTs[0] < kTs[-1]:
             if comm.Get_rank() == 0:
-                print("Warning: kTs[0] < kTs[-1]. Hense kTs will be reversed")
+                print("Warning: kTs[0] < kTs[-1]. abICS reverses kTs.")
                 sys.stdout.flush()
-            kTs.reverse()
+            kTs = kTs[::-1]
+        if kTs[0] != np.inf:
+            kTs = np.concatenate((np.array([np.inf]), kTs))
         super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
         self.mycalc.kT = kTs[0]
         self.mycalc.config = configs[self.rank]

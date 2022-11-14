@@ -58,6 +58,8 @@ Keywords
        **Description :**
        The number of temperature points.
 
+   - When ``sampler = "PAMC"``, :math:`T = \infty` will be added as a highest temperature automatically.
+
 - About replica 
 
     - ``nprocs_per_replica``
