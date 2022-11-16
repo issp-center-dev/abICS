@@ -73,21 +73,24 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="inputfiles/index.html">5. 入力ファイルフォーマット</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_sampling.html">5.1. [sampling] セクション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_sampling.html#sampling-solver">5.2. [sampling.solver] セクション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_mlref.html">5.3. [mlref] セクション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_mlref.html#mlref-solver">5.4. [mlref.solver] セクション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_train.html">5.5. [train] セクション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_observer.html">5.6. [observer] セクション</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_config.html">5.7. [config] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_mlref.html">5.2. [mlref] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_solver.html">5.3. [sampling.solver], [mlref.solver] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_train.html">5.4. [train] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_observer.html">5.5. [observer] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_config.html">5.6. [config] セクション</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="outputfiles/index.html">6. 出力ファイルフォーマット</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">RANK/structure.XXX.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">RANK/minE.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">RANK/obs.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">RANK/obs_save.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">RANK/kT_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">RANK/Trank_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-logweight-hist-npy">6.7. <code class="docutils literal notranslate"><span class="pre">RANK/logweight_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-acceptance-ratio-dat">6.8. <code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#logz-dat">6.9. <code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#result-dat">6.10. <code class="docutils literal notranslate"><span class="pre">result.dat</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tools/index.html">7. 付属ツール</a><ul>
@@ -97,7 +100,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="algorithm/index.html">8. アルゴリズム</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#id2">8.1. レプリカ交換モンテカルロ法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#id3">8.2. 配置と更新について</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#id3">8.2. ポピュレーションアニーリングモンテカルロ法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#id4">8.3. 配置と更新</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="acknowledge/index.html">9. 謝辞</a></li>

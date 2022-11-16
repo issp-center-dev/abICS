@@ -41,30 +41,34 @@
 <h1><span class="section-number">8. </span>アルゴリズム<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
 <p>abICSは、拡張アンサンブル法と任意のエネルギー計算ソフトウェアを組み合わせるために設計されています。現在は、
 レプリカ交換モンテカルロ法のみが実装されています。</p>
-<section id="id2">
-<h2><span class="section-number">8.1. </span>レプリカ交換モンテカルロ法<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
-<p>広く使用されているメトロポリスモンテカルロ法は、局所安定配置に捕まりやすく、そこでサンプリングが行き詰まる
-傾向があります。レプリカ交換法は、計算対象の系のコピー（レプリカ）を使って、この問題を克服することを目的としています。
-レプリカ交換法は、大まかに次のように説明できます（より正確な説明については、下記の文献を参照してください）。
-まず、各レプリカに対して異なる温度におけるモンテカルロサンプリングを個別に実行します。事前に設定された任意の間隔で、
-メトロポリス基準に従ってレプリカ間で温度を交換し、サンプリングを再開します。メトロポリス基準によって、大まかには、
-エネルギーが低いレプリカに低い温度が割り当てられることになります。これにより、高い温度のレプリカによる大域的な
-サンプリングと低い温度における局所安定配置の探索を共存させることができます。</p>
-<p>abICSでは、入力ファイルの <code class="docutils literal notranslate"><span class="pre">[replica]</span></code> セクションでレプリカ交換モンテカルロ法に関連したパラメータを指定します。
-レプリカの温度の下限を <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> 、 上限を <code class="docutils literal notranslate"><span class="pre">kTend</span></code> とし、レプリカ数を <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> とすることで、</p>
-<div class="math notranslate nohighlight">
-\[T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}\]</div>
-<p>として <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 <span class="math notranslate nohighlight">\(i=0 \cdots \verb|nreplicas|-1\)</span> 。abICSでは、「nprocs_per_replica」を使用して、各レプリカで計算を実行する並列ソルバープロセスの数を指定できます)。
-モンテカルロステップ数は <code class="docutils literal notranslate"><span class="pre">nsteps</span></code> で指定し、 <code class="docutils literal notranslate"><span class="pre">RXtrial_frequency</span></code> ステップ毎に交換遷移確率</p>
-<div class="math notranslate nohighlight">
-\[R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{k}}\right)\left(E(X_i)-E(X_{k})\right)\right]\]</div>
-<p>が計算されます。<span class="math notranslate nohighlight">\(R\)</span> の確率で温度交換 <span class="math notranslate nohighlight">\(T_i \leftrightarrow T_{k}\)</span> が行われます (ただし、 <span class="math notranslate nohighlight">\(X_i\)</span> はi番目のレプリカ系の状態です。また、abICSでは隣接する温度を持ったレプリカ同士で交換試行をしています)。なお、物理量は <code class="docutils literal notranslate"><span class="pre">sample_frequency</span></code> ステップ毎に測定が行われます。</p>
 <ul class="simple">
 <li><p>abICSの概要について</p>
 <ul>
 <li><p><a class="reference external" href="https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta">S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019)</a>.</p></li>
+<li><p><a class="reference external" href="https://aip.scitation.org/doi/full/10.1063/5.0096645">S. Kasamatsu, Y. Motoyama, K. Yoshimi, U. Matsumoto, A. Kuwabara, and T. Ogawa, J. Chem. Phys. 157, 104114 (2022)</a>.</p></li>
 </ul>
 </li>
+</ul>
+<section id="id2">
+<h2><span class="section-number">8.1. </span>レプリカ交換モンテカルロ法<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<p>広く使用されているメトロポリスモンテカルロ法は、局所安定配置に捕まりやすく、そこでサンプリングが行き詰まる傾向があります。
+レプリカ交換法は、計算対象の系のコピー（レプリカ）を使って、この問題を克服することを目的としています。
+レプリカ交換法は、大まかに次のように説明できます（より正確な説明については、下記の文献を参照してください）。
+まず、各レプリカに対して異なる温度におけるモンテカルロサンプリングを個別に実行します。
+事前に設定された任意の間隔で、メトロポリス基準に従ってレプリカ間で温度を交換し、サンプリングを再開します。
+メトロポリス基準によって、大まかには、エネルギーが低いレプリカに低い温度が割り当てられることになります。
+これにより、高い温度のレプリカによる大域的なサンプリングと低い温度における局所安定配置の探索を共存させることができます。</p>
+<p>abICSでは、入力ファイルの <code class="docutils literal notranslate"><span class="pre">[replica]</span></code> セクションでレプリカ交換モンテカルロ法に関連したパラメータを指定します。
+レプリカの温度の下限を <span class="math notranslate nohighlight">\(T_s =\)</span> <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> 、 上限を <span class="math notranslate nohighlight">\(T_e =\)</span> <code class="docutils literal notranslate"><span class="pre">kTend</span></code> とし、レプリカ数を <span class="math notranslate nohighlight">\(N_r =\)</span> <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> とすることで、</p>
+<div class="math notranslate nohighlight">
+\[T_i = \frac{T_e-T_s}{N_r-1} i + T_s\]</div>
+<p>として <span class="math notranslate nohighlight">\(N_r\)</span> 個の異なる温度に接触しているレプリカ系が用意されます(ただし、 <span class="math notranslate nohighlight">\(i=0 \cdots N_r-1\)</span> 。abICSでは、 <code class="docutils literal notranslate"><span class="pre">nprocs_per_replica</span></code> を使用して、各レプリカで計算を実行する並列ソルバープロセスの数を指定できます)。
+モンテカルロステップ数は <code class="docutils literal notranslate"><span class="pre">nsteps</span></code> で指定し、 <code class="docutils literal notranslate"><span class="pre">RXtrial_frequency</span></code> ステップ毎に交換遷移確率</p>
+<div class="math notranslate nohighlight">
+\[R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{k}}\right)\left(E(X_i)-E(X_{k})\right)\right]\]</div>
+<p>が計算され、確率 <span class="math notranslate nohighlight">\(R\)</span> で温度交換 <span class="math notranslate nohighlight">\(T_i \leftrightarrow T_{k}\)</span> が行われます (ただし、 <span class="math notranslate nohighlight">\(X_i\)</span> はi番目のレプリカ系の状態です。また、abICSでは隣接する温度を持ったレプリカ同士で交換試行をしています)。
+なお、物理量は <code class="docutils literal notranslate"><span class="pre">sample_frequency</span></code> ステップ毎に測定が行われます。</p>
+<ul class="simple">
 <li><p>レプリカ交換モンテカルロ法について</p>
 <ul>
 <li><p><a class="reference external" href="https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604">K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996)</a>.</p></li>
@@ -74,11 +78,39 @@
 </ul>
 </section>
 <section id="id3">
-<h2><span class="section-number">8.2. </span>配置と更新について<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">8.2. </span>ポピュレーションアニーリングモンテカルロ法<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<p>基底状態を得るためのモンテカルロ法として、シミュレーテッドアニーリング (SA) 法が知られています。
+これは、温度一定のもとモンテカルロサンプリングを行い、一定のモンテカルロステップ数を実行した後に温度を強制的に下げていく手法です。
+はじめは高温での大域的な探索が行われ、シミュレーションが進むごとに低温化での局所安定配置の探索が行われます。
+SA の難点として、温度変化時に熱平衡状態から離れてしまうために、カノニカル平均を取りたい場合には温度ごとに熱平衡化する必要があります。
+この問題を克服した手法が Annealed Importance Sampling (AIS) です。
+AIS では多数のレプリカを用いて並行してSA を行い、温度降下時のズレを付加的な重みとして取り入れます。
+この重み(Neal-Jarzynski 重み)は、サンプル間の加重平均が温度ごとのカノニカル平均となるように適切に定義されます。
+AIS では計算が進むごとに NJ重みのばらつきが大きくなり、一部のレプリカのみが平均に寄与する、言い換えれば実行的なレプリカ数が減っていくという問題があります。
+そこで、出現頻度がNJ 重みに比例するようにレプリカを定期的にリサンプリングし、重みを1にリセットするのがポピュレーションアニーリングモンテカルロ(PAMC)です。</p>
+<ul class="simple">
+<li><p>AIS</p>
+<ul>
+<li><p><a class="reference external" href="https://link.springer.com/article/10.1023/A:1008923215028">R. M. Neal, Statistics and Computing 11, 125-139 (2001)</a>.</p></li>
+</ul>
+</li>
+<li><p>PAMC</p>
+<ul>
+<li><p><a class="reference external" href="https://aip.scitation.org/doi/abs/10.1063/1.1632130">K. Hukushima and Y. Iba, AIP Conf. Proc. 690, 200 (2003)</a>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id4">
+<h2><span class="section-number">8.3. </span>配置と更新<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
 <p>ここでは、 <a class="reference internal" href="#alg-sampling"><span class="std std-numref">図 8.1</span></a> を例にabICSでの格子配置の定義とモンテカルロ法での更新の概要を説明します。
 (a)-(c)は <code class="docutils literal notranslate"><span class="pre">unitcell</span></code> 、 <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> 、 <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> の概念図で、青丸、緑丸、黒丸はそれぞれ <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> で定義される原子種、星印は <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> で定義される欠陥が入る位置を表します。
-(d)は  <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> で原子種を指定する場合の概念図です。ここでは、blue, green, blackの3原子種を定義しています。各原子がどのように配置されるかは、各原子種ごとに <code class="docutils literal notranslate"><span class="pre">coords</span></code> で定義します。
-(e)は <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> で欠陥位置に入るグループを指定する場合の概念図です。orange は2種の原子種から構成される4原子で構成されるグループを定義し、 purple は3種の原子種から構成される3原子のグループを構成しています。 <code class="docutils literal notranslate"><span class="pre">defect_structure.coords</span></code> で指定される欠陥位置にこれらのグループが配置されます。 各グループ内での原子の配置は <code class="docutils literal notranslate"><span class="pre">defect_structure.groups</span></code> セクション内の <code class="docutils literal notranslate"><span class="pre">coords</span></code> で指定することができます。
+(d)は  <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> で原子種を指定する場合の概念図です。
+ここでは、blue, green, blackの3原子種を定義しています。各原子がどのように配置されるかは、各原子種ごとに <code class="docutils literal notranslate"><span class="pre">coords</span></code> で定義します。
+(e)は <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> で欠陥位置に入るグループを指定する場合の概念図です。
+orange は2種の原子種から構成される4原子で構成されるグループを定義し、 purple は3種の原子種から構成される3原子のグループを構成しています。
+<code class="docutils literal notranslate"><span class="pre">defect_structure.coords</span></code> で指定される欠陥位置にこれらのグループが配置されます。
+各グループ内での原子の配置は <code class="docutils literal notranslate"><span class="pre">defect_structure.groups</span></code> セクション内の <code class="docutils literal notranslate"><span class="pre">coords</span></code> で指定できます。
 <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> を複数定義した場合は、それぞれの欠陥座標にそれぞれの原子グループが配置されます。
 (f) はモンテカルロ法のアップデートに関する概念図です。 アップデートでは欠陥の位置に入るグループを入れ替えるパターンと、配置は変えずに配位を変える2つのパターンがあります(どちらのアップデートを行うかは半分の確率で自動で選択されます)。提案された配置 <span class="math notranslate nohighlight">\(X_{trial}\)</span> から指定されたソルバーでエネルギーを計算し、採択率 <span class="math notranslate nohighlight">\(P(X_i \rightarrow X_{trial})\)</span> を計算します。</p>
 <figure class="align-default" id="alg-sampling">
@@ -117,7 +149,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">8. アルゴリズム</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id2">8.1. レプリカ交換モンテカルロ法</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">8.2. 配置と更新について</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">8.2. ポピュレーションアニーリングモンテカルロ法</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">8.3. 配置と更新</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>

@@ -15,10 +15,11 @@
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="7. Miscellaneous tools" href="../tools/index.html" />
-    <link rel="prev" title="5.7. [config] section" href="../inputfiles/parameter_config.html" />
+    <link rel="prev" title="5.6. [config] section" href="../inputfiles/parameter_config.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,9 +38,9 @@
             
   <section id="output-files-format">
 <h1><span class="section-number">6. </span>Output Files Format<a class="headerlink" href="#output-files-format" title="Permalink to this heading">¶</a></h1>
-<p>The calculation results are output in each replica directory.</p>
-<section id="structure-xxx-vasp">
-<h2><span class="section-number">6.1. </span><code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code><a class="headerlink" href="#structure-xxx-vasp" title="Permalink to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">RANK</span></code> means the rank of process (replica) (<code class="docutils literal notranslate"><span class="pre">0,</span> <span class="pre">1,</span> <span class="pre">...</span></code>).</p>
+<section id="rank-structure-xxx-vasp">
+<h2><span class="section-number">6.1. </span><code class="docutils literal notranslate"><span class="pre">RANK/structure.XXX.vasp</span></code><a class="headerlink" href="#rank-structure-xxx-vasp" title="Permalink to this heading">¶</a></h2>
 <p>The atomic coordinates for each step are saved in the POSCAR file format of VASP.
 <code class="docutils literal notranslate"><span class="pre">XXX</span></code> in the filename corresponds to the index of the step.</p>
 <p>Example:</p>
@@ -59,12 +60,12 @@ direct
 </pre></div>
 </div>
 </section>
-<section id="mine-vasp">
-<h2><span class="section-number">6.2. </span><code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code><a class="headerlink" href="#mine-vasp" title="Permalink to this heading">¶</a></h2>
+<section id="rank-mine-vasp">
+<h2><span class="section-number">6.2. </span><code class="docutils literal notranslate"><span class="pre">RANK/minE.vasp</span></code><a class="headerlink" href="#rank-mine-vasp" title="Permalink to this heading">¶</a></h2>
 <p>The lowest-energy structure among the samples in this replica.</p>
 </section>
-<section id="obs-dat">
-<h2><span class="section-number">6.3. </span><code class="docutils literal notranslate"><span class="pre">obs.dat</span></code><a class="headerlink" href="#obs-dat" title="Permalink to this heading">¶</a></h2>
+<section id="rank-obs-dat">
+<h2><span class="section-number">6.3. </span><code class="docutils literal notranslate"><span class="pre">RANK/obs.dat</span></code><a class="headerlink" href="#rank-obs-dat" title="Permalink to this heading">¶</a></h2>
 <p>The temperature and the total energy for each step in units of eV.</p>
 <p>Example:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>0      0.1034076       -41690.28269769395
@@ -75,8 +76,8 @@ direct
 </pre></div>
 </div>
 </section>
-<section id="obs-save-npy">
-<h2><span class="section-number">6.4. </span><code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code><a class="headerlink" href="#obs-save-npy" title="Permalink to this heading">¶</a></h2>
+<section id="rank-obs-save-npy">
+<h2><span class="section-number">6.4. </span><code class="docutils literal notranslate"><span class="pre">RANK/obs_save.npy</span></code><a class="headerlink" href="#rank-obs-save-npy" title="Permalink to this heading">¶</a></h2>
 <p>The total energy for each step in units of eV in the Numpy binary format.
 Users can load it as <code class="docutils literal notranslate"><span class="pre">darray</span></code> by using <code class="docutils literal notranslate"><span class="pre">numpy.load('obs_save.npy')</span></code>.</p>
 <p>Example:</p>
@@ -89,8 +90,8 @@ Users can load it as <code class="docutils literal notranslate"><span class="pre
 </pre></div>
 </div>
 </section>
-<section id="kt-hist-npy">
-<h2><span class="section-number">6.5. </span><code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code><a class="headerlink" href="#kt-hist-npy" title="Permalink to this heading">¶</a></h2>
+<section id="rank-kt-hist-npy">
+<h2><span class="section-number">6.5. </span><code class="docutils literal notranslate"><span class="pre">RANK/kT_hist.npy</span></code><a class="headerlink" href="#rank-kt-hist-npy" title="Permalink to this heading">¶</a></h2>
 <p>The temperature for each step in units of eV in the Numpy binary format.
 Users can load it as <code class="docutils literal notranslate"><span class="pre">darray</span></code> by using <code class="docutils literal notranslate"><span class="pre">numpy.load('kT_hist.npy')</span></code>.</p>
 <p>Example:</p>
@@ -99,15 +100,60 @@ Users can load it as <code class="docutils literal notranslate"><span class="pre
 </pre></div>
 </div>
 </section>
-<section id="trank-hist-npy">
-<h2><span class="section-number">6.6. </span><code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code><a class="headerlink" href="#trank-hist-npy" title="Permalink to this heading">¶</a></h2>
-<p>The rank (index) of the temperature for each step in the Numpy binary format.
+<section id="rank-trank-hist-npy">
+<h2><span class="section-number">6.6. </span><code class="docutils literal notranslate"><span class="pre">RANK/Trank_hist.npy</span></code><a class="headerlink" href="#rank-trank-hist-npy" title="Permalink to this heading">¶</a></h2>
+<p>(ONLY for RXMC)
+The rank (index) of the temperature for each step in the Numpy binary format.
 Users can load it as <code class="docutils literal notranslate"><span class="pre">darray</span></code> by using <code class="docutils literal notranslate"><span class="pre">numpy.load('Trank_hist.npy')</span></code>.</p>
 <p>Example:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ python -c &quot;import numpy; print(numpy.load(&#39;Trank_hist.npy&#39;))&quot;
 [1 1 1 1 1]
 </pre></div>
 </div>
+</section>
+<section id="rank-logweight-hist-npy">
+<h2><span class="section-number">6.7. </span><code class="docutils literal notranslate"><span class="pre">RANK/logweight_hist.npy</span></code><a class="headerlink" href="#rank-logweight-hist-npy" title="Permalink to this heading">¶</a></h2>
+<p>(ONLY for PAMC)
+The logarithm of the Neal-Jarzynski weight for each step in the Numpy binary format.</p>
+<p>Example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ python -c &quot;import numpy; print(numpy.load(&#39;logweight_hist.npy&#39;))&quot;
+[0 0 0 0 0]
+</pre></div>
+</div>
+</section>
+<section id="rank-acceptance-ratio-dat">
+<h2><span class="section-number">6.8. </span><code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code><a class="headerlink" href="#rank-acceptance-ratio-dat" title="Permalink to this heading">¶</a></h2>
+<p>(ONLY for PAMC)
+Acceptance ratio of Monte Carlo steps for each temperature.
+The first column is temperature and the second column is acceptance ratio (number of accepted / number of trials).</p>
+</section>
+<section id="logz-dat">
+<h2><span class="section-number">6.9. </span><code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code><a class="headerlink" href="#logz-dat" title="Permalink to this heading">¶</a></h2>
+<p>(ONLY for PAMC)
+The logarithm of the partition function, <span class="math notranslate nohighlight">\(\log Z_i/Z_0\)</span> where <span class="math notranslate nohighlight">\(i\)</span> is the index of temperature.</p>
+<ul class="simple">
+<li><p>The 1st column is temperature <span class="math notranslate nohighlight">\(T_i\)</span>.</p></li>
+<li><p>The 2nd and 3rd columns are <span class="math notranslate nohighlight">\(\log Z_i/Z_0\)</span> and its error.</p></li>
+<li><p>The 4th and 5th columms are <span class="math notranslate nohighlight">\(\log Z_i/Z_{i-1}\)</span> and its error.</p></li>
+</ul>
+</section>
+<section id="result-dat">
+<h2><span class="section-number">6.10. </span><code class="docutils literal notranslate"><span class="pre">result.dat</span></code><a class="headerlink" href="#result-dat" title="Permalink to this heading">¶</a></h2>
+<p>(ONLY for PAMC)
+Canonical expectation value <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> and statistical error <span class="math notranslate nohighlight">\(\sigma[O]\)</span> of observables <span class="math notranslate nohighlight">\(O\)</span> for each temperature.</p>
+<ul>
+<li><p>The 1st column is temperature <span class="math notranslate nohighlight">\(T_i\)</span>.</p></li>
+<li><p>The 2nd and 3rd columns are energy <span class="math notranslate nohighlight">\(\langle E \rangle\)</span> and its error.</p></li>
+<li><p>The 4th and 5th columns are squared energy <span class="math notranslate nohighlight">\(\langle E^2 \rangle\)</span> and its error.</p></li>
+<li><p>The 6th and 7th columns are fluctuation of energy <span class="math notranslate nohighlight">\(\langle E^2 \rangle - \langle E \rangle^2\)</span> and its error.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Note that the heat capacity <span class="math notranslate nohighlight">\(C\)</span> is related to the fluctuation of energy as <span class="math notranslate nohighlight">\(k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]\)</span>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>For Potts solver, total magnetization <span class="math notranslate nohighlight">\(\langle M \rangle = \langle \sum_i \delta_{\sigma_i,0} - 1/Q \rangle\)</span>, squared magnetization <span class="math notranslate nohighlight">\(\langle M^2 \rangle\)</span>, and fluctuation <span class="math notranslate nohighlight">\(\langle M^2 \rangle - \langle M \rangle^2\)</span> will be saved as 8th and the following columns.</p>
 </section>
 </section>
 
@@ -136,12 +182,16 @@ Users can load it as <code class="docutils literal notranslate"><span class="pre
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. Input Files Format</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">6. Output Files Format</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">RANK/structure.XXX.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">RANK/minE.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">RANK/obs.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">RANK/obs_save.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">RANK/kT_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">RANK/Trank_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-logweight-hist-npy">6.7. <code class="docutils literal notranslate"><span class="pre">RANK/logweight_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rank-acceptance-ratio-dat">6.8. <code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#logz-dat">6.9. <code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#result-dat">6.10. <code class="docutils literal notranslate"><span class="pre">result.dat</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. Miscellaneous tools</a></li>
@@ -154,7 +204,7 @@ Users can load it as <code class="docutils literal notranslate"><span class="pre
 <h3>Related Topics</h3>
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="../inputfiles/parameter_config.html" title="previous chapter"><span class="section-number">5.7. </span>[config] section</a></li>
+      <li>Previous: <a href="../inputfiles/parameter_config.html" title="previous chapter"><span class="section-number">5.6. </span>[config] section</a></li>
       <li>Next: <a href="../tools/index.html" title="next chapter"><span class="section-number">7. </span>Miscellaneous tools</a></li>
   </ul></li>
 </ul>

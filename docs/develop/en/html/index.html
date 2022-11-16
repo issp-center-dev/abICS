@@ -71,21 +71,24 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="inputfiles/index.html">5. Input Files Format</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_sampling.html">5.1. [sampling] section</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_sampling.html#sampling-solver-section">5.2. [sampling.solver] section</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_mlref.html">5.3. [mlref] section</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_mlref.html#mlref-solver-section">5.4. [mlref.solver] section</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_train.html">5.5. [train] section</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_observer.html">5.6. [observer] section</a></li>
-<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_config.html">5.7. [config] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_mlref.html">5.2. [mlref] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_solver.html">5.3. [sampling.solver], [mlref.solver] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_train.html">5.4. [train] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_observer.html">5.5. [observer] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="inputfiles/parameter_config.html">5.6. [config] section</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="outputfiles/index.html">6. Output Files Format</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">structure.XXX.vasp</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">minE.vasp</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">obs.dat</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">obs_save.npy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">kT_hist.npy</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">Trank_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-structure-xxx-vasp">6.1. <code class="docutils literal notranslate"><span class="pre">RANK/structure.XXX.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-mine-vasp">6.2. <code class="docutils literal notranslate"><span class="pre">RANK/minE.vasp</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-obs-dat">6.3. <code class="docutils literal notranslate"><span class="pre">RANK/obs.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-obs-save-npy">6.4. <code class="docutils literal notranslate"><span class="pre">RANK/obs_save.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-kt-hist-npy">6.5. <code class="docutils literal notranslate"><span class="pre">RANK/kT_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-trank-hist-npy">6.6. <code class="docutils literal notranslate"><span class="pre">RANK/Trank_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-logweight-hist-npy">6.7. <code class="docutils literal notranslate"><span class="pre">RANK/logweight_hist.npy</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#rank-acceptance-ratio-dat">6.8. <code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#logz-dat">6.9. <code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="outputfiles/index.html#result-dat">6.10. <code class="docutils literal notranslate"><span class="pre">result.dat</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tools/index.html">7. Miscellaneous tools</a><ul>
@@ -95,7 +98,8 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="algorithm/index.html">8. Algorithm</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#replica-exchange-monte-carlo-method">8.1. Replica exchange Monte Carlo method</a></li>
-<li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#about-configuration-and-update">8.2. About configuration and update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#population-annealing-monte-carlo">8.2. Population Annealing Monte Carlo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="algorithm/index.html#about-configuration-and-update">8.3. About configuration and update</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="acknowledge/index.html">9. Acknowledgement</a></li>

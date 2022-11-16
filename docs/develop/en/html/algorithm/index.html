@@ -41,6 +41,14 @@
 <p>abICS is designed for combining parallel extended ensemble methods with
 arbitrary energy calculators. At present, only the replica exchange
 Monte Carlo method is implemented.</p>
+<ul class="simple">
+<li><p>Overview of abICS</p>
+<ul>
+<li><p><a class="reference external" href="https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta">S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019)</a>.</p></li>
+<li><p><a class="reference external" href="https://aip.scitation.org/doi/full/10.1063/5.0096645">S. Kasamatsu, Y. Motoyama, K. Yoshimi, U. Matsumoto, A. Kuwabara, and T. Ogawa, J. Chem. Phys. 157, 104114 (2022)</a>.</p></li>
+</ul>
+</li>
+</ul>
 <section id="replica-exchange-monte-carlo-method">
 <h2><span class="section-number">8.1. </span>Replica exchange Monte Carlo method<a class="headerlink" href="#replica-exchange-monte-carlo-method" title="Permalink to this heading">¶</a></h2>
 <p>A disadvantage of the widely-used Metropolis Monte Carlo algorithm is
@@ -57,10 +65,10 @@ energies. This allows an efficient sampling of the global configuration
 space using replicas at higher temperatures and accurate sampling of
 the local energy landscape at lower temperatures.</p>
 <p>In abICS, parameters related to the replica exchange Monte Carlo method are specified in the <code class="docutils literal notranslate"><span class="pre">[replica]</span></code> section of the input file.
-By setting the lower limit of the replica temperature to <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> , the upper limit to <code class="docutils literal notranslate"><span class="pre">kTend</span></code>, and the number of replicas to <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code>,
-<code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> replica systems with different temperatures ( <span class="math notranslate nohighlight">\(T_0, T_1, \cdots T_{\verb|nreplicas|-1}\)</span>) are sampled, where</p>
+By setting the lower limit of the replica temperature to <span class="math notranslate nohighlight">\(T_s =\)</span> <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> , the upper limit to <span class="math notranslate nohighlight">\(T_e =\)</span> <code class="docutils literal notranslate"><span class="pre">kTend</span></code>, and the number of replicas to <span class="math notranslate nohighlight">\(N_r =\)</span> <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code>,
+<span class="math notranslate nohighlight">\(N_r\)</span> replica systems with different temperatures ( <span class="math notranslate nohighlight">\(T_0, T_1, \cdots T_{N_r-1}\)</span>) are sampled, where</p>
 <div class="math notranslate nohighlight">
-\[T_i = \frac{\bf{kTend}-\bf{kTstart}}{\bf{nreplicas}-1} i + \bf{kTstart}.\]</div>
+\[T_i = \frac{T_e-T_s}{N_r-1} i + T_s.\]</div>
 <p>In abICS, using <code class="docutils literal notranslate"><span class="pre">nprocs_per_replica</span></code>, the number of parallel solver processes that performs the calculation on each replica can be specified.
 The number of Monte Carlo steps is specified by <code class="docutils literal notranslate"><span class="pre">nsteps</span></code>, and the exchange transition probability <span class="math notranslate nohighlight">\(R\)</span> for each <code class="docutils literal notranslate"><span class="pre">RXtrial_frequency</span></code> step is defined as</p>
 <div class="math notranslate nohighlight">
@@ -77,8 +85,32 @@ Physical quantities such as the total energy is measured at each <code class="do
 </li>
 </ul>
 </section>
+<section id="population-annealing-monte-carlo">
+<h2><span class="section-number">8.2. </span>Population Annealing Monte Carlo<a class="headerlink" href="#population-annealing-monte-carlo" title="Permalink to this heading">¶</a></h2>
+<p>The simulated annealing (SA) method is one of the Monte Carlo method for searching for the ground state.
+SA performs an ordinally MC sampling under a fixed temperature, and decreases temperature after a given number of MC steps finished.
+SA first searches a whole space, and then searches narrower regions gradually as temperature decreases.
+A disadvabtage of SA is that a change of temperature distorts the distribution from equilibrium, and hence thermalization steps are necessary to obtain canonical average of observables for each temperature.
+The annealed importance sampling (AIS) method overcomes this problem.
+AIS performs SA on many replicas in parallel, and compensates for deviation of distributions by introducing an extra weight.
+This weight (Neal-Jarzynski weight) is appropriately defined so that the weighted average of observables over replicas is just the canonical average for each temperature.
+In AIS, the variance of the NJ weights increases as the simulation progresses, and then only some replicas contribute to the average, in other words, an effective number of replicas decreases.
+Therefore, the population annealing Monte Carlo (PAMC) method resamples the replicas periodically so that the distribution of replicas is propotional to the NJ weights and resets the weights to 1.</p>
+<ul class="simple">
+<li><p>AIS</p>
+<ul>
+<li><p><a class="reference external" href="https://link.springer.com/article/10.1023/A:1008923215028">R. M. Neal, Statistics and Computing 11, 125-139 (2001)</a>.</p></li>
+</ul>
+</li>
+<li><p>PAMC</p>
+<ul>
+<li><p><a class="reference external" href="https://aip.scitation.org/doi/abs/10.1063/1.1632130">K. Hukushima and Y. Iba, AIP Conf. Proc. 690, 200 (2003)</a>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
 <section id="about-configuration-and-update">
-<h2><span class="section-number">8.2. </span>About configuration and update<a class="headerlink" href="#about-configuration-and-update" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">8.3. </span>About configuration and update<a class="headerlink" href="#about-configuration-and-update" title="Permalink to this heading">¶</a></h2>
 <p>Here, the outline of the definition of the configuration in abICS and the update by the Monte Carlo method are explained using <a class="reference internal" href="#alg-sampling"><span class="std std-numref">Fig. 8.1</span></a> as an example.</p>
 <p>(a)-(c) are schematic figures of <code class="docutils literal notranslate"><span class="pre">unitcell</span></code>, <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>, and <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>, where blue, green, and black circles are the atomic types defined by <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>, respectively. The star symbol indicates the location of the defects defined by <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>.
 (d) is a schematic figure for specifying the atomic species in <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>. Here, three atomic species of blue, green, and black are defined. How each atom is arranged is defined by <code class="docutils literal notranslate"><span class="pre">coords</span></code> for each atom type.
@@ -92,13 +124,6 @@ Physical quantities such as the total energy is measured at each <code class="do
 <p><span class="caption-number">Fig. 8.1 </span><span class="caption-text">(a)-(e) Definition of lattice in abICS. (f) A schematic of MonteCarlo method. Details are described in the text.</span><a class="headerlink" href="#alg-sampling" title="Permalink to this image">¶</a></p>
 </figcaption>
 </figure>
-<ul class="simple">
-<li><p>Overview of abICS</p>
-<ul>
-<li><p><a class="reference external" href="https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta">S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019)</a>.</p></li>
-</ul>
-</li>
-</ul>
 </section>
 </section>
 
@@ -130,7 +155,8 @@ Physical quantities such as the total energy is measured at each <code class="do
 <li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. Miscellaneous tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">8. Algorithm</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#replica-exchange-monte-carlo-method">8.1. Replica exchange Monte Carlo method</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#about-configuration-and-update">8.2. About configuration and update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#population-annealing-monte-carlo">8.2. Population Annealing Monte Carlo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#about-configuration-and-update">8.3. About configuration and update</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. Acknowledgement</a></li>
