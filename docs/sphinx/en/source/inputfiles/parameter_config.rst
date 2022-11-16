@@ -5,7 +5,7 @@
 [config] section
 -------------------------------
 
-This section specifies alloy coordination, etc.
+This section specifies configurations such as alloy coordination.
 An example is shown as follows:
 
   ::
@@ -51,6 +51,9 @@ Comments can also be entered by adding # (Subsequent characters are ignored).
 Key words
 ^^^^^^^^^^
 
+In the case of ``solver.type != "potts"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Specify lattice
 
     -  ``unitcell``
@@ -68,7 +71,7 @@ Key words
        **Description :**
        The size of super lattice by the list format[ :math:`\bf{a}, \bf{b}, \bf{c}` ].
 
-- [[config.base_structure]] section
+- ``[[config.base_structure]]`` section
 
   ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
     If there are multiple atomic species, specify multiple [[config.base_structure]] sections.
@@ -87,7 +90,7 @@ Key words
       Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
 
 
-- [[config.defect_structure]] section
+- ``[[config.defect_structure]]`` section
 
     This sections specifies the lattice coordinates (coords) and atoms (or atom groups) (groups) that can reside on those lattice sites. Monte Carlo sampling is performed on the lattice specified in this section. In Ver. 1.0, conversion tools from POSCAR and cif will be available.
   
@@ -168,3 +171,21 @@ Key words
 
          **Description :**
          The number of atom groups of the type specified in this section.
+
+
+In the case of ``solver.type = "potts"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+    - ``Q``
+
+      **Format :** int
+
+      **Description :** The local degree of freedom of a spin.
+
+    - ``L``
+
+      **Format :** List of integers
+
+      **Description :** Size of a hyper cubic lattice.
+

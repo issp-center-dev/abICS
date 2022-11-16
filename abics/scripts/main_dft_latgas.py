@@ -26,14 +26,11 @@ import scipy.constants as constants
 
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
-from abics.mc_mpi import (
-    RX_MPI_init,
-    TemperatureRX_MPI,
-    RXParams,
-    SamplerParams,
-    ParallelRandomParams,
-    EmbarrassinglyParallelSampling,
-)
+
+from abics.sampling.mc_mpi import RX_MPI_init
+from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
+from abics.sampling.pamc import PopulationAnnealing, PAMCParams
+from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, ParallelRandomParams
 
 from abics.applications.latgas_abinitio_interface import (
     DefaultObserver,
@@ -75,7 +72,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -96,12 +93,42 @@ def main_dft_latgas(params_root: MutableMapping):
             print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
             sys.stdout.flush()
 
+    elif sampler_type == "PAMC":
+        pamcparams = PAMCParams.from_dict(params_root["sampling"])
+        nreplicas = pamcparams.nreplicas
+        nprocs_per_replica = pamcparams.nprocs_per_replica
+
+        kB = constants.value("Boltzmann constant in eV/K")
+
+        nensemble = len(dftparams.base_input_dir)
+        comm, commEnsemble, commAll = RX_MPI_init(pamcparams.nreplicas, pamcparams.seed, nensemble)
+
+        # RXMC parameters
+        # specify temperatures for each replica, number of steps, etc.
+        kTstart = pamcparams.kTstart
+        kTend = pamcparams.kTend
+        kTnum = pamcparams.kTnum
+        kTs = kB * np.linspace(kTstart, kTend, kTnum)
+
+        # Set Lreload to True when restarting
+        Lreload = pamcparams.reload
+
+        nsteps = pamcparams.nsteps
+        resample_frequency = pamcparams.resample_frequency
+        sample_frequency = pamcparams.sample_frequency
+        print_frequency = pamcparams.print_frequency
+
+        if commAll.Get_rank() == 0:
+            print(f"-Running PAMC calculation with {nreplicas} replicas")
+            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+            sys.stdout.flush()
+
     elif sampler_type == "parallelRand":
         rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -120,7 +147,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -341,6 +368,29 @@ def main_dft_latgas(params_root: MutableMapping):
 
         #if comm.Get_rank() == 0 and write_node:
         #    print(obs)
+
+    elif sampler_type == "PAMC":
+        # PAMC calculation
+        PAcalc = PopulationAnnealing(
+            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+        )
+        if Lreload:
+            if commAll.Get_rank() == 0:
+                print("-Reloading from previous calculation")
+            PAcalc.reload()
+
+        if commAll.Get_rank() == 0:
+            print("-Starting PAMC calculation")
+            sys.stdout.flush()
+            
+        obs = PAcalc.run(
+            nsteps,
+            resample_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
+            observer=observer,
+            subdirs=True,
+        )
 
     elif sampler_type == "parallelRand":
         calc = EmbarrassinglyParallelSampling(
