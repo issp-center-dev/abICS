@@ -331,12 +331,8 @@ class PopulationAnnealing(ParallelMC):
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
-        obs_len = len(test_observe)
-        obs = np.zeros([len(self.kTs), obs_len])
-        if hasattr(test_observe, "__add__"):
-            observe = True
-        else:
-            observe = False
+            obs_len = len(test_observe)
+            obs = np.zeros([len(self.kTs), obs_len])
         nsample = 0
         output = open("obs.dat", "a")
         numT = self.betas.size
@@ -359,7 +355,7 @@ class PopulationAnnealing(ParallelMC):
             naccepted = self.mycalc.naccepted
             for i in range(1, nsteps_between_anneal[self.Tindex] + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
-                if observe and i % sample_frequency == 0:
+                if i % sample_frequency == 0:
                     obs_step = observer.observe(
                         self.mycalc,
                         output,
