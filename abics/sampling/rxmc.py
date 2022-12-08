@@ -158,6 +158,8 @@ class TemperatureRX_MPI(ParallelMC):
         self.Trank_hist = []
         self.kT_hist = []
         self.Lreload = False
+        self.ntrials = np.zeros(self.procs, dtype=np.int64)
+        self.naccepted = np.zeros(self.procs, dtype=np.int64)
         if not (self.procs == self.nreplicas == len(self.kTs)):
             if self.rank == 0:
                 print(
@@ -306,9 +308,17 @@ class TemperatureRX_MPI(ParallelMC):
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
+            ntrials = self.mycalc.ntrials
+            naccepted = self.mycalc.naccepted
             for i in range(1, nsteps + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if i % RXtrial_frequency == 0:
+                    iT = self.rank_to_T[self.rank]
+                    self.ntrials[iT] += self.mycalc.ntrials - ntrials
+                    self.naccepted[iT] += self.mycalc.naccepted - naccepted
+                    ntrials = self.mycalc.ntrials
+                    naccepted = self.mycalc.naccepted
+
                     self.Xtrial(XCscheme)
                     XCscheme = (XCscheme + 1) % 2
                 if i % sample_frequency == 0:
@@ -325,6 +335,13 @@ class TemperatureRX_MPI(ParallelMC):
                             subdirs=subdirs,
                         )
                     nsample += 1
+            iT = self.rank_to_T[self.rank]
+            self.ntrials[iT] += self.mycalc.ntrials - ntrials
+            self.naccepted[iT] += self.mycalc.naccepted - naccepted
+
+        with open("acceptance_ratio.dat", "w") as f:
+            for T, acc, trial in zip(self.kTs, self.naccepted, self.ntrials):
+                f.write(f"{T} {acc/trial}\n")
 
         if nsample != 0:
             obs_buffer = np.empty(obs.shape)
