@@ -321,7 +321,8 @@ class TemperatureRX_MPI(ParallelMC):
                         self.kT_hist.append(self.mycalc.kT)
                     if self.write_node:
                         self.save(
-                            save_obs=save_obs, subdirs=subdirs,
+                            save_obs=save_obs,
+                            subdirs=subdirs,
                         )
                     nsample += 1
 
@@ -382,7 +383,7 @@ class TemperatureRX_MPI(ParallelMC):
             throw_out = int(nsteps * throw_out)
         X = X[throw_out:, :]
         nsamples = X.shape[0]
-        X2 = X ** 2
+        X2 = X**2
         X_mean = X.mean(axis=0)
         X_err = np.sqrt(X.var(axis=0, ddof=1) / (nsamples - 1))
         X_jk = self.__jackknife(X)
@@ -390,12 +391,34 @@ class TemperatureRX_MPI(ParallelMC):
         X2_err = np.sqrt(X2.var(axis=0, ddof=1) / (nsamples - 1))
         X2_jk = self.__jackknife(X2)
         F = X2.mean(axis=0) - X.mean(axis=0) ** 2  # F stands for Fluctuation
-        F_jk = X2_jk - X_jk ** 2
+        F_jk = X2_jk - X_jk**2
         F_mean = F_jk.sum(axis=0) - F_jk.mean(axis=0) * (nsamples - 1)
         F_err = np.sqrt((nsamples - 1) * F_jk.var(axis=0, ddof=0))
+
+        target_T = -1.0
+        if self.kTs[0] <= self.kTs[-1]:
+            if self.rank > 0:
+                target_T = self.kTs[self.rank - 1]
+        else:
+            if self.rank < self.comm.size - 1:
+                target_T = self.kTs[self.rank + 1]
+        if target_T >= 0.0:
+            dbeta = 1.0 / target_T - 1.0 / self.kTs[self.rank]
+            energies = X[:, 0]
+            emin = energies.min()
+            Exp = np.exp(-dbeta * (energies - emin))
+            Exp_jk = self.__jackknife(Exp)
+            Logz_jk = np.log(Exp_jk)
+            Logz_mean = Logz_jk.sum() - Logz_jk.mean() * (nsamples - 1) - dbeta * emin
+            Logz_err = np.sqrt((nsamples - 1) * Logz_jk.var(ddof=0))
+        else:
+            Logz_mean = 0.0
+            Logz_err = 0.0
+
         obs = np.array([X_mean, X_err, X2_mean, X2_err, F_mean, F_err])
         obs_all = np.zeros([self.comm.size, *obs.shape])
         self.comm.Allgather(obs, obs_all)
+        dlogz = self.comm.allgather([Logz_mean, Logz_err])
         if self.rank == 0:
             ntype = obs.shape[0]
             with open("result.dat", "w") as f:
@@ -405,6 +428,23 @@ class TemperatureRX_MPI(ParallelMC):
                         for itype in range(ntype):
                             f.write(f" {obs_all[iT, itype, iobs]}")
                     f.write("\n")
+            with open("logZ.dat", "w") as f:
+                F = 0.0
+                dF = 0.0
+                if self.kTs[0] <= self.kTs[-1]:
+                    f.write(f"{self.kTs[-1]} {F} {dF} {0.0} {0.0}\n")
+                    for iT in np.arange(1, nT)[::-1]:
+                        dlz, dlz_e = dlogz[iT]
+                        F += dlz
+                        dF += dlz_e
+                        f.write(f"{self.kTs[iT-1]} {F} {dF} {dlz} {dlz_e}\n")
+                else:
+                    f.write(f"{self.kTs[0]} {F} {dF} {0.0} {0.0}\n")
+                    for iT in np.arange(0, nT-1):
+                        dlz, dlz_e = dlogz[iT]
+                        F += dlz
+                        dF += dlz_e
+                        f.write(f"{self.kTs[iT+1]} {F} {dF} {dlz} {dlz_e}\n")
         self.comm.Barrier()
 
     def __merge_obs(self):
