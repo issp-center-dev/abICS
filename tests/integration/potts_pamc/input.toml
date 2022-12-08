@@ -10,10 +10,11 @@ resample_frequency = 2
 sample_frequency = 8
 print_frequency = 1
 reload = false
+seed = 12345
 
 [sampling.solver]
 type = 'potts'
 
 [config]
 Q = 2
-L = [6, 6]
+L = [8, 8]

@@ -300,6 +300,7 @@ class TemperatureRX_MPI(ParallelMC):
             os.chdir(str(self.rank))
         self.accept_count = 0
         if not self.Lreload:
+            self.mycalc.config.shuffle()
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
@@ -385,20 +386,22 @@ class TemperatureRX_MPI(ParallelMC):
         nsteps, nobs = obs_save.shape
         nT = self.rank_to_T.size
         obss = [[] for _ in range(nT)]
-        for istep in range(nsteps):
+        if isinstance(throw_out, float):
+            throw_out = int(nsteps * throw_out)
+        for istep in range(throw_out, nsteps):
             iT = Trank_hist[istep]
             obss[iT].append(obs_save[istep, :])
         recv_obss = [np.zeros(0)]
         for rank in range(self.comm.size):
-            if rank == self.comm.rank:
-                recv_obss = self.comm.gather(np.array(obss[rank]), root=rank)
+            if len(obss[rank]) > 0:
+                send = np.array(obss[rank])
             else:
-                self.comm.gather(obss[rank], root=rank)
+                send = np.zeros((0,nobs))
+            if rank == self.comm.rank:
+                recv_obss = self.comm.gather(send, root=rank)
+            else:
+                self.comm.gather(send, root=rank)
         X = np.concatenate(recv_obss)
-        assert X.shape[0] == nsteps
-        if throw_out < 1.0:
-            throw_out = int(nsteps * throw_out)
-        X = X[throw_out:, :]
         nsamples = X.shape[0]
         X2 = X**2
         X_mean = X.mean(axis=0)

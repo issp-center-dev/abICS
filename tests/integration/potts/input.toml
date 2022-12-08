@@ -1,5 +1,5 @@
 [sampling]
-nreplicas = 2
+nreplicas = 4
 nprocs_per_replica = 1 
 kTstart = 1.0
 kTend = 1.2
@@ -8,6 +8,7 @@ RXtrial_frequency = 32
 sample_frequency = 8
 print_frequency = 1
 reload = false
+seed = 12345
 
 [sampling.solver]
 type = 'potts'
