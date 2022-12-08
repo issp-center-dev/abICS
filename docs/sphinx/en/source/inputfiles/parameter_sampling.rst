@@ -118,3 +118,9 @@ Keywords
        **Format :** bool ("true" or "false")
 
        **Description :** Whether to restart a prior calculation from the last step finished last time. Default value = false.
+
+    -  ``throw_out``
+
+       **Format :** int or float
+
+       **Description :** The number (int) or ratio (float) of measurements to be thrown out as thermalization in the process of the evaluation of expectation values. Default value = 0.5 .
