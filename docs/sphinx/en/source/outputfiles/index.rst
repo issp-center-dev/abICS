@@ -92,13 +92,11 @@ Example::
 
 ``RANK/acceptance_ratio.dat``
 ===============================
-(ONLY for PAMC)
 Acceptance ratio of Monte Carlo steps for each temperature.
 The first column is temperature and the second column is acceptance ratio (number of accepted / number of trials).
 
 ``logZ.dat``
 ==============
-(ONLY for PAMC)
 The logarithm of the partition function, :math:`\log Z_i/Z_0` where :math:`i` is the index of temperature.
 
 - The 1st column is temperature :math:`T_i`.
@@ -107,7 +105,6 @@ The logarithm of the partition function, :math:`\log Z_i/Z_0` where :math:`i` is
 
 ``result.dat``
 ===============
-(ONLY for PAMC)
 Canonical expectation value :math:`\langle O \rangle` and statistical error :math:`\sigma[O]` of observables :math:`O` for each temperature.
 
 - The 1st column is temperature :math:`T_i`.
