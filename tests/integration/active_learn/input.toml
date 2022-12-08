@@ -3,11 +3,12 @@ nreplicas = 2
 nprocs_per_replica = 1 
 kTstart = 1200.0
 kTend = 1500.0
-nsteps = 640 # Number of steps for sampling
-RXtrial_frequency = 4
-sample_frequency = 16
-print_frequency = 1
+nsteps = 320 # Number of steps for sampling
+RXtrial_frequency = 16
+sample_frequency = 4
+print_frequency = 4
 reload = false
+seed = 12345
 
 [sampling.solver]
 type = 'aenet'
@@ -16,6 +17,7 @@ base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess'
 ignore_species = ["O"]
+seed = 31415
 
 [mlref]
 nreplicas = 2
