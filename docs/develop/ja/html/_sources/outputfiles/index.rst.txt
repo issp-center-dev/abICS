@@ -94,14 +94,12 @@ Example::
 
 ``RANK/acceptance_ratio.dat``
 ================================
-(PAMC のみ)
 各温度におけるモンテカルロ更新の採択率。
 1列目に温度, 2列目に採択率（採択回数/更新回数）が出力されます。
 
 
 ``logZ.dat``
 ==============
-(PAMC のみ)
 分配関数の対数 :math:`\log Z_i/Z_0` (:math:`i` は温度点の番号)。
 
 - 1列目は温度 :math:`T_i`
@@ -110,7 +108,6 @@ Example::
 
 ``result.dat``
 =================
-(PAMC のみ)
 温度ごとの物理量 :math:`O` のカノニカル平均 :math:`\langle O \rangle` とその統計誤差 :math:`\sigma[O]` 。
 
 - 1列目 は温度 :math:`T_i`
