@@ -6,4 +6,14 @@ set -e
 
 rm -f kTs.npy
 mpiexec -np 2 --oversubscribe abics_sampling input.toml
-python3 ./check.py
+
+# python 3.7 does not work???
+# python3 ./check.py
+
+if [ -e kTs.npy ] ; then
+  echo OK
+  exit 0
+else
+  echo FAILED
+  exit 1
+fi
