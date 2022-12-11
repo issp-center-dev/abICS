@@ -5,12 +5,5 @@ export OMP_NUM_THREADS=1
 set -e
 
 rm -f ./kTs.npy
-mpiexec -np 2 --oversubscribe abics_sampling input.toml
-
-if [ -e kTs.npy ] ; then
-  echo OK
-  exit 0
-else
-  echo FAILED
-  exit 1
-fi
+mpiexec -np 4 --oversubscribe abics_sampling input.toml
+python3 ./check.py

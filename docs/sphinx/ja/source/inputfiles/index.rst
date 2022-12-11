@@ -33,6 +33,7 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 
    parameter_sampling
    parameter_mlref
+   parameter_solver
    parameter_train
    parameter_observer
    parameter_config

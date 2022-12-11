@@ -1,0 +1,19 @@
+[sampling]
+sampler = "PAMC"
+nreplicas = 4
+nprocs_per_replica = 1 
+kTstart = 2.0
+kTend = 0.5
+kTnum = 16
+nsteps = 16384
+resample_frequency = 4
+sample_frequency = 128
+print_frequency = 1
+reload = false
+
+[sampling.solver]
+type = 'potts'
+
+[config]
+Q = 2
+L = [16, 16]

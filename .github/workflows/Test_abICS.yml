@@ -16,9 +16,9 @@ jobs:
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -38,6 +38,8 @@ jobs:
         Sampling ) cd tests/integration/mock
                    sh ./run.sh
                    cd ../potts
+                   sh ./run.sh
+                   cd ../potts_pamc
                    sh ./run.sh
                    ;;
         ActiveLearn ) cd tests/integration/active_learn

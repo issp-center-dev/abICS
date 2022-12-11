@@ -8,20 +8,20 @@ jobs:
     timeout-minutes: 10
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Set up Python
-      uses: actions/setup-python@v1
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
 
-    - name: Prepare LaTeX env
-      run: |
-        sudo apt update
-        sudo apt install \
-          texlive-latex-recommended texlive-latex-extra texlive-xetex \
-          texlive-lang-japanese texlive-fonts-recommended texlive-fonts-extra latexmk
-        kanji-config-updmap-sys ipaex
+    # - name: Prepare LaTeX env
+    #   run: |
+    #     sudo apt update
+    #     sudo apt install \
+    #       texlive-latex-recommended texlive-latex-extra texlive-xetex \
+    #       texlive-lang-japanese texlive-fonts-recommended texlive-fonts-extra latexmk
+    #     kanji-config-updmap-sys ipaex
 
     - name: Install python packages
       run: |

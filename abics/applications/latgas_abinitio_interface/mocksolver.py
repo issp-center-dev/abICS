@@ -56,15 +56,18 @@ class MockSolver(SolverBase):
     def calc_energy(self, fi, output_dir):
         st = Structure.from_file(os.path.join(output_dir, "structure.vasp"))
         ene = 0.0
-        for sp in st.species:
-            st_local = st.copy()
-            st_local.remove_species(filter(lambda s: s != sp, st.species))
-            dm = st_local.distance_matrix
-            n = len(st_local)
-            for i in range(n):
-                for j in range(i+1,n):
-                    ene += dm[i,j] ** 2
-            ene = np.sqrt(ene)
+        st_local = st.copy()
+        dm = st_local.distance_matrix
+        n = len(st_local)
+        an_mean = 0
+        for i in range(n):
+            an_mean += st_local.species[i].number
+        an_mean /= n
+        for i in range(n):
+            an_i = st_local.species[i].number - an_mean
+            for j in range(i+1,n):
+                an_j = st_local.species[j].number - an_mean
+                ene += (an_i * an_j) / (dm[i,j] ** 2)
         with open(os.path.join(output_dir, "energy.dat"), "w") as f:
             f.write('{:.15f}\n'.format(ene))
 
@@ -121,7 +124,7 @@ class MockSolver(SolverBase):
                 Path to working directory.
             """
             os.makedirs(output_dir, exist_ok=True)
-            self.st.to("POSCAR", os.path.join(output_dir, "structure.vasp"))
+            self.st.to(fmt="POSCAR", filename=os.path.join(output_dir, "structure.vasp"))
 
         def cl_args(self, nprocs, nthreads, workdir):
             """

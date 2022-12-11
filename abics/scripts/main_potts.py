@@ -24,21 +24,15 @@ import numpy as np
 
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
-from abics.mc_mpi import (
-    RX_MPI_init,
-    TemperatureRX_MPI,
-    RXParams,
-    SamplerParams,
-    ParallelRandomParams,
-    EmbarrassinglyParallelSampling,
-)
+from abics.sampling.mc_mpi import RX_MPI_init
+from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
+from abics.sampling.pamc import PopulationAnnealing, PAMCParams
+from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, ParallelRandomParams
 
 from abics.applications.lattice_model.potts import Potts, Configuration, Observer
 
 
 def main_potts(params_root: MutableMapping):
-    # TODO: read from inputs
-
     param_config = params_root["config"]
     Q = param_config.get("Q", 2)
     Ls = param_config["L"]
@@ -53,7 +47,7 @@ def main_potts(params_root: MutableMapping):
         nreplicas = rxparams.nreplicas
         configs = [Configuration(Q, Ls) for _ in range(nreplicas)]
 
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -94,10 +88,57 @@ def main_potts(params_root: MutableMapping):
             subdirs=True,
         )
 
+    elif sampler_type == "PAMC":
+        pamcparams = PAMCParams.from_dict(params_root["sampling"])
+        nreplicas = pamcparams.nreplicas
+        configs = [Configuration(Q, Ls) for _ in range(nreplicas)]
+
+        comm = RX_MPI_init(pamcparams.nreplicas, pamcparams.seed)
+
+        # RXMC parameters
+        # specify temperatures for each replica, number of steps, etc.
+        kTstart = pamcparams.kTstart
+        kTend = pamcparams.kTend
+        kTnum = pamcparams.kTnum
+        kTs = np.linspace(kTstart, kTend, kTnum)
+
+        # Set Lreload to True when restarting
+        Lreload = pamcparams.reload
+
+        nsteps = pamcparams.nsteps
+        resample_frequency = pamcparams.resample_frequency
+        sample_frequency = pamcparams.sample_frequency
+        print_frequency = pamcparams.print_frequency
+
+        if comm.Get_rank() == 0:
+            print(f"-Running PAMC calculation with {nreplicas} replicas")
+            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+            sys.stdout.flush()
+
+        calc = PopulationAnnealing(
+            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+        )
+        if Lreload:
+            if comm.Get_rank() == 0:
+                print("-Reloading from previous calculation")
+            calc.reload()
+        if comm.Get_rank() == 0:
+            print("-Starting PAMC calculation")
+            sys.stdout.flush()
+        obs = calc.run(
+            nsteps,
+            resample_frequency=resample_frequency,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
+            nsubsteps_in_step=nspins,
+            observer=observer,
+            subdirs=True,
+        )
+
     elif sampler_type == "parallelRand":
         rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -125,7 +166,7 @@ def main_potts(params_root: MutableMapping):
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
 
-        comm = RX_MPI_init(rxparams)
+        comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.

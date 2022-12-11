@@ -25,7 +25,8 @@ import numpy as np
 import scipy.constants as constants
 import toml
 
-from abics.mc_mpi import RXParams, RX_MPI_init
+from abics.sampling.mc_mpi import RX_MPI_init
+from abics.sampling.rxmc import RXParams
 
 
 def main():
@@ -50,7 +51,7 @@ def main():
     nskip = args.skipsteps
     rxparams = RXParams.from_toml(inputfi)
     nreplicas = rxparams.nreplicas
-    comm = RX_MPI_init(rxparams)
+    comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
 
     param = toml.load(inputfi)
     solver_type = param["sampling"]["solver"]["type"]

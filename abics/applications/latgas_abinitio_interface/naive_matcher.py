@@ -36,4 +36,4 @@ if __name__ == "__main__":
     for i, j in enumerate(naive_mapping(st0, st1)):
         st0.replace(i, st1[j].species_string)
     st0.sort()
-    st0.to("POSCAR", "testnaivemap.vasp")
+    st0.to(fmt="POSCAR", filename="testnaivemap.vasp")

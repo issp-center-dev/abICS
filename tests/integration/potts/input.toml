@@ -1,13 +1,14 @@
 [sampling]
-nreplicas = 2
+nreplicas = 4
 nprocs_per_replica = 1 
 kTstart = 1.0
 kTend = 1.2
-nsteps = 1024 # Number of steps for sampling
+nsteps = 512 # Number of steps for sampling
 RXtrial_frequency = 32
 sample_frequency = 8
-print_frequency = 1
+print_frequency = 4
 reload = false
+seed = 12345
 
 [sampling.solver]
 type = 'potts'
