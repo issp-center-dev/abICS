@@ -18,6 +18,7 @@
 energy calculator using aenet python interface
 """
 
+import sys
 import numpy as np
 
 from .base_solver import SolverBase
