@@ -27,15 +27,8 @@ from pymatgen.core import Structure
 from lammps import lammps, PyLammps
 import os.path
 
-try:
-    import ase.io
-except ImportError:
-    sys.stderr.write("Error: unable to import ASE.")
-    sys.exit()
-
-from aenet.ase_calculator import ANNCalculator
-
-import time
+def unit_vec(a):
+    return a/np.linalg.norm(a)
 
 class AenetPyLammpsSolver(SolverBase):
     """
@@ -60,7 +53,7 @@ class AenetPyLammpsSolver(SolverBase):
         self.path_to_solver = self.calculate_energy
         self.input = AenetPyLammpsSolver.Input(ignore_species)
         self.output = AenetPyLammpsSolver.Output()
-        self.calc = PyLammps(cmdargs=["-log", "none","-nocite"],comm=MPI.COMM_SELF)
+        self.calc = lammps(cmdargs=["-log", "none", "-screen", "none", "-nocite"],comm=MPI.COMM_SELF)
         
 
     def name(self):
@@ -84,22 +77,23 @@ class AenetPyLammpsSolver(SolverBase):
 
         #lmp = lammps(cmdargs=["-log", "none","-nocite"])
 
-        self.calc.atom_style("atomic")
-        self.calc.units("metal")
-        self.calc.boundary("p p p")
+        self.calc.command("atom_style atomic")
+        self.calc.command("units metal")
+        self.calc.command("boundary p p p")
 
-        self.calc.region("box prism", 0, ax, 0, by, 0, cz, bx, cx, cy)
-        self.calc.create_box("{} box".format(nspec))
+        self.calc.command("region box prism 0 {} 0 {} 0 {} {} {} {}".format(ax, by, cz, bx, cx, cy))
+        self.calc.command("create_box {} box".format(nspec))
         types = list(map(lambda x: spec_dict[x.name],st.species))
-        self.calc.lmp.create_atoms(natoms, None, types, st.cart_coords.ravel())
+        self.calc.create_atoms(natoms, None, types, st.cart_coords.ravel())
         for i in range(1,nspec+1):
-            self.calc.mass("{} 1".format(i))
-        self.calc.command(self.pair_pot)
-        self.calc.run(0)
-        ene = self.calc.lmp.get_thermo("pe")
+            self.calc.command("mass {} 1".format(i))
+        self.calc.commands_list(self.input.pair_pot.split("\n"))
+        self.calc.command("run 0")
+        ene = self.calc.get_thermo("pe")
+        #print(ene)
         self.output.st = st
         self.output.ene = ene
-        self.calc.clear()
+        self.calc.command("clear")
 
     class Input(object):
         """
@@ -156,9 +150,7 @@ class AenetPyLammpsSolver(SolverBase):
             workdir : str
                 Path to working directory.
             """
-            if os.path.exists(output_dir):
-                pass
-            else:
+            if not os.path.exists(output_dir):
                 import shutil
                 shutil.copytree(self.base_input_dir, output_dir)
                 
