@@ -17,13 +17,14 @@
 from __future__ import annotations
 
 from typing import Any, MutableMapping
+import os, sys
 
 from pymatgen.core import Lattice, Structure
 
 from .model_setup import Config, DefectSublattice, base_structure
 
 from abics.exception import InputError
-from abics.util import read_matrix
+from abics.util import read_matrix, expand_path
 
 
 class DFTConfigParams:
@@ -56,7 +57,6 @@ class DFTConfigParams:
         if not isinstance(constraint_module, bool):
             raise InputError('"config.constraint_module" should be true or false')
         if constraint_module:
-            import os, sys
 
             sys.path.append(os.getcwd())
             from constraint_module import constraint_func
@@ -64,6 +64,20 @@ class DFTConfigParams:
             self.constraint_func = constraint_func
         else:
             self.constraint_func = bool
+
+        init_structure_path = dconfig.get("init_structure", None)
+        if init_structure_path is not None:
+            init_structure_path = expand_path(init_structure_path, os.getcwd())
+            if not os.path.isfile(init_structure_path):
+                raise InputError(
+                    'cannot find {}; "config.init_structure" should be path to a structure file'.format(init_structure_path)
+                    )
+            try:
+                self.init_structure = Structure.from_file(init_structure_path)
+            except:
+                raise InputError('failed reading {}; check that the file is pymatgen-compatible.'.format(init_structure_path))
+        else:
+            self.init_structure = None
 
         if "base_structure" not in dconfig:
             raise InputError('"base_structure" is not found in the "config" section.')

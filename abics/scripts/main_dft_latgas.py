@@ -244,6 +244,12 @@ def main_dft_latgas(params_root: MutableMapping):
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
     spinel_config = defect_config(configparams)
+    if configparams.init_structure is None:
+        spinel_config.shuffle()
+    else:
+        if commAll.Get_rank() == 0:
+            print("--Initial structure will be set to 'config.init_structure'.")
+        spinel_config.reset_from_structure(configparams.init_structure)
 
     # configs = []
     # for i in range(nreplicas):
