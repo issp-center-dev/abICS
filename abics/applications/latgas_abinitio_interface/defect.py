@@ -56,12 +56,13 @@ class DFTConfigParams:
         constraint_module = dconfig.get("constraint_module", False)
         if not isinstance(constraint_module, bool):
             raise InputError('"config.constraint_module" should be true or false')
+        self.constraint_energy = None
         if constraint_module:
-
             sys.path.append(os.getcwd())
-            from constraint_module import constraint_func
-
-            self.constraint_func = constraint_func
+            import constraint_module
+            self.constraint_func = constraint_module.constraint_func
+            if 'constraint_energy' in dir(constraint_module):
+                self.constraint_energy = constraint_module.constraint_energy
         else:
             self.constraint_func = bool
 
@@ -139,6 +140,7 @@ def defect_config(cparam: DFTConfigParams) -> Config:
         cparam.num_defects,
         cparam.supercell,
         cparam.constraint_func,
+        cparam.constraint_energy
     )
     spinel_config.shuffle()
     return spinel_config

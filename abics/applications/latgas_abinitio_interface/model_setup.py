@@ -614,6 +614,7 @@ class Config:
         num_defects,
         cellsize=[1, 1, 1],
         constraint_func=bool,
+        constraint_energy=None,
         perfect_structure=None,
     ):
         """
@@ -652,6 +653,7 @@ class Config:
         self.cellsize = cellsize
         self.base_structure = base_structure
         self.constraint_func = constraint_func
+        self.constraint_energy = constraint_energy
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -922,15 +924,49 @@ class Config:
 
     
     def shuffle(self):
-        for defect_sublattice in self.defect_sublattices:
-            latgas_rep = defect_sublattice.latgas_rep
-            rand.shuffle(latgas_rep)
-            for site in latgas_rep:
-                group = defect_sublattice.group_dict[site[0]]
-                norr = group.orientations
-                site[1] = rand.randint(norr)
-        if not self.set_latgas():
-            self.shuffle()
+        max_trial = 1000
+        num_trial = 0
+        while num_trial < max_trial:
+            for defect_sublattice in self.defect_sublattices:
+                latgas_rep = defect_sublattice.latgas_rep
+                rand.shuffle(latgas_rep)
+                for site in latgas_rep:
+                    group = defect_sublattice.group_dict[site[0]]
+                    norr = group.orientations
+                    site[1] = rand.randint(norr)
+            if self.set_latgas(): 
+                return 0, 'Configuration initialized randomly'
+            else:
+                if self.constraint_energy: 
+                    e = self.constraint_energy(self.structure)
+                    num_trial = 0
+                    while num_trial < max_trial: 
+                        num_trial += 1
+                        defect_sublattice = rand.choice(self.defect_sublattices)
+                        latgas_rep = defect_sublattice.latgas_rep
+                        i0, i1 = rand.choice(len(latgas_rep), 2)
+                        latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
+                        if self.set_latgas():
+                            msg = "---constraint_module.constraint_energy was used" + \
+                                " to find configuration that follows constraints with {} trials".format(num_trial)
+                            return 0, msg
+                        e1 = self.constraint_energy(self.structure)
+                        if e1 == 0:
+                            msg = "There's something wrong: constraint_func and constraint_energy are inconsistent"
+                            return 1, msg
+                        if e1 > e:
+                            latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
+                        else:
+                            e = e1
+                    msg = "Failed to find configuration with constraint_module.constraint_energy after {} trials".format(num_trial)
+                    return 1, msg
+                    
+                else:
+                    num_trial += 1
+        msg = "Failed to find configuration that follows constraints by random shuffling. Try setting constraint_energy."       
+        return 1, msg
+
+
 
     def count(self, group_name, orientation):
         """
