@@ -429,3 +429,12 @@ class QESolver(SolverBase):
         """
         return "mpi_spawn"
 
+    #-- factory
+    from typing import Union
+    from .params import ALParams, DFTParams
+
+    @classmethod
+    def create(cls, params: Union[ALParams, DFTParams]):
+        path = params.path
+        parallel_level = params.properties.get("parallel_level", {})
+        return cls(path, parallel_level=parallel_level)

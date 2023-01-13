@@ -17,3 +17,9 @@
 from .default_observer import *
 from .map2perflat import *
 from .aenet_trainer import *
+
+from .vasp import VASPSolver
+from .qe import QESolver
+from .aenet import AenetSolver
+from .openmx import OpenMXSolver
+from .mocksolver import MockSolver
