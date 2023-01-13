@@ -41,11 +41,11 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
+# from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
+# from abics.applications.latgas_abinitio_interface.qe import QESolver
+# from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
+# from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+# from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
 from abics.util import exists_on_all_nodes
@@ -63,23 +63,25 @@ def main_impl(params_root: MutableMapping):
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
-    solver: SolverBase
-    if alparams.solver == "vasp":
-        solver = VASPSolver(alparams.path, alparams.ignore_species)
-    elif alparams.solver == "qe":
-        parallel_level = alparams.properties.get("parallel_level", {})
-        solver = QESolver(alparams.path, parallel_level=parallel_level)
-    elif alparams.solver == "aenet":
-        solver = AenetSolver(
-            alparams.path, alparams.ignore_species, alparams.solver_run_scheme
-        )
-    elif alparams.solver == "openmx":
-        solver = OpenMXSolver(alparams.path)
-    elif alparams.solver == "mock":
-        solver = MockSolver()
-    else:
-        print("unknown solver: {}".format(alparams.solver))
-        sys.exit(1)
+    # solver: SolverBase
+    # if alparams.solver == "vasp":
+    #     solver = VASPSolver(alparams.path, alparams.ignore_species)
+    # elif alparams.solver == "qe":
+    #     parallel_level = alparams.properties.get("parallel_level", {})
+    #     solver = QESolver(alparams.path, parallel_level=parallel_level)
+    # elif alparams.solver == "aenet":
+    #     solver = AenetSolver(
+    #         alparams.path, alparams.ignore_species, alparams.solver_run_scheme
+    #     )
+    # elif alparams.solver == "openmx":
+    #     solver = OpenMXSolver(alparams.path)
+    # elif alparams.solver == "mock":
+    #     solver = MockSolver()
+    # else:
+    #     print("unknown solver: {}".format(alparams.solver))
+    #     sys.exit(1)
+
+    solver: SolverBase = SolverBase.create(alparams.solver, alparams)
 
     perturb = alparams.perturb
     solver_output = solver.output
