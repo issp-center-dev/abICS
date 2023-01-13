@@ -17,26 +17,28 @@ __all__ = ["set_log_handles"]
 
 # logger formater
 FFORMATTER = logging.Formatter(
-    "[%(asctime)s] %(app_name)s %(levelname)-7s %(name)-45s %(message)s"
+    "[%(asctime)s] %(app_name)s %(levelname)s %(name)s %(message)s"
 )
 CFORMATTER = logging.Formatter(
-#    "%(app_name)s %(levelname)-7s |-> %(name)-45s %(message)s"
-    "%(app_name)s %(levelname)-7s %(message)s"
+    "%(app_name)s %(levelname)s %(message)s"
 )
 FFORMATTER_MPI = logging.Formatter(
-    "[%(asctime)s] %(app_name)s rank:%(rank)-2s %(levelname)-7s %(name)-45s %(message)s"
+    "[%(asctime)s] %(app_name)s rank:%(rank)s %(levelname)s %(name)s %(message)s"
 )
 CFORMATTER_MPI = logging.Formatter(
-#    "%(app_name)s rank:%(rank)-2s %(levelname)-7s |-> %(name)-45s %(message)s"
-    "%(app_name)s rank:%(rank)-2s %(levelname)-7s %(message)s"
+    "%(app_name)s rank:%(rank)s %(levelname)s %(message)s"
 )
 
 
 class _AppFilter(logging.Filter):
     """Add field `app_name` to log messages."""
 
+    def __init__(self, app_name: str) -> None:
+        super().__init__(name="App_name")
+        self.app_name = app_name
+
     def filter(self, record):
-        record.app_name = "DEEPMD"
+        record.app_name = self.app_name
         return True
 
 
@@ -135,6 +137,7 @@ class _MPIHandler(logging.FileHandler):
 
 
 def set_log_handles(
+    app_name: str,
     level: int,
     log_path: Optional["Path"] = None,
     mpi_log: Optional[str] = None
@@ -184,12 +187,12 @@ def set_log_handles(
     +---------+--------------+----------------+----------------+----------------+
 
     """
-    # silence logging for OpenMP when running on CPU if level is any other than debug
-    if level <= 10:
-        os.environ["KMP_WARNINGS"] = "FALSE"
+    # # silence logging for OpenMP when running on CPU if level is any other than debug
+    # if level <= 10:
+    #     os.environ["KMP_WARNINGS"] = "FALSE"
 
-    # set TF cpp internal logging level
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(int((level / 10) - 1))
+    # # set TF cpp internal logging level
+    # os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(int((level / 10) - 1))
 
     # get root logger
     root_log = logging.getLogger()
@@ -221,7 +224,7 @@ def set_log_handles(
         ch.setFormatter(CFORMATTER)
 
     ch.setLevel(level)
-    ch.addFilter(_AppFilter())
+    ch.addFilter(_AppFilter(app_name))
     root_log.addHandler(ch)
 
     # * add file handler ***************************************************************
@@ -264,5 +267,5 @@ def set_log_handles(
 
         if fh:
             fh.setLevel(level)
-            fh.addFilter(_AppFilter())
+            fh.addFilter(_AppFilter(app_name))
             root_log.addHandler(fh)
