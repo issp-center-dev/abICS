@@ -65,6 +65,20 @@ class DFTConfigParams:
         else:
             self.constraint_func = bool
 
+        # alternative: provide module and function name as a parameter value
+        constraint_package = dconfig.get("constraint", None)
+        if constraint_package:
+            import importlib
+            _cpkg = constraint_package.split('.')
+            _cpkg_mod_name = '.'.join(_cpkg[0:-1])
+            _cpkg_func_name = _cpkg[-1]
+            try:
+                _cpkg_mod = importlib.import_module(_cpkg_mod_name)
+                _cpkg_func = getattr(_cpkg_mod, _cpkg_func_name)
+            except BaseException:
+                raise InputError("constraint module could not be loaded.")
+            self.constraint_func = _cpkg_func #overwrite
+
         if "base_structure" not in dconfig:
             raise InputError('"base_structure" is not found in the "config" section.')
         self.base_structure = base_structure(self.lat, dconfig["base_structure"])
