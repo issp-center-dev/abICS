@@ -1,8 +1,9 @@
-from abics.applications.latgas_abinitio_interface import aenet
 import numpy as np
-import os, pathlib, shutil, subprocess
+import os, pathlib, shutil, subprocess, shlex
 import time
 
+from abics.util import expand_cmd_path
+from abics.applications.latgas_abinitio_interface import aenet
 
 class aenet_trainer:
     def __init__(
@@ -20,8 +21,12 @@ class aenet_trainer:
         self.generate_inputdir = generate_inputdir
         self.train_inputdir = train_inputdir
         self.predict_inputdir = predict_inputdir
-        self.generate_exe = generate_exe
-        self.train_exe = train_exe
+        self.generate_exe = [expand_cmd_path(e) for e in shlex.split(generate_exe)]
+        self.generate_exe.append("generate.in")
+        self.train_exe = [expand_cmd_path(e) for e in shlex.split(train_exe)]
+        self.train_exe.append("train.in")
+        # self.generate_exe = generate_exe
+        # self.train_exe = train_exe
         assert len(self.structures) == len(self.energies)
         self.numdata = len(self.structures)
         self.is_prepared = False
@@ -61,6 +66,7 @@ class aenet_trainer:
         if os.path.exists(generate_dir):
             shutil.rmtree(generate_dir)
         shutil.copytree(self.generate_inputdir, generate_dir)
+        self.generate_dir = generate_dir
         os.chdir(generate_dir)
         with open("generate.in.head", "r") as fi:
             generate_head = fi.read()
@@ -80,11 +86,11 @@ class aenet_trainer:
             with open("generate.in", "w") as fi_in:
                 fi_in.write(generate)
 
-        command = self.generate_exe + " generate.in"
+        # command = self.generate_exe + " generate.in"
         with open(os.path.join(os.getcwd(), "stdout"), "w") as fi:
             #subprocess.run(
             self.gen_proc = subprocess.Popen(
-                command, shell=True, stdout=fi, stderr=subprocess.STDOUT,#, check=True
+                self.generate_exe, stdout=fi, stderr=subprocess.STDOUT,#, check=True
                 )
         self.generate_outputdir = os.getcwd()
         os.chdir(pathlib.Path(os.getcwd()).parent)
@@ -92,13 +98,21 @@ class aenet_trainer:
         
     def generate_wait(self):
         self.gen_proc.wait()
-        self.is_prepared = True
+        timeout = 5.0 # sec
+        interval = 0.1 # sec
+        t = 0.0
+        self.is_prepared = False
+        while t < timeout:
+            if os.path.exists(os.path.join(self.generate_outputdir, "aenet.train")):
+                self.is_prepared = True
+                break
+            time.sleep(interval)
+        if not self.is_prepared:
+            raise RuntimeError(f"{self.generate_outputdir}")
 
     def train(self, train_dir = "train"):
-        try:
-            assert self.is_prepared
-        except AssertionError as e:
-            e.args += "you have to prepare the trainer before training!"
+        if not self.is_prepared:
+            raise RuntimeError("you have to prepare the trainer before training!")
         if os.path.exists(train_dir):
             shutil.rmtree(train_dir)
         shutil.copytree(self.train_inputdir, train_dir)
@@ -107,14 +121,25 @@ class aenet_trainer:
             os.path.join(self.generate_outputdir, "aenet.train"),
             os.path.join(os.getcwd(), "aenet.train"),
         )
-        command = self.train_exe + " train.in"
+        # command = self.train_exe + " train.in"
+        # print(os.getcwd())
+        # print(command)
+        # print(os.path.exists("train.in"))
 
         while True:
             # Repeat until test set error begins to rise
             with open(os.path.join(os.getcwd(), "stdout"), "w") as fi:
                 subprocess.run(
-                    command, shell=True, stdout=fi, stderr=subprocess.STDOUT, check=True
+                    self.train_exe, stdout=fi, stderr=subprocess.STDOUT, check=True
                 )
+                # try:
+                #     subprocess.run(
+                #         self.train_exe, stdout=fi, stderr=subprocess.STDOUT, check=True
+                #     )
+                # except subprocess.CalledProcessError as e:
+                #     print(e.stdout)
+                #     print(e.stderr)
+                #     raise
             with open("stdout", "r") as trainout:
                 fullout = trainout.readlines()
                 epoch_data = []

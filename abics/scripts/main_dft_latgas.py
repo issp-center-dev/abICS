@@ -26,6 +26,7 @@ import scipy.constants as constants
 
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
+from abics.observer import ObserverParams
 
 from abics.sampling.mc_mpi import RX_MPI_init
 from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
@@ -39,7 +40,6 @@ from abics.applications.latgas_abinitio_interface import (
 )
 from abics.applications.latgas_abinitio_interface.model_setup import (
     DFTLatticeGas,
-    ObserverParams,
 )
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,

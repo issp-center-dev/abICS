@@ -899,48 +899,6 @@ class Config:
         return vac_structure
 
 
-class ObserverParams:
-    def __init__(self):
-        pass
-
-    @classmethod
-    def from_dict(cls, d):
-        """
-
-        Parameters
-        ----------
-        d: dict
-            Dictionary
-
-        Returns
-        -------
-        oparams: ObserverParams
-            self
-        """
-        params = cls()
-        # params.ignored_species = d["ignored_species"]
-        return params
-
-    @classmethod
-    def from_toml(cls, f):
-        """
-
-        Parameters
-        ----------
-        f: str
-            Name of input toml File
-
-        Returns
-        -------
-        oparams : ObserverParams
-            self
-        """
-        import toml
-
-        d = toml.load(f)
-        return cls.from_dict(d["observer"])
-
-
 # For backward compatibility
 if __version__ < "3":
     dft_latgas = DFTLatticeGas

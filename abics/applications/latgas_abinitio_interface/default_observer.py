@@ -19,6 +19,9 @@ from __future__ import annotations
 import os
 import numpy as np
 
+from pymatgen.core import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
+
 from abics import __version__
 from abics.util import expand_path
 from abics.mc import ObserverBase, MCAlgorithm
@@ -34,7 +37,7 @@ class DefaultObserver(ObserverBase):
         Minimum of energy
     """
 
-    def __init__(self, comm, Lreload=False):
+    def __init__(self, comm, Lreload=False, params={}):
         """
 
         Parameters
@@ -44,7 +47,7 @@ class DefaultObserver(ObserverBase):
         Lreload: bool
             Reload or not
         """
-        super(DefaultObserver, self).__init__()
+        super().__init__(comm, Lreload, params)
         self.minE = 100000.0
         myrank = comm.Get_rank()
         if Lreload:
@@ -52,14 +55,48 @@ class DefaultObserver(ObserverBase):
                 self.minE = float(f.readlines()[-1])
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
+        if "base_structure" in params:
+            base_structure = Structure.from_file(params["base_structure"])
+            ignored_species = params.get("ignore_species", [])
+            if isinstance(ignored_species, str):
+                ignored_species = [ignored_species]
+            base_structure.remove_species(ignored_species)
+            sp_set = {str(sp) for sp in base_structure.species}
+            self.base_structures = {
+                sp: base_structure.copy().remove_species(sp_set - {sp}) for sp in sp_set
+            }
+            self.matcher = StructureMatcher(
+                ltol=0.1,
+                primitive_cell=False,
+                allow_subset=True,
+                comparator=FrameworkComparator(),
+                ignored_species=ignored_species,
+            )
+        else:
+            self.base_structures = None
 
-    def logfunc(self, calc_state: MCAlgorithm) -> tuple[float]:
+    def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
+        structure: Structure = calc_state.config.structure_norel
         if calc_state.energy < self.minE:
             self.minE = calc_state.energy
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
-            calc_state.config.structure_norel.to(fmt="POSCAR", filename="minE.vasp")
-        return (calc_state.energy,)
+            structure.to(fmt="POSCAR", filename="minE.vasp")
+        if self.base_structures is None:
+            return (calc_state.energy,)
+        else:
+            matched = 0
+            nsites = 0
+            for sp, base_structure in self.base_structures.items():
+                sites = self.matcher.get_mapping(structure, base_structure)
+                if sites is None:
+                    raise RuntimeError()
+                species = [str(sp) for sp in structure.species]
+                for i in sites:
+                    if species[i] == sp:
+                        matched += 1
+                nsites += len(sites)
+            return (calc_state.energy, matched / nsites)
 
     def writefile(self, calc_state: MCAlgorithm) -> None:
         calc_state.config.structure.to(

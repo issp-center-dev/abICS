@@ -15,6 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from __future__ import annotations
+from typing import overload
 
 import os
 import sys
@@ -110,6 +111,28 @@ class RefParams:
 
         d = toml.load(fname)
         return cls.from_dict(d["mlref"])
+
+
+@overload
+def RX_MPI_init(nreplicas: int) -> MPI.Cartcomm:
+    ...
+
+
+@overload
+def RX_MPI_init(nreplicas: int, seed: int) -> MPI.Cartcomm:
+    ...
+
+
+@overload
+def RX_MPI_init(nreplicas: int, seed: int, nensemble: None) -> MPI.Cartcomm:
+    ...
+
+
+@overload
+def RX_MPI_init(
+    nreplicas: int, seed: int, nensemble: int
+) -> tuple[MPI.Cartcomm, MPI.Cartcomm, MPI.Cartcomm]:
+    ...
 
 
 def RX_MPI_init(nreplicas: int, seed: int = 0, nensemble=None):
