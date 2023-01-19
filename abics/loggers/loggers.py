@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
     from mpi4py import MPI
 
-    _MPI_APPEND_MODE = MPI.MODE_CREATE | MPI.MODE_APPEND
+    _MPI_APPEND_MODE = MPI.MODE_CREATE | MPI.MODE_APPEND | MPI.MODE_WRONLY
 
 logging.getLogger(__name__)
 
@@ -82,8 +82,10 @@ class _MPIFileStream:
     """
 
     def __init__(
-        self, filename: "Path", MPI: "MPI", mode: str = "_MPI_APPEND_MODE"
+        self, filename: "Path", MPI: "MPI", mode: int = None
     ) -> None:
+        if mode is None:
+            mode = MPI.MODE_CREATE | MPI.MODE_APPEND | MPI.MODE_WRONLY
         self.stream = MPI.File.Open(MPI.COMM_WORLD, filename, mode)
         self.stream.Set_atomicity(True)
         self.name = "MPIfilestream"
@@ -123,7 +125,7 @@ class _MPIHandler(logging.FileHandler):
         self,
         filename: "Path",
         MPI: "MPI",
-        mode: str = "_MPI_APPEND_MODE",
+        mode: int = None,
     ) -> None:
         self.MPI = MPI
         super().__init__(filename, mode=mode, encoding=None, delay=False)
