@@ -16,12 +16,13 @@
 
 from __future__ import annotations
 
-from typing import TextIO, Union
+from typing import TextIO, Union, TYPE_CHECKING
 
 import sys, os
 import numpy as np
 
-from mpi4py import MPI
+if TYPE_CHECKING:
+    from mpi4py import MPI
 
 from abics import __version__
 
