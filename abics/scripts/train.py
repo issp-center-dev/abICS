@@ -38,10 +38,10 @@ from abics.applications.latgas_abinitio_interface.defect import (
 )
 
 import logging
-import extra.loggers
+import abics.loggers as loggers
 from pathlib import Path
 
-extra.loggers.set_log_handles(app_name="train", level=logging.INFO, mpi_log="master")
+loggers.set_log_handles(app_name="train", level=logging.INFO, mpi_log="master")
 logger = logging.getLogger("main")
 
 

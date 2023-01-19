@@ -25,10 +25,10 @@ import toml
 from abics import __version__
 
 import logging
-import extra.loggers
+import abics.loggers as loggers
 from pathlib import Path
 
-extra.loggers.set_log_handles(app_name="sampling", level=logging.INFO, mpi_log="master")
+loggers.set_log_handles(app_name="sampling", level=logging.INFO, mpi_log="master")
 logger = logging.getLogger("main")
 
 def main_impl(params: MutableMapping):

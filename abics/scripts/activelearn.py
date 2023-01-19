@@ -52,7 +52,7 @@ from abics.util import exists_on_all_nodes
 from pymatgen.core import Structure
 
 import logging
-import extra.loggers as loggers
+import abics.loggers as loggers
 from pathlib import Path
 
 #loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="master")
