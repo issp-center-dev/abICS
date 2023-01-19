@@ -4,15 +4,12 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
     <title>5.4. [train] セクション &#8212; abICS 2.0.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/translations.js"></script>
@@ -41,12 +38,12 @@
 <p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います。
 現在のところ、abICSではaenetのみに対応しています。
 以下のようなファイルフォーマットをしています.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span><span class="w"></span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span><span class="w"></span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./aenet_train_input&#39;</span><span class="w"></span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span><span class="w"></span>
-<span class="w">              </span><span class="s">&#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span><span class="w"></span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;O&quot;</span><span class="p">]</span><span class="w"></span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./aenet_train_input&#39;</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
+<span class="w">              </span><span class="s">&#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;O&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="id1">
@@ -158,8 +155,8 @@ aenetの <code class="docutils literal notranslate"><span class="pre">generate.x
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
       <a href="../_sources/inputfiles/parameter_train.rst.txt"
