@@ -31,6 +31,9 @@ from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, Paral
 
 from abics.applications.lattice_model.potts import Potts, Configuration, Observer
 
+import logging
+logger = logging.getLogger("main")
+
 
 def main_potts(params_root: MutableMapping):
     param_config = params_root["config"]
