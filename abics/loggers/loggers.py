@@ -108,7 +108,7 @@ class _MPIFileStream:
         self.stream.Close()
 
 
-class _MPIHandler(logging.StreamHandler):
+class _MPIHandler(logging.FileHandler):
     """Emulate `logging.FileHandler` with MPI shared File that all ranks can write to.
 
     Parameters
@@ -128,12 +128,11 @@ class _MPIHandler(logging.StreamHandler):
         mode: int = None,
     ) -> None:
         self.MPI = MPI
-        self.mode = mode
-        self.baseFilename = os.path.abspath(filename)
-        super().__init__(self._open())
+        self.mpi_mode = mode
+        super().__init__(filename, mode="b", encoding=None, delay=False)
 
     def _open(self):
-        return _MPIFileStream(self.baseFilename, self.MPI, self.mode)
+        return _MPIFileStream(self.baseFilename, self.MPI, self.mpi_mode)
 
     def setStream(self, stream):
         """Stream canot be reasigned in MPI mode."""
