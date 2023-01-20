@@ -41,7 +41,7 @@ import logging
 import abics.loggers as loggers
 from pathlib import Path
 
-loggers.set_log_handles(app_name="train", level=logging.INFO, mpi_log="master")
+loggers.set_log_handles(app_name="train", level=logging.INFO)
 logger = logging.getLogger("main")
 
 
