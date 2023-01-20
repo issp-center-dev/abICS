@@ -108,7 +108,7 @@ class _MPIFileStream:
         self.stream.Close()
 
 
-class _MPIHandler(logging.FileHandler):
+class _MPIHandler(logging.StreamHandler):
     """Emulate `logging.FileHandler` with MPI shared File that all ranks can write to.
 
     Parameters
@@ -128,7 +128,9 @@ class _MPIHandler(logging.FileHandler):
         mode: int = None,
     ) -> None:
         self.MPI = MPI
-        super().__init__(filename, mode=mode, encoding=None, delay=False)
+        self.mode = mode
+        self.baseFilename = os.path.abspath(filename)
+        super().__init__(self._open())
 
     def _open(self):
         return _MPIFileStream(self.baseFilename, self.MPI, self.mode)
