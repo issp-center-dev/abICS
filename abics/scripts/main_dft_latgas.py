@@ -51,11 +51,6 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-# from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-# from abics.applications.latgas_abinitio_interface.qe import QESolver
-# from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-# from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-# from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
@@ -168,23 +163,6 @@ def main_dft_latgas(params_root: MutableMapping):
         print("Unknown sampler. Exiting...")
         sys.exit(1)
 
-    # solver: SolverBase
-    # if dftparams.solver == "vasp":
-    #     solver = VASPSolver(dftparams.path)
-    # elif dftparams.solver == "qe":
-    #     parallel_level = dftparams.properties.get("parallel_level", {})
-    #     solver = QESolver(dftparams.path, parallel_level=parallel_level)
-    # elif dftparams.solver == "aenet":
-    #     solver = AenetSolver(
-    #         dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme
-    #     )
-    # elif dftparams.solver == "openmx":
-    #     solver = OpenMXSolver(dftparams.path)
-    # elif dftparams.solver == "mock":
-    #     solver = MockSolver()
-    # else:
-    #     print("unknown solver: {}".format(dftparams.solver))
-    #     sys.exit(1)
     solver: SolverBase = SolverBase.create(dftparams.solver, dftparams)
     
     if commAll.Get_rank() == 0:
@@ -261,24 +239,6 @@ def main_dft_latgas(params_root: MutableMapping):
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-        # if ensembleparams.solver == "vasp":
-        #     solver = VASPSolver(ensembleparams.path)
-        # elif ensembleparams.solver == "qe":
-        #     parallel_level = ensembleparams.properties.get("parallel_level", {})
-        #     solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
-        # elif ensembleparams.solver == "aenet":
-        #     solver = AenetSolver(
-        #         ensembleparams.path,
-        #         ensembleparams.ignore_species,
-        #         ensembleparams.solver_run_scheme,
-        #     )
-        # elif ensembleparams.solver == "openmx":
-        #     solver = OpenMXSolver(ensembleparams.path)
-        # elif ensembleparams.solver == "mock":
-        #     solver = MockSolver()
-        # else:
-        #     print("unknown solver: {}".format(ensembleparams.solver))
-        #     sys.exit(1)
         solver = SolverBase.create(ensembleparams.solver, ensembleparams)
 
         energy_calculators = [
