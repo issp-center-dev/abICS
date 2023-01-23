@@ -179,3 +179,11 @@ class MockSolver(SolverBase):
 
     def solver_run_schemes(self):
         return ("function",)
+
+    #-- factory
+    from typing import Union
+    from .params import ALParams, DFTParams
+
+    @classmethod
+    def create(cls, params: Union[ALParams, DFTParams]):
+        return cls()
