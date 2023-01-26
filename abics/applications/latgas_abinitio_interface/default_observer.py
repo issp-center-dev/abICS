@@ -62,9 +62,11 @@ class DefaultObserver(ObserverBase):
                 ignored_species = [ignored_species]
             base_structure.remove_species(ignored_species)
             sp_set = {str(sp) for sp in base_structure.species}
-            self.base_structures = {
-                sp: base_structure.copy().remove_species(sp_set - {sp}) for sp in sp_set
-            }
+            self.base_structures = {}
+            for sp in sp_set:
+                bs = base_structure.copy()
+                bs.remove_species(sp_set - {sp})
+                self.base_structures[sp] = bs
             self.matcher = StructureMatcher(
                 ltol=0.1,
                 primitive_cell=False,

@@ -101,14 +101,14 @@ def obs_encode(*args):
 class ObserverBase:
     comm: (None|MPI.Comm)
     Lreload: bool
-    param: dict
+    params: dict
     lprintcount: int
 
-    def __init__(self, comm: (None|MPI.Comm) = None, Lreload: bool = False, param: dict = {}):
+    def __init__(self, comm: (None|MPI.Comm) = None, Lreload: bool = False, params: dict = {}):
         self.comm = comm
         self.lprintcount = 0
         self.Lreload = Lreload
-        self.param = param
+        self.params = params
 
     def obs_info(self, calc_state: "MCAlgorithm") -> ObsInfo:
         """

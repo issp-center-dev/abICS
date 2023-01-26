@@ -61,6 +61,7 @@ logger = logging.getLogger("main")
 def main_dft_latgas(params_root: MutableMapping):
     dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     sampler_type = params_root["sampling"].get("sampler", "RXMC")
+    params_observer = params_root.get("observer", {})
     if sampler_type == "RXMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
@@ -241,7 +242,7 @@ def main_dft_latgas(params_root: MutableMapping):
     #    configs.append(copy.deepcopy(spinel_config))
     configs = [spinel_config] * nreplicas
 
-    obsparams = ObserverParams.from_dict(params_root["observer"])
+    obsparams = ObserverParams.from_dict(params_observer)
 
     # if commAll.Get_rank() == 0:
     #     print("--Success.")
@@ -266,7 +267,7 @@ def main_dft_latgas(params_root: MutableMapping):
         ]
         observer: DefaultObserver = EnsembleErrorObserver(commEnsemble, energy_calculators, Lreload)
     else:
-        observer = DefaultObserver(comm, Lreload)
+        observer = DefaultObserver(comm, Lreload, params_observer)
 
     ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 
