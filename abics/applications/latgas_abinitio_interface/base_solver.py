@@ -178,3 +178,22 @@ class SolverBase(object):
             Implemented runner schemes.
         """
         return ()
+
+    #-- factory
+    from typing import Union
+    from .params import ALParams, DFTParams
+
+    @classmethod
+    def create(cls, type_name, params: Union[ALParams, DFTParams]):
+        solver_table = {
+            "VASPSolver":   [ "vasp" ],
+            "QESolver":     [ "qe" ],
+            "AenetSolver":  [ "aenet" ],
+            "OpenMXSolver": [ "openmx" ],
+            "MockSolver":   [ "mock" ],
+        }
+        for subcls in cls.__subclasses__():
+            if type_name in solver_table[subcls.__name__]:
+                return subcls.create(params)
+        print("FATAL: base_solver.create: unknown solver type: type={}".format(type_name))
+        return None

@@ -41,15 +41,18 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import ALParams
 
 from abics.util import exists_on_all_nodes
 from pymatgen.core import Structure
+
+import logging
+import abics.loggers as loggers
+from pathlib import Path
+
+#loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="master")
+loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="collect", log_path=Path("run.log"))
+logger = logging.getLogger("main")
 
 
 def main_impl(params_root: MutableMapping):
@@ -63,23 +66,7 @@ def main_impl(params_root: MutableMapping):
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
-    solver: SolverBase
-    if alparams.solver == "vasp":
-        solver = VASPSolver(alparams.path, alparams.ignore_species)
-    elif alparams.solver == "qe":
-        parallel_level = alparams.properties.get("parallel_level", {})
-        solver = QESolver(alparams.path, parallel_level=parallel_level)
-    elif alparams.solver == "aenet":
-        solver = AenetSolver(
-            alparams.path, alparams.ignore_species, alparams.solver_run_scheme
-        )
-    elif alparams.solver == "openmx":
-        solver = OpenMXSolver(alparams.path)
-    elif alparams.solver == "mock":
-        solver = MockSolver()
-    else:
-        print("unknown solver: {}".format(alparams.solver))
-        sys.exit(1)
+    solver: SolverBase = SolverBase.create(alparams.solver, alparams)
 
     perturb = alparams.perturb
     solver_output = solver.output
@@ -100,9 +87,10 @@ def main_impl(params_root: MutableMapping):
 
         if exists_on_all_nodes(comm, "AL0"):
             if exists_on_all_nodes(comm, "ALloop.progress"):
-                print(
-                    "It seems you've already run the first active learning step. You should train now."
-                )
+                # print(
+                #     "It seems you've already run the first active learning step. You should train now."
+                # )
+                logger.error("It seems you've already run the first active learning step. You should train now.")
                 sys.exit(1)
             os.chdir("AL0")
 
@@ -133,20 +121,27 @@ def main_impl(params_root: MutableMapping):
                 ignore_structure.remove_species(remove_sp)
             rundir_list = []
 
-            if myreplica == 0:
-                print(
-                    f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}..."
-                )
-                if finalrun:
-                    print(
-                        f"--This is the final {alparams.solver} calculation step for AL0"
-                    )
-                else:
-                    print(
-                        "--Input files for the next calculation step will be",
-                        f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
-                        sep=os.linesep,
-                    )
+            # if myreplica == 0:
+            #     print(
+            #         f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}..."
+            #     )
+            #     if finalrun:
+            #         print(
+            #             f"--This is the final {alparams.solver} calculation step for AL0"
+            #         )
+            #     else:
+            #         print(
+            #             "--Input files for the next calculation step will be",
+            #             f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
+            #             sep=os.linesep,
+            #         )
+            logger.info(f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}...")
+            if finalrun:
+                logger.info(f"--This is the final {alparams.solver} calculation step for AL0")
+            else:
+                logger.info("--Input files for the next calculation step will be")
+                logger.info(f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}")
+
             for i in range(ndata):
                 energy, st = solver_output.get_results(
                     os.path.join(
@@ -192,16 +187,19 @@ def main_impl(params_root: MutableMapping):
                 comm.Barrier()
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
-                        print("-Writing ALloop.progress")
+                        # print("-Writing ALloop.progress")
+                        logger.info("-Writing ALloop.progress")
                         fi.write("AL0\n")
                         fi.flush()
                         os.fsync(fi.fileno())
                     now = datetime.datetime.now()
-                    print(
-                        "--Done. Please run abics_train next.",
-                        f"Exiting normally on {now}.\n",
-                        sep=os.linesep,
-                    )
+                    # print(
+                    #     "--Done. Please run abics_train next.",
+                    #     f"Exiting normally on {now}.\n",
+                    #     sep=os.linesep,
+                    # )
+                    logger.info("--Done. Please run abics_train next.")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
             else:
                 comm.Barrier()
@@ -211,27 +209,33 @@ def main_impl(params_root: MutableMapping):
                         fi.flush()
                         os.fsync(fi.fileno())
 
-                    print(
-                        f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput{runstep+1}.",
-                        "--See rundirs.txt for a full list of the directories.",
-                        sep=os.linesep,
-                    )
-                    print(
-                        "-Please perform the calculations in those directories before running abics_mlref again."
-                    )
+                    # print(
+                    #     f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput{runstep+1}.",
+                    #     "--See rundirs.txt for a full list of the directories.",
+                    #     sep=os.linesep,
+                    # )
+                    logger.info(f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput{runstep+1}.")
+                    logger.info("--See rundirs.txt for a full list of the directories.")
+                    # print(
+                    #     "-Please perform the calculations in those directories before running abics_mlref again."
+                    # )
+                    logger.info("-Please perform the calculations in those directories before running abics_mlref again.")
                     now = datetime.datetime.now()
-                    print(f"Exiting normally on {now}.\n")
+                    # print(f"Exiting normally on {now}.\n")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
         else:
             # "AL0" nor "MC0" does not exist:
             # this should be the first time running this script
             if myreplica == 0:
-                print(
-                    "-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(
-                        alparams.solver
-                    )
-                )
-                print("--Input files will be prepared in AL0/*/input*/baseinput0")
+                # print(
+                #     "-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(
+                #         alparams.solver
+                #     )
+                # )
+                logger.info("-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(alparams.solver))
+                # print("--Input files will be prepared in AL0/*/input*/baseinput0")
+                logger.info("--Input files will be prepared in AL0/*/input*/baseinput0")
 
             configparams = DFTConfigParams.from_dict(params_root["config"])
             config = defect_config(configparams)
@@ -241,7 +245,8 @@ def main_impl(params_root: MutableMapping):
 
             # Wait until the new directory is visible from all ranks
             if not exists_on_all_nodes(comm, "AL0"):
-                print("Failed to create AL0 directory.")
+                # print("Failed to create AL0 directory.")
+                logger.error("Failed to create AL0 directory.")
                 sys.exit(1)
 
             os.chdir("AL0")
@@ -267,16 +272,20 @@ def main_impl(params_root: MutableMapping):
                     fi.flush()
                     os.fsync(fi.fileno())
 
-                print(
-                    f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput0.",
-                    "--See rundirs.txt for a full list of the directories.",
-                    sep=os.linesep,
-                )
-                print(
-                    "--Please perform the calculations in those directories before running abics_mlref again."
-                )
+                # print(
+                #     f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput0.",
+                #     "--See rundirs.txt for a full list of the directories.",
+                #     sep=os.linesep,
+                # )
+                logger.info(f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput0.")
+                logger.info("--See rundirs.txt for a full list of the directories.")
+                # print(
+                #     "--Please perform the calculations in those directories before running abics_mlref again."
+                # )
+                logger.info("--Please perform the calculations in those directories before running abics_mlref again.")
                 now = datetime.datetime.now()
-                print(f"Exiting normally on {now}.\n")
+                # print(f"Exiting normally on {now}.\n")
+                logger.info(f"Exiting normally on {now}.\n")
 
                 sys.exit(0)
 
@@ -293,11 +302,16 @@ def main_impl(params_root: MutableMapping):
         with open("ALloop.progress", "r") as fi:
             last_li = fi.readlines()[-1].strip()
         if last_li != MCdirname:
-            print("The last action:")
-            print(f"  expected: {MCdirname}")
-            print(f"  actual:   {last_li}")
-            print("You shouldn't run activelearn now.")
-            print("Either train (abics_train) or MC (abics_sampling) first.")
+            # print("The last action:")
+            # print(f"  expected: {MCdirname}")
+            # print(f"  actual:   {last_li}")
+            # print("You shouldn't run activelearn now.")
+            # print("Either train (abics_train) or MC (abics_sampling) first.")
+            logger.error("The last action:")
+            logger.error(f"  expected: {MCdirname}")
+            logger.error(f"  actual:   {last_li}")
+            logger.error("You shouldn't run activelearn now.")
+            logger.error("Either train (abics_train) or MC (abics_sampling) first.")
             sys.exit(1)
         obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
         energy_ref = obs[:, 0]
@@ -333,20 +347,26 @@ def main_impl(params_root: MutableMapping):
                 finalrun = False
                 solver_input.from_directory(alparams.base_input_dir[runstep + 1])
 
-            if myreplica == 0:
-                print(
-                    f"-Parsing {alparams.solver} results in AL{nextMC_index}/*/input*/baseinput{runstep}..."
-                )
-                if finalrun:
-                    print(
-                        f"--This is the final {alparams.solver} calculation step for AL{nextMC_index}"
-                    )
-                else:
-                    print(
-                        "--Input files for the next calculation step will be",
-                        f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
-                        sep=os.linesep,
-                    )
+            # if myreplica == 0:
+            #     print(
+            #         f"-Parsing {alparams.solver} results in AL{nextMC_index}/*/input*/baseinput{runstep}..."
+            #     )
+            #     if finalrun:
+            #         print(
+            #             f"--This is the final {alparams.solver} calculation step for AL{nextMC_index}"
+            #         )
+            #     else:
+            #         print(
+            #             "--Input files for the next calculation step will be",
+            #             f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
+            #             sep=os.linesep,
+            #         )
+            logger.info(f"-Parsing {alparams.solver} results in AL{nextMC_index}/*/input*/baseinput{runstep}...")
+            if finalrun:
+                logger.info(f"--This is the final {alparams.solver} calculation step for AL{nextMC_index}")
+            else:
+                logger.info("--Input files for the next calculation step will be")
+                logger.info(f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}")
 
             energy_corrlist = []
             relax_max = []
@@ -423,16 +443,19 @@ def main_impl(params_root: MutableMapping):
                 comm.Barrier()
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
-                        print("-Writing ALloop.progress")
+                        # print("-Writing ALloop.progress")
+                        logger.info("-Writing ALloop.progress")
                         fi.write("AL{}\n".format(ALstep))
                         fi.flush()
                         os.fsync(fi.fileno())
                     now = datetime.datetime.now()
-                    print(
-                        "--Done. Please run abics_train next.",
-                        f"Exiting normally on {now}.\n",
-                        sep=os.linesep,
-                    )
+                    # print(
+                    #     "--Done. Please run abics_train next.",
+                    #     f"Exiting normally on {now}.\n",
+                    #     sep=os.linesep,
+                    # )
+                    logger.info("--Done. Please run abics_train next.")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
             else:
                 comm.Barrier()
@@ -443,24 +466,30 @@ def main_impl(params_root: MutableMapping):
                         fi.write(str(runstep) + "\n")
                         fi.flush()
                         os.fsync(fi.fileno())
-                    print(
-                        f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput{runstep+1}.",
-                        "--See rundirs.txt for a full list of the directories.",
-                        sep=os.linesep,
-                    )
-                    print(
-                        "--Please perform the calculations in those directories before running abics_mlref again."
-                    )
+                    # print(
+                    #     f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput{runstep+1}.",
+                    #     "--See rundirs.txt for a full list of the directories.",
+                    #     sep=os.linesep,
+                    # )
+                    logger.info(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput{runstep+1}.")
+                    logger.info("--See rundirs.txt for a full list of the directories.")
+                    # print(
+                    #     "--Please perform the calculations in those directories before running abics_mlref again."
+                    # )
+                    logger.info("--Please perform the calculations in those directories before running abics_mlref again.")
                     now = datetime.datetime.now()
-                    print(f"Exiting normally on {now}.\n")
+                    # print(f"Exiting normally on {now}.\n")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
 
         else:  # Create first input for this AL step
-            if myreplica == 0:
-                print(f"-This is the first run for AL{nextMC_index}")
-                print(
-                    f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input"
-                )
+            # if myreplica == 0:
+            #     print(f"-This is the first run for AL{nextMC_index}")
+            #     print(
+            #         f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input"
+            #     )
+            logger.info(f"-This is the first run for AL{nextMC_index}")
+            logger.info(f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input")
             os.makedirs(ALdir, exist_ok=False)
             solver_input.from_directory(alparams.base_input_dir[0])
             os.chdir(ALdir)
@@ -497,16 +526,20 @@ def main_impl(params_root: MutableMapping):
                     fi.write("\n")
                     fi.flush()
                     os.fsync(fi.fileno())
-                print(
-                    f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.",
-                    "--See rundirs.txt for a full list of the directories.",
-                    sep=os.linesep,
-                )
-                print(
-                    "--Please perform the calculations in those directories before running abics_mlref again."
-                )
+                # print(
+                #     f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.",
+                #     "--See rundirs.txt for a full list of the directories.",
+                #     sep=os.linesep,
+                # )
+                logger.info(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.")
+                logger.info("--See rundirs.txt for a full list of the directories.")
+                # print(
+                #     "--Please perform the calculations in those directories before running abics_mlref again."
+                # )
+                logger.info("--Please perform the calculations in those directories before running abics_mlref again.")
                 now = datetime.datetime.now()
-                print(f"Exiting normally on {now}.\n")
+                # print(f"Exiting normally on {now}.\n")
+                logger.info(f"Exiting normally on {now}.\n")
             sys.exit(0)
 
 
@@ -514,12 +547,14 @@ def main():
     import toml
 
     now = datetime.datetime.now()
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        print(f"Running abics_mlref (abICS v{__version__}) on {now}")
+    # if MPI.COMM_WORLD.Get_rank() == 0:
+    #     print(f"Running abics_mlref (abICS v{__version__}) on {now}")
+    logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
 
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        print(f"-Reading input from: {tomlfile}")
+    # if MPI.COMM_WORLD.Get_rank() == 0:
+    #     print(f"-Reading input from: {tomlfile}")
+    logger.info(f"-Reading input from: {tomlfile}")
     params_root = toml.load(tomlfile)
     main_impl(params_root)
 
