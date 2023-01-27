@@ -57,7 +57,7 @@ class DefaultObserver(ObserverBase):
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
         if "base_structure" in params:
             base_structure = Structure.from_file(params["base_structure"])
-            ignored_species = params.get("ignore_species", [])
+            ignored_species = params.get("ignored_species", [])
             if isinstance(ignored_species, str):
                 ignored_species = [ignored_species]
             base_structure.remove_species(ignored_species)
