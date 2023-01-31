@@ -256,7 +256,7 @@ class AenetSolver(SolverBase):
 
             """
             # Read results from files in output_dir and calculate values
-            Phys = namedtuple("PhysVaules", ("energy", "structure"))
+            Phys = namedtuple("PhysValues", ("energy", "structure"))
             with open(os.path.join(output_dir, "structure.xsf")) as f:
                 structure = from_XSF(f.read())
             with open(os.path.join(output_dir, "stdout")) as f:

@@ -103,12 +103,14 @@ class ObserverBase:
     Lreload: bool
     params: dict
     lprintcount: int
+    names: list[str]
 
     def __init__(self, comm: (None|MPI.Comm) = None, Lreload: bool = False, params: dict = {}):
         self.comm = comm
         self.lprintcount = 0
         self.Lreload = Lreload
         self.params = params
+        self.names = ["energy"]
 
     def obs_info(self, calc_state: "MCAlgorithm") -> ObsInfo:
         """
@@ -149,7 +151,7 @@ class ObserverBase:
         calc_state.energy: tuple
             (Energy)
         """
-        return calc_state.energy
+        return (calc_state.energy,)
 
     def savefunc(self, calc_state: "MCAlgorithm") -> tuple[float, ...]:
         """returns values of observables, which will be not printed in observe method.

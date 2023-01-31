@@ -27,6 +27,35 @@ from abics.util import expand_path
 from abics.mc import ObserverBase, MCAlgorithm
 
 
+def similarity(
+    structure: Structure,
+    references: dict[str, Structure],
+    matcher: StructureMatcher,
+):
+    """
+    Arguments
+    =========
+
+    structure: Structure
+    references: dict[str, Structure]
+        Structure for each element (key) in reference structure
+    matcher: StructureMatcher
+
+    """
+    matched = 0
+    nsites = 0
+    for sp, reference in references.items():
+        sites = matcher.get_mapping(structure, reference)
+        if sites is None:
+            raise RuntimeError("structure does not match with reference structure")
+        species = [str(sp) for sp in structure.species]
+        for i in sites:
+            if species[i] == sp:
+                matched += 1
+        nsites += len(sites)
+    return matched / nsites
+
+
 class DefaultObserver(ObserverBase):
     """
     Default observer.
@@ -36,6 +65,8 @@ class DefaultObserver(ObserverBase):
     minE : float
         Minimum of energy
     """
+
+    references: dict[str, Structure] | None
 
     def __init__(self, comm, Lreload=False, params={}):
         """
@@ -55,18 +86,18 @@ class DefaultObserver(ObserverBase):
                 self.minE = float(f.readlines()[-1])
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
-        if "base_structure" in params:
-            base_structure = Structure.from_file(params["base_structure"])
+        if "reference_structure" in params:
+            reference = Structure.from_file(params["reference_structure"])
             ignored_species = params.get("ignored_species", [])
             if isinstance(ignored_species, str):
                 ignored_species = [ignored_species]
-            base_structure.remove_species(ignored_species)
-            sp_set = {str(sp) for sp in base_structure.species}
-            self.base_structures = {}
+            reference.remove_species(ignored_species)
+            sp_set = {str(sp) for sp in reference.species}
+            self.references = {}
             for sp in sp_set:
-                bs = base_structure.copy()
+                bs = reference.copy()
                 bs.remove_species(sp_set - {sp})
-                self.base_structures[sp] = bs
+                self.references[sp] = bs
             self.matcher = StructureMatcher(
                 ltol=0.1,
                 primitive_cell=False,
@@ -74,33 +105,26 @@ class DefaultObserver(ObserverBase):
                 comparator=FrameworkComparator(),
                 ignored_species=ignored_species,
             )
+            self.names = ["energy", "similarity"]
         else:
-            self.base_structures = None
+            self.references = None
 
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
+        assert calc_state.config is not None
         structure: Structure = calc_state.config.structure_norel
         if calc_state.energy < self.minE:
             self.minE = calc_state.energy
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             structure.to(fmt="POSCAR", filename="minE.vasp")
-        if self.base_structures is None:
+        if self.references is None:
             return (calc_state.energy,)
         else:
-            matched = 0
-            nsites = 0
-            for sp, base_structure in self.base_structures.items():
-                sites = self.matcher.get_mapping(structure, base_structure)
-                if sites is None:
-                    raise RuntimeError()
-                species = [str(sp) for sp in structure.species]
-                for i in sites:
-                    if species[i] == sp:
-                        matched += 1
-                nsites += len(sites)
-            return (calc_state.energy, matched / nsites)
+            sim = similarity(structure, self.references, self.matcher)
+            return (calc_state.energy, sim)
 
     def writefile(self, calc_state: MCAlgorithm) -> None:
+        assert calc_state.config is not None
         calc_state.config.structure.to(
             fmt="POSCAR", filename="structure." + str(self.lprintcount) + ".vasp"
         )
@@ -122,7 +146,7 @@ class EnsembleErrorObserver(DefaultObserver):
         Lreload: bool
             Reload or not
         """
-        super(EnsembleErrorObserver, self).__init__(comm, Lreload)
+        super().__init__(comm, Lreload)
         self.calculators = energy_calculators
         self.comm = comm
 

@@ -297,6 +297,9 @@ class TemperatureRX_MPI(ParallelMC):
         obs_list: list
             Observation list
         """
+
+        self.obsnames = observer.names
+
         if subdirs:
             try:
                 os.mkdir(str(self.rank))
@@ -447,6 +450,14 @@ class TemperatureRX_MPI(ParallelMC):
         if self.rank == 0:
             ntype = obs.shape[0]
             with open("result.dat", "w") as f:
+                f.write("# $1: temperature\n")
+                for i, oname in enumerate(self.obsnames):
+                    f.write(f"# ${1+6*i+1}: <{oname}>\n")
+                    f.write(f"# ${1+6*i+2}: ERROR of <{oname}>\n")
+                    f.write(f"# ${1+6*i+3}: <{oname}^2>\n")
+                    f.write(f"# ${1+6*i+4}: ERROR of <{oname}^2>\n")
+                    f.write(f"# ${1+6*i+5}: <{oname}^2> - <{oname}>^2\n")
+                    f.write(f"# ${1+6*i+6}: ERROR of <{oname}^2> - <{oname}>^2\n")
                 for iT in range(nT):
                     f.write(str(self.kTs[iT]))
                     for iobs in range(nobs):
@@ -454,6 +465,11 @@ class TemperatureRX_MPI(ParallelMC):
                             f.write(f" {obs_all[iT, itype, iobs]}")
                     f.write("\n")
             with open("logZ.dat", "w") as f:
+                f.write("# $1: temperature\n")
+                f.write("# $2: logZ\n")
+                f.write("# $3: ERROR of log(Z)\n")
+                f.write("# $4: log(Z/Z')\n")
+                f.write("# $5: ERROR of log(Z/Z')\n")
                 F = 0.0
                 dF = 0.0
                 if self.kTs[0] <= self.kTs[-1]:
