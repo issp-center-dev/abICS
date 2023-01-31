@@ -19,14 +19,12 @@ from typing import MutableMapping
 import sys
 import datetime
 
-from mpi4py import MPI
 import toml
 
 from abics import __version__
 
 import logging
 import abics.loggers as loggers
-from pathlib import Path
 
 loggers.set_log_handles(app_name="sampling", level=logging.INFO, mpi_log="master")
 logger = logging.getLogger("main")
@@ -43,14 +41,9 @@ def main_impl(params: MutableMapping):
 
 def main():
     now = datetime.datetime.now()
-    
-    # if MPI.COMM_WORLD.Get_rank() == 0:
-    #     print(f"Running abics_sampling (abICS v{__version__}) on {now}")
     logger.info(f"Running abics_sampling (abICS v{__version__}) on {now}")
 
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    # if MPI.COMM_WORLD.Get_rank() == 0:
-    #     print("-Reading input from: {}".format(tomlfile))
     logger.info("-Reading input from: {}".format(tomlfile))
     params = toml.load(tomlfile)
     main_impl(params)
