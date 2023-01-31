@@ -66,10 +66,6 @@ def main_potts(params_root: MutableMapping):
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
 
-        # if comm.Get_rank() == 0:
-        #     print(f"-Running RXMC calculation with {nreplicas} replicas")
-        #     print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
-        #     sys.stdout.flush()
         logger.info(f"-Running RXMC calculation with {nreplicas} replicas")
         logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
 
@@ -77,13 +73,8 @@ def main_potts(params_root: MutableMapping):
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
         if Lreload:
-            # if comm.Get_rank() == 0:
-            #     print("-Reloading from previous calculation")
             logger.info("-Reloading from previous calculation")
             RXcalc.reload()
-        # if comm.Get_rank() == 0:
-        #     print("-Starting RXMC calculation")
-        #     sys.stdout.flush()
         logger.info("-Starting RXMC calculation")
         obs = RXcalc.run(
             nsteps,
@@ -117,10 +108,6 @@ def main_potts(params_root: MutableMapping):
         sample_frequency = pamcparams.sample_frequency
         print_frequency = pamcparams.print_frequency
 
-        # if comm.Get_rank() == 0:
-        #     print(f"-Running PAMC calculation with {nreplicas} replicas")
-        #     print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
-        #     sys.stdout.flush()
         logger.info(f"-Running PAMC calculation with {nreplicas} replicas")
         logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
 
@@ -128,13 +115,8 @@ def main_potts(params_root: MutableMapping):
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
         if Lreload:
-            # if comm.Get_rank() == 0:
-            #     print("-Reloading from previous calculation")
             logger.info("-Reloading from previous calculation")
             calc.reload()
-        # if comm.Get_rank() == 0:
-        #     print("-Starting PAMC calculation")
-        #     sys.stdout.flush()
         logger.info("-Starting PAMC calculation")
         obs = calc.run(
             nsteps,
@@ -157,9 +139,6 @@ def main_potts(params_root: MutableMapping):
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-        # if comm.Get_rank() == 0:
-        #     print(f"-Running parallel random sampling")
-        #     sys.stdout.flush()
         logger.info(f"-Running parallel random sampling")
         calc = EmbarrassinglyParallelSampling(
             comm, RandomSampling, model, configs, write_node=write_node
@@ -192,9 +171,6 @@ def main_potts(params_root: MutableMapping):
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-        # if comm.Get_rank() == 0:
-        #     print(f"-Running parallel MC sampling")
-        #     sys.stdout.flush()
         logger.info(f"-Running parallel MC sampling")
         calc = EmbarrassinglyParallelSampling(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
@@ -210,15 +186,8 @@ def main_potts(params_root: MutableMapping):
             subdirs=True,
         )
     else:
-        # print("Unknown sampler. Exiting...")
         logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
 
-    # if comm.Get_rank() == 0:
-    #     print("--Sampling completed sucessfully.")
     logger.info("--Sampling completed sucessfully.")
-
-    # if comm.Get_rank() == 0:
-    #     now = datetime.datetime.now()
-    #     print(f"Exiting normally on {now}\n")
     logger.info("Exiting normally on {}\n".format(datetime.datetime.now()))

@@ -20,7 +20,6 @@ from typing import MutableMapping, Any
 import sys, datetime
 
 import os, sys
-import threading
 import itertools
 
 import numpy as np
@@ -31,7 +30,6 @@ from abics import __version__
 from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
 from abics.applications.latgas_abinitio_interface import aenet_trainer
 from abics.applications.latgas_abinitio_interface import map2perflat
-from abics.applications.latgas_abinitio_interface.naive_matcher import naive_mapping
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -39,7 +37,6 @@ from abics.applications.latgas_abinitio_interface.defect import (
 
 import logging
 import abics.loggers as loggers
-from pathlib import Path
 
 loggers.set_log_handles(app_name="train", level=logging.INFO)
 logger = logging.getLogger("main")
@@ -47,7 +44,6 @@ logger = logging.getLogger("main")
 
 def main_impl(params_root: MutableMapping):
     if not os.path.exists("ALloop.progress"):
-        # print("abics_mlref has not run yet.")
         logger.error("abics_mlref has not run yet.")
         sys.exit(1)
     ALdirs = []
@@ -59,8 +55,6 @@ def main_impl(params_root: MutableMapping):
                 ALdirs.append(line)
         last_li = lines[-1].strip()
     if not last_li.startswith("AL"):
-        # print("You shouldn't run train now.")
-        # print("Either abics_sampling or abics_mlref first.")
         logger.error("You shouldn't run train now.")
         logger.error("Either abics_sampling or abics_mlref first.")
         sys.exit(1)
@@ -81,7 +75,6 @@ def main_impl(params_root: MutableMapping):
     dummy_sts = {sp: config.dummy_structure_sp(sp) for sp in species}
 
     if trainer_type != "aenet":
-        # print("Unknown trainer: ", trainer_type)
         logger.error("Unknown trainer: ", trainer_type)
         sys.exit(1)
 
@@ -89,10 +82,8 @@ def main_impl(params_root: MutableMapping):
     structures = []
     energies = []
 
-
-    # print("-Mapping relaxed structures in AL* to on-lattice model...")
-    # sys.stdout.flush()
     logger.info("-Mapping relaxed structures in AL* to on-lattice model...")
+
     # val_map is a list of list [[sp0, vac0], [sp1, vac1], ...]
     # if vac_map:
     #    vac_map = {specie: vacancy for specie, vacancy in vac_map}
@@ -100,7 +91,6 @@ def main_impl(params_root: MutableMapping):
     #    vac_map = {}
 
     # we first group species that share sublattices together
-
     G = nx.Graph()
     G.add_nodes_from(species)
     for sublattice in config.defect_sublattices:
@@ -111,8 +101,6 @@ def main_impl(params_root: MutableMapping):
         for pair in itertools.combinations(sp_list, 2):
             G.add_edge(*pair)
     sp_groups = nx.connected_components(G)
-    # print(list(sp_groups))
-    # sys.exit(0)
     dummy_sts_share : list[tuple[Structure, list]] = []
     for c in nx.connected_components(G):
         # merge dummy structures for species that share sublattices
@@ -126,9 +114,6 @@ def main_impl(params_root: MutableMapping):
         )
         st_tmp.merge_sites(mode="delete")
         dummy_sts_share.append((st_tmp, sps))
-
-    # for i,st in enumerate(dummy_sts_share):
-    #    st.to(fmt="POSCAR", filename="{}.dummy.vasp".format(i))
 
     for dir in ALdirs:
         rpl = 0
@@ -156,9 +141,6 @@ def main_impl(params_root: MutableMapping):
                     st_tmp.remove_species(["X"])
                     mapped_sts.append(st_tmp)
                     if num_sp != len(st_tmp):
-                        # print(
-                        #     f"--mapping failed for structure {step_id} in replica {rpl}"
-                        # )
                         logger.info(f"--mapping failed for structure {step_id} in replica {rpl}")
                         mapping_success = False
 
@@ -172,8 +154,6 @@ def main_impl(params_root: MutableMapping):
                     energies.append(energy)
             rpl += 1
             os.chdir(rootdir)
-    # print("--Finished mapping")
-    # sys.stdout.flush()
     logger.info("--Finished mapping")
     
     generate_input_dirs = []
@@ -182,9 +162,6 @@ def main_impl(params_root: MutableMapping):
 
     if dftparams.ensemble:
         if len(trainer_input_dirs) != len(base_input_dir):
-            # print(
-            #     "You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP"
-            # )
             logger.error("You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP")
             sys.exit(1)
     for d in trainer_input_dirs:
@@ -211,52 +188,40 @@ def main_impl(params_root: MutableMapping):
 
     trainers[0].prepare()
     # We use threads to parallelize generate.x over ensemble members
-    """threads = []
+    # threads = []
+    # for i, trainer in enumerate(trainers):
+    #     threads.append(
+    #         threading.Thread(
+    #             target=trainer.generate(generate_dir="generate{}".format(i))
+    #             )
+    #         )
+    #     threads[-1].start()
+    # for t in threads:
+    #     t.join()
+
     for i, trainer in enumerate(trainers):
-        threads.append(
-            threading.Thread(
-                target=trainer.generate(generate_dir="generate{}".format(i))
-                )
-            )
-        threads[-1].start()
-    for t in threads:
-        t.join()
-    """
-    for i, trainer in enumerate(trainers):
-        # print(f"-Running generate run in generate{i}")
-        # sys.stdout.flush()
         logger.info(f"-Running generate run in generate{i}")
         trainer.generate_run(generate_dir="generate{}".format(i))
 
     for trainer in trainers:
         trainer.generate_wait()
-    # print(f"--Finished generate run(s)")
     logger.info(f"--Finished generate run(s)")
     
     # We use MPI version of train.x so no need to write parallel code here
     for i, trainer in enumerate(trainers):
-        # print(f"-Training run in train{i}")
-        # sys.stdout.flush()
         logger.info(f"-Training run in train{i}")
         trainer.train(train_dir="train{}".format(i))
-        # print(f"--Training run finished in train{i}")
-        # print(f"-Preparing NN model for abics_sampling in {base_input_dir[i]}")
-        # sys.stdout.flush()
         logger.info(f"--Training run finished in train{i}")
         logger.info(f"-Preparing NN model for abics_sampling in {base_input_dir[i]}")
         trainer.new_baseinput(base_input_dir[i])
-        # print(f"--Success.")
         logger.info(f"--Success.")
 
     with open("ALloop.progress", "a") as fi:
-        # print("-Writing ALloop.progress")
         logger.info("-Writing ALloop.progress")
         fi.write("train\n")
         fi.flush()
         os.fsync(fi.fileno())
     now = datetime.datetime.now()
-    # print("-Let's run abics_sampling next!")
-    # print(f"Exiting normally on {now}.\n")
     logger.info("-Let's run abics_sampling next!")
     logger.info(f"Exiting normally on {now}.\n")
 
@@ -264,10 +229,8 @@ def main_impl(params_root: MutableMapping):
 def main():
     import toml
     now = datetime.datetime.now()
-    # print(f"Running abics_train (abICS v{__version__}) on {now}")
     logger.info(f"Running abics_train (abICS v{__version__}) on {now}")
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    # print(f"-Reading input from: {tomlfile}")
     logger.info(f"-Reading input from: {tomlfile}")
     params_root = toml.load(tomlfile)
     main_impl(params_root)

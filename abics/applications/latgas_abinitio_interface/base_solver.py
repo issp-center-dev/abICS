@@ -141,7 +141,7 @@ class SolverBase(object):
                 The energy is measured in the units of eV
                 and coodinates is measured in the units of Angstrom.
             """
-            Phys = namedtuple("PhysVaules", ("energy", "structure"))
+            Phys = namedtuple("PhysValues", ("energy", "structure"))
             # Read results from files in workdir and calculate values
             phys = Phys(0.0, None)
             return phys
