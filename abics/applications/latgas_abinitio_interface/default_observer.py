@@ -17,6 +17,9 @@
 from __future__ import annotations
 
 import os
+import sys
+import copy
+
 import numpy as np
 
 from pymatgen.core import Structure
@@ -25,6 +28,13 @@ from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkCompa
 from abics import __version__
 from abics.util import expand_path
 from abics.mc import ObserverBase, MCAlgorithm
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.run_base_mpi import (
+    Runner,
+    RunnerEnsemble,
+    RunnerMultistep,
+)
+from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 
 def similarity(
@@ -67,6 +77,7 @@ class DefaultObserver(ObserverBase):
     """
 
     references: dict[str, Structure] | None
+    calculators: list
 
     def __init__(self, comm, Lreload=False, params={}):
         """
@@ -109,19 +120,68 @@ class DefaultObserver(ObserverBase):
         else:
             self.references = None
 
+        params_solvers = params.get("solver", [])
+        self.calculators = []
+        for params_solver in params_solvers:
+            dft_params = DFTParams.from_dict(params_solver)
+            solver = SolverBase.create(params_solver["type"], dft_params)
+            obsname = params_solver["name"]
+            ensemble = params_solver.get("ensemble", False)
+            nrunners = len(dft_params.base_input_dir)
+            if ensemble:
+                perturbs = [dft_params.perturb] * nrunners
+            else:
+                perturbs = [0.0] * nrunners
+                perturbs[0] = dft_params.perturb
+            runners = [
+                Runner(
+                    base_input_dir=bid,
+                    Solver=copy.deepcopy(solver),
+                    nprocs_per_solver=1,
+                    comm=comm,
+                    perturb=perturb,
+                    nthreads_per_proc=1,
+                    solver_run_scheme=dft_params.solver_run_scheme,
+                    use_tmpdir=dft_params.use_tmpdir,
+                )
+                for perturb, bid in zip(perturbs, dft_params.base_input_dir)
+            ]
+            self.calculators.append(
+                {"name": obsname, "runners": runners, "ensemble": ensemble}
+            )
+
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
         assert calc_state.config is not None
         structure: Structure = calc_state.config.structure_norel
-        if calc_state.energy < self.minE:
-            self.minE = calc_state.energy
+        energy = calc_state.energy
+        result = [energy]
+        if energy < self.minE:
+            self.minE = energy
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             structure.to(fmt="POSCAR", filename="minE.vasp")
-        if self.references is None:
-            return (calc_state.energy,)
-        else:
+        for calculator in self.calculators:
+            name = calculator["name"]
+            runners: list[Runner] = calculator["runners"]
+            nrunners = len(runners)
+            ensemble = calculator["ensemble"]
+            if ensemble:
+                for i, runner in enumerate(runners):
+                    output_dir = os.path.join(os.getcwd(), f"ensemble{i}")
+                    value, _ = runner.submit(structure, output_dir)
+                    result.append(value)
+            else:
+                new_st = structure
+                value = 0.0
+                for i, runner in enumerate(runners):
+                    output_dir = os.path.join(os.getcwd(), f"output{i}")
+                    value, new_st = runner.submit(new_st, output_dir)
+                result.append(value)
+
+        if self.references is not None:
             sim = similarity(structure, self.references, self.matcher)
-            return (calc_state.energy, sim)
+            result.append(sim)
+        return tuple(result)
 
     def writefile(self, calc_state: MCAlgorithm) -> None:
         assert calc_state.config is not None
