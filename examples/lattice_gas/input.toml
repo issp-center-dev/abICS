@@ -1,0 +1,23 @@
+[config]
+L = [ 5, 5 ]
+T = 300  # K
+Eads = -0.4  # eV
+J = 0.0 # eV
+
+[sampling]
+thermalization_steps = 100  # 1000
+sample_steps = 100  # 1000
+sample_frequency = 1
+print_frequency = 1
+
+p_start = 1.0e4
+p_end = 1.0e-4
+p_steps = 20
+p_scale = 'linear'
+# p_scale = 'log'
+
+conf_start = 'full'
+
+random_seed = 123456789
+
+
