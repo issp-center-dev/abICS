@@ -25,6 +25,9 @@ from .model_setup import Config, DefectSublattice, base_structure
 from abics.exception import InputError
 from abics.util import read_matrix
 
+import logging
+logger = logging.getLogger("main")
+
 
 class DFTConfigParams:
 
@@ -93,6 +96,20 @@ class DFTConfigParams:
             for ds in dconfig["defect_structure"]
         ]
 
+        if "chemical_potential" in dconfig:
+            self.chemical_potential = []
+            for entry in dconfig["chemical_potential"]:
+                species = entry.get("species", None)
+                mu = entry.get("mu", None)
+                if type is None or mu is None:
+                    raise InputError("invalid input for chemical potentials")
+                species = [species] if type(species) is str else species
+                self.chemical_potential.append({'species': species, 'mu': mu})
+        else:
+            self.chemical_potential = None
+
+        logger.debug("chemical_potential = {}".format(self.chemical_potential))
+
     @classmethod
     def from_dict(cls, d: MutableMapping) -> "DFTConfigParams":
         return cls(d)
@@ -134,11 +151,12 @@ def defect_config(cparam: DFTConfigParams) -> Config:
         spinel configure object
     """
     spinel_config = Config(
-        cparam.base_structure,
-        cparam.defect_sublattices,
-        cparam.num_defects,
-        cparam.supercell,
-        cparam.constraint_func,
+        base_structure = cparam.base_structure,
+        defect_sublattices = cparam.defect_sublattices,
+        num_defects = cparam.num_defects,
+        cellsize = cparam.supercell,
+        constraint_func = cparam.constraint_func,
+        chemical_potential = cparam.chemical_potential,
     )
     spinel_config.shuffle()
     return spinel_config

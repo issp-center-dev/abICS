@@ -16,10 +16,10 @@
 
 from __future__ import annotations
 
-from itertools import product
 import sys
 import os
 import copy
+import itertools
 
 import numpy as np
 import numpy.random as rand
@@ -35,6 +35,8 @@ from abics.exception import InputError
 from abics.mc import Model
 from abics.util import read_vector, read_matrix, read_tensor
 
+import logging
+logger = logging.getLogger("main")
 
 def gauss(x, x0, sigma):
     """
@@ -73,12 +75,7 @@ def match_id(lst, obj):
     -------
         The index list of lst which matches obj.
     """
-    mapping = []
-    for i in range(len(lst)):
-        if lst[i] == obj:
-            mapping.append(i)
-    return mapping
-
+    return [ idx for idx,v in enumerate(lst) if v == obj ]
 
 def nomatch_id(lst, obj):
     """
@@ -93,12 +90,7 @@ def nomatch_id(lst, obj):
     -------
         The index list of lst which does not match obj.
     """
-    mapping = []
-    for i in range(len(lst)):
-        if lst[i] != obj:
-            mapping.append(i)
-    return mapping
-
+    return [ idx for idx,v in enumerate(lst) if v != obj ]
 
 def match_latgas_group(latgas_rep, group):
     """
@@ -113,12 +105,7 @@ def match_latgas_group(latgas_rep, group):
     -------
         The index list of latgas_rep which matches group.name.
     """
-    mapping = []
-    for i in range(len(latgas_rep)):
-        if latgas_rep[i][0] == group.name:
-            mapping.append(i)
-    return mapping
-
+    return [ idx for idx,v in enumerate(latgas_rep) if v[0] == group.name ]
 
 def perturb_structure(st: Structure, distance: float) -> None:
     """
@@ -160,17 +147,21 @@ class DFTLatticeGas(Model):
         l_update_basestruct=False,
         check_ion_move=False,
         ion_move_tol=0.7,
+        enable_grandcanonical=False,
+        gc_ratio=0.3,
+        debug=False,
     ):
         """
 
         Parameters
         ----------
-        abinitio_run: runner object
+        abinitio_run:          runner object
             Runner (manager) of external solver program
-        save_history: boolean
-        l_update_basestruct: boolean
-        check_ion_move: boolean
-        ion_move_tol: float
+        save_history:          boolean
+        l_update_basestruct:   boolean
+        check_ion_move:        boolean
+        ion_move_tol:          float
+        enable_grandcanonical: boolean
         """
         self.matcher = StructureMatcher(primitive_cell=False, allow_subset=False)
         self.abinitio_run = abinitio_run
@@ -178,6 +169,14 @@ class DFTLatticeGas(Model):
         self.l_update_basestruct = l_update_basestruct
         self.check_ion_move = check_ion_move
         self.ion_move_tol = ion_move_tol
+        self.enable_grandcanonical = enable_grandcanonical
+        self.gc_ratio = gc_ratio
+        self.debug = debug
+
+        if self.debug:
+            logger.debug("debug mode enabled")
+        logger.debug("enable_grandcanonical = {}".format(self.enable_grandcanonical))
+        logger.debug("gc_ratio = {}".format(self.gc_ratio))
 
     def energy(self, config):
         """
@@ -196,15 +195,13 @@ class DFTLatticeGas(Model):
         config.structure.sort(key=lambda site: site.species_string)
         structure = config.structure
         if self.save_history:
-            calc_history = config.calc_history
             # Try to avoid doing dft calculation for the same structure.
             # Assuming that calc_history is a list of ComputedStructureEntries
-            for i in range(len(calc_history)):
-                if self.matcher.fit(structure, calc_history[i][1]):
-                    print("match found in history")
-                    sys.stdout.flush()
-                    config.structure = calc_history[i][2]
-                    return calc_history[i][0]
+            for hist in config.calc_history:
+                if self.matcher.fit(structure, hist[1]):
+                    logger.info("match found in history")
+                    config.structure = hist[2]
+                    return hist[0]
 
         structure0 = structure
         energy, structure = self.abinitio_run.submit(
@@ -213,20 +210,16 @@ class DFTLatticeGas(Model):
         if self.check_ion_move:
             relax_analy = analy.RelaxationAnalyzer(structure0, structure)
             data = relax_analy.get_percentage_bond_dist_changes()
-            breakflag = False
             for ion in self.check_ion_move:
-                if breakflag:
-                    break
                 for index in structure0.indices_from_symbol(ion):
-                    if breakflag:
+                    if any([v > self.ion_move_tol for v in data[index].values()]):
+                        energy = float("inf")
+                        logger.info("ion relaxed out of initial site")
                         break
-                    for i in data[index].keys():
-                        if data[index][i] > self.ion_move_tol:
-                            energy = float("inf")
-                            print("ion relaxed out of initial site")
-                            sys.stdout.flush()
-                            breakflag = True
-                            break
+                else:
+                    continue
+                break
+
         if self.save_history:
             config.calc_history.append((energy, structure0.copy(), structure.copy()))
             if len(config.calc_history) == 25:
@@ -234,6 +227,276 @@ class DFTLatticeGas(Model):
         config.structure_norel = structure0
         config.structure = structure
         return np.float64(energy)
+
+    def _try_rotate(self, defect_sublattice):
+        latgas_rep = defect_sublattice.latgas_rep
+
+        rot_ids = []
+        for group in defect_sublattice.groups_orr:
+            rot_ids += match_latgas_group(latgas_rep, group)
+
+        if len(rot_ids) == 0:
+            logger.debug("try_rotate: list empty. retry")
+            if self.debug:
+                return False, { 'mode': 'rotate', 'result': 'empty' }
+            else:
+                return False
+            
+        # Choose the site to rotate and rotate
+        rot_id = rand.choice(rot_ids)
+        rot_group = defect_sublattice.group_dict[latgas_rep[rot_id][0]]
+        rot_group_orr = latgas_rep[rot_id][1]
+
+        # Remove the current orientation from the list of possible orientations
+        or_choices = [
+            orx for orx in range(rot_group.orientations) if orx != rot_group_orr
+        ]
+        new_orr = rand.choice(or_choices)
+        latgas_rep[rot_id] = [rot_group.name, new_orr]
+
+        logger.debug("try_rotate: rotate id={}, group={}, from={}, to={}".format(
+            rot_id, rot_group.name, rot_group_orr, new_orr))
+
+        if self.debug:
+            return True, { 'mode': 'rotate', 'result': 'ok', 'rot_id': rot_id, 'rot_group': rot_group.name, 'from': rot_group_orr, 'to': new_orr }
+        else:
+            return True
+
+    def _try_exchange(self, defect_sublattice):
+        latgas_rep = defect_sublattice.latgas_rep
+
+        # Exchange different groups between sites
+        ex1_group, ex2_group = rand.choice(
+            defect_sublattice.groups, 2, replace=False
+        )
+        ex1_idlist = match_latgas_group(latgas_rep, ex1_group)
+        ex2_idlist = match_latgas_group(latgas_rep, ex2_group)
+
+        if len(ex1_idlist) == 0 or len(ex2_idlist) == 0:
+            logger.debug("try_exchange: list empty {}({}), {}({}). retry".format(
+                ex1_group.name, len(ex1_idlist), ex2_group.name, len(ex2_idlist)))
+            if self.debug:
+                return False, { 'mode': 'exchange', 'result': 'empty' }
+            else:
+                return False
+            
+        ex1_id = rand.choice(ex1_idlist)
+        ex2_id = rand.choice(ex2_idlist)
+        latgas_rep[ex1_id], latgas_rep[ex2_id] = (
+            latgas_rep[ex2_id],
+            latgas_rep[ex1_id],
+        )
+
+        logger.debug("try_exchange: exchange {}({}) and {}({})".format(
+            ex1_id, ex1_group.name, ex2_id, ex2_group.name))
+            
+        if self.debug:
+            return True, { 'mode': 'exchange', 'result': 'ok', 'ex1_id': ex1_id, 'ex1_group': ex1_group.name, 'ex2_id': ex2_id, 'ex2_group': ex2_group.name }
+        else:
+            return True
+
+    def _try_add_remove(self, config, chem, do_add):
+        if do_add:
+            return self._try_add(config, chem)
+        else:
+            return self._try_remove(config, chem)
+
+    def _try_remove(self, config, chem):
+        # remove (a set of) particles
+        logger.debug("src:")
+        for sublat in config.defect_sublattices:
+            logger.debug("state = {}".format([s for s,t in sublat.latgas_rep]))
+
+        groups, mu = chem["species"], chem["mu"]
+        logger.debug("try_remove: groups={}, mu={}".format(groups,mu))
+
+        # find sublattices which each species belongs to
+        # sublats := [ (grp, [ sublat_id ]) ]
+        sublats = [ (grp, [ sublat_id
+                            for sublat_id, sublat in enumerate(config.defect_sublattices)
+                            if grp in sublat.group_dict.keys() ])
+                    for grp in groups ]
+
+        # sublattice, and indexes of group and vacancy in latgas_rep
+        # for each sublattice which each group belongs to
+        # rep_table := [ (grp, [ (sublat_id, rep_index) ]) ]
+        rep_table = []
+        for grp, sublat_ids in sublats:
+            tbl = []
+            for sublat_id in sublat_ids:
+                lat = config.defect_sublattices[sublat_id]
+                idxs = match_latgas_group(lat.latgas_rep, lat.group_dict[grp])
+                tbl += [ (sublat_id, idx) for idx in idxs ]
+            rep_table += [(grp, tbl)]
+        logger.debug("try_remove: rep_table={}".format(rep_table))
+
+        # check if there are any choice
+        is_unremovable = any([len(tbl) == 0 for grp, tbl in rep_table])
+        if is_unremovable:
+            logger.debug("try_remove: there is no choice")
+            if self.debug:
+                return False, 0.0, { 'mode': 'remove', 'result': 'nochoice' }
+            else:
+                return False, 0.0
+
+        # choose sublattice and latgas_rep index
+        # for each species and vacancy associated with the species
+        choice = []
+        for grp, tbl in rep_table:
+            sublat_id, idx = tbl[rand.choice(len(tbl))]
+            choice += [(grp, sublat_id, idx)]
+        logger.debug("try_remove: choice={}".format(choice))
+
+        # update config
+        for grp, sublat_id, idx in choice:
+            lat = config.defect_sublattices[sublat_id]
+            lat.latgas_rep[idx] = [lat.vac_group, 0]
+
+        mudN = mu * -1
+
+        logger.debug("dst:")
+        for sublat in config.defect_sublattices:
+            logger.debug("state = {}".format([s for s,t in sublat.latgas_rep]))
+
+        if self.debug:
+            return True, mudN, { 'mode': 'remove', 'result': 'ok', 'choice': choice }
+        else:
+            return True, mudN
+
+    def _try_add(self, config, chem):
+        # add (a set of) particles
+        logger.debug("src:")
+        for sublat in config.defect_sublattices:
+            logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
+
+        groups, mu = chem["species"], chem["mu"]
+        logger.debug("try_add: groups={}, mu={}".format(groups,mu))
+
+        # find sublattices which each species belongs to
+        # sublats := [ (grp, [ sublat_id ]) ]
+        sublats = [ (grp, [ sublat_id
+                            for sublat_id, sublat in enumerate(config.defect_sublattices)
+                            if grp in sublat.group_dict.keys() ])
+                    for grp in groups ]
+
+        # sublattice, and indexes of group and vacancy in latgas_rep
+        # for each sublattice which each group belongs to
+        # rep_table := [ (grp, [ (sublat_id, rep_index) ]) ]
+        vac_table = []
+        for grp, sublat_ids in sublats:
+            tbl = []
+            for sublat_id in sublat_ids:
+                lat = config.defect_sublattices[sublat_id]
+                idxs = match_latgas_group(lat.latgas_rep, lat.group_dict[lat.vac_group])
+                tbl += [ (sublat_id, idx) for idx in idxs ]
+            vac_table += [(grp, tbl)]
+        logger.debug("try_add: vac_table={}".format(vac_table))
+
+        # check if there are any choice
+        is_unaddable = any([len(tbl) == 0 for grp, tbl in vac_table])
+        if is_unaddable:
+            logger.debug("try_add: there is no choice")
+            if self.debug:
+                return False, 0.0, { 'mode': 'add', 'result': 'nochoice' }
+            else:
+                return False, 0.0
+
+        # number of species
+        nspecies = len(sublats)
+
+        # number of sublattices to which any of species belong to
+        nsublat = len(set(sum([ sublat_ids for grp,sublat_ids in sublats ], [])))
+
+        # sublattices of each species are disjoint or not
+        is_disjoint = all([ set(a[1]) & set(b[1]) == set() for a, b in itertools.combinations(sublats, 2) ])
+
+        logger.debug("try_add: nspecies={}, nsublat={}, is_disjoint={}".format(nspecies, nsublat, is_disjoint))
+
+        if nspecies == 1:
+            # there is only one species: no conflict
+            choice = []
+            for grp, tbl in vac_table:
+                sublat_id, idx = tbl[rand.choice(len(tbl))]
+                choice += [(grp, sublat_id, idx)]
+            logger.debug("try_add: nspecies=1 branch. choice={}".format(choice))
+
+        elif nsublat == 1:
+            # if there is one sublattice accommodating all species of concern,
+            # set of vacancies for each species is identical.
+
+            # assert identical
+            assert(all([ set(a[1]) == set(b[1]) for a,b in itertools.combinations(vac_table, 2) ]))
+
+            vac_list = vac_table[0][1]
+
+            if len(vac_list) < nspecies:
+                logger.debug("try_add: nsublat=1, there is no choice")
+                if self.debug:
+                    return False, 0.0, { 'mode': 'add', 'result': 'nochoice' }
+                else:
+                    return False, 0.0
+
+            ch = rand.choice(len(vac_list), nspecies, replace=False)
+            logger.debug(">>> {}".format(ch))
+            choice = [ (grp, *(vac_list[chidx])) for (grp,tbl),chidx in zip(vac_table, ch) ]
+            logger.debug("try_add: nsublat=1 branch. choice={}".format(choice))
+
+        elif is_disjoint:
+            # if sublattices of each species are disjoint, may choose independently
+            choice = []
+            for grp, tbl in vac_table:
+                sublat_id, idx = tbl[rand.choice(len(tbl))]
+                choice += [(grp, sublat_id, idx)]
+            logger.debug("try_add: is_disjoint branch. choice={}".format(choice))
+
+        else:
+            # general case. retry until consistent choice is made
+            retry = 0
+            max_retry = 5
+            while True:
+                # choose sublattice and latgas_rep index
+                # for each species and vacancy associated with the species
+                choice = []
+                for grp, tbl in vac_table:
+                    sublat_id, idx = tbl[rand.choice(len(tbl))]
+                    choice += [(grp, sublat_id, idx)]
+
+                # check consistency
+                is_dup = False
+                for a,b in itertools.combinations(choice, 2):
+                    if a[1] == b[1] and a[2] == b[2]:
+                        is_dup = True
+                        break
+                if is_dup == False:
+                    break
+
+                logger.debug("try_add: duplicated. retry. choice={}".format(choice))
+
+                retry += 1
+                if retry >= max_retry:
+                    logger.debug("try_add: no choice. quit")
+                    if self.debug:
+                        return False, 0.0, { 'mode': 'add', 'result': 'dup' }
+                    else:
+                        return False, 0.0
+            logger.debug("try_add: general branch. choice={}".format(choice))
+
+        # update config
+        for grp, sublat_id, idx in choice:
+            lat = config.defect_sublattices[sublat_id]
+            lat.latgas_rep[idx] = [grp, rand.choice(lat.group_dict[grp].orientations)]
+
+        mudN = mu * +1
+
+        logger.debug("dst:")
+        for sublat in config.defect_sublattices:
+            logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
+
+        if self.debug:
+            return True, mudN, { 'mode': 'add', 'result': 'ok', 'choice': choice }
+        else:
+            return True, mudN
+
 
     def trialstep(self, config, energy_now):
         """
@@ -253,60 +516,106 @@ class DFTLatticeGas(Model):
             Difference of energies
         """
 
+        logger.debug(">>> start trialstep")
+
+        for subl in config.defect_sublattices:
+            logger.debug("state = {}".format([ v[0] for v in subl.latgas_rep ]))
+        logger.debug("energy = {:16.12e}".format(energy_now))
+
         e0 = energy_now
+        dmuN = 0.0
+        
+        if self.enable_grandcanonical is True and config.chemical_potential is None:
+            raise InputError("chemical potential missing")
 
         # Back up structure and defect_sublattices
         structure0 = copy.deepcopy(config.structure)
         structure_norel0 = copy.deepcopy(config.structure_norel)
         defect_sublattices0 = copy.deepcopy(config.defect_sublattices)
 
+        nretry = 0
         while True:
             # for defect_sublattice in [rand.choice(config.defect_sublattices)]: #config.defect_sublattices:
-
-            defect_sublattice = rand.choice(config.defect_sublattices)
-            latgas_rep = defect_sublattice.latgas_rep
+            logger.debug("=== retry {}".format(nretry))
+            nretry += 1
             # print(latgas_rep)
 
-            # If there is more than one group on the defect_sublattice,
-            # we either change orientation of one group, or  exchange groups between sites
-            if len(defect_sublattice.groups) > 1:
-                random_divide = 0.5
-            else:
-                random_divide = 2.0
-            if defect_sublattice.groups_orr and rand.rand() < random_divide:
-                # Change orientation of one group with orientation attributes
-                # Let's first locate sites that have such groups
-                rot_ids = []
-                for group in defect_sublattice.groups_orr:
-                    rot_ids += match_latgas_group(latgas_rep, group)
-                # Choose the site to rotate and rotate
-                rot_id = rand.choice(rot_ids)
-                rot_group = defect_sublattice.group_dict[latgas_rep[rot_id][0]]
-                rot_group_orr = latgas_rep[rot_id][1]
-                # Remove the current orientation from the list of possible orientations
-                or_choices = [
-                    orx for orx in range(rot_group.orientations) if orx != rot_group_orr
-                ]
-                latgas_rep[rot_id] = [rot_group.name, rand.choice(or_choices)]
+            trial = True
+            trial_info = None
+
+            if not self.enable_grandcanonical or rand.rand() >= self.gc_ratio:
+                # canonical move
+
+                # If there is more than one group on the defect_sublattice,
+                # we either change orientation of one group, or  exchange groups between sites
+
+                defect_sublattice = rand.choice(config.defect_sublattices)
+                #latgas_rep = defect_sublattice.latgas_rep
+
+                if self.debug:
+                    for i, x in enumerate(config.defect_sublattices):
+                        if x == defect_sublattice:
+                            sublat_id = i
+                            break
+                    else:
+                        sublat_id = -1
+                        logger.error("sublattice id not found")
+
+                if len(defect_sublattice.groups) == 1:
+                    logger.debug("trialstep: try rotate only")
+                    if self.debug:
+                        trial, trial_info = self._try_rotate(defect_sublattice)
+                    else:
+                        trial = self._try_rotate(defect_sublattice)
+                elif not defect_sublattice.groups_orr:
+                    logger.debug("trialstep: try exchange only")
+                    if self.debug:
+                        trial, trial_info = self._try_exchange(defect_sublattice)
+                    else:
+                        trial = self._try_exchange(defect_sublattice)
+                else:
+                    if rand.rand() < 0.5:
+                        logger.debug("trialstep: try rotate")
+                        if self.debug:
+                            trial, trial_info = self._try_rotate(defect_sublattice)
+                        else:
+                            trial = self._try_rotate(defect_sublattice)
+                    else:
+                        logger.debug("trialstep: try exchange")
+                        if self.debug:
+                            trial, trial_info = self._try_exchange(defect_sublattice)
+                        else:
+                            trial = self._try_exchange(defect_sublattice)
+
+                if self.debug:
+                    trial_info['sublat_id'] = sublat_id
 
             else:
-                # Exchange different groups between sites
-                ex1_group, ex2_group = rand.choice(
-                    defect_sublattice.groups, 2, replace=False
-                )
-                ex1_id = rand.choice(match_latgas_group(latgas_rep, ex1_group))
-                ex2_id = rand.choice(match_latgas_group(latgas_rep, ex2_group))
-                latgas_rep[ex1_id], latgas_rep[ex2_id] = (
-                    latgas_rep[ex2_id],
-                    latgas_rep[ex1_id],
-                )
+                # grandcanonical move
+
+                # choose a species set
+                chem = rand.choice(config.chemical_potential)
+                do_add = rand.rand() < 0.5
+                logger.debug("trialstep: try grandcanonical move, chem={}, add={}".format(chem, do_add))
+                if self.debug:
+                    trial, dmuN, trial_info = self._try_add_remove(config, chem, do_add)
+                    trial_info['chem'] = chem
+                else:
+                    trial, dmuN = self._try_add_remove(config, chem, do_add)
+
+            if trial is not True:
+                # retry
+                continue
+            
             # print(latgas_rep)
             constraint_fulfilled = config.set_latgas()
             if constraint_fulfilled:
                 break
             else:
+                # restore from backup and retry
                 config.structure = copy.deepcopy(structure0)
                 config.defect_sublattices = copy.deepcopy(defect_sublattices0)
+                continue
 
         # do vasp calculation on structure
         e1 = self.energy(config)
@@ -326,7 +635,18 @@ class DFTLatticeGas(Model):
         else:
             dE = e1 - e0
 
-        return dconfig, dE
+        for subl in defect_sublattices:
+            logger.debug("state = {}".format([ v[0] for v in subl.latgas_rep ]))
+        logger.debug("energy = {:16.12f}".format(e1))
+
+        logger.debug("trialstep: dE={:16.12e}, dmuN={:.5e}".format(dE, dmuN))
+        logger.debug("<<< end trialstep")
+
+        if self.debug:
+            return dconfig, dE, trial_info
+        else:
+            return dconfig, dE
+        
 
     def newconfig(self, config, dconfig):
         """
@@ -436,7 +756,7 @@ class Group:
         self.magnetizations = (
             np.array(magnetizations) if magnetizations is not None else np.zeros(1)
         )
-        self.orientations = len(coords)
+        self.orientations = len(self.coords)
         if self.orientations == 0:
             self.orientations = 1
         self.natoms = len(species)
@@ -455,12 +775,8 @@ class DefectSublattice:
         """
         self.site_centers = np.array(site_centers)
         self.groups = groups
-        self.groups_orr = []
-        self.group_dict = {}
-        for group in groups:
-            if group.orientations > 1:
-                self.groups_orr.append(group)
-            self.group_dict[group.name] = group
+        self.groups_orr = [ group for group in groups if group.orientations > 1 ]
+        self.group_dict = { group.name: group for group in groups }
 
     @classmethod
     def from_dict(cls, d) -> "DefectSublattice":
@@ -614,6 +930,7 @@ class Config:
         cellsize=[1, 1, 1],
         constraint_func=bool,
         perfect_structure=None,
+        chemical_potential=None,
     ):
         """
 
@@ -632,6 +949,8 @@ class Config:
             when constraints are satisfied, by default bool
         perfect_structure : pymatgen.Structure, optional
             Strucure of all sites (union of base and defect), by default None
+        chemical_potential : dict
+            { tuple of species names: chemical potential }
         """
         try:
             num_defect_sublat = len(defect_sublattices)
@@ -678,7 +997,7 @@ class Config:
             )
             idx = 0
             for (idx, (i, j, k, l)) in enumerate(
-                product(
+                itertools.product(
                     range(cellsize[0]),
                     range(cellsize[1]),
                     range(cellsize[2]),
@@ -692,6 +1011,27 @@ class Config:
             defect_sublattice.site_centers_sc /= np.array(cellsize)
             num_sites += len(defect_sublattice.site_centers_sc)
 
+            # add vacancy
+            num_sites_sublat = len(defect_sublattice.site_centers_sc)
+            num_defects_sublat = 0
+            for group, num in num_defects[sublat_id].items():
+                num_defects_sublat += num
+            # check if vacancy group has already been defined
+            for grp in defect_sublattice.groups:
+                if len(grp.species) == 0:
+                    vac_name = grp.name
+                    break
+            else:
+                # otherwise, create a new group for vacancy
+                vac_name = '@'
+                vac_group = Group(name=vac_name, species=[])
+                defect_sublattice.groups.append(vac_group)
+                defect_sublattice.group_dict[vac_name] = vac_group
+            # append vacancy even if sites are full
+            nvac = num_sites_sublat - num_defects_sublat
+            num_defects[sublat_id][vac_name] = num_defects[sublat_id].get(vac_name, 0) + nvac
+            defect_sublattice.vac_group = vac_name
+
             # change cartesian coordinates to fractional
             for group in defect_sublattice.groups:
                 for i in range(group.orientations):
@@ -700,21 +1040,30 @@ class Config:
 
             # fill the lattice gas representation list
             latgas_rep = []
-            for group in num_defects[sublat_id].keys():
+            for group, num in num_defects[sublat_id].items():
                 latgas_rep.extend(
-                    [[group, 0] for i in range(num_defects[sublat_id][group])]
+                    [[group, 0] for i in range(num)]
                 )
-                ntot_defects += num_defects[sublat_id][group]
+                ntot_defects += num
             defect_sublattice.latgas_rep = latgas_rep
 
             sublat_id += 1
 
         self.defect_sublattices = defect_sublattices
 
+        # # table group.name to sublattice which the group belongs to
+        # self.sublattice_dict = {}
+        # for defect_sublattice in self.defect_sublattices:
+        #     for grp in defect_sublattice.groups:
+        #         self.sublattice_dict[grp.name] = self.sublattice_dict.get(grp.name, []) + [defect_sublattice]
+
         assert num_sites == ntot_defects
         constraint_fullfilled = self.set_latgas()
         if not constraint_fullfilled:
             self.shuffle()
+
+        # store chemical potential parameters
+        self.chemical_potential = chemical_potential
 
     def set_latgas(self, defect_sublattices=False):
         """
@@ -811,8 +1160,7 @@ class Config:
             for grp_name in groups:
                 group = defect_sublattice.group_dict[grp_name]
                 if group.natoms > 1:
-                    print("dummy_structure_sp does not support multi-atom groups")
-                    sys.exit(1)
+                    logger.info("dummy_structure_sp does not support multi-atom groups")
                 if group.natoms == 1:
                     species_sublattice.add(group.species[0])
             if species_in not in species_sublattice:

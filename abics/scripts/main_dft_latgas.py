@@ -59,10 +59,14 @@ import logging
 logger = logging.getLogger("main")
 
 def main_dft_latgas(params_root: MutableMapping):
-    dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
-    sampler_type = params_root["sampling"].get("sampler", "RXMC")
+    params_sampling = params_root.get("sampling", None)
+    if not params_sampling:
+        print("sampling section is missing in parameters")
+        sys.exit(1)
+    dftparams = DFTParams.from_dict(params_sampling["solver"])
+    sampler_type = params_sampling.get("sampler", "RXMC")
     if sampler_type == "RXMC":
-        rxparams = RXParams.from_dict(params_root["sampling"])
+        rxparams = RXParams.from_dict(params_sampling)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
 
@@ -89,7 +93,7 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
 
     elif sampler_type == "PAMC":
-        pamcparams = PAMCParams.from_dict(params_root["sampling"])
+        pamcparams = PAMCParams.from_dict(params_sampling)
         nreplicas = pamcparams.nreplicas
         nprocs_per_replica = pamcparams.nprocs_per_replica
 
@@ -117,7 +121,7 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
 
     elif sampler_type == "parallelRand":
-        rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
+        rxparams = ParallelRandomParams.from_dict(params_sampling)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
         nensemble = len(dftparams.base_input_dir)
@@ -132,7 +136,7 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"-Running parallel random sampling")
 
     elif sampler_type == "parallelMC":
-        rxparams = RXParams.from_dict(params_root["sampling"])
+        rxparams = RXParams.from_dict(params_sampling)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
 
@@ -204,7 +208,16 @@ def main_dft_latgas(params_root: MutableMapping):
                 solver_run_scheme=dftparams.solver_run_scheme,
                 use_tmpdir=dftparams.use_tmpdir,
             )
-    model = DFTLatticeGas(energy_calculator, save_history=False)
+
+    gc_flag  = params_sampling.get("enable_grandcanonical", False)
+    gc_ratio = params_sampling.get("gc_ratio", 0.3)
+
+    model = DFTLatticeGas(energy_calculator,
+                          save_history=False,
+                          enable_grandcanonical=gc_flag,
+                          gc_ratio=gc_ratio,
+    )
+
     logger.info("--Success.")
     logger.info("-Setting up the on-lattice model.")
     

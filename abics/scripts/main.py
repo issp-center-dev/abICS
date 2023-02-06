@@ -25,8 +25,10 @@ from abics import __version__
 
 import logging
 import abics.loggers as loggers
+# from pathlib import Path
 
 loggers.set_log_handles(app_name="sampling", level=logging.INFO, mpi_log="master")
+# loggers.set_log_handles(app_name="sampling", level=logging.INFO, log_path=Path("run.log"), mpi_log="collect")
 logger = logging.getLogger("main")
 
 def main_impl(params: MutableMapping):

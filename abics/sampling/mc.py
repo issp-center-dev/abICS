@@ -31,6 +31,9 @@ from abics import __version__
 from abics.observer import ObserverBase
 from abics.model import Model
 
+import logging
+logger = logging.getLogger("main")
+
 verylargeint = sys.maxsize
 
 def binning(x, nlevels: int):
@@ -175,12 +178,19 @@ class CanonicalMonteCarlo(MCAlgorithm):
             accepted = True
             if dE >= 0.0:
                 accept_probability = np.exp(-dE / self.kT)
-                accepted = rand.random() <= accept_probability
+                trial_rand = rand.random()
+                accepted = trial_rand <= accept_probability
             if accepted:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
                 self.naccepted += 1
             self.ntrials += 1
+
+            logging.debug("MCstep: dE/kT = {:e}".format(dE/self.kT))
+            if dE >= 0.0:
+                logging.debug("MCstep: prob  = {}".format(accept_probability))
+                logging.debug("MCstep: rand  = {}".format(trial_rand))
+            logging.debug("MCstep: {}".format("accepted" if accepted else "rejected"))
 
     def parameters(self):
         return [self.kT]
