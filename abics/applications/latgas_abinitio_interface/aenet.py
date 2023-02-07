@@ -14,6 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
+from __future__ import annotations
+
 from .base_solver import SolverBase
 from collections import namedtuple
 import numpy as np
@@ -29,7 +31,7 @@ Adapted from pymatgen.io.xcrysden distributed under the MIT License
 """
 
 
-def to_XSF(structure, write_force_zero=False):
+def to_XSF(structure: Structure, write_force_zero=False):
     """
     Returns a string with the structure in XSF format
     See http://www.xcrysden.org/doc/XSF.html
@@ -72,7 +74,7 @@ def to_XSF(structure, write_force_zero=False):
     return "\n".join(lines)
 
 
-def from_XSF(input_string):
+def from_XSF(input_string: str):
     """
     Initialize a `Structure` object from a string with data in XSF format.
 
@@ -129,7 +131,7 @@ class AenetSolver(SolverBase):
     This class defines the aenet solver.
     """
 
-    def __init__(self, path_to_solver, ignore_species=None, run_scheme="subprocess"):
+    def __init__(self, path_to_solver: os.PathLike, ignore_species=None, run_scheme="subprocess"):
         """
         Initialize the solver.
 
@@ -147,13 +149,13 @@ class AenetSolver(SolverBase):
         return "aenet"
 
     class Input(object):
-        def __init__(self, ignore_species, run_scheme="subprocess"):
+        def __init__(self, ignore_species : str | None, run_scheme="subprocess"):
             self.base_info = None
             self.pos_info = None
             self.ignore_species = ignore_species
             self.run_scheme = run_scheme
 
-        def from_directory(self, base_input_dir):
+        def from_directory(self, base_input_dir: os.PathLike):
             """
             Initialize information from files in base_input_dir.
 
@@ -167,7 +169,7 @@ class AenetSolver(SolverBase):
             self.base_info = os.path.abspath(base_input_dir)
             # self.pos_info = open('{}/structure.xsf'.format(base_input_dir), 'r').read()
 
-        def update_info_by_structure(self, structure):
+        def update_info_by_structure(self, structure: Structure):
             """
             Update information by atomic structure.
 
@@ -188,13 +190,13 @@ class AenetSolver(SolverBase):
             print("rerun not implemented. Something has gone wrong")
             sys.exit(1)
 
-        def write_input(self, output_dir):
+        def write_input(self, output_dir: os.PathLike):
             """
             Generate input files of the solver program.
 
             Parameters
             ----------
-            output_dir : str
+            output_dir : os.PathLike
                 Path to working directory.
             """
             # Write input files

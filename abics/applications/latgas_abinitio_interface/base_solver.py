@@ -184,7 +184,7 @@ class SolverBase(object):
     from .params import ALParams, DFTParams
 
     @classmethod
-    def create(cls, type_name, params: Union[ALParams, DFTParams]):
+    def create(cls, type_name, params: Union[ALParams, DFTParams]) -> "SolverBase":
         solver_table = {
             "VASPSolver":   [ "vasp" ],
             "QESolver":     [ "qe" ],
@@ -196,4 +196,4 @@ class SolverBase(object):
             if type_name in solver_table[subcls.__name__]:
                 return subcls.create(params)
         print("FATAL: base_solver.create: unknown solver type: type={}".format(type_name))
-        return None
+        raise RuntimeError()

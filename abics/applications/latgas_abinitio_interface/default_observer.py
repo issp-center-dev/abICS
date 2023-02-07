@@ -31,8 +31,6 @@ from abics.mc import ObserverBase, MCAlgorithm
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     Runner,
-    RunnerEnsemble,
-    RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
@@ -97,6 +95,42 @@ class DefaultObserver(ObserverBase):
                 self.minE = float(f.readlines()[-1])
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
+
+        self.names = ["energy"]
+
+        params_solvers = params.get("solver", [])
+        self.calculators = []
+        for params_solver in params_solvers:
+            dft_params = DFTParams.from_dict(params_solver)
+            solver = SolverBase.create(params_solver["type"], dft_params)
+            obsname = params_solver["name"]
+            ensemble = params_solver.get("ensemble", False)
+            nrunners = len(dft_params.base_input_dir)
+            if ensemble:
+                perturbs = [dft_params.perturb] * nrunners
+                for i in range(nrunners):
+                    self.names.append(f"[{obsname} {i}]")
+            else:
+                perturbs = [0.0] * nrunners
+                perturbs[0] = dft_params.perturb
+                self.names.append(obsname)
+            runners = [
+                Runner(
+                    base_input_dir=bid,
+                    Solver=copy.deepcopy(solver),
+                    nprocs_per_solver=1,
+                    comm=comm,
+                    perturb=perturb,
+                    nthreads_per_proc=1,
+                    solver_run_scheme=dft_params.solver_run_scheme,
+                    use_tmpdir=dft_params.use_tmpdir,
+                )
+                for perturb, bid in zip(perturbs, dft_params.base_input_dir)
+            ]
+            self.calculators.append(
+                {"name": obsname, "runners": runners, "ensemble": ensemble}
+            )
+
         if "reference_structure" in params:
             reference = Structure.from_file(params["reference_structure"])
             ignored_species = params.get("ignored_species", [])
@@ -119,36 +153,6 @@ class DefaultObserver(ObserverBase):
             self.names = ["energy", "similarity"]
         else:
             self.references = None
-
-        params_solvers = params.get("solver", [])
-        self.calculators = []
-        for params_solver in params_solvers:
-            dft_params = DFTParams.from_dict(params_solver)
-            solver = SolverBase.create(params_solver["type"], dft_params)
-            obsname = params_solver["name"]
-            ensemble = params_solver.get("ensemble", False)
-            nrunners = len(dft_params.base_input_dir)
-            if ensemble:
-                perturbs = [dft_params.perturb] * nrunners
-            else:
-                perturbs = [0.0] * nrunners
-                perturbs[0] = dft_params.perturb
-            runners = [
-                Runner(
-                    base_input_dir=bid,
-                    Solver=copy.deepcopy(solver),
-                    nprocs_per_solver=1,
-                    comm=comm,
-                    perturb=perturb,
-                    nthreads_per_proc=1,
-                    solver_run_scheme=dft_params.solver_run_scheme,
-                    use_tmpdir=dft_params.use_tmpdir,
-                )
-                for perturb, bid in zip(perturbs, dft_params.base_input_dir)
-            ]
-            self.calculators.append(
-                {"name": obsname, "runners": runners, "ensemble": ensemble}
-            )
 
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
         assert calc_state.config is not None

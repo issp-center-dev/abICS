@@ -24,8 +24,6 @@ import copy
 import numpy as np
 import numpy.random as rand
 
-# from mpi4py import MPI
-
 from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import pymatgen.analysis.structure_analyzer as analy

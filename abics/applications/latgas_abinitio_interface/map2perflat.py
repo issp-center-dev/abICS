@@ -1,5 +1,3 @@
-# from mpi4py import MPI
-
 from __future__ import annotations
 
 import numpy as np

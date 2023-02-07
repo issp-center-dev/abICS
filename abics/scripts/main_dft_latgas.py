@@ -33,7 +33,7 @@ from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
 from abics.sampling.pamc import PopulationAnnealing, PAMCParams
 from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, ParallelRandomParams
 
-from abics.applications.latgas_abinitio_interface import (
+from abics.applications.latgas_abinitio_interface.default_observer import (
     DefaultObserver,
     EnsembleParams,
     EnsembleErrorObserver,

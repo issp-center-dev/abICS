@@ -30,7 +30,6 @@ from abics.mc_mpi import (
     RefParams,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
-# from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
     perturb_structure,
 )

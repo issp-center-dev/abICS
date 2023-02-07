@@ -1,6 +1,11 @@
+from __future__ import annotations
+from typing import Sequence
+
 import numpy as np
 import os, pathlib, shutil, subprocess, shlex
 import time
+
+from pymatgen.core import Structure
 
 from abics.util import expand_cmd_path
 from abics.applications.latgas_abinitio_interface import aenet
@@ -8,13 +13,13 @@ from abics.applications.latgas_abinitio_interface import aenet
 class aenet_trainer:
     def __init__(
         self,
-        structures,
-        energies,
-        generate_inputdir,
-        train_inputdir,
-        predict_inputdir,
-        generate_exe,
-        train_exe,
+        structures: Sequence[Structure],
+        energies: Sequence[float],
+        generate_inputdir: os.PathLike,
+        train_inputdir: os.PathLike,
+        predict_inputdir: os.PathLike,
+        generate_exe: str,
+        train_exe: str,
     ):
         self.structures = structures
         self.energies = energies
