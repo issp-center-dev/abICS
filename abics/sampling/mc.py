@@ -171,23 +171,34 @@ class CanonicalMonteCarlo(MCAlgorithm):
     # @profile
     def MCstep(self, nsubsteps_in_step: int = 1):
         for istep in range(nsubsteps_in_step):
-            dconfig, dE = self.model.trialstep(self.config, self.energy)
+            dconfig, dE, *opt = self.model.trialstep(self.config, self.energy)
+
+            # ln weight factor
+            dW = opt[0] if len(opt) > 0 else 0.0
+
             # if self.energy == float("inf"):
             #    self.config = self.model.newconfig(self.config, dconfig)
             #    self.energy = dE
-            accepted = True
-            if dE >= 0.0:
-                accept_probability = np.exp(-dE / self.kT)
+
+            dG = dE/self.kT - dW
+
+            if dG >= 0.0:
+                accept_probability = np.exp(-dG)
                 trial_rand = rand.random()
                 accepted = trial_rand <= accept_probability
+            else:
+                accepted = True
+
             if accepted:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
                 self.naccepted += 1
+
             self.ntrials += 1
 
             logging.debug("MCstep: dE/kT = {:e}".format(dE/self.kT))
-            if dE >= 0.0:
+            logging.debug("MCstep: dG    = {:e}".format(dG))
+            if dG >= 0.0:
                 logging.debug("MCstep: prob  = {}".format(accept_probability))
                 logging.debug("MCstep: rand  = {}".format(trial_rand))
             logging.debug("MCstep: {}".format("accepted" if accepted else "rejected"))

@@ -23,6 +23,7 @@ import itertools
 
 import numpy as np
 import numpy.random as rand
+from scipy.special import gammaln
 
 # from mpi4py import MPI
 
@@ -226,7 +227,37 @@ class DFTLatticeGas(Model):
                 del config.calc_history[0:5]
         config.structure_norel = structure0
         config.structure = structure
+
+        # grand potential
+        if self.enable_grandcanonical:
+            energy -= self._calc_muN_term(config)
+
         return np.float64(energy)
+
+    def _calc_num_species(self, config, species):
+        n = 0
+        for sublat in config.defect_sublattices:
+            n += len([ i for i,v in enumerate(sublat.latgas_rep) if v[0] == species ])
+        return n
+
+    def _calc_muN_term(self, config):
+        muN = 0.0
+        for chem in config.chemical_potential:
+            sps = chem['species']
+            mu = chem['mu']
+            for sp in sps:
+                muN += mu * self._calc_num_species(config, sp)
+        return muN
+
+    def _calc_weight(self, config):
+        w = 0.0
+        for sublat in config.defect_sublattices:
+            nsite = len(sublat.latgas_rep)
+            w += gammaln(nsite+1)
+            for grp in sublat.groups:
+                ngrp = len(match_latgas_group(sublat.latgas_rep, grp))
+                w -= gammaln(ngrp+1)
+        return w
 
     def _try_rotate(self, defect_sublattice):
         latgas_rep = defect_sublattice.latgas_rep
@@ -241,7 +272,7 @@ class DFTLatticeGas(Model):
                 return False, { 'mode': 'rotate', 'result': 'empty' }
             else:
                 return False
-            
+
         # Choose the site to rotate and rotate
         rot_id = rand.choice(rot_ids)
         rot_group = defect_sublattice.group_dict[latgas_rep[rot_id][0]]
@@ -279,7 +310,7 @@ class DFTLatticeGas(Model):
                 return False, { 'mode': 'exchange', 'result': 'empty' }
             else:
                 return False
-            
+
         ex1_id = rand.choice(ex1_idlist)
         ex2_id = rand.choice(ex2_idlist)
         latgas_rep[ex1_id], latgas_rep[ex2_id] = (
@@ -289,7 +320,7 @@ class DFTLatticeGas(Model):
 
         logger.debug("try_exchange: exchange {}({}) and {}({})".format(
             ex1_id, ex1_group.name, ex2_id, ex2_group.name))
-            
+
         if self.debug:
             return True, { 'mode': 'exchange', 'result': 'ok', 'ex1_id': ex1_id, 'ex1_group': ex1_group.name, 'ex2_id': ex2_id, 'ex2_group': ex2_group.name }
         else:
@@ -335,9 +366,9 @@ class DFTLatticeGas(Model):
         if is_unremovable:
             logger.debug("try_remove: there is no choice")
             if self.debug:
-                return False, 0.0, { 'mode': 'remove', 'result': 'nochoice' }
+                return False, { 'mode': 'remove', 'result': 'nochoice', 'chem': chem }
             else:
-                return False, 0.0
+                return False
 
         # choose sublattice and latgas_rep index
         # for each species and vacancy associated with the species
@@ -352,16 +383,14 @@ class DFTLatticeGas(Model):
             lat = config.defect_sublattices[sublat_id]
             lat.latgas_rep[idx] = [lat.vac_group, 0]
 
-        mudN = mu * -1
-
         logger.debug("dst:")
         for sublat in config.defect_sublattices:
             logger.debug("state = {}".format([s for s,t in sublat.latgas_rep]))
 
         if self.debug:
-            return True, mudN, { 'mode': 'remove', 'result': 'ok', 'choice': choice }
+            return True, { 'mode': 'remove', 'result': 'ok', 'chem': chem, 'choice': choice }
         else:
-            return True, mudN
+            return True
 
     def _try_add(self, config, chem):
         # add (a set of) particles
@@ -397,9 +426,9 @@ class DFTLatticeGas(Model):
         if is_unaddable:
             logger.debug("try_add: there is no choice")
             if self.debug:
-                return False, 0.0, { 'mode': 'add', 'result': 'nochoice' }
+                return False, { 'mode': 'add', 'result': 'nochoice', 'chem': chem }
             else:
-                return False, 0.0
+                return False
 
         # number of species
         nspecies = len(sublats)
@@ -432,9 +461,9 @@ class DFTLatticeGas(Model):
             if len(vac_list) < nspecies:
                 logger.debug("try_add: nsublat=1, there is no choice")
                 if self.debug:
-                    return False, 0.0, { 'mode': 'add', 'result': 'nochoice' }
+                    return False, { 'mode': 'add', 'result': 'nochoice', 'chem': chem }
                 else:
-                    return False, 0.0
+                    return False
 
             ch = rand.choice(len(vac_list), nspecies, replace=False)
             logger.debug(">>> {}".format(ch))
@@ -476,9 +505,9 @@ class DFTLatticeGas(Model):
                 if retry >= max_retry:
                     logger.debug("try_add: no choice. quit")
                     if self.debug:
-                        return False, 0.0, { 'mode': 'add', 'result': 'dup' }
+                        return False, { 'mode': 'add', 'result': 'dup', 'chem': chem }
                     else:
-                        return False, 0.0
+                        return False
             logger.debug("try_add: general branch. choice={}".format(choice))
 
         # update config
@@ -486,16 +515,14 @@ class DFTLatticeGas(Model):
             lat = config.defect_sublattices[sublat_id]
             lat.latgas_rep[idx] = [grp, rand.choice(lat.group_dict[grp].orientations)]
 
-        mudN = mu * +1
-
         logger.debug("dst:")
         for sublat in config.defect_sublattices:
             logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
 
         if self.debug:
-            return True, mudN, { 'mode': 'add', 'result': 'ok', 'choice': choice }
+            return True, { 'mode': 'add', 'result': 'ok', 'chem': chem, 'choice': choice }
         else:
-            return True, mudN
+            return True
 
 
     def trialstep(self, config, energy_now):
@@ -518,15 +545,17 @@ class DFTLatticeGas(Model):
 
         logger.debug(">>> start trialstep")
 
+        if self.enable_grandcanonical is True and config.chemical_potential is None:
+            raise InputError("chemical potential missing")
+
         for subl in config.defect_sublattices:
             logger.debug("state = {}".format([ v[0] for v in subl.latgas_rep ]))
         logger.debug("energy = {:16.12e}".format(energy_now))
 
         e0 = energy_now
-        dmuN = 0.0
-        
-        if self.enable_grandcanonical is True and config.chemical_potential is None:
-            raise InputError("chemical potential missing")
+
+        if self.enable_grandcanonical:
+            w0 = self._calc_weight(config)
 
         # Back up structure and defect_sublattices
         structure0 = copy.deepcopy(config.structure)
@@ -594,19 +623,28 @@ class DFTLatticeGas(Model):
                 # grandcanonical move
 
                 # choose a species set
-                chem = rand.choice(config.chemical_potential)
+                #chem = rand.choice(config.chemical_potential)
+                chem_id = rand.randint(len(config.chemical_potential))
+                chem = config.chemical_potential[chem_id]
                 do_add = rand.rand() < 0.5
-                logger.debug("trialstep: try grandcanonical move, chem={}, add={}".format(chem, do_add))
-                if self.debug:
-                    trial, dmuN, trial_info = self._try_add_remove(config, chem, do_add)
-                    trial_info['chem'] = chem
+
+                if do_add:
+                    logger.debug("trialstep: try grandcanonical move, type=add, chem={}".format(chem))
+                    if self.debug:
+                        trial, trial_info = self._try_add(config, chem)
+                    else:
+                        trial = self._try_add(config, chem)
                 else:
-                    trial, dmuN = self._try_add_remove(config, chem, do_add)
+                    logger.debug("trialstep: try grandcanonical move, type=remove, chem={}".format(chem))
+                    if self.debug:
+                        trial, trial_info = self._try_remove(config, chem)
+                    else:
+                        trial = self._try_remove(config, chem)
 
             if trial is not True:
                 # retry
                 continue
-            
+
             # print(latgas_rep)
             constraint_fulfilled = config.set_latgas()
             if constraint_fulfilled:
@@ -619,6 +657,12 @@ class DFTLatticeGas(Model):
 
         # do vasp calculation on structure
         e1 = self.energy(config)
+
+        if self.enable_grandcanonical:
+            w1 = self._calc_weight(config)
+            dW = w1 - w0
+        else:
+            dW = 0.0
 
         # return old structure
         structure = config.structure
@@ -639,14 +683,14 @@ class DFTLatticeGas(Model):
             logger.debug("state = {}".format([ v[0] for v in subl.latgas_rep ]))
         logger.debug("energy = {:16.12f}".format(e1))
 
-        logger.debug("trialstep: dE={:16.12e}, dmuN={:.5e}".format(dE, dmuN))
+        logger.debug("trialstep: dE={:16.12e}, dW={:.5e}".format(dE, dW))
         logger.debug("<<< end trialstep")
 
         if self.debug:
-            return dconfig, dE, trial_info
+            return dconfig, dE, dW, trial_info
         else:
-            return dconfig, dE
-        
+            return dconfig, dE, dW
+
 
     def newconfig(self, config, dconfig):
         """
@@ -1174,10 +1218,10 @@ class Config:
                         "magnetization": (0, 0, 0),
                     },
                 )
-                
+
         return dummy_structure
 
-    
+
     def shuffle(self):
         for defect_sublattice in self.defect_sublattices:
             latgas_rep = defect_sublattice.latgas_rep
