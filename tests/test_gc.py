@@ -201,8 +201,8 @@ class TestGrandCanonical(unittest.TestCase):
         ]
 
         # try
-        stat, dE, info = model._try_add_remove(config, chem_tbl[choice], mode)
-        print("--- stat =", stat, dE, info)
+        stat, info = model._try_add_remove(config, chem_tbl[choice], mode)
+        print("--- stat =", stat, info)
 
         # new state
         config_latgas = [
