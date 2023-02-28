@@ -9,7 +9,8 @@ from scipy.special import gammaln
 
 from abics.applications.latgas_abinitio_interface.defect import DFTConfigParams, defect_config
 from abics.applications.latgas_abinitio_interface.model_setup import DFTLatticeGas
-from abics.sampling.mc import CanonicalMonteCarlo, binning
+# from abics.sampling.mc import CanonicalMonteCarlo, binning
+from abics.sampling.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, binning
 from abics.observer import ObserverBase
 
 import logging
@@ -200,7 +201,7 @@ def main(params):
                            enable_grandcanonical = True,
                            gc_ratio = 1.0)
 
-        mc = CanonicalMonteCarlo(model, kbT, config)
+        mc = WeightedCanonicalMonteCarlo(model, kbT, config)
 
         # thermalization loop
         mc.run(eqsteps)

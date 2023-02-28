@@ -259,6 +259,25 @@ class DFTLatticeGas(Model):
                 w -= gammaln(ngrp+1)
         return w
 
+    def _find_num_group_list(self, config):
+        num = []
+        for sublat in config.defect_sublattices:
+            for grp in sublat.groups:
+                ngrp = len(match_latgas_group(sublat.latgas_rep, grp))
+                num.append(ngrp)
+        return num
+
+    def _calc_dweight(self, initial, final):
+        w = 0.0
+        for i,f in zip(initial, final):
+            while i<f:
+                w -= np.log(f)
+                f -= 1
+            while i>f:
+                w += np.log(i)
+                i -= 1
+        return w
+
     def _try_rotate(self, defect_sublattice):
         latgas_rep = defect_sublattice.latgas_rep
 
@@ -555,7 +574,8 @@ class DFTLatticeGas(Model):
         e0 = energy_now
 
         if self.enable_grandcanonical:
-            w0 = self._calc_weight(config)
+            # w0 = self._calc_weight(config)
+            numvec0 = self._find_num_group_list(config)
 
         # Back up structure and defect_sublattices
         structure0 = copy.deepcopy(config.structure)
@@ -641,9 +661,11 @@ class DFTLatticeGas(Model):
                     else:
                         trial = self._try_remove(config, chem)
 
-            if trial is not True:
-                # retry
-                continue
+            if trial is False:
+                #- retry
+                # continue
+                #- do not retry. let it be rejected
+                break
 
             # print(latgas_rep)
             constraint_fulfilled = config.set_latgas()
@@ -655,14 +677,20 @@ class DFTLatticeGas(Model):
                 config.defect_sublattices = copy.deepcopy(defect_sublattices0)
                 continue
 
-        # do vasp calculation on structure
-        e1 = self.energy(config)
+        if trial is True:
+            # do vasp calculation on structure
+            e1 = self.energy(config)
 
-        if self.enable_grandcanonical:
-            w1 = self._calc_weight(config)
-            dW = w1 - w0
+            if self.enable_grandcanonical:
+                # w1 = self._calc_weight(config)
+                # dW = w1 - w0
+                numvec1 = self._find_num_group_list(config)
+                dW = self._calc_dweight(numvec0, numvec1)
+            else:
+                dW = 0.0
         else:
-            dW = 0.0
+            e1 = e0  # nominal value
+            dW = float("nan")
 
         # return old structure
         structure = config.structure
