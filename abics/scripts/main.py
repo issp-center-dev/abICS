@@ -22,6 +22,7 @@ import datetime
 import numpy as np
 import scipy.constants as constants
 
+from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
 from abics.mc_mpi import (
     RX_MPI_init,
@@ -386,7 +387,7 @@ def main():
     now = datetime.datetime.now()
     
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print("Running abics_sampling (abICS v.2.0.0) on {}".format(now))
+        print("Running abics_sampling (abICS v{}) on {}".format(__version__, now))
         
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     if MPI.COMM_WORLD.Get_rank() == 0:

@@ -44,4 +44,4 @@ if __name__ == "__main__":
     st_in = Structure.from_file("./POSCAR")
     st = map2perflat(perf_st, st_in)
     st.remove_species(["N", "Li"])
-    st.to("POSCAR", "POSCAR.in")
+    st.to(fmt="POSCAR", filename="POSCAR.in")

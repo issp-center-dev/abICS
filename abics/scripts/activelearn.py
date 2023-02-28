@@ -23,6 +23,8 @@ import datetime
 
 import numpy as np
 
+from abics import __version__
+
 from abics.mc import RandomSampling
 
 from abics.mc_mpi import (
@@ -158,8 +160,8 @@ def main_impl(tomlfile):
                             st.append(site.species_string, site.frac_coords)
 
                     st.to(
-                        "POSCAR",
-                        os.path.join(str(myreplica), f"structure.{i}.vasp"),
+                        fmt="POSCAR",
+                        filename=os.path.join(str(myreplica), f"structure.{i}.vasp"),
                     )
                     energies.append([energy])
                 else:
@@ -361,7 +363,7 @@ def main_impl(tomlfile):
                         for site in ignore_structure:
                             st_rel.append(site.species_string, site.frac_coords)
 
-                    st_rel.to("POSCAR", f"structure.{i}.vasp")
+                    st_rel.to(fmt="POSCAR", filename=f"structure.{i}.vasp")
                     energy_corrlist.append([energy_ref[i], energy, i])
 
                     # Examine relaxation
@@ -480,7 +482,7 @@ def main_impl(tomlfile):
 def main():
     now = datetime.datetime.now()
     if MPI.COMM_WORLD.Get_rank() == 0:
-        print("Running abics_mlref (abICS v.2.0.0) on {}".format(now))
+        print("Running abics_mlref (abICS v{}) on {}".format(__version__, now))
 
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     if MPI.COMM_WORLD.Get_rank() == 0:
