@@ -4,7 +4,7 @@
 <html lang="ja">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>5.6. [config] セクション &#8212; abICS 2.0.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -110,6 +110,12 @@ num = 8
 <p><strong>説明 :</strong>
 超格子の大きさをリスト形式で [ <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] 指定します.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_structure</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+モンテカルロサンプリングの初期構造ファイル(POSCAR やCIF 形式など)を指定します.
+指定しなかった場合、ランダムに生成されます.</p>
+</li>
 </ul>
 </div></blockquote>
 </li>
@@ -143,8 +149,7 @@ num = 8
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> セクション</p>
 <blockquote>
-<div><p>モンテカルロで更新する原子が入る座標 (coords)と入りうる原子（団） (group) を指定します.
-Ver. 1.0ではPOSCAR や cif からの変換ツールが利用出来るようになる予定です.</p>
+<div><p>モンテカルロで更新する原子が入る座標 (coords)と入りうる原子（団） (group) を指定します.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
 <p><strong>形式 :</strong> listのlist もしくは 文字列</p>
