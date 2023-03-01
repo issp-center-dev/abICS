@@ -160,7 +160,7 @@ class aenet_trainer:
 
         iflg = False
         for name in ["predict.in", "in.lammps"]:
-            if os.path.isfile(os.path.join(self.predict_inputdir), name):
+            if os.path.isfile(os.path.join(self.predict_inputdir, name)):
                 iflg = True
                 shutil.copyfile(
                     os.path.join(self.predict_inputdir, name),
