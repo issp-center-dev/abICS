@@ -213,15 +213,13 @@ def main_dft_latgas(params_root: MutableMapping):
     spinel_config = defect_config(configparams)
     if configparams.init_structure is None:
         exit_code, msg = spinel_config.shuffle()
-        print("--Rank {}: {}".format(commAll.Get_rank(), msg), flush=True)
+        logger.info("--Rank {}: {}".format(commAll.Get_rank(), msg))
         exit_code = commAll.allgather(exit_code)
         if np.sum(exit_code) != 0:
-            if commAll.Get_rank() == 0:
-                print("Failed to initialize configuration. Exiting.")
+            logger.error("Failed to initialize configuration. Exiting.")
             sys.exit(1)
     else:
-        if commAll.Get_rank() == 0:
-            print("--Initial structure will be set to 'config.init_structure'.")
+        logger.info("--Initial structure will be set to 'config.init_structure'.")
         spinel_config.reset_from_structure(configparams.init_structure)
 
     # configs = []
