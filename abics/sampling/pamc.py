@@ -328,7 +328,7 @@ class PopulationAnnealing(ParallelMC):
                 pass
             os.chdir(str(self.rank))
         if not self.Lreload:
-            self.mycalc.config.shuffle()
+            #self.mycalc.config.shuffle()
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)

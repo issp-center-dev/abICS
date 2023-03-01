@@ -34,6 +34,7 @@ from abics import __version__
 from abics.exception import InputError
 from abics.mc import Model
 from abics.util import read_vector, read_matrix, read_tensor
+from abics.applications.latgas_abinitio_interface import map2perflat
 
 
 def gauss(x, x0, sigma):
@@ -416,7 +417,7 @@ class Group:
         ----------
         name: str
             The name of atomic group
-        species: str
+        species: list of str
             The atomic species belonging to the atom group
         coords: numpy array
             The coordinates of each atom in the atom group.
@@ -613,6 +614,7 @@ class Config:
         num_defects,
         cellsize=[1, 1, 1],
         constraint_func=bool,
+        constraint_energy=None,
         perfect_structure=None,
     ):
         """
@@ -651,6 +653,7 @@ class Config:
         self.cellsize = cellsize
         self.base_structure = base_structure
         self.constraint_func = constraint_func
+        self.constraint_energy = constraint_energy
         if self.base_structure.num_sites == 0:
             # we need at least one site for make_supercell
             self.base_structure.append("H", np.array([0, 0, 0]))
@@ -750,6 +753,54 @@ class Config:
                     )
         return self.constraint_func(self.structure)
 
+    def reset_from_structure(self, st_in):
+        st = self.dummy_structure()
+        st = map2perflat(st, st_in)
+        st.remove_species(["X"])
+
+        for defect_sublattice in self.defect_sublattices:    
+            # Extract group information for this sublattice
+            d_sp2grp = {}
+            sp = set()
+            for group in defect_sublattice.groups:
+                if len(group.species) > 1:
+                    raise InputError(
+                        'Cannot set initial structure when multi-atom groups are used'
+                        )
+                if len(group.species) == 0:
+                    d_sp2grp["X0+"] = group.name
+                    sp.add("X")
+                else:
+                    d_sp2grp[group.species[0]] = group.name
+                    sp.add(group.species[0])
+
+            # Map initial structure to sublattice
+            sublattice_dummy_st = self.dummy_structure_from_sublattice(defect_sublattice)
+            d_matrix = st.lattice.get_all_distances(st.frac_coords, sublattice_dummy_st.frac_coords)
+            mapping = np.where(d_matrix < 1e-4)
+            num_match = len(mapping[0])
+            for i in range(num_match): 
+                sublattice_dummy_st.replace(mapping[1][i], st[mapping[0][i]].species_string)
+            if not sp.issuperset(set(sublattice_dummy_st.symbol_set)):
+                raise InputError(
+                    "Initial structure contains species {} not specified in config".format(
+                        sp ^ set(sublattice_dummy_st.symbol_set)
+                        ) + \
+                    "\n(if species 'X' is listed here, it means the number of atoms don't match)"
+                )
+                
+            # Set lattice gas representation list
+            latgas_rep = []
+            for isite, site in enumerate(sublattice_dummy_st):
+                latgas_rep.append([d_sp2grp[site.species_string], 0])
+            defect_sublattice.latgas_rep = latgas_rep
+
+        constraint_fullfilled = self.set_latgas()
+        if not constraint_fullfilled:
+            raise InputError(
+                "initial structure violates constraints specified by constraint_func"
+                )
+
     def dummy_structure(self):
         """
 
@@ -829,17 +880,93 @@ class Config:
                 
         return dummy_structure
 
+    def dummy_structure_from_sublattice(self, defect_sublattice):
+        """
+
+        Parameters
+        ----------
+        defect_sublattice (str): defect_sublattice for constructing dummy lattice
+
+        Returns
+        -------
+        Structure where all atoms and vacancies are replaced by dummy atoms
+        """
+        dummy_structure = Structure(
+            lattice=self.base_structure.lattice,
+            species=[],
+            coords=[],
+            )
+        
+
+        latgas_rep = defect_sublattice.latgas_rep
+        assert len(latgas_rep) == len(defect_sublattice.site_centers_sc)
+        # find all species that can reside on this lattice
+        species_sublattice = set()
+        groups = defect_sublattice.group_dict.keys()
+        for grp_name in groups:
+            group = defect_sublattice.group_dict[grp_name]
+            if group.natoms > 1:
+                print("dummy_structure_sp does not support multi-atom groups")
+                sys.exit(1)
+            if group.natoms == 1:
+                species_sublattice.add(group.species[0])
+        for isite in range(len(latgas_rep)):
+            dummy_structure.append(
+                "X",
+                defect_sublattice.site_centers_sc[isite],
+                properties={
+                    "seldyn": (True, True, True),
+                    "magnetization": (0, 0, 0),
+                },
+            )
+                
+        return dummy_structure
+
     
     def shuffle(self):
-        for defect_sublattice in self.defect_sublattices:
-            latgas_rep = defect_sublattice.latgas_rep
-            rand.shuffle(latgas_rep)
-            for site in latgas_rep:
-                group = defect_sublattice.group_dict[site[0]]
-                norr = group.orientations
-                site[1] = rand.randint(norr)
-        if not self.set_latgas():
-            self.shuffle()
+        max_trial = 1000
+        num_trial = 0
+        while num_trial < max_trial:
+            for defect_sublattice in self.defect_sublattices:
+                latgas_rep = defect_sublattice.latgas_rep
+                rand.shuffle(latgas_rep)
+                for site in latgas_rep:
+                    group = defect_sublattice.group_dict[site[0]]
+                    norr = group.orientations
+                    site[1] = rand.randint(norr)
+            if self.set_latgas(): 
+                return 0, 'Configuration initialized randomly'
+            else:
+                if self.constraint_energy: 
+                    e = self.constraint_energy(self.structure)
+                    num_trial = 0
+                    while num_trial < max_trial: 
+                        num_trial += 1
+                        defect_sublattice = rand.choice(self.defect_sublattices)
+                        latgas_rep = defect_sublattice.latgas_rep
+                        i0, i1 = rand.choice(len(latgas_rep), 2)
+                        latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
+                        if self.set_latgas():
+                            msg = "---constraint_module.constraint_energy was used" + \
+                                " to find configuration that follows constraints with {} trials".format(num_trial)
+                            return 0, msg
+                        e1 = self.constraint_energy(self.structure)
+                        if e1 == 0:
+                            msg = "There's something wrong: constraint_func and constraint_energy are inconsistent"
+                            return 1, msg
+                        if e1 > e:
+                            latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
+                        else:
+                            e = e1
+                    msg = "Failed to find configuration with constraint_module.constraint_energy after {} trials".format(num_trial)
+                    return 1, msg
+                    
+                else:
+                    num_trial += 1
+        msg = "Failed to find configuration that follows constraints by random shuffling. Try setting constraint_energy."       
+        return 1, msg
+
+
 
     def count(self, group_name, orientation):
         """
