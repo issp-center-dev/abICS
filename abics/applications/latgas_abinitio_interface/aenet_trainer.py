@@ -157,10 +157,18 @@ class aenet_trainer:
         os.makedirs(baseinput_dir, exist_ok=False)
         while not os.path.exists(baseinput_dir):
             time.sleep(0.1)
-        shutil.copyfile(
-            os.path.join(self.predict_inputdir, "predict.in"),
-            os.path.join(baseinput_dir, "predict.in"),
-        )
+
+        iflg = False
+        for name in ["predict.in", "in.lammps"]:
+            if os.path.isfile(os.path.join(self.predict_inputdir), name):
+                iflg = True
+                shutil.copyfile(
+                    os.path.join(self.predict_inputdir, name),
+                    os.path.join(baseinput_dir, name),
+                )
+        if iflg is False:
+            print("Warning: predict.in or in.lammps should be in the predict directory.")
+
 
         NNPid_str = "{:05d}".format(self.train_minID)
         NNPfiles = [fi for fi in os.listdir(self.train_outputdir) if NNPid_str in fi]
