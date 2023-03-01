@@ -51,12 +51,6 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-from abics.applications.latgas_abinitio_interface.aenetPyLammpsSolver import AenetPyLammpsSolver
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
@@ -171,23 +165,28 @@ def main_dft_latgas(params_root: MutableMapping):
 
     solver: SolverBase
     if dftparams.solver == "vasp":
+        from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
         solver = VASPSolver(dftparams.path)
     elif dftparams.solver == "qe":
+        from abics.applications.latgas_abinitio_interface.qe import QESolver
         parallel_level = dftparams.properties.get("parallel_level", {})
         solver = QESolver(dftparams.path, parallel_level=parallel_level)
+    elif dftparams.solver == "openmx":
+        from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+        solver = OpenMXSolver(dftparams.path)
     elif dftparams.solver == "aenet":
+        from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
         solver = AenetSolver(
             dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme
         )
-    elif dftparams.solver == "openmx":
-        solver = OpenMXSolver(dftparams.path)
-    elif dftparams.solver == "mock":
-        solver = MockSolver()
     elif dftparams.solver == "aenetPyLammps":
+        from abics.applications.latgas_abinitio_interface.aenetPyLammpsSolver import AenetPyLammpsSolver
         solver = AenetPyLammpsSolver(
             dftparams.ignore_species,
         )
-
+    elif dftparams.solver == "mock":
+        from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
+        solver = MockSolver()
     else:
         print("unknown solver: {}".format(dftparams.solver))
         sys.exit(1)
@@ -266,19 +265,29 @@ def main_dft_latgas(params_root: MutableMapping):
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
         if ensembleparams.solver == "vasp":
+            from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
             solver = VASPSolver(ensembleparams.path)
         elif ensembleparams.solver == "qe":
+            from abics.applications.latgas_abinitio_interface.qe import QESolver
             parallel_level = ensembleparams.properties.get("parallel_level", {})
             solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
+        elif ensembleparams.solver == "openmx":
+            from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
+            solver = OpenMXSolver(ensembleparams.path)
         elif ensembleparams.solver == "aenet":
+            from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
             solver = AenetSolver(
                 ensembleparams.path,
                 ensembleparams.ignore_species,
                 ensembleparams.solver_run_scheme,
             )
-        elif ensembleparams.solver == "openmx":
-            solver = OpenMXSolver(ensembleparams.path)
+        elif dftparams.solver == "aenetPyLammps":
+            from abics.applications.latgas_abinitio_interface.aenetPyLammpsSolver import AenetPyLammpsSolver
+            solver = AenetPyLammpsSolver(
+                ensembleparams.ignore_species,
+            )
         elif ensembleparams.solver == "mock":
+            from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
             solver = MockSolver()
         else:
             print("unknown solver: {}".format(ensembleparams.solver))
