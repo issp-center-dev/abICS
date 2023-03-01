@@ -51,15 +51,12 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerMultistep,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
 
+import logging
+logger = logging.getLogger("main")
 
 def main_dft_latgas(params_root: MutableMapping):
     dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
@@ -88,10 +85,8 @@ def main_dft_latgas(params_root: MutableMapping):
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
 
-        if commAll.Get_rank() == 0:
-            print(f"-Running RXMC calculation with {nreplicas} replicas")
-            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
-            sys.stdout.flush()
+        logger.info(f"-Running RXMC calculation with {nreplicas} replicas")
+        logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
 
     elif sampler_type == "PAMC":
         pamcparams = PAMCParams.from_dict(params_root["sampling"])
@@ -118,10 +113,8 @@ def main_dft_latgas(params_root: MutableMapping):
         sample_frequency = pamcparams.sample_frequency
         print_frequency = pamcparams.print_frequency
 
-        if commAll.Get_rank() == 0:
-            print(f"-Running PAMC calculation with {nreplicas} replicas")
-            print(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
-            sys.stdout.flush()
+        logger.info(f"-Running PAMC calculation with {nreplicas} replicas")
+        logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
 
     elif sampler_type == "parallelRand":
         rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
@@ -136,9 +129,8 @@ def main_dft_latgas(params_root: MutableMapping):
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-        if commAll.Get_rank() == 0:
-            print(f"-Running parallel random sampling")
-            sys.stdout.flush()
+        logger.info(f"-Running parallel random sampling")
+
     elif sampler_type == "parallelMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
@@ -161,43 +153,24 @@ def main_dft_latgas(params_root: MutableMapping):
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
-        if commAll.Get_rank() == 0:
-            print(f"-Running parallel MC sampling")
-            sys.stdout.flush()
+        logger.info(f"-Running parallel MC sampling")
+
     else:
-        print("Unknown sampler. Exiting...")
+        logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
 
-    solver: SolverBase
-    if dftparams.solver == "vasp":
-        solver = VASPSolver(dftparams.path)
-    elif dftparams.solver == "qe":
-        parallel_level = dftparams.properties.get("parallel_level", {})
-        solver = QESolver(dftparams.path, parallel_level=parallel_level)
-    elif dftparams.solver == "aenet":
-        solver = AenetSolver(
-            dftparams.path, dftparams.ignore_species, dftparams.solver_run_scheme
-        )
-    elif dftparams.solver == "openmx":
-        solver = OpenMXSolver(dftparams.path)
-    elif dftparams.solver == "mock":
-        solver = MockSolver()
-    else:
-        print("unknown solver: {}".format(dftparams.solver))
-        sys.exit(1)
-    if commAll.Get_rank() == 0:
-        print(f"-Setting up {dftparams.solver} solver for configuration energies")
-        print("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
-        sys.stdout.flush()
+    solver: SolverBase = SolverBase.create(dftparams.solver, dftparams)
+    
+    logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
+    logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
+
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
     energy_calculator: Union[Runner, RunnerEnsemble, RunnerMultistep]
     if dftparams.ensemble:
         if len(dftparams.base_input_dir) == 1:
-            print(
-                "You must specify more than one base_input_dir for ensemble calculator"
-            )
+            logger.error("You must specify more than one base_input_dir for ensemble calculator")
             sys.exit(1)
         energy_calculator = RunnerEnsemble(
             base_input_dirs=dftparams.base_input_dir,
@@ -232,14 +205,8 @@ def main_dft_latgas(params_root: MutableMapping):
                 use_tmpdir=dftparams.use_tmpdir,
             )
     model = DFTLatticeGas(energy_calculator, save_history=False)
-    if commAll.Get_rank() == 0:
-        print("--Success.")
-
-    # defect sublattice setup
-    if commAll.Get_rank() == 0:
-        print("-Setting up the on-lattice model.")
-
-    sys.stdout.flush()
+    logger.info("--Success.")
+    logger.info("-Setting up the on-lattice model.")
     
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
@@ -263,32 +230,13 @@ def main_dft_latgas(params_root: MutableMapping):
     configs = [spinel_config] * nreplicas
 
     obsparams = ObserverParams.from_dict(params_root["observer"])
-    commAll.barrier()
-    if commAll.Get_rank() == 0:
-        print("--Success.")
 
-    
+    logger.info("--Success.")
+
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-        if ensembleparams.solver == "vasp":
-            solver = VASPSolver(ensembleparams.path)
-        elif ensembleparams.solver == "qe":
-            parallel_level = ensembleparams.properties.get("parallel_level", {})
-            solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
-        elif ensembleparams.solver == "aenet":
-            solver = AenetSolver(
-                ensembleparams.path,
-                ensembleparams.ignore_species,
-                ensembleparams.solver_run_scheme,
-            )
-        elif ensembleparams.solver == "openmx":
-            solver = OpenMXSolver(ensembleparams.path)
-        elif ensembleparams.solver == "mock":
-            solver = MockSolver()
-        else:
-            print("unknown solver: {}".format(ensembleparams.solver))
-            sys.exit(1)
+        solver = SolverBase.create(ensembleparams.solver, ensembleparams)
 
         energy_calculators = [
             Runner(
@@ -310,8 +258,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     # Active learning mode
     if ALrun:
-        if commAll.Get_rank() == 0:
-            print(f"-Running in active learning mode.")
+        logger.info(f"-Running in active learning mode.")
 
         if "train0" in os.listdir():
             # Check how many AL iterations have been performed
@@ -321,22 +268,20 @@ def main_dft_latgas(params_root: MutableMapping):
             with open("ALloop.progress", "r") as fi:
                 last_li = fi.readlines(-1)[-1]
             if "train" not in last_li:
-                print("You should train before next MC sampling.")
+                logger.error("You should train before next MC sampling.")
                 sys.exit(1)
             if Lreload:
-                if commAll.Get_rank() == 0:
-                    print(f"--Restarting run in MC{i-1}")
-                    sys.stdout.flush()
+                logger.info(f"--Restarting run in MC{i-1}")
                 rootdir = os.getcwd()
                 os.chdir("MC{}".format(i - 1))
                 MCid = i - 1
             else:
                 # Make new directory and perform sampling there
                 if commAll.Get_rank() == 0:
-                    print(f"--MC sampling will be run in MC{i}")
+                    logger.info(f"--MC sampling will be run in MC{i}")
                     os.mkdir("MC{}".format(i))
                     if dftparams.use_tmpdir:
-                        print(f"---Will use local tmpdir for {dftparams.solver} run")
+                        logger.info(f"---Will use local tmpdir for {dftparams.solver} run")
                         # backup baseinput for this AL step
                         for j, d in enumerate(dftparams.base_input_dir):
                             shutil.copytree(d, "MC{}/baseinput{}".format(i, j))
@@ -348,7 +293,7 @@ def main_dft_latgas(params_root: MutableMapping):
                 os.chdir("MC{}".format(i))
                 MCid = i
         else:
-            print("You should train before MC sampling in AL mode.")
+            logger.error("You should train before MC sampling in AL mode.")
             sys.exit(1)
 
     if commEnsemble.Get_rank() == 0:
@@ -361,13 +306,10 @@ def main_dft_latgas(params_root: MutableMapping):
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
         if Lreload:
-            if commAll.Get_rank() == 0:
-                print("-Reloading from previous calculation")
+            logger.info("-Reloading from previous calculation")
             RXcalc.reload()
 
-        if commAll.Get_rank() == 0:
-            print("-Starting RXMC calculation")
-            sys.stdout.flush()
+        logger.info("-Starting RXMC calculation")
             
         obs = RXcalc.run(
             nsteps,
@@ -378,22 +320,16 @@ def main_dft_latgas(params_root: MutableMapping):
             subdirs=True,
         )
 
-        #if comm.Get_rank() == 0 and write_node:
-        #    print(obs)
-
     elif sampler_type == "PAMC":
         # PAMC calculation
         PAcalc = PopulationAnnealing(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
         )
         if Lreload:
-            if commAll.Get_rank() == 0:
-                print("-Reloading from previous calculation")
+            logger.info("-Reloading from previous calculation")
             PAcalc.reload()
 
-        if commAll.Get_rank() == 0:
-            print("-Starting PAMC calculation")
-            sys.stdout.flush()
+        logger.info("-Starting PAMC calculation")
             
         obs = PAcalc.run(
             nsteps,
@@ -418,9 +354,6 @@ def main_dft_latgas(params_root: MutableMapping):
             subdirs=True,
         )
 
-        #if comm.Get_rank() == 0 and write_node:
-        #    print(obs)
-
     elif sampler_type == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
@@ -434,21 +367,14 @@ def main_dft_latgas(params_root: MutableMapping):
             observer=observer,
             subdirs=True,
         )
+    logger.info("--Sampling completed sucessfully.")
 
-        #if comm.Get_rank() == 0 and write_node:
-        #    print(obs)
-
-    if commAll.Get_rank() == 0:
-        print("--Sampling completed sucessfully.")
     if ALrun:
         os.chdir(rootdir)
         if comm.Get_rank() == 0 and write_node:
-            print("-Writing ALloop.progress")
+            logger.info("-Writing ALloop.progress")
             with open("ALloop.progress", "a") as fi:
                 fi.write("MC{}\n".format(MCid))
                 fi.flush()
                 os.fsync(fi.fileno())
-
-    if commAll.Get_rank() == 0:
-        now = datetime.datetime.now()
-        print(f"Exiting normally on {now}\n")
+    logger.info("Exiting normally on {}\n".format(datetime.datetime.now()))

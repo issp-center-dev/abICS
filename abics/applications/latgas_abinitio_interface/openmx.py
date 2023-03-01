@@ -394,3 +394,12 @@ class OpenMXSolver(SolverBase):
 
     def solver_run_schemes(self):
         return ("mpi_spawn_ready", "mpi_spawn_wrapper")
+
+    #-- factory
+    from typing import Union
+    from .params import ALParams, DFTParams
+
+    @classmethod
+    def create(cls, params: Union[ALParams, DFTParams]):
+        path = params.path
+        return cls(path)
