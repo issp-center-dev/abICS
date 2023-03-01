@@ -76,6 +76,8 @@ def main_potts(params_root: MutableMapping):
         if Lreload:
             logger.info("-Reloading from previous calculation")
             RXcalc.reload()
+        else:
+            RXcalc.mycalc.config.shuffle()
         logger.info("-Starting RXMC calculation")
         obs = RXcalc.run(
             nsteps,
@@ -120,6 +122,8 @@ def main_potts(params_root: MutableMapping):
         if Lreload:
             logger.info("-Reloading from previous calculation")
             calc.reload()
+        else:
+            calc.mycalc.config.shuffle()
         logger.info("-Starting PAMC calculation")
         obs = calc.run(
             nsteps,

@@ -308,12 +308,15 @@ class TemperatureRX_MPI(ParallelMC):
             os.chdir(str(self.rank))
         self.accept_count = 0
         if not self.Lreload:
-            self.mycalc.config.shuffle()
+            #self.mycalc.config.shuffle()
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
             obs_len = len(test_observe)
             obs = np.zeros([len(self.kTs), obs_len])
+        #with open("obs.dat", "a") as output:
+        #    obs_step = observer.observe(self.mycalc, output, True)
+        
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
