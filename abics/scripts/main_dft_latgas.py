@@ -54,7 +54,7 @@ from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-from abics.applications.latgas_abinitio_interface.aenetpysolver import AenetPySolver
+#from abics.applications.latgas_abinitio_interface.aenetpysolver import AenetPySolver
 from abics.applications.latgas_abinitio_interface.aenetPyLammpsSolver import AenetPyLammpsSolver
 from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
 from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
@@ -184,14 +184,14 @@ def main_dft_latgas(params_root: MutableMapping):
         solver = OpenMXSolver(dftparams.path)
     elif dftparams.solver == "mock":
         solver = MockSolver()
-    elif dftparams.solver == "aenetPy":
-        potentials = dftparams.properties.get("potentials", [])
-        if len(potentials) == 0:
-            print("aenetPy requires paths to NN files. Exiting...")
-            sys.exit(1)
-        solver = AenetPySolver(
-            potentials, dftparams.ignore_species,
-        )
+    #elif dftparams.solver == "aenetPy":
+    #    potentials = dftparams.properties.get("potentials", [])
+    #    if len(potentials) == 0:
+    #        print("aenetPy requires paths to NN files. Exiting...")
+    #        sys.exit(1)
+    #    solver = AenetPySolver(
+    #        potentials, dftparams.ignore_species,
+    #    )
     elif dftparams.solver == "aenetPyLammps":
         solver = AenetPyLammpsSolver(
             dftparams.ignore_species,
