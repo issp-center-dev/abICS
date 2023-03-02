@@ -11,9 +11,8 @@ reload = false
 
 [sampling.solver]
 type = 'aenetPyLammps'
+path = ''
 base_input_dir = ['./baseinput']
-potentials.Al = ['./baseinput/Al.15t-15t.nn']
-potentials.Mg = ['./baseinput/Mg.15t-15t.nn']
 perturb = 0.0
 run_scheme = 'function'
 ignore_species = ["O"]
