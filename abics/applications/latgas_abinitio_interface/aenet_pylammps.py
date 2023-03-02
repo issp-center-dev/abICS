@@ -213,7 +213,5 @@ class AenetPyLammpsSolver(SolverBase):
 
     @classmethod
     def create(cls, params: Union[ALParams, DFTParams]):
-        path = params.path
         ignore_species = params.ignore_species
-        run_scheme = params.solver_run_scheme
-        return cls(path, ignore_species, run_scheme)
+        return cls(ignore_species)
