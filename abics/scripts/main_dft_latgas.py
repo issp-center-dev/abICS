@@ -235,38 +235,7 @@ def main_dft_latgas(params_root: MutableMapping):
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-<<<<<<< HEAD
-        if ensembleparams.solver == "vasp":
-            from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-            solver = VASPSolver(ensembleparams.path)
-        elif ensembleparams.solver == "qe":
-            from abics.applications.latgas_abinitio_interface.qe import QESolver
-            parallel_level = ensembleparams.properties.get("parallel_level", {})
-            solver = QESolver(ensembleparams.path, parallel_level=parallel_level)
-        elif ensembleparams.solver == "openmx":
-            from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-            solver = OpenMXSolver(ensembleparams.path)
-        elif ensembleparams.solver == "aenet":
-            from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-            solver = AenetSolver(
-                ensembleparams.path,
-                ensembleparams.ignore_species,
-                ensembleparams.solver_run_scheme,
-            )
-        elif dftparams.solver == "aenetPyLammps":
-            from abics.applications.latgas_abinitio_interface.aenetPyLammpsSolver import AenetPyLammpsSolver
-            solver = AenetPyLammpsSolver(
-                ensembleparams.ignore_species,
-            )
-        elif ensembleparams.solver == "mock":
-            from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
-            solver = MockSolver()
-        else:
-            print("unknown solver: {}".format(ensembleparams.solver))
-            sys.exit(1)
-=======
         solver = SolverBase.create(ensembleparams.solver, ensembleparams)
->>>>>>> develop
 
         energy_calculators = [
             Runner(
