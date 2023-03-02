@@ -11,6 +11,7 @@ reload = false
 
 [sampling.solver]
 type = 'aenetPyLammps'
+path = ''
 base_input_dir = ['./baseinput']
 perturb = 0.0
 run_scheme = 'function'
