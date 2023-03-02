@@ -51,7 +51,7 @@ Keywords
        **Format :** str
 
        **Description :**
-       The solver type (``OpenMX, QE, VASP, aenet, potts``).
+       The solver type (``OpenMX, QE, VASP, aenet, aenetPyLammps, potts``).
        When ``potts``, the following parameters are not used.
 
     -  ``path``
