@@ -18,13 +18,11 @@
 energy calculator using aenet python interface
 """
 
-from mpi4py import MPI
 import numpy as np
 
 from .base_solver import SolverBase
 from collections import namedtuple
 from pymatgen.core import Structure
-from lammps import lammps, PyLammps
 import os.path
 
 def unit_vec(a):
@@ -49,6 +47,9 @@ class AenetPyLammpsSolver(SolverBase):
         Initialize the solver.
 
         """
+        from mpi4py import MPI
+        from lammps import lammps
+
         super(AenetPyLammpsSolver, self).__init__("")
         self.path_to_solver = self.calculate_energy
         self.input = AenetPyLammpsSolver.Input(ignore_species)
