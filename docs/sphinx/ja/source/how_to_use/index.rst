@@ -199,9 +199,17 @@ aenetPyLammps
 - 以下の `コミット <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ で動作確認済。
 
 - 上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。
-  - ``aenet`` インストール時、 ``-fPIC`` を入れるようにしてください。
-  - ``lammps`` のインストール時、 makeオプションで ``mode=shared`` をつけるようにしてください。
+  - ``aenet``
+
+    - ``makefiles/Makefile.*`` 中の ``FCFLAGS`` オプションに ``-fPIC`` を追加してください。
+  - ``lammps``
+
+    - ``src/Makefile`` 中に ``LMP_INC = -DLAMMPS_EXCEPTIONS`` を追加してください。
+    - make 時にオプションで ``mode=shared`` をつけるようにしてください。
+
   - 上記のインストール終了後、 ``make install-python`` を実行してください。
+
+    - ``python`` コマンドで起動するPython 環境に ``lammps`` パッケージがインストールされます。
 
 - 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
 
