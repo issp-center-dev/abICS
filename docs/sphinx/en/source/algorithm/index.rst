@@ -2,8 +2,9 @@
 Algorithm
 **********
 abICS is designed for combining parallel extended ensemble methods with
-arbitrary energy calculators. At present, only the replica exchange
-Monte Carlo method is implemented.
+arbitrary energy calculators. At present,
+the replica exchange Monte Carlo method and
+the population annealing Monte Carlo method are implemented.
 
 - Overview of abICS
 
@@ -85,6 +86,16 @@ Here, the outline of the definition of the configuration in abICS and the update
 ``defect_structure`` can be defined multiple times. Groups of each ``defect_structure`` will be placed at points of each one.
 (f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that swaps two atom groups of different type
 , and the other that changes the orientation within the atom group without changing the arrangement. The type of updates is automatically selected with 1/2 probability. The energy is calculated with the specified solver from the proposed configuration :math:`X_ {trial}` and then the adoption rate :math:`P (X_i \rightarrow X_ {trial})` is calculated.
+
+When the grand canonical sampling is turned on, the additional update patterns are also introduced in which the atom groups are added from or removed to the reservoir. The numbers of the atom groups are controlled by the chemical potentials for each atom group or a set of groups simultaneously.
+The configuration is updated by the Metropolis-Hastings algorithm according to the adoption rate calculated from the differences of the energy and the particle numbers between the original and proposed configurations as
+
+.. math::
+
+   P(X_i\to X_\text{trial}) = \min\left( 1,  \Delta W\,e^{-\beta(\Delta E - \mu \Delta N)} \right)
+
+where :math:`\Delta W = Q(X_\text{trial}\to X_i)/Q(X_i\to X_\text{trial})` denotes the weight factor derived from the proposal distribution.
+
 
 .. figure:: ../../../image/alg_sampling.png
      :name: alg_sampling

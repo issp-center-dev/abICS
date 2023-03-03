@@ -172,6 +172,24 @@ In the case of ``solver.type != "potts"``
          **Description :**
          The number of atom groups of the type specified in this section.
 
+- ``[[config.chemical_potential]]`` section
+
+  This section specifies the chemical potentials of the atoms and atom groups for the grand canonical sampling.
+
+      - ``species``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+	 Name of atom or atom group, or a list of names of atom groups when they may be added or removed simultaneously.
+
+      - ``mu``
+
+         **Format :** float
+
+         **Description :**
+	 The value of chemical potential that corresponds to ``species``.
+
 
 In the case of ``solver.type = "potts"``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
