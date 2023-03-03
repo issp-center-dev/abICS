@@ -21,5 +21,6 @@ from .aenet_trainer import *
 from .vasp import VASPSolver
 from .qe import QESolver
 from .aenet import AenetSolver
+from .aenet_pylammps import AenetPyLammpsSolver
 from .openmx import OpenMXSolver
 from .mocksolver import MockSolver

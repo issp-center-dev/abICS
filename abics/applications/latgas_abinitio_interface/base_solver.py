@@ -186,11 +186,12 @@ class SolverBase(object):
     @classmethod
     def create(cls, type_name, params: Union[ALParams, DFTParams]) -> "SolverBase":
         solver_table = {
-            "VASPSolver":   [ "vasp" ],
-            "QESolver":     [ "qe" ],
-            "AenetSolver":  [ "aenet" ],
-            "OpenMXSolver": [ "openmx" ],
-            "MockSolver":   [ "mock" ],
+            "VASPSolver":          [ "vasp" ],
+            "QESolver":            [ "qe" ],
+            "AenetSolver":         [ "aenet" ],
+            "AenetPyLammpsSolver": [ "aenetPyLammps" ],
+            "OpenMXSolver":        [ "openmx" ],
+            "MockSolver":          [ "mock" ],
         }
         for subcls in cls.__subclasses__():
             if type_name in solver_table[subcls.__name__]:
