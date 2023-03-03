@@ -82,13 +82,13 @@ class AenetPyLammpsSolver(SolverBase):
         self.calc.command("units metal")
         self.calc.command("boundary p p p")
 
-        self.calc.command("region box prism 0 {} 0 {} 0 {} {} {} {}".format(ax, by, cz, bx, cx, cy))
-        self.calc.command("create_box {} box".format(nspec))
-        types = list(map(lambda x: spec_dict[x.name],st.species))
+        self.calc.command(f"region box prism 0 {ax} 0 {by} 0 {cz} {bx} {cx} {cy}")
+        self.calc.command(f"create_box {nspec} box")
+        types = list(map(lambda x: spec_dict[x.name], st.species))
         self.calc.create_atoms(natoms, None, types, st.cart_coords.ravel())
         for i in range(1,nspec+1):
-            self.calc.command("mass {} 1".format(i))
-        self.calc.commands_list(self.input.pair_pot.split("\n"))
+            self.calc.command(f"mass {i} 1")
+        self.calc.commands_list(self.input.pair_pot)
         self.calc.command("run 0")
         ene = self.calc.get_thermo("pe")
         #print(ene)
@@ -121,7 +121,13 @@ class AenetPyLammpsSolver(SolverBase):
                 Path to the directory including base input files.
             """
             self.base_input_dir = base_input_dir
-            self.pair_pot = open("{}/in.lammps".format(base_input_dir)).read()
+            self.pair_pot: list[str] = []
+            with open("{}/in.lammps".format(base_input_dir)) as f:
+                for line in f:
+                    line = line.strip()
+                    if line == "" or line.startswith("#"):
+                        continue
+                    self.pair_pot.append(line)
 
         def update_info_by_structure(self, structure):
             """
