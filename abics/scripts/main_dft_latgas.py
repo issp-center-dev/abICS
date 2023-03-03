@@ -164,6 +164,7 @@ def main_dft_latgas(params_root: MutableMapping):
     logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
     logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
 
+# >>>>>>> develop
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below

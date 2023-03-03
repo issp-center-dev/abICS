@@ -4,11 +4,15 @@ from __future__ import annotations
 
 import numpy as np
 from pymatgen.core import Structure
+# pymatgen 2019.12.22 does not have SpeciesLike
+# from pymatgen.util.typing import SpeciesLike
+
 from abics.applications.latgas_abinitio_interface.naive_matcher import naive_mapping
 
 
 def map2perflat(
-    perf_st: Structure, st: Structure, vac_spaceholder: dict = {}
+    perf_st: Structure, st: Structure,
+    vac_spaceholder = {} #: dict[SpeciesLike, SpeciesLike] = {}
 ) -> Structure:
     """
 
