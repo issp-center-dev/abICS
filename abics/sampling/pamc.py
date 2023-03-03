@@ -463,20 +463,35 @@ class PopulationAnnealing(ParallelMC):
         if self.rank == 0:
             o_mean = o_all.mean(axis=0)
             o_err = o_all.std(axis=0)
-            with open("result.dat", "w") as f:
-                f.write("# $1: temperature\n")
-                for i, oname in enumerate(self.obsnames):
-                    f.write(f"# ${1+6*i+1}: <{oname}>\n")
-                    f.write(f"# ${1+6*i+2}: ERROR of <{oname}>\n")
-                    f.write(f"# ${1+6*i+3}: <{oname}^2>\n")
-                    f.write(f"# ${1+6*i+4}: ERROR of <{oname}^2>\n")
-                    f.write(f"# ${1+6*i+5}: <{oname}^2> - <{oname}>^2\n")
-                    f.write(f"# ${1+6*i+6}: ERROR of <{oname}^2> - <{oname}>^2\n")
-                for iT in range(nT):
-                    f.write(str(self.kTs[iT]))
-                    for iobs in range(3 * nobs):
-                        f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
-                    f.write("\n")
+            for iobs, oname in enumerate(self.obsnames):
+                with open(f"{oname}.dat", "w") as f:
+                    f.write( "# $1: temperature\n")
+                    f.write(f"# $2: <{oname}>\n")
+                    f.write(f"# $3: ERROR of <{oname}>\n")
+                    f.write(f"# $4: <{oname}^2>\n")
+                    f.write(f"# $5: ERROR of <{oname}^2>\n")
+                    f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
+                    f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
+
+                    for iT in range(nT):
+                        f.write(f"{self.kTs[iT]}")
+                        for j in range(3):
+                            f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
+                        f.write("\n")
+            # with open("result.dat", "w") as f:
+            #     f.write("# $1: temperature\n")
+            #     for i, oname in enumerate(self.obsnames):
+            #         f.write(f"# ${1+6*i+1}: <{oname}>\n")
+            #         f.write(f"# ${1+6*i+2}: ERROR of <{oname}>\n")
+            #         f.write(f"# ${1+6*i+3}: <{oname}^2>\n")
+            #         f.write(f"# ${1+6*i+4}: ERROR of <{oname}^2>\n")
+            #         f.write(f"# ${1+6*i+5}: <{oname}^2> - <{oname}>^2\n")
+            #         f.write(f"# ${1+6*i+6}: ERROR of <{oname}^2> - <{oname}>^2\n")
+            #     for iT in range(nT):
+            #         f.write(str(self.kTs[iT]))
+            #         for iobs in range(3 * nobs):
+            #             f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
+            #         f.write("\n")
             dlogZ = np.log(o_mean[:-1, 3 * nobs]) + lzw_max[:-1]
             dlogZ_err = o_err[:-1, 3 * nobs] / o_mean[:-1, 3 * nobs]
             with open("logZ.dat", "w") as f:

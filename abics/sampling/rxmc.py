@@ -399,6 +399,8 @@ class TemperatureRX_MPI(ParallelMC):
         obss = [[] for _ in range(nT)]
         if isinstance(throw_out, float):
             throw_out = int(nsteps * throw_out)
+
+        # gather observables with same temperature (Trank == myrank)
         for istep in range(throw_out, nsteps):
             iT = Trank_hist[istep]
             obss[iT].append(obs_save[istep, :])
@@ -412,8 +414,10 @@ class TemperatureRX_MPI(ParallelMC):
                 recv_obss = self.comm.gather(send, root=rank)
             else:
                 self.comm.gather(send, root=rank)
-        X = np.concatenate(recv_obss)
+        X = np.concatenate(recv_obss)  # nsamples X nobs
         nsamples = X.shape[0]
+
+        # jackknife method
         X2 = X**2
         X_mean = X.mean(axis=0)
         X_err = np.sqrt(X.var(axis=0, ddof=1) / (nsamples - 1))
@@ -426,6 +430,7 @@ class TemperatureRX_MPI(ParallelMC):
         F_mean = F_jk.sum(axis=0) - F_jk.mean(axis=0) * (nsamples - 1)
         F_err = np.sqrt((nsamples - 1) * F_jk.var(axis=0, ddof=0))
 
+        # estimate free energy
         target_T = -1.0
         if self.kTs[0] <= self.kTs[-1]:
             if self.rank > 0:
@@ -447,26 +452,27 @@ class TemperatureRX_MPI(ParallelMC):
             Logz_err = 0.0
 
         obs = np.array([X_mean, X_err, X2_mean, X2_err, F_mean, F_err])
-        obs_all = np.zeros([self.comm.size, *obs.shape])
+        obs_all = np.zeros([self.comm.size, *obs.shape])   # nT X nobs X ntype
         self.comm.Allgather(obs, obs_all)
-        dlogz = self.comm.allgather([Logz_mean, Logz_err])
+        dlogz = self.comm.allgather([Logz_mean, Logz_err]) # nT X 2
+
         if self.rank == 0:
             ntype = obs.shape[0]
-            with open("result.dat", "w") as f:
-                f.write("# $1: temperature\n")
-                for i, oname in enumerate(self.obsnames):
-                    f.write(f"# ${1+6*i+1}: <{oname}>\n")
-                    f.write(f"# ${1+6*i+2}: ERROR of <{oname}>\n")
-                    f.write(f"# ${1+6*i+3}: <{oname}^2>\n")
-                    f.write(f"# ${1+6*i+4}: ERROR of <{oname}^2>\n")
-                    f.write(f"# ${1+6*i+5}: <{oname}^2> - <{oname}>^2\n")
-                    f.write(f"# ${1+6*i+6}: ERROR of <{oname}^2> - <{oname}>^2\n")
-                for iT in range(nT):
-                    f.write(str(self.kTs[iT]))
-                    for iobs in range(nobs):
+            for iobs, oname in enumerate(self.obsnames):
+                with open(f"{oname}.dat", "w") as f:
+                    f.write( "# $1: temperature\n")
+                    f.write(f"# $2: <{oname}>\n")
+                    f.write(f"# $3: ERROR of <{oname}>\n")
+                    f.write(f"# $4: <{oname}^2>\n")
+                    f.write(f"# $5: ERROR of <{oname}^2>\n")
+                    f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
+                    f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
+                    for iT in range(nT):
+                        f.write(f"{self.kTs[iT]}")
                         for itype in range(ntype):
                             f.write(f" {obs_all[iT, itype, iobs]}")
-                    f.write("\n")
+                        f.write("\n")
+
             with open("logZ.dat", "w") as f:
                 f.write("# $1: temperature\n")
                 f.write("# $2: logZ\n")
