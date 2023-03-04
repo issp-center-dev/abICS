@@ -56,12 +56,14 @@ class DFTParams:
             map(lambda x: expand_path(x, os.getcwd()), base_input_dir)
         )
         params.solver = d["type"]
+        params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
 
-        #params.path = expand_path(d["path"], os.getcwd())
-        params.path = expand_cmd_path(d["path"])
+        if params.solver_run_scheme != "function":
+            params.path = expand_cmd_path(d["path"])
+        else:
+            params.path = ""
 
         params.perturb = d.get("perturb", 0.1)
-        params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
         params.ensemble = d.get("ensemble", False)
