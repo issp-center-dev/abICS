@@ -107,14 +107,8 @@ def main_impl(params_root: MutableMapping):
             energies = []
 
             # Preparing ignored species structure to add in postprocess
-            config = defect_config(configparams)
-            if alparams.ignore_species:
-                ignore_structure = config.dummy_structure()
-                remove_sp = filter(
-                    lambda sp: sp not in alparams.ignore_species,
-                    ignore_structure.symbol_set,
-                )
-                ignore_structure.remove_species(remove_sp)
+            #config = defect_config(configparams)
+            
             rundir_list = []
 
             logger.info(f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}...")
@@ -133,8 +127,19 @@ def main_impl(params_root: MutableMapping):
                 if finalrun:
                     # energy_calculator may return the structure w/o ignored structure
                     if alparams.ignore_species:
+                        # Get original structure for calculating relaxation magnitude
+                        ignore_structure = Structure.from_file(
+                            os.path.join(str(myreplica),fmtstr.format(i), "initial.vasp")
+                        )
+                        remove_sp = filter(
+                            lambda sp: sp not in alparams.ignore_species,
+                            ignore_structure.symbol_set,
+                        )
+                        ignore_structure.remove_species(remove_sp)
+                    
                         for site in ignore_structure:
                             st.append(site.species_string, site.frac_coords)
+
                     st.sort(key=lambda site: site.species_string)
                     st.to(
                         fmt="POSCAR",
