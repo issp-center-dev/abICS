@@ -48,7 +48,7 @@ def main():
         app_name = "sampling",
         level = logging.INFO,
         console = "default",
-        mpi_log = None,
+        mpi_log = "master",
         params=params.get("log", {}))
 
     logger.info(f"Running abics_sampling (abICS v{__version__}) on {now}")
