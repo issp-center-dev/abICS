@@ -171,6 +171,7 @@ def set_log_handles(
     mpi_log: Optional[str] = None,
     console = "stderr",
     rank = None,
+    params: Optional['dict'] = None,
 ):
     """Set desired level for package loggers and add file handlers.
 
@@ -247,6 +248,16 @@ def set_log_handles(
         root_log.removeHandler(hdlr)
 
     # check if arguments are present
+    if params:
+        level = params.get("level", level)
+        _log_path = params.get("log_path", None)
+        if _log_path:
+            from pathlib import Path
+            log_path = Path(_log_path)
+        mpi_log = params.get("mpi_log", mpi_log)
+        console = params.get("console", console)
+        rank = params.get("rank", rank)
+
     MPI = None
     if mpi_log:
         try:
