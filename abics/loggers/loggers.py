@@ -1,7 +1,7 @@
 """Logger initialization for package."""
 
 import logging
-import os
+import os, sys
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
@@ -67,6 +67,17 @@ class _MPIMasterFilter(logging.Filter):
         else:
             return False
 
+class _MPIRankSelectFilter(logging.Filter):
+    """Filter that lets through only messages emited from rank if flag is set."""
+
+    def __init__(self, rank: int, output_flag: bool) -> None:
+        super().__init__(name="MPI_rank_log")
+        self.mpi_rank = rank
+        self.output_flag = output_flag
+
+    def filter(self, record):
+        record.rank = self.mpi_rank
+        return self.output_flag
 
 class _MPIFileStream:
     """Wrap MPI.File` so it has the same API as python file streams.
@@ -143,24 +154,38 @@ def set_log_handles(
     app_name: str,
     level: int,
     log_path: Optional["Path"] = None,
-    mpi_log: Optional[str] = None
+    mpi_log: Optional[str] = None,
+    console = "stderr",
+    rank = None,
 ):
     """Set desired level for package loggers and add file handlers.
 
     Parameters
     ----------
+    app_name: str
+        application name
     level: int
         logging level
     log_path: Optional[str]
         path to log file, if None logs will be send only to console. If the parent
         directory does not exist it will be automatically created, by default None
-    mpi_log : Optional[str], optional
-        mpi log type. Has three options. `master` will output logs to file and console
-        only from rank==0. `collect` will write messages from all ranks to one file
-        opened under rank==0 and to console. `workers` will open one log file for each
-        worker designated by its rank, console behaviour is the same as for `collect`.
+    mpi_log: Optional[str], optional
+        mpi log type. Has four options. 
+         - `master` will output logs to file and console only from rank==0.
+         - `collect` will write messages from all ranks to one file opened under
+           rank==0 and to console.
+         - `workers` will open one log file for each worker designated by its rank,
+           console behaviour is the same as for `collect`.
+         - `rank` will write messages from ranks specified by rank parameter to
+           one file similar to `collect` mode.
         If this argument is specified, package 'mpi4py' must be already installed.
         by default None
+    rank: int or list of int
+        rank number or list of rank numbers from which logs are written to console
+        and/or file when mpi_log is set to `rank` mode.
+    console: str
+        console stream type. `stdout` for standard output, `stderr` for standard error
+        (default), or `none` to suppress console output.
 
     Raises
     ------
@@ -214,56 +239,76 @@ def set_log_handles(
             raise RuntimeError("You cannot specify 'mpi_log' when mpi4py not installed") from e
 
     # * add console handler ************************************************************
-    ch = logging.StreamHandler()
-    if MPI:
-        rank = MPI.COMM_WORLD.Get_rank()
-        if mpi_log == "master":
-            ch.setFormatter(CFORMATTER)
-            ch.addFilter(_MPIMasterFilter(rank))
-        else:
-            ch.setFormatter(CFORMATTER_MPI)
-            ch.addFilter(_MPIRankFilter(rank))
+    if console == "none":
+        ch = None
+    elif console == "stdout":
+        ch = logging.StreamHandler(sys.stdout)
+    elif console == "stderr":
+        ch = logging.StreamHandler(sys.stderr)
     else:
-        ch.setFormatter(CFORMATTER)
+        ch = logging.StreamHandler()  # use default
 
-    ch.setLevel(level)
-    ch.addFilter(_AppFilter(app_name))
-    root_log.addHandler(ch)
+    if ch:
+        if MPI:
+            _rank = MPI.COMM_WORLD.Get_rank()
+            if mpi_log == "master":
+                ch.setFormatter(CFORMATTER)
+                ch.addFilter(_MPIMasterFilter(_rank))
+            elif mpi_log == "rank" and rank is not None:
+                rank = [ rank ] if type(rank) is not list else rank
+                ch.setFormatter(CFORMATTER_MPI)
+                ch.addFilter(_MPIRankSelectFilter(_rank, _rank in rank))
+            else:
+                ch.setFormatter(CFORMATTER_MPI)
+                ch.addFilter(_MPIRankFilter(_rank))
+        else:
+            ch.setFormatter(CFORMATTER)
+
+        ch.setLevel(level)
+        ch.addFilter(_AppFilter(app_name))
+        root_log.addHandler(ch)
 
     # * add file handler ***************************************************************
     if log_path:
-
         # create directory
         log_path.parent.mkdir(exist_ok=True, parents=True)
 
         fh = None
 
         if mpi_log == "master":
-            rank = MPI.COMM_WORLD.Get_rank()
-            if rank == 0:
+            _rank = MPI.COMM_WORLD.Get_rank()
+            if _rank == 0:
                 fh = logging.FileHandler(log_path, mode="w")
-                fh.addFilter(_MPIMasterFilter(rank))
+                fh.addFilter(_MPIMasterFilter(_rank))
                 fh.setFormatter(FFORMATTER)
         elif mpi_log == "collect":
-            rank = MPI.COMM_WORLD.Get_rank()
+            _rank = MPI.COMM_WORLD.Get_rank()
             fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
-            fh.addFilter(_MPIRankFilter(rank))
+            fh.addFilter(_MPIRankFilter(_rank))
             fh.setFormatter(FFORMATTER_MPI)
         elif mpi_log == "workers":
-            rank = MPI.COMM_WORLD.Get_rank()
+            _rank = MPI.COMM_WORLD.Get_rank()
             # if file has suffix than inser rank number before suffix
             # e.g deepmd.log -> deepmd_<rank>.log
             # if no suffix is present, insert rank as suffix
             # e.g. deepmdlog -> deepmdlog.<rank>
             if log_path.suffix:
-                worker_log = (log_path.parent / f"{log_path.stem}_{rank}").with_suffix(
-                    log_path.suffix
-                )
+                worker_log = (log_path.parent / f"{log_path.stem}_{_rank}").with_suffix(log_path.suffix)
             else:
-                worker_log = log_path.with_suffix(f".{rank}")
+                worker_log = log_path.with_suffix(f".{_rank}")
 
             fh = logging.FileHandler(worker_log, mode="w")
             fh.setFormatter(FFORMATTER)
+        elif mpi_log == "rank":
+            _rank = MPI.COMM_WORLD.Get_rank()
+            fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
+            if rank is not None:
+                rank = [ rank ] if type(rank) is not list else rank
+                fh.addFilter(_MPIRankSelectFilter(_rank, _rank in rank))
+                fh.setFormatter(FFORMATTER_MPI)
+            else:
+                fh.addFilter(_MPIRankFilter(_rank))
+                fh.setFormatter(FFORMATTER_MPI)
         else:
             fh = logging.FileHandler(log_path, mode="w")
             fh.setFormatter(FFORMATTER)
