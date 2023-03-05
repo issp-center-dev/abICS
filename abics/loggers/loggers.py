@@ -67,6 +67,20 @@ class _MPIMasterFilter(logging.Filter):
         else:
             return False
 
+class _MPIMasterAlertFilter(logging.Filter):
+    """Filter that lets through messages of error or higher level."""
+
+    def __init__(self, rank: int) -> None:
+        super().__init__(name="MPI_master_log")
+        self.mpi_rank = rank
+
+    def filter(self, record):
+        if self.mpi_rank == 0 or record.levelno >= logging.ERROR:
+            record.rank = self.mpi_rank
+            return True
+        else:
+            return False
+
 class _MPIRankSelectFilter(logging.Filter):
     """Filter that lets through only messages emited from rank if flag is set."""
 
@@ -170,7 +184,7 @@ def set_log_handles(
         path to log file, if None logs will be send only to console. If the parent
         directory does not exist it will be automatically created, by default None
     mpi_log: Optional[str], optional
-        mpi log type. Has four options. 
+        mpi log type. Has five options.
          - `master` will output logs to file and console only from rank==0.
          - `collect` will write messages from all ranks to one file opened under
            rank==0 and to console.
@@ -178,6 +192,8 @@ def set_log_handles(
            console behaviour is the same as for `collect`.
          - `rank` will write messages from ranks specified by rank parameter to
            one file similar to `collect` mode.
+         - `alert` will output logs to file and console from rank==0. in addition,
+           logs of error or higher level will be outputted from all ranks.
         If this argument is specified, package 'mpi4py' must be already installed.
         by default None
     rank: int or list of int
@@ -254,6 +270,9 @@ def set_log_handles(
             if mpi_log == "master":
                 ch.setFormatter(CFORMATTER)
                 ch.addFilter(_MPIMasterFilter(_rank))
+            elif mpi_log == "alert":
+                ch.setFormatter(CFORMATTER_MPI)
+                ch.addFilter(_MPIMasterAlertFilter(_rank))
             elif mpi_log == "rank" and rank is not None:
                 rank = [ rank ] if type(rank) is not list else rank
                 ch.setFormatter(CFORMATTER_MPI)
@@ -305,10 +324,14 @@ def set_log_handles(
             if rank is not None:
                 rank = [ rank ] if type(rank) is not list else rank
                 fh.addFilter(_MPIRankSelectFilter(_rank, _rank in rank))
-                fh.setFormatter(FFORMATTER_MPI)
             else:
                 fh.addFilter(_MPIRankFilter(_rank))
-                fh.setFormatter(FFORMATTER_MPI)
+            fh.setFormatter(FFORMATTER_MPI)
+        elif mpi_log == "alert":
+            _rank = MPI.COMM_WORLD.Get_rank()
+            fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
+            fh.addFilter(_MPIMasterAlertFilter(_rank))
+            fh.setFormatter(FFORMATTER_MPI)
         else:
             fh = logging.FileHandler(log_path, mode="w")
             fh.setFormatter(FFORMATTER)
