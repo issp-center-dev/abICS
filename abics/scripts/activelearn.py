@@ -135,7 +135,7 @@ def main_impl(params_root: MutableMapping):
                     if alparams.ignore_species:
                         for site in ignore_structure:
                             st.append(site.species_string, site.frac_coords)
-
+                    st.sort(key=lambda site: site.species_string)
                     st.to(
                         fmt="POSCAR",
                         filename=os.path.join(str(myreplica), f"structure.{i}.vasp"),
@@ -422,7 +422,7 @@ def main_impl(params_root: MutableMapping):
                     ignore_structure.remove_species(remove_sp)
                     for site in ignore_structure:
                         st.append(site.species_string, site.frac_coords)
-
+                st.sort(key=lambda site: site.species_string)
                 st0 = st.copy()
                 
                 perturb_structure(st, perturb)
