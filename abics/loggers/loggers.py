@@ -245,10 +245,14 @@ def set_log_handles(
 
     # check if MPI environment is available
     MPI = None
-    try:
-        from mpi4py import MPI
-    except ImportError as e:
+    if console in [ 'serial', 'none' ] or logfile_path == None or logfile_mode == 'serial':
+        # skip
         pass
+    else:
+        try:
+            from mpi4py import MPI
+        except ImportError as e:
+            pass
 
     # check mode
     if console == "default":
@@ -258,11 +262,11 @@ def set_log_handles(
             console = "serial"
 
     if console == "mpi" and not MPI:
-        raise RuntimeError("You cannot specify 'mpi' for console when mpi4py not installed")
+        raise RuntimeError("You cannot specify 'mpi' for console when mpi4py not available")
 
     if logfile_path:
         if logfile_mode in [ 'master', 'collect', 'workers' ] and not MPI:
-            raise RuntimeError("You cannot specify '{}' for logfile_mode when mpi4py not installed".format(logfile_mode))
+            raise RuntimeError("You cannot specify '{}' for logfile_mode when mpi4py not available".format(logfile_mode))
 
     # check level
     console_level = console_level if console_level else level
