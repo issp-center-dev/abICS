@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import sys
 import logging
+import pickle
 
 from mpi4py import MPI
 
@@ -182,8 +183,6 @@ class PopulationAnnealing(ParallelMC):
         self.mycalc.kT = kTs[0]
         self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
-        self.float_buffer = np.array(0.0, dtype=np.float64)
-        self.int_buffer = np.array(0, dtype=np.int64)
         self.obs_save = []
         self.Tindex = 0
         self.logweight = 0.0
@@ -263,6 +262,7 @@ class PopulationAnnealing(ParallelMC):
         logweights = buffer[:, 0]
         energies = buffer[:, 1]
 
+        # resample
         weights = np.exp(logweights - np.max(logweights))  # avoid overflow
         resampler = WalkerTable(weights)
         index = resampler.sample(size=self.procs)
@@ -272,10 +272,16 @@ class PopulationAnnealing(ParallelMC):
         for dst, src in enumerate(index):
             if src == self.rank:
                 mydst.append(dst)
+
+        # check sufficient buffer size of receiver
+        config_size = np.array([len(pickle.dumps(self.mycalc.config))], dtype=np.int32)
+        config_size_all = np.zeros(self.procs, dtype=np.int32)
+        self.comm.Allgather(config_size, config_size_all)
+
         send_reqs = [
             self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst
         ]
-        recv_req = self.comm.irecv(source=mysrc, tag=self.rank)
+        recv_req = self.comm.irecv(config_size_all[mysrc], source=mysrc, tag=self.rank)
         for req in send_reqs:
             req.wait()
         newconfig = recv_req.wait()
