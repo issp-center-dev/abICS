@@ -235,6 +235,7 @@ def main():
     loggers.set_log_handles(
         app_name = "train",
         level = logging.INFO,
+        console = "serial",
         params=params_root.get("log", {}))
 
     logger.info(f"Running abics_train (abICS v{__version__}) on {now}")
