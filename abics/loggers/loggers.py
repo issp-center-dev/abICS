@@ -169,7 +169,7 @@ def set_log_handles(
     level: int,
     log_path: Optional["Path"] = None,
     mpi_log: Optional[str] = None,
-    console = "stderr",
+    console = "stdout",
     rank = None,
     params: Optional['dict'] = None,
 ):
@@ -272,8 +272,10 @@ def set_log_handles(
         ch = logging.StreamHandler(sys.stdout)
     elif console == "stderr":
         ch = logging.StreamHandler(sys.stderr)
-    else:
+    elif console == "default":
         ch = logging.StreamHandler()  # use default
+    else:
+        raise RuntimeError("Unsupported console type {}".format(console))
 
     if ch:
         if MPI:
