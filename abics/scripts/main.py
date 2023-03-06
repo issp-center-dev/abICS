@@ -47,7 +47,6 @@ def main():
     loggers.set_log_handles(
         app_name = "sampling",
         level = logging.INFO,
-        console = "stdout",
         mpi_log = "master",
         params=params.get("log", {}))
 

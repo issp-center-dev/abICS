@@ -62,21 +62,20 @@ class _MPIMasterFilter(logging.Filter):
         self.mpi_rank = rank
 
     def filter(self, record):
-        if self.mpi_rank == 0:
-            return True
-        else:
-            return False
+        record.rank = self.mpi_rank
+        return self.mpi_rank == 0
 
 class _MPIMasterAlertFilter(logging.Filter):
     """Filter that lets through messages of error or higher level."""
 
-    def __init__(self, rank: int) -> None:
-        super().__init__(name="MPI_master_log")
+    def __init__(self, rank: int, level: int) -> None:
+        super().__init__(name="MPI_master_alert_log")
         self.mpi_rank = rank
+        self.alert_level = level
 
     def filter(self, record):
-        if self.mpi_rank == 0 or record.levelno >= logging.ERROR:
-            record.rank = self.mpi_rank
+        record.rank = self.mpi_rank
+        if self.mpi_rank == 0 or record.levelno >= self.alert_level:
             return True
         else:
             return False
@@ -169,7 +168,6 @@ def set_log_handles(
     level: int,
     log_path: Optional["Path"] = None,
     mpi_log: Optional[str] = None,
-    console = "stdout",
     rank = None,
     params: Optional['dict'] = None,
 ):
@@ -185,7 +183,7 @@ def set_log_handles(
         path to log file, if None logs will be send only to console. If the parent
         directory does not exist it will be automatically created, by default None
     mpi_log: Optional[str], optional
-        mpi log type. Has five options.
+        mpi log type. Has four options.
          - `master` will output logs to file and console only from rank==0.
          - `collect` will write messages from all ranks to one file opened under
            rank==0 and to console.
@@ -193,16 +191,11 @@ def set_log_handles(
            console behaviour is the same as for `collect`.
          - `rank` will write messages from ranks specified by rank parameter to
            one file similar to `collect` mode.
-         - `alert` will output logs to file and console from rank==0. in addition,
-           logs of error or higher level will be outputted from all ranks.
         If this argument is specified, package 'mpi4py' must be already installed.
         by default None
     rank: int or list of int
         rank number or list of rank numbers from which logs are written to console
         and/or file when mpi_log is set to `rank` mode.
-    console: str
-        console stream type. `stdout` for standard output, `stderr` for standard error
-        (default), or `none` to suppress console output.
 
     Raises
     ------
@@ -255,8 +248,9 @@ def set_log_handles(
             from pathlib import Path
             log_path = Path(_log_path)
         mpi_log = params.get("mpi_log", mpi_log)
-        console = params.get("console", console)
         rank = params.get("rank", rank)
+
+    level_errlog = logging.ERROR
 
     MPI = None
     if mpi_log:
@@ -266,39 +260,47 @@ def set_log_handles(
             raise RuntimeError("You cannot specify 'mpi_log' when mpi4py not installed") from e
 
     # * add console handler ************************************************************
-    if console == "none":
-        ch = None
-    elif console == "stdout":
-        ch = logging.StreamHandler(sys.stdout)
-    elif console == "stderr":
-        ch = logging.StreamHandler(sys.stderr)
-    elif console == "default":
-        ch = logging.StreamHandler()  # use default
+    if mpi_log:
+        _rank = MPI.COMM_WORLD.Get_rank()
+
+        # - set console log handler
+        ch_out = logging.StreamHandler(sys.stdout)
+
+        ch_out.setLevel(level)
+        ch_out.addFilter(_MPIMasterFilter(_rank))
+        ch_out.setFormatter(CFORMATTER)
+
+        ch_out.addFilter(_AppFilter(app_name))
+        root_log.addHandler(ch_out)
+
+        # - set error log handler
+        ch_err = logging.StreamHandler(sys.stderr)
+
+        ch_err.setLevel(level_errlog)
+        ch_err.addFilter(_MPIRankFilter(_rank))
+        ch_err.setFormatter(CFORMATTER_MPI)
+
+        ch_err.addFilter(_AppFilter(app_name))
+        root_log.addHandler(ch_err)
+
     else:
-        raise RuntimeError("Unsupported console type {}".format(console))
+        # - set console log handler
+        ch_out = logging.StreamHandler(sys.stdout)
 
-    if ch:
-        if MPI:
-            _rank = MPI.COMM_WORLD.Get_rank()
-            if mpi_log == "master":
-                ch.setFormatter(CFORMATTER)
-                ch.addFilter(_MPIMasterFilter(_rank))
-            elif mpi_log == "alert":
-                ch.setFormatter(CFORMATTER_MPI)
-                ch.addFilter(_MPIMasterAlertFilter(_rank))
-            elif mpi_log == "rank" and rank is not None:
-                rank = [ rank ] if type(rank) is not list else rank
-                ch.setFormatter(CFORMATTER_MPI)
-                ch.addFilter(_MPIRankSelectFilter(_rank, _rank in rank))
-            else:
-                ch.setFormatter(CFORMATTER_MPI)
-                ch.addFilter(_MPIRankFilter(_rank))
-        else:
-            ch.setFormatter(CFORMATTER)
+        ch_out.setLevel(level)
+        ch_out.setFormatter(CFORMATTER)
 
-        ch.setLevel(level)
-        ch.addFilter(_AppFilter(app_name))
-        root_log.addHandler(ch)
+        ch_out.addFilter(_AppFilter(app_name))
+        root_log.addHandler(ch_out)
+
+        # - et err log handler
+        ch_err = logging.StreamHandler(sys.stderr)
+
+        ch_err.setLevel(level_errlog)
+        ch_err.setFormatter(CFORMATTER)
+
+        ch_err.addFilter(_AppFilter(app_name))
+        root_log.addHandler(ch_err)
 
     # * add file handler ***************************************************************
     if log_path:
@@ -343,7 +345,7 @@ def set_log_handles(
         elif mpi_log == "alert":
             _rank = MPI.COMM_WORLD.Get_rank()
             fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
-            fh.addFilter(_MPIMasterAlertFilter(_rank))
+            fh.addFilter(_MPIMasterAlertFilter(_rank, level_errlog))
             fh.setFormatter(FFORMATTER_MPI)
         else:
             fh = logging.FileHandler(log_path, mode="w")
