@@ -65,21 +65,6 @@ class _MPIMasterFilter(logging.Filter):
         record.rank = self.mpi_rank
         return self.mpi_rank == 0
 
-class _MPIMasterAlertFilter(logging.Filter):
-    """Filter that lets through messages of error or higher level."""
-
-    def __init__(self, rank: int, level: int) -> None:
-        super().__init__(name="MPI_master_alert_log")
-        self.mpi_rank = rank
-        self.alert_level = level
-
-    def filter(self, record):
-        record.rank = self.mpi_rank
-        if self.mpi_rank == 0 or record.levelno >= self.alert_level:
-            return True
-        else:
-            return False
-
 class _MPIRankSelectFilter(logging.Filter):
     """Filter that lets through only messages emited from rank if flag is set."""
 
@@ -165,10 +150,13 @@ class _MPIHandler(logging.FileHandler):
 
 def set_log_handles(
     app_name: str,
-    level: int,
-    log_path: Optional["Path"] = None,
-    mpi_log: Optional[str] = None,
-    rank = None,
+    level: int = logging.INFO,
+    console: str = "default",
+    console_level: int = None,
+    logfile_path: Optional["Path"] = None,
+    logfile_mode: Optional[str] = None,
+    logfile_level: int = None,
+    logfile_rank = None,
     params: Optional['dict'] = None,
 ):
     """Set desired level for package loggers and add file handlers.
@@ -232,6 +220,21 @@ def set_log_handles(
     # # set TF cpp internal logging level
     # os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(int((level / 10) - 1))
 
+    level_errlog = logging.ERROR
+
+    # expand parameter pack
+    if params:
+        level = params.get("level", level)
+        console = params.get("console", console)
+        console_level = params.get("console_level", console_level)
+        _logfile_path = params.get("logfile_path", None)
+        if _logfile_path:
+            from pathlib import Path
+            logfile_path = Path(_logfile_path)
+        logfile_mode = params.get("logfile_mode", logfile_mode)
+        logfile_level = params.get("logfile_level", logfile_level)
+        logfile_rank = params.get("logfile_rank", logfile_rank)
+
     # get root logger
     root_log = logging.getLogger()
 
@@ -240,33 +243,48 @@ def set_log_handles(
     for hdlr in root_log.handlers[:]:
         root_log.removeHandler(hdlr)
 
-    # check if arguments are present
-    if params:
-        level = params.get("level", level)
-        _log_path = params.get("log_path", None)
-        if _log_path:
-            from pathlib import Path
-            log_path = Path(_log_path)
-        mpi_log = params.get("mpi_log", mpi_log)
-        rank = params.get("rank", rank)
-
-    level_errlog = logging.ERROR
-
+    # check if MPI environment is available
     MPI = None
-    if mpi_log:
-        try:
-            from mpi4py import MPI
-        except ImportError as e:
-            raise RuntimeError("You cannot specify 'mpi_log' when mpi4py not installed") from e
+    try:
+        from mpi4py import MPI
+    except ImportError as e:
+        pass
+
+    # check mode
+    if console == "default":
+        if MPI:
+            console = "mpi"
+        else:
+            console = "serial"
+
+    if console == "mpi" and not MPI:
+        raise RuntimeError("You cannot specify 'mpi' for console when mpi4py not installed")
+
+    if logfile_path:
+        if logfile_mode in [ 'master', 'collect', 'workers' ] and not MPI:
+            raise RuntimeError("You cannot specify '{}' for logfile_mode when mpi4py not installed".format(logfile_mode))
+
+    # check level
+    console_level = console_level if console_level else level
+    if console != "none" and not console_level:
+        raise RuntimeError("You must specify either level or console_level")
+
+    logfile_level = logfile_level if logfile_level else level
+    if logfile_path and not logfile_level:
+        raise RuntimeError("You must specify either level or logfile_level")
+
+    # check rank
+    if logfile_rank:
+        logfile_rank = [ logfile_rank ] if type(logfile_rank) is not list else logfile_rank
 
     # * add console handler ************************************************************
-    if mpi_log:
+    if console == "mpi":
         _rank = MPI.COMM_WORLD.Get_rank()
 
         # - set console log handler
         ch_out = logging.StreamHandler(sys.stdout)
 
-        ch_out.setLevel(level)
+        ch_out.setLevel(console_level)
         ch_out.addFilter(_MPIMasterFilter(_rank))
         ch_out.setFormatter(CFORMATTER)
 
@@ -283,11 +301,11 @@ def set_log_handles(
         ch_err.addFilter(_AppFilter(app_name))
         root_log.addHandler(ch_err)
 
-    else:
+    elif console == "serial":
         # - set console log handler
         ch_out = logging.StreamHandler(sys.stdout)
 
-        ch_out.setLevel(level)
+        ch_out.setLevel(console_level)
         ch_out.setFormatter(CFORMATTER)
 
         ch_out.addFilter(_AppFilter(app_name))
@@ -302,56 +320,52 @@ def set_log_handles(
         ch_err.addFilter(_AppFilter(app_name))
         root_log.addHandler(ch_err)
 
+    elif console == "none":
+        # - suppress console output
+        pass
+
+    else:
+        raise RuntimeError("Unsupported console mode {}".format(console))
+
     # * add file handler ***************************************************************
-    if log_path:
+    if logfile_path:
         # create directory
-        log_path.parent.mkdir(exist_ok=True, parents=True)
+        logfile_path.parent.mkdir(exist_ok=True, parents=True)
 
         fh = None
-
-        if mpi_log == "master":
+        if logfile_mode == "master":
             _rank = MPI.COMM_WORLD.Get_rank()
             if _rank == 0:
-                fh = logging.FileHandler(log_path, mode="w")
+                fh = logging.FileHandler(logfile_path, mode="w")
                 fh.addFilter(_MPIMasterFilter(_rank))
                 fh.setFormatter(FFORMATTER)
-        elif mpi_log == "collect":
+        elif logfile_mode == "collect":
             _rank = MPI.COMM_WORLD.Get_rank()
-            fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
-            fh.addFilter(_MPIRankFilter(_rank))
+            fh = _MPIHandler(logfile_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
+            fh.addFilter(_MPIRankSelectFilter(_rank, logfile_rank is None or _rank in logfile_rank))
             fh.setFormatter(FFORMATTER_MPI)
-        elif mpi_log == "workers":
+        elif logfile_mode == "workers":
             _rank = MPI.COMM_WORLD.Get_rank()
             # if file has suffix than inser rank number before suffix
             # e.g deepmd.log -> deepmd_<rank>.log
             # if no suffix is present, insert rank as suffix
             # e.g. deepmdlog -> deepmdlog.<rank>
-            if log_path.suffix:
-                worker_log = (log_path.parent / f"{log_path.stem}_{_rank}").with_suffix(log_path.suffix)
+            if logfile_path.suffix:
+                worker_log = (logfile_path.parent / f"{logfile_path.stem}_{_rank}").with_suffix(logfile_path.suffix)
             else:
-                worker_log = log_path.with_suffix(f".{_rank}")
-
-            fh = logging.FileHandler(worker_log, mode="w")
+                worker_log = logfile_path.with_suffix(f".{_rank}")
+            if logfile_rank is None or _rank in logfile_rank:
+                fh = logging.FileHandler(worker_log, mode="w")
+                fh.setFormatter(FFORMATTER)
+        elif logfile_mode == "serial":
+            fh = logging.FileHandler(logfile_path, mode="w")
             fh.setFormatter(FFORMATTER)
-        elif mpi_log == "rank":
-            _rank = MPI.COMM_WORLD.Get_rank()
-            fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
-            if rank is not None:
-                rank = [ rank ] if type(rank) is not list else rank
-                fh.addFilter(_MPIRankSelectFilter(_rank, _rank in rank))
-            else:
-                fh.addFilter(_MPIRankFilter(_rank))
-            fh.setFormatter(FFORMATTER_MPI)
-        elif mpi_log == "alert":
-            _rank = MPI.COMM_WORLD.Get_rank()
-            fh = _MPIHandler(log_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
-            fh.addFilter(_MPIMasterAlertFilter(_rank, level_errlog))
-            fh.setFormatter(FFORMATTER_MPI)
         else:
-            fh = logging.FileHandler(log_path, mode="w")
-            fh.setFormatter(FFORMATTER)
+            raise RuntimeError("Unsupported logfile mode {}".format(logfile_mode))
 
         if fh:
-            fh.setLevel(level)
+            fh.setLevel(logfile_level)
             fh.addFilter(_AppFilter(app_name))
             root_log.addHandler(fh)
+
+    # **********************************************************************************

@@ -47,7 +47,8 @@ def main():
     loggers.set_log_handles(
         app_name = "sampling",
         level = logging.INFO,
-        mpi_log = "master",
+        logfile_path = None,
+        logfile_mode = "master",
         params=params.get("log", {}))
 
     logger.info(f"Running abics_sampling (abICS v{__version__}) on {now}")
