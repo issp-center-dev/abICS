@@ -333,7 +333,10 @@ def set_log_handles(
         logfile_path.parent.mkdir(exist_ok=True, parents=True)
 
         fh = None
-        if logfile_mode == "master":
+        if logfile_mode is None or logfile_mode == "serial":
+            fh = logging.FileHandler(logfile_path, mode="w")
+            fh.setFormatter(FFORMATTER)
+        elif logfile_mode == "master":
             _rank = MPI.COMM_WORLD.Get_rank()
             if _rank == 0:
                 fh = logging.FileHandler(logfile_path, mode="w")
@@ -357,9 +360,6 @@ def set_log_handles(
             if logfile_rank is None or _rank in logfile_rank:
                 fh = logging.FileHandler(worker_log, mode="w")
                 fh.setFormatter(FFORMATTER)
-        elif logfile_mode == "serial":
-            fh = logging.FileHandler(logfile_path, mode="w")
-            fh.setFormatter(FFORMATTER)
         else:
             raise RuntimeError("Unsupported logfile mode {}".format(logfile_mode))
 
