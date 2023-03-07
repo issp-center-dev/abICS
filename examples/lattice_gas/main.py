@@ -9,7 +9,6 @@ from scipy.special import gammaln
 
 from abics.applications.latgas_abinitio_interface.defect import DFTConfigParams, defect_config
 from abics.applications.latgas_abinitio_interface.model_setup import DFTLatticeGas
-# from abics.sampling.mc import CanonicalMonteCarlo, binning
 from abics.sampling.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, binning
 from abics.observer import ObserverBase
 

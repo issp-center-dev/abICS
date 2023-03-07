@@ -30,7 +30,8 @@ class EnergyCalculator:
         # E = J Sum_<ij> e_i e_j - mu N  for e_i = {0, 1}
         state1 = (np.roll(state, 1, axis=0) + np.roll(state, 1, axis=1)) * state
 
-        e0 = 0.0 + np.sum(state1) * self.J - np.sum(state) * self.mu
+        # e0 = 0.0 + np.sum(state1) * self.J - np.sum(state) * self.mu
+        e0 = 0.0 + np.sum(state1) * self.J
 
         logger.debug("EnergyCalculator.calc: e = {}, N = {}".format(e0, np.sum(state)))
         return e0
@@ -110,6 +111,8 @@ class LatticeGas(DFTLatticeGas):
     def energy(self, config):
         logger.debug(">>> LatticeGas.energy()")
         ev = self.abinitio_run.calc(config)
+        if self.enable_grandcanonical:
+            ev -= self._calc_muN_term(config)
         return ev
 
     def density(self, config):
@@ -259,7 +262,7 @@ if __name__ == "__main__":
     parser.add_argument("input_file", nargs='?', default="input.toml", help="parameter file in TOML format")
     args = parser.parse_args()
 
-    log_level = 30 - (args.verbose - args.quiet) * 10
+    log_level = logging.INFO - (args.verbose - args.quiet) * 10
     logging.basicConfig(level=log_level)
     
     try:
