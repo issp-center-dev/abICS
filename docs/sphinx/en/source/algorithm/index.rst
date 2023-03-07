@@ -87,14 +87,14 @@ Here, the outline of the definition of the configuration in abICS and the update
 (f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that swaps two atom groups of different type
 , and the other that changes the orientation within the atom group without changing the arrangement. The type of updates is automatically selected with 1/2 probability. The energy is calculated with the specified solver from the proposed configuration :math:`X_ {trial}` and then the adoption rate :math:`P (X_i \rightarrow X_ {trial})` is calculated.
 
-When the grand canonical sampling is turned on, the additional update patterns are also introduced in which the atom groups are added from or removed to the reservoir. The numbers of the atom groups are controlled by the chemical potentials for each atom group or a set of groups simultaneously.
+When the grand canonical sampling is turned on by the parameter ``sampling.enable_grandcanonical``, the additional update patterns are also introduced in which the atom groups are added from or removed to the reservoir. The numbers of the atom groups are controlled by the chemical potentials ``config.chemical_potential`` for each atom group or a set of groups simultaneously.
 The configuration is updated by the Metropolis-Hastings algorithm according to the adoption rate calculated from the differences of the energy and the particle numbers between the original and proposed configurations as
 
 .. math::
 
    P(X_i\to X_\text{trial}) = \min\left( 1,  \Delta W\,e^{-\beta(\Delta E - \mu \Delta N)} \right)
 
-where :math:`\Delta W = Q(X_\text{trial}\to X_i)/Q(X_i\to X_\text{trial})` denotes the weight factor derived from the proposal distribution.
+where :math:`\Delta W = Q(X_\text{trial}\to X_i)/Q(X_i\to X_\text{trial})` denotes the weight factor derived from the proposal distribution :math:`Q(X\to X^\prime)` from a configuration :math:`X` to :math:`X^\prime`.
 
 
 .. figure:: ../../../image/alg_sampling.png
