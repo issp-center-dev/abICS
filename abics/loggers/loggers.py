@@ -167,28 +167,39 @@ def set_log_handles(
         application name
     level: int
         logging level
-    log_path: Optional[str]
-        path to log file, if None logs will be send only to console. If the parent
-        directory does not exist it will be automatically created, by default None
-    mpi_log: Optional[str], optional
-        mpi log type. Has four options.
-         - `master` will output logs to file and console only from rank==0.
-         - `collect` will write messages from all ranks to one file opened under
-           rank==0 and to console.
-         - `workers` will open one log file for each worker designated by its rank,
-           console behaviour is the same as for `collect`.
-         - `rank` will write messages from ranks specified by rank parameter to
-           one file similar to `collect` mode.
-        If this argument is specified, package 'mpi4py' must be already installed.
-        by default None
-    rank: int or list of int
-        rank number or list of rank numbers from which logs are written to console
-        and/or file when mpi_log is set to `rank` mode.
+    console: "default" | "mpi" | "serial" | "none"
+        console output mode.
+         - `default` will examine if MPI environment is available or not.
+         - `mpi` for parallel environment in which rank numbers are shown in error log.
+         - `serial` for serial environment.
+         - `none` suppresses console output.
+    console_level: int
+        logging level for console output, supercedes level parameter.
+    logfile_path: Path object
+        path to log file. if None, logs will be send only to console.
+        the parent directories will be automatically created if they are not present.
+        by default None.
+    logfile_mode: "master" | "collect" | "workers" | "serial"
+        mpi log type.
+         - `master` will output logs to fiile only from rank=0.
+         - `collect` will write messages from all ranks to one file.
+         - `workers` will open one log file for each process designated by its rank.
+         - `serial` will not consider parallel environment.
+    logfile_level: int
+        logging level for file output, supercedes level parameter.
+    logfile_rank: int or list of int or None
+        rank number or list of rank numbers from which logs are written to file.
+        if None, all ranks are taken account of.
+    params: dict
+        the parameters above may be overwritten by the parameter pack given by params.
+        keys are the same as those of the argument labels.
 
     Raises
     ------
     RuntimeError
-        If the argument `mpi_log` is specified, package `mpi4py` is not installed.
+        If the argument `console` is set to `default` or `mpi`, or `logfile_path` is
+        specified and `logfile_mode` is `master`, `collect`, or `workers`,
+        while the package `mpi4py` is not installed.
 
     References
     ----------
