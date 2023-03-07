@@ -16,10 +16,13 @@
 
 from __future__ import annotations
 
+from typing import overload
+
 import os
 import sys
 import logging
 import pickle
+import time
 
 from mpi4py import MPI
 
@@ -193,6 +196,8 @@ class PopulationAnnealing(ParallelMC):
         self.Lreload = False
         self.use_resample_old = False
 
+        self.resampling_time = 0.0
+
     def reload(self):
         # not supported yet 
         pass
@@ -273,22 +278,56 @@ class PopulationAnnealing(ParallelMC):
             if src == self.rank:
                 mydst.append(dst)
 
-        # check sufficient buffer size of receiver
+        old = True
         config_size = np.array([len(pickle.dumps(self.mycalc.config))], dtype=np.int32)
-        config_size_all = np.zeros(self.procs, dtype=np.int32)
-        self.comm.Allgather(config_size, config_size_all)
 
-        send_reqs = [
-            self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst
-        ]
-        recv_req = self.comm.irecv(config_size_all[mysrc], source=mysrc, tag=self.rank)
-        for req in send_reqs:
-            req.wait()
-        newconfig = recv_req.wait()
-        self.comm.Barrier()
+        timer = time.time()
+        if old:
+            # check sufficient buffer size of receiver
+            config_size_all = np.zeros(self.procs, dtype=np.int32)
+            self.comm.Allgather(config_size, config_size_all)
+
+            send_reqs = [
+                self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst
+            ]
+            recv_req = self.comm.irecv(config_size_all[mysrc], source=mysrc, tag=self.rank)
+            for req in send_reqs:
+                req.wait()
+            newconfig = recv_req.wait()
+            self.comm.Barrier()
+        else:
+            buffer_size = self.__send_recv(config_size, mysrc, mydst, to_pickle=False)
+            newconfig = self.__send_recv(self.mycalc.config, mysrc, mydst, recv_buffer_size=buffer_size[0])
+        timer = time.time() - timer
+        self.resampling_time += timer
         self.mycalc.config = newconfig
         self.mycalc.energy = energies[mysrc]
         self.logweight = 0.0
+
+    def __send_recv(self, value, mysrc: int, mydst: list[int], recv_buffer_size: int = 0, to_pickle: bool = True):
+        if to_pickle:
+            send_reqs = [
+                self.comm.isend(value, dest=dst, tag=dst) for dst in mydst
+            ]
+            if recv_buffer_size > 0:
+                recv_req = self.comm.irecv(recv_buffer_size, source=mysrc, tag=self.rank)
+            else:
+                recv_req = self.comm.irecv(source=mysrc, tag=self.rank)
+            for req in send_reqs:
+                req.wait()
+            newvalue = recv_req.wait()
+        else:
+            assert isinstance(value, np.ndarray)
+            newvalue = np.zeros(value.shape, dtype=value.dtype)
+            send_reqs = [
+                self.comm.Isend(value, dest=dst, tag=dst) for dst in mydst
+            ]
+            recv_req = self.comm.Irecv(buf=newvalue, source=mysrc, tag=self.rank)
+            for req in send_reqs:
+                req.wait()
+            recv_req.wait()
+        self.comm.Barrier()
+        return newvalue
 
     def run(
         self,
@@ -385,6 +424,8 @@ class PopulationAnnealing(ParallelMC):
             self.Tindex += 1
             self.isamples_offsets[self.Tindex] = nsample
         output.close()
+
+        print(f"resampling_time = {self.resampling_time}")
 
         if nsample != 0:
             obs = np.array(obs)
