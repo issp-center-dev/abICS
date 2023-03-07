@@ -168,6 +168,7 @@ def main_dft_latgas(params_root: MutableMapping):
     logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
     logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
 
+# >>>>>>> develop
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
@@ -224,6 +225,16 @@ def main_dft_latgas(params_root: MutableMapping):
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
     spinel_config = defect_config(configparams)
+    if configparams.init_structure is None:
+        exit_code, msg = spinel_config.shuffle()
+        logger.info("--Rank {}: {}".format(commAll.Get_rank(), msg))
+        exit_code = commAll.allgather(exit_code)
+        if np.sum(exit_code) != 0:
+            logger.error("Failed to initialize configuration. Exiting.")
+            sys.exit(1)
+    else:
+        logger.info("--Initial structure will be set to 'config.init_structure'.")
+        spinel_config.reset_from_structure(configparams.init_structure)
 
     # configs = []
     # for i in range(nreplicas):
@@ -233,7 +244,7 @@ def main_dft_latgas(params_root: MutableMapping):
     obsparams = ObserverParams.from_dict(params_root["observer"])
 
     logger.info("--Success.")
-    
+
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])

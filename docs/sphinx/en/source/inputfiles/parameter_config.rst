@@ -71,6 +71,14 @@ In the case of ``solver.type != "potts"``
        **Description :**
        The size of super lattice by the list format[ :math:`\bf{a}, \bf{b}, \bf{c}` ].
 
+    -  ``init_structure``
+
+       **Format :** str
+
+       **Description :**
+       The name of structure file (e.g., POSCAR, cif) to be used as the initial structure.
+       If not specified, the initial structure is generated randomly based on ``[[config.base_structure]]`` and ``[[config.defect_structure]]``.
+
 - ``[[config.base_structure]]`` section
 
   ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.

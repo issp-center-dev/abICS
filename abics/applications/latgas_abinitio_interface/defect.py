@@ -17,13 +17,14 @@
 from __future__ import annotations
 
 from typing import Any, MutableMapping
+import os, sys
 
 from pymatgen.core import Lattice, Structure
 
 from .model_setup import Config, DefectSublattice, base_structure
 
 from abics.exception import InputError
-from abics.util import read_matrix
+from abics.util import read_matrix, expand_path
 
 import logging
 logger = logging.getLogger("main")
@@ -58,13 +59,13 @@ class DFTConfigParams:
         constraint_module = dconfig.get("constraint_module", False)
         if not isinstance(constraint_module, bool):
             raise InputError('"config.constraint_module" should be true or false')
+        self.constraint_energy = None
         if constraint_module:
-            import os, sys
-
             sys.path.append(os.getcwd())
-            from constraint_module import constraint_func
-
-            self.constraint_func = constraint_func
+            import constraint_module
+            self.constraint_func = constraint_module.constraint_func
+            if 'constraint_energy' in dir(constraint_module):
+                self.constraint_energy = constraint_module.constraint_energy
         else:
             self.constraint_func = bool
 
@@ -81,6 +82,20 @@ class DFTConfigParams:
             except BaseException:
                 raise InputError("constraint module could not be loaded.")
             self.constraint_func = _cpkg_func #overwrite
+
+        init_structure_path = dconfig.get("init_structure", None)
+        if init_structure_path is not None:
+            init_structure_path = expand_path(init_structure_path, os.getcwd())
+            if not os.path.isfile(init_structure_path):
+                raise InputError(
+                    'cannot find {}; "config.init_structure" should be path to a structure file'.format(init_structure_path)
+                    )
+            try:
+                self.init_structure = Structure.from_file(init_structure_path)
+            except:
+                raise InputError('failed reading {}; check that the file is pymatgen-compatible.'.format(init_structure_path))
+        else:
+            self.init_structure = None
 
         if "base_structure" not in dconfig:
             raise InputError('"base_structure" is not found in the "config" section.')
@@ -156,6 +171,7 @@ def defect_config(cparam: DFTConfigParams) -> Config:
         num_defects = cparam.num_defects,
         cellsize = cparam.supercell,
         constraint_func = cparam.constraint_func,
+        constraint_energy = cparam.constraint_energy,
         chemical_potential = cparam.chemical_potential,
     )
     spinel_config.shuffle()
