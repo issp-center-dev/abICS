@@ -12,7 +12,6 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="5.2. [mlref] section" href="parameter_mlref.html" />
@@ -74,28 +73,38 @@ Relica exchange MC method (“RXMC”) or population annealing MC method (“PAM
 <li><p>About temperatures</p>
 <blockquote>
 <div><ul>
+<li><p>Specify temperature points by using <code class="docutils literal notranslate"><span class="pre">kTs</span></code> or <code class="docutils literal notranslate"><span class="pre">kTstart</span></code>, <code class="docutils literal notranslate"><span class="pre">kTend</span></code>, and <code class="docutils literal notranslate"><span class="pre">kTnum</span></code> (lineary spaced).
+If <code class="docutils literal notranslate"><span class="pre">kTs</span></code> is specified, the others will be ignored.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kTs</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> list of float (&gt;0)</p>
+<p><strong>Description :</strong>
+Temperature points.
+When <code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code>, the number of temperature points should equal to <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code>.</p>
+</div></blockquote>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTstart</span></code></p>
 <blockquote>
 <div><p><strong>Format :</strong> float (&gt;0)</p>
 <p><strong>Description :</strong>
-Minimum temperature for the replica.</p>
+Minimum temperature.</p>
 </div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTend</span></code></p>
 <blockquote>
 <div><p><strong>Format :</strong> float (&gt;0)</p>
 <p><strong>Description :</strong>
-Maximum temperature for the replica.</p>
+Maximum temperature.</p>
 </div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTnum</span></code> (Only for PAMC)</p>
 <blockquote>
 <div><p><strong>Format :</strong> int (&gt;0)</p>
 <p><strong>Description :</strong>
-The number of temperature points.</p>
+The number of temperature points.
+When <code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code>, the number of temperature points will equal to <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code>.</p>
 </div></blockquote>
 </li>
-<li><p>When <code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;PAMC&quot;</span></code>, <span class="math notranslate nohighlight">\(T = \infty\)</span> will be added as a highest temperature automatically.</p></li>
 </ul>
 </div></blockquote>
 </li>

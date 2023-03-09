@@ -13,7 +13,6 @@
     <script src="../_static/doctools.js"></script>
     <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/translations.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
     <link rel="next" title="5.2. [mlref] セクション" href="parameter_mlref.html" />
@@ -76,6 +75,14 @@ print_frequency = 1
 <li><p>温度に関する指定</p>
 <blockquote>
 <div><ul>
+<li><p>温度点は <code class="docutils literal notranslate"><span class="pre">kTs</span></code> を用いて陽に指定するか、 <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> と <code class="docutils literal notranslate"><span class="pre">kTend</span></code> とを用いて等間隔に自動生成するかのどちらかで指定します。
+両方指定した場合、 <code class="docutils literal notranslate"><span class="pre">kTs</span></code> が優先されます.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">kTs</span></code></p>
+<p><strong>形式 :</strong> list of float (&gt;0)</p>
+<p><strong>説明 :</strong>
+温度のリスト.
+&quot;RXMC&quot; のときは、温度点の数とレプリカ数とを一致させる必要があります.</p>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTstart</span></code></p>
 <p><strong>形式 :</strong> float型 (&gt;0)</p>
 <p><strong>説明 :</strong>
@@ -90,9 +97,9 @@ print_frequency = 1
 <p><strong>形式 :</strong> int型 (&gt;0)</p>
 <p><strong>説明 :</strong>
 温度点の数.
-<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;PAMC&quot;</span></code> のときに使用.</p>
+<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;PAMC&quot;</span></code> のときに使用.
+<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code> のときは、 レプリカ数 <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> と同じ値になります.</p>
 </li>
-<li><p>なお、 <code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;PAMC&quot;</span></code> のときは自動的に最高温度として <span class="math notranslate nohighlight">\(T=\infty\)</span> が追加されます.</p></li>
 </ul>
 </div></blockquote>
 </li>
