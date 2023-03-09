@@ -39,7 +39,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-from abics.applications.latgas_abinitio_interface.params import ALParams
+from abics.applications.latgas_abinitio_interface.params import ALParams, DFTParams
 
 from abics.util import exists_on_all_nodes
 from pymatgen.core import Structure
@@ -62,6 +62,7 @@ def main_impl(params_root: MutableMapping):
     ndata = rxparams.ndata
     comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
+    mcparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
     solver: SolverBase = SolverBase.create(alparams.solver, alparams)
@@ -106,14 +107,8 @@ def main_impl(params_root: MutableMapping):
             energies = []
 
             # Preparing ignored species structure to add in postprocess
-            config = defect_config(configparams)
-            if alparams.ignore_species:
-                ignore_structure = config.dummy_structure()
-                remove_sp = filter(
-                    lambda sp: sp not in alparams.ignore_species,
-                    ignore_structure.symbol_set,
-                )
-                ignore_structure.remove_species(remove_sp)
+            #config = defect_config(configparams)
+            
             rundir_list = []
 
             logger.info(f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}...")
@@ -132,9 +127,20 @@ def main_impl(params_root: MutableMapping):
                 if finalrun:
                     # energy_calculator may return the structure w/o ignored structure
                     if alparams.ignore_species:
+                        # Get original structure for calculating relaxation magnitude
+                        ignore_structure = Structure.from_file(
+                            os.path.join(str(myreplica),fmtstr.format(i), "initial.vasp")
+                        )
+                        remove_sp = filter(
+                            lambda sp: sp not in alparams.ignore_species,
+                            ignore_structure.symbol_set,
+                        )
+                        ignore_structure.remove_species(remove_sp)
+                    
                         for site in ignore_structure:
                             st.append(site.species_string, site.frac_coords)
 
+                    st.sort(key=lambda site: site.species_string)
                     st.to(
                         fmt="POSCAR",
                         filename=os.path.join(str(myreplica), f"structure.{i}.vasp"),
@@ -213,15 +219,24 @@ def main_impl(params_root: MutableMapping):
             solver_input = solver.input
             solver_input.from_directory(alparams.base_input_dir[0])
             for i in range(ndata):
-                config.shuffle()
-                perturb_structure(config.structure, perturb)
+                config.shuffle() # randomize config
                 config.structure.sort(key=lambda site: site.species_string)
+                structure0 = config.structure.copy()  
+                perturb_structure(config.structure, perturb)
                 solver_input.update_info_by_structure(config.structure)
                 inputfile = os.path.abspath(
                     os.path.join(str(myreplica), fmtstr.format(i), "baseinput0")
                 )
                 solver_input.write_input(inputfile)
                 rundir_list.append(inputfile)
+
+                # save structure before running through solver (contains ignored species)
+                structure0.to(
+                    fmt='POSCAR',
+                    filename=os.path.abspath(
+                        os.path.join(str(myreplica), fmtstr.format(i), "initial.vasp")
+                        ),
+                )
             rundir_list = comm.gather(rundir_list, root=0)
             if myreplica == 0:
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
@@ -263,13 +278,6 @@ def main_impl(params_root: MutableMapping):
         ALstep = nextMC_index
         ALdir = os.path.join(os.getcwd(), f"AL{ALstep}", str(myreplica))
         config = defect_config(configparams)
-        perf_st = config.dummy_structure()
-        if alparams.ignore_species:
-            ignore_structure = perf_st.copy()
-            remove_sp = filter(
-                lambda sp: sp not in alparams.ignore_species, perf_st.symbol_set
-            )
-            ignore_structure.remove_species(remove_sp)
 
         if exists_on_all_nodes(comm, ALdir):  # We're going to read solver results
             os.chdir(ALdir)
@@ -312,23 +320,19 @@ def main_impl(params_root: MutableMapping):
                 )
                 if finalrun:
                     # Get original structure for calculating relaxation magnitude
-                    # In st_in, used for aenet,
-                    # (i)  "Ignore species" are omitted and should be added.
-                    # (ii) "Vacancy element" is included and should be removed.
                     st_in = Structure.from_file(
-                        os.path.join(MCdir, str(myreplica), f"structure.{i}.vasp")
+                        os.path.join(fmtstr.format(i), "initial.vasp")
                     )
-
-                    # (i)
-                    st = map2perflat(perf_st, st_in)
-                    st.remove_species(["X"])
-                    # (ii)
-                    if alparams.vac_space_holder:
-                        st.remove_species(alparams.vac_space_holder)
-                    stbak = st.copy()
-
+                    
                     # energy_calculator may return the structure w/o ignored structure
+                    # so we need to add them
                     if alparams.ignore_species:
+                        # initial.vasp contains full structure with ignored atoms
+                        ignore_structure = st_in.copy()
+                        remove_sp = filter(
+                            lambda sp: sp not in alparams.ignore_species, ignore_structure.symbol_set
+                            )
+                        ignore_structure.remove_species(remove_sp)
                         for site in ignore_structure:
                             st_rel.append(site.species_string, site.frac_coords)
 
@@ -338,7 +342,7 @@ def main_impl(params_root: MutableMapping):
                     # Examine relaxation
                     dmax = 0
                     dmax_id = 0
-                    for j, site in enumerate(stbak):
+                    for j, site in enumerate(st_in):
                         d = site.distance(st_rel[j])
                         if d > dmax:
                             dmax = d
@@ -406,25 +410,32 @@ def main_impl(params_root: MutableMapping):
             sample_list = rxparams.sampling(nsamples)
             rundir_list = []
             for i in sample_list:
-                # In st_in, used for aenet,
-                # (i)  "Ignore species" are omitted and should be added.
-                # (ii) "Vacancy element" is included and should be removed.
-
-                st_in = Structure.from_file(
+                # We read structures from MC, but we also need to add ignored species.
+                # We utilize structure_norel.*.vasp, which is the structure before solver run
+                # in MC with ignored species.
+                st = Structure.from_file(
                     os.path.join(MCdir, str(myreplica), f"structure.{i}.vasp")
                 )
+                ignore_structure = Structure.from_file(
+                    os.path.join(MCdir, str(myreplica), f"structure_norel.{i}.vasp")
+                )
 
-                # (i)
-                st = map2perflat(perf_st, st_in)
-                st.remove_species(["X"])
-                # (ii)
-                if alparams.vac_space_holder:
-                    st.remove_species(alparams.vac_space_holder)
+                if mcparams.ignore_species:
+                    remove_sp = filter(
+                        lambda sp: sp not in mcparams.ignore_species, ignore_structure.symbol_set
+                        )
+                    ignore_structure.remove_species(remove_sp)
+                    for site in ignore_structure:
+                        st.append(site.species_string, site.frac_coords)
+                st.sort(key=lambda site: site.species_string)
+                st0 = st.copy()
+                
                 perturb_structure(st, perturb)
                 solver_input.update_info_by_structure(st)
                 solver_input.write_input(
                     os.path.abspath(os.path.join(fmtstr.format(i), "baseinput0"))
                 )
+                st0.to(fmt='POSCAR',filename=os.path.abspath(os.path.join(fmtstr.format(i), "initial.vasp")))
                 rundir_list.append(
                     os.path.abspath(os.path.join(fmtstr.format(i), "baseinput0"))
                 )
