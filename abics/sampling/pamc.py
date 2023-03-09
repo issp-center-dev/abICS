@@ -44,12 +44,8 @@ class PAMCParams:
         The number of replicas
     nprocs_per_replica : int
         The number of processes which a replica uses
-    kTstart : float
-        The lower bound of temperature range
-    kTend : float
-        The upper bound of temperature range
-    kTnum : int
-        The number of temperature points
+    kTs: np.array[float]
+        The list of temperature
     nsteps : int
         The number of MC steps between annaling
     resample_frequency :
@@ -68,9 +64,7 @@ class PAMCParams:
     def __init__(self):
         self.nreplicas = 1
         self.nprocs_per_replica = 1
-        self.kTstart = 0.0
-        self.kTend = 1.0
-        self.kTnum = 1
+        self.kTs = np.zeros(0)
         self.nsteps = 0
         self.resample_frequency = 1
         self.sample_frequency = 1
@@ -96,11 +90,16 @@ class PAMCParams:
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
-        params.kTstart = d["kTstart"]
-        params.kTend = d["kTend"]
-        params.kTnum = d["kTnum"]
+        if "kTs" in d:
+            params.kTs = np.array(d["kTs"])
+            kTnum = len(params.kTs)
+        else:
+            kTstart = d["kTstart"]
+            kTend = d["kTend"]
+            kTnum = d["kTnum"]
+            params.kTs = np.linspace(kTstart, kTend, kTnum)
         if "nsteps_between_anneal" in d:
-            params.nsteps = d["nsteps_between_anneal"] * params.kTnum
+            params.nsteps = d["nsteps_between_anneal"] * kTnum
             if "nsteps" in d:
                 msg = f"Error: Both nsteps and nsteps_between_anneal are specified"
                 raise RuntimeError(msg)
