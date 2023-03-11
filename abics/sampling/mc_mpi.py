@@ -129,26 +129,26 @@ def RX_MPI_init(nreplicas: int, seed: int = 0, nensemble=None):
         nensemble_ = 1
     else:
         nensemble_ = nensemble
-    nreplicas = nreplicas * nensemble_
+    nprocs = nreplicas * nensemble_
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
 
-    if worldprocs < nreplicas:
+    if worldprocs < nprocs:
         if worldrank == 0:
             print(
                 "ERROR! Please run with at least as many MPI processes as the number of replicas"
             )
         sys.exit(1)
 
-    if worldprocs > nreplicas:
+    if worldprocs > nprocs:
         if worldrank == 0:
             print(
                 "Setting number of replicas smaller than MPI processes; I hope you"
                 + " know what you're doing..."
             )
             sys.stdout.flush()
-        if worldrank >= nreplicas:
+        if worldrank >= nprocs:
             # belong to comm that does nothing
             comm = commworld.Split(color=1, key=worldrank)
             comm.Free()

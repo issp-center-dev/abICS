@@ -762,7 +762,7 @@ class RunnerMultistep:
     def __init__(
         self,
         base_input_dirs,
-        Solver,
+        Solvers,
         runner: Type[Runner],
         nprocs_per_solver,
         comm,
@@ -797,7 +797,7 @@ class RunnerMultistep:
         self.runners.append(
             runner(
                 base_input_dirs[0],
-                copy.deepcopy(Solver),
+                Solvers[0],
                 nprocs_per_solver,
                 comm,
                 perturb,
@@ -810,7 +810,7 @@ class RunnerMultistep:
             self.runners.append(
                 runner(
                     base_input_dirs[i],
-                    copy.deepcopy(Solver),
+                    Solvers[i],
                     nprocs_per_solver,
                     comm,
                     perturb=0,
@@ -843,7 +843,7 @@ class RunnerEnsemble:
     def __init__(
         self,
         base_input_dirs,
-        Solver,
+        Solvers,
         runner: Type[Runner],
         nprocs_per_solver,
         comm,
@@ -857,8 +857,8 @@ class RunnerEnsemble:
         ----------
         base_input_dirs : list[str]
             List of paths to directories including base input files
-        Solver : SolverBase
-            Solver
+        Solvers : list[SolverBase]
+            list of Solvers
         nprocs_per_solver : int
             Number of processes which one solver program uses
         comm : MPI.Comm
@@ -878,7 +878,7 @@ class RunnerEnsemble:
         self.runners.append(
             runner(
                 base_input_dirs[0],
-                copy.deepcopy(Solver),
+                Solvers[0],
                 nprocs_per_solver,
                 comm,
                 perturb,
@@ -891,7 +891,7 @@ class RunnerEnsemble:
             self.runners.append(
                 runner(
                     base_input_dirs[i],
-                    copy.deepcopy(Solver),
+                    Solvers[i],
                     nprocs_per_solver,
                     comm,
                     perturb=0,

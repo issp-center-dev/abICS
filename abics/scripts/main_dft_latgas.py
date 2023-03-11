@@ -160,7 +160,10 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
 
-    solver: SolverBase = SolverBase.create(dftparams.solver, dftparams)
+    solvers = []
+    for i in range(len(dftparams.base_input_dir)):
+        solver: SolverBase = SolverBase.create(dftparams.solver, dftparams)
+        solvers.append(solver)
     
     logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
     logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
@@ -176,7 +179,7 @@ def main_dft_latgas(params_root: MutableMapping):
             sys.exit(1)
         energy_calculator = RunnerEnsemble(
             base_input_dirs=dftparams.base_input_dir,
-            Solver=solver,
+            Solvers=solvers,
             runner=Runner,
             nprocs_per_solver=nprocs_per_replica,
             comm=commEnsemble,
@@ -188,7 +191,7 @@ def main_dft_latgas(params_root: MutableMapping):
         if len(dftparams.base_input_dir) == 1:
             energy_calculator = Runner(
                 base_input_dir=dftparams.base_input_dir[0],
-                Solver=solver,
+                Solver=solvers[0],
                 nprocs_per_solver=nprocs_per_replica,
                 comm=MPI.COMM_SELF,
                 perturb=dftparams.perturb,
@@ -198,7 +201,7 @@ def main_dft_latgas(params_root: MutableMapping):
         else:
             energy_calculator = RunnerMultistep(
                 base_input_dirs=dftparams.base_input_dir,
-                Solver=solver,
+                Solvers=solvers,
                 runner=Runner,
                 nprocs_per_solver=nprocs_per_replica,
                 comm=MPI.COMM_SELF,
