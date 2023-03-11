@@ -68,6 +68,7 @@ def main_impl(params_root: MutableMapping):
     trainer_commands = trainerparams.exe_command
     trainer_type = trainerparams.solver
     trainer_input_dirs = trainerparams.base_input_dir
+    previous_dirs = []  
 
     configparams = DFTConfigParams.from_dict(params_root["config"])
     config = defect_config(configparams)
@@ -81,6 +82,22 @@ def main_impl(params_root: MutableMapping):
     rootdir = os.getcwd()
     structures = []
     energies = []
+
+    logger.info("-Adding data in previous_dirs to data set")
+
+    for dir in previous_dirs:
+        os.chdir(dir)
+        num_st = len(os.listdir())
+        st_fis = ["structure.{}.xsf".format(i) for i in range(num_st)][:-340]
+        for fi in st_fis:
+            structures.append(Structure.from_file(fi))
+            with open(fi) as f:
+                li = f.readline()
+                e = float(li.split()[4])
+            energies.append(e)
+    os.chdir(rootdir)
+    logger.info("--Done")
+
 
     logger.info("-Mapping relaxed structures in AL* to on-lattice model...")
 
@@ -114,46 +131,69 @@ def main_impl(params_root: MutableMapping):
         )
         st_tmp.merge_sites(mode="delete")
         dummy_sts_share.append((st_tmp, sps))
+    if len(ALdirs) > 1:
+        logger.info(f"-Reading previously mapped structures up to {ALdirs[-2]}")
+        for dir in ALdirs[:-1]:
+            rpl = 0
+            while os.path.isdir(os.path.join(dir, str(rpl))):
+                os.chdir(os.path.join(dir, str(rpl)))
+                energies_ref = []
+                step_ids = []
+                with open("energy_corr.dat") as fi:
+                    for line in fi:
+                        words = line.split()
+                        energies_ref.append(float(words[1]))
+                        step_ids.append(int(words[2]))
+                for step_id, energy in zip(step_ids, energies_ref):
+                    if os.path.exists(f"structure.{step_id}_mapped.vasp"):
+                        structures.append(Structure.from_file(f"structure.{step_id}_mapped.vasp"))
+                        energies.append(energy)
+                rpl += 1
+                os.chdir(rootdir)
 
-    for dir in ALdirs:
-        rpl = 0
-        while os.path.isdir(os.path.join(dir, str(rpl))):
-            os.chdir(os.path.join(dir, str(rpl)))
-            energies_ref = []
-            step_ids = []
-            with open("energy_corr.dat") as fi:
-                for line in fi:
-                    words = line.split()
-                    energies_ref.append(float(words[1]))
-                    step_ids.append(int(words[2]))
-            for step_id, energy in zip(step_ids, energies_ref):
-                structure: Structure = Structure.from_file(f"structure.{step_id}.vasp")
-                mapped_sts = []
-                mapping_success = True
-                for dummy_st, specs in dummy_sts_share:
-                    # perform sublattice by sublattice mapping
-                    sp_rm = list(filter(lambda s: s not in specs, species))
-                    st_tmp = structure.copy()
-                    st_tmp.remove_species(sp_rm)
-                    num_sp = len(st_tmp)
-                    # map to perfect lattice for this species
-                    st_tmp = map2perflat(dummy_st, st_tmp)
-                    st_tmp.remove_species(["X"])
-                    mapped_sts.append(st_tmp)
-                    if num_sp != len(st_tmp):
-                        logger.info(f"--mapping failed for structure {step_id} in replica {rpl}")
-                        mapping_success = False
+        logger.info("--Finished reading previously mapped structures")
 
-                for sts in mapped_sts[1:]:
-                    for i in range(len(sts)):
-                        mapped_sts[0].append(sts[i].species_string, sts[i].frac_coords)
-                if ignore_species:
-                    mapped_sts[0].remove_species(ignore_species)
-                if mapping_success:
-                    structures.append(mapped_sts[0])
-                    energies.append(energy)
-            rpl += 1
-            os.chdir(rootdir)
+    logger.info(f"-Mapping structures in {ALdirs[-1]}")
+    dir = ALdirs[-1]
+    rpl = 0
+    while os.path.isdir(os.path.join(dir, str(rpl))):
+        os.chdir(os.path.join(dir, str(rpl)))
+        energies_ref = []
+        step_ids = []
+        with open("energy_corr.dat") as fi:
+            for line in fi:
+                words = line.split()
+                energies_ref.append(float(words[1]))
+                step_ids.append(int(words[2]))
+        for step_id, energy in zip(step_ids, energies_ref):
+            structure: Structure = Structure.from_file(f"structure.{step_id}.vasp")
+            mapped_sts = []
+            mapping_success = True
+            for dummy_st, specs in dummy_sts_share:
+                # perform sublattice by sublattice mapping
+                sp_rm = list(filter(lambda s: s not in specs, species))
+                st_tmp = structure.copy()
+                st_tmp.remove_species(sp_rm)
+                num_sp = len(st_tmp)
+                # map to perfect lattice for this species
+                st_tmp = map2perflat(dummy_st, st_tmp)
+                st_tmp.remove_species(["X"])
+                mapped_sts.append(st_tmp)
+                if num_sp != len(st_tmp):
+                    logger.info(f"--mapping failed for structure {step_id} in replica {rpl}")
+                    mapping_success = False
+
+            for sts in mapped_sts[1:]:
+                for i in range(len(sts)):
+                    mapped_sts[0].append(sts[i].species_string, sts[i].frac_coords)
+            if ignore_species:
+                mapped_sts[0].remove_species(ignore_species)
+            if mapping_success:
+                structures.append(mapped_sts[0])
+                mapped_sts[0].to(filename=f"structure.{step_id}_mapped.vasp", fmt="POSCAR")
+                energies.append(energy)
+        rpl += 1
+        os.chdir(rootdir)
     logger.info("--Finished mapping")
     
     generate_input_dirs = []

@@ -175,6 +175,7 @@ class TrainerParams:
         self.properties = {}
         self.exe_command = []
         self.vac_map = []
+        self.previous_dir = []
 
     @classmethod
     def from_dict(cls, d):
@@ -206,6 +207,9 @@ class TrainerParams:
         params.solver_run_scheme = d.get("run_scheme", "subprocess")
         params.ignore_species = d.get("ignore_species", None)
         params.vac_map = d.get("vac_map", [])
+        params.previous_dir = d.get("previous_dirs", [])
+        if isinstance(params.previous_dir, str):
+            params.previous_dir = [params.previous_dir]
 
         params.properties = d
 
