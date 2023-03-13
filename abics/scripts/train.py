@@ -68,7 +68,7 @@ def main_impl(params_root: MutableMapping):
     trainer_commands = trainerparams.exe_command
     trainer_type = trainerparams.solver
     trainer_input_dirs = trainerparams.base_input_dir
-    previous_dirs = []  
+    previous_dirs = trainerparams.previous_dir
 
     configparams = DFTConfigParams.from_dict(params_root["config"])
     config = defect_config(configparams)
@@ -88,7 +88,7 @@ def main_impl(params_root: MutableMapping):
     for dir in previous_dirs:
         os.chdir(dir)
         num_st = len(os.listdir())
-        st_fis = ["structure.{}.xsf".format(i) for i in range(num_st)][:-340]
+        st_fis = ["structure.{}.xsf".format(i) for i in range(num_st)]
         for fi in st_fis:
             structures.append(Structure.from_file(fi))
             with open(fi) as f:
