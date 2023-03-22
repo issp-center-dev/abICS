@@ -37,7 +37,8 @@ from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 def similarity(
     structure: Structure,
-    references: dict[str, Structure],
+    reference: Structure,
+    sp: str,
     matcher: StructureMatcher,
 ):
     """
@@ -52,15 +53,14 @@ def similarity(
     """
     matched = 0
     nsites = 0
-    for sp, reference in references.items():
-        sites = matcher.get_mapping(structure, reference)
-        if sites is None:
-            raise RuntimeError("structure does not match with reference structure")
-        species = [str(sp) for sp in structure.species]
-        for i in sites:
-            if species[i] == sp:
-                matched += 1
-        nsites += len(sites)
+    sites = matcher.get_mapping(structure, reference)
+    if sites is None:
+        raise RuntimeError("structure does not match with reference structure")
+    species = [str(sp) for sp in structure.species]
+    for i in sites:
+        if species[i] == sp:
+            matched += 1
+    nsites += len(sites)
     return matched / nsites
 
 
@@ -75,6 +75,7 @@ class DefaultObserver(ObserverBase):
     """
 
     references: dict[str, Structure] | None
+    reference_species: list[str]
     calculators: list
 
     def __init__(self, comm, Lreload=False, params={}):
@@ -139,10 +140,13 @@ class DefaultObserver(ObserverBase):
             reference.remove_species(ignored_species)
             sp_set = {str(sp) for sp in reference.species}
             self.references = {}
+            self.reference_species = []
             for sp in sp_set:
                 bs = reference.copy()
                 bs.remove_species(sp_set - {sp})
+                self.reference_species.append(sp)
                 self.references[sp] = bs
+                self.names.append(f"similarity_{sp}")
             self.matcher = StructureMatcher(
                 ltol=0.1,
                 primitive_cell=False,
@@ -150,9 +154,9 @@ class DefaultObserver(ObserverBase):
                 comparator=FrameworkComparator(),
                 ignored_species=ignored_species,
             )
-            self.names = ["energy", "similarity"]
         else:
             self.references = None
+            self.reference_species = []
 
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
         assert calc_state.config is not None
@@ -183,8 +187,11 @@ class DefaultObserver(ObserverBase):
                 result.append(value)
 
         if self.references is not None:
-            sim = similarity(structure, self.references, self.matcher)
-            result.append(sim)
+            assert(self.reference_species is not None)
+            for sp in self.reference_species:
+                ref = self.references[sp]
+                sim = similarity(structure, ref, sp, self.matcher)
+                result.append(sim)
         return tuple(result)
 
     def writefile(self, calc_state: MCAlgorithm) -> None:
