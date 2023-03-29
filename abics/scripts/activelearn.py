@@ -46,10 +46,7 @@ from pymatgen.core import Structure
 
 import logging
 import abics.loggers as loggers
-from pathlib import Path
 
-#loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="master")
-loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="collect", log_path=Path("run.log"))
 logger = logging.getLogger("main")
 
 
@@ -456,14 +453,21 @@ def main_impl(params_root: MutableMapping):
 
 
 def main():
-    import toml
 
     now = datetime.datetime.now()
-    logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
 
+    import toml
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    logger.info(f"-Reading input from: {tomlfile}")
     params_root = toml.load(tomlfile)
+
+    loggers.set_log_handles(
+        app_name="activelearn",
+        level=logging.INFO,
+        params=params_root.get("log", {}))
+
+    logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
+    logger.info(f"-Reading input from: {tomlfile}")
+
     main_impl(params_root)
 
 
