@@ -18,6 +18,7 @@ import os
 import unittest
 
 import numpy as np
+from numpy.testing import assert_array_equal
 from numpy.linalg import inv
 
 from pymatgen.core import Structure
@@ -44,8 +45,7 @@ class TestInput(unittest.TestCase):
         rxparams = RXParams.from_toml(tomlfile)
         self.assertEqual(rxparams.nreplicas, 2)
         self.assertEqual(rxparams.nprocs_per_replica, 1)
-        self.assertEqual(rxparams.kTstart, 1000.0)
-        self.assertEqual(rxparams.kTend, 1200.0)
+        self.assertEqual(list(rxparams.kTs), [1000.0, 1200.0])
         self.assertEqual(rxparams.nsteps, 2)
         self.assertEqual(rxparams.RXtrial_frequency, 3)
         self.assertEqual(rxparams.sample_frequency, 4)

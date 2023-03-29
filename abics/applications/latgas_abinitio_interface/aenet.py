@@ -14,19 +14,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from .base_solver import SolverBase
-from collections import namedtuple
-import numpy as np
-from pymatgen.core import Structure
-import os
-import sys, shutil, io
-
-
 """
 Adapted from pymatgen.io.xcrysden distributed under the MIT License
 # Copyright (c) Pymatgen Development Team.
 # Distributed under the terms of the MIT License.
 """
+
+from __future__ import annotations
+
+import os
+import sys, shutil, io
+from collections import namedtuple
+import numpy as np
+from pymatgen.core import Structure
+
+from .base_solver import SolverBase, register_solver
+from .params import ALParams, DFTParams
 
 
 def to_XSF(structure, write_force_zero=False):
@@ -50,10 +53,10 @@ def to_XSF(structure, write_force_zero=False):
     app(" %d 1" % len(cart_coords))
     species = structure.species
     site_properties = structure.site_properties
-    if 'forces' not in site_properties.keys():
+    if "forces" not in site_properties.keys():
         write_force_zero = True
     else:
-        forces = site_properties['forces']
+        forces = site_properties["forces"]
 
     if write_force_zero:
         for a in range(len(cart_coords)):
@@ -64,7 +67,8 @@ def to_XSF(structure, write_force_zero=False):
             )
     else:
         for a in range(len(cart_coords)):
-            app(str(species[a]) 
+            app(
+                str(species[a])
                 + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
                 + " %20.14f %20.14f %20.14f" % tuple(forces[a])
             )
@@ -281,13 +285,11 @@ class AenetSolver(SolverBase):
     def solver_run_schemes(self):
         return ("subprocess", "mpi_spawn_ready")
 
-    #-- factory
-    from typing import Union
-    from .params import ALParams, DFTParams
-
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         path = params.path
         ignore_species = params.ignore_species
         run_scheme = params.solver_run_scheme
         return cls(path, ignore_species, run_scheme)
+
+register_solver("aenet", AenetSolver)

@@ -50,7 +50,7 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerEnsemble,
     RunnerMultistep,
 )
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
@@ -77,9 +77,9 @@ def main_dft_latgas(params_root: MutableMapping):
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTstart = rxparams.kTstart
-        kTend = rxparams.kTend
-        kTs = kB * np.linspace(kTstart, kTend, nreplicas)
+        kTs = kB * rxparams.kTs
+        kTstart = rxparams.kTs[0]
+        kTend = rxparams.kTs[-1]
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -90,7 +90,7 @@ def main_dft_latgas(params_root: MutableMapping):
         print_frequency = rxparams.print_frequency
 
         logger.info(f"-Running RXMC calculation with {nreplicas} replicas")
-        logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+        logger.info(f"--Temperature varies from {kTstart} K to {kTend} K")
 
     elif sampler_type == "PAMC":
         pamcparams = PAMCParams.from_dict(params_sampling)
@@ -104,10 +104,11 @@ def main_dft_latgas(params_root: MutableMapping):
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTstart = pamcparams.kTstart
-        kTend = pamcparams.kTend
-        kTnum = pamcparams.kTnum
-        kTs = kB * np.linspace(kTstart, kTend, kTnum)
+        kTstart = pamcparams.kTs[0]
+        kTend = pamcparams.kTs[-1]
+        if kTstart < kTend:
+            kTstart, kTend = kTend, kTstart
+        kTs = kB * pamcparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = pamcparams.reload
@@ -118,7 +119,7 @@ def main_dft_latgas(params_root: MutableMapping):
         print_frequency = pamcparams.print_frequency
 
         logger.info(f"-Running PAMC calculation with {nreplicas} replicas")
-        logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+        logger.info(f"--Anneal from {kTstart} K to {kTend} K")
 
     elif sampler_type == "parallelRand":
         rxparams = ParallelRandomParams.from_dict(params_sampling)
@@ -147,9 +148,9 @@ def main_dft_latgas(params_root: MutableMapping):
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTstart = rxparams.kTstart
-        kTend = rxparams.kTend
-        kTs = kB * np.linspace(kTstart, kTend, nreplicas)
+        kTstart = rxparams.kTs[0]
+        kTend = rxparams.kTs[-1]
+        kTs = kB * rxparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -163,12 +164,11 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
 
-    solver: SolverBase = SolverBase.create(dftparams.solver, dftparams)
+    solver: SolverBase = create_solver(dftparams.solver, dftparams)
     
     logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
     logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
 
-# >>>>>>> develop
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
@@ -248,7 +248,7 @@ def main_dft_latgas(params_root: MutableMapping):
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-        solver = SolverBase.create(ensembleparams.solver, ensembleparams)
+        solver = create_solver(ensembleparams.solver, ensembleparams)
 
         energy_calculators = [
             Runner(

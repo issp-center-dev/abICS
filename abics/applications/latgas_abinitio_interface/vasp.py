@@ -18,17 +18,20 @@
 To deal with VASP
 """
 
+from __future__ import annotations
 
-from .base_solver import SolverBase
+import os, os.path
+import time
 from collections import namedtuple
+
+import numpy as np
 from pymatgen.io.vasp.inputs import Poscar, VaspInput
 from pymatgen.io.vasp.outputs import Oszicar
 from pymatgen.core import Structure
-#from pymatgen.apps.borg.hive import SimpleVaspToComputedEntryDrone
-#from pymatgen.apps.borg.queen import BorgQueen
-import numpy as np
-import os, os.path
-import time
+
+from .params import ALParams, DFTParams
+from .base_solver import SolverBase, register_solver
+
 
 class VASPSolver(SolverBase):
     """
@@ -184,7 +187,7 @@ class VASPSolver(SolverBase):
         Output manager.
         """
 
-        #def __init__(self):
+        # def __init__(self):
         #    self.drone = SimpleVaspToComputedEntryDrone(inc_structure=True)
         #    self.queen = BorgQueen(self.drone)
 
@@ -221,25 +224,26 @@ class VASPSolver(SolverBase):
                         "If VASP was actually run, then this might be due to a very slow file system."
                     )
                 else:
-                    print("VASP OSZICAR is older than INCAR; waiting for file system update")
+                    print(
+                        "VASP OSZICAR is older than INCAR; waiting for file system update"
+                    )
                     counter += 1
                     time.sleep(10)
-                    
+
             energy = Oszicar(os.path.join(workdir, "OSZICAR")).final_energy
             structure = Structure.from_file(os.path.join(workdir, "CONTCAR"))
-            
 
             return Phys(np.float64(energy), structure)
 
     def solver_run_schemes(self):
         return ("mpi_spawn_ready",)
 
-    #-- factory
-    from typing import Union
-    from .params import ALParams, DFTParams
+    # -- factory
 
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         path = params.path
         ignore_species = params.ignore_species
         return cls(path, ignore_species)
+
+register_solver("vasp", VASPSolver)

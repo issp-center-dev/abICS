@@ -18,12 +18,15 @@
 Mock for energy calculator
 """
 
+from __future__ import annotations
+
 import numpy as np
 
-from .base_solver import SolverBase
 from collections import namedtuple
 from pymatgen.core import Structure
 import os.path
+
+from .base_solver import SolverBase, register_solver
 
 
 class MockSolver(SolverBase):
@@ -65,11 +68,11 @@ class MockSolver(SolverBase):
         an_mean /= n
         for i in range(n):
             an_i = st_local.species[i].number - an_mean
-            for j in range(i+1,n):
+            for j in range(i + 1, n):
                 an_j = st_local.species[j].number - an_mean
-                ene += (an_i * an_j) / (dm[i,j] ** 2)
+                ene += (an_i * an_j) / (dm[i, j] ** 2)
         with open(os.path.join(output_dir, "energy.dat"), "w") as f:
-            f.write('{:.15f}\n'.format(ene))
+            f.write("{:.15f}\n".format(ene))
 
     class Input(object):
         """
@@ -124,7 +127,9 @@ class MockSolver(SolverBase):
                 Path to working directory.
             """
             os.makedirs(output_dir, exist_ok=True)
-            self.st.to(fmt="POSCAR", filename=os.path.join(output_dir, "structure.vasp"))
+            self.st.to(
+                fmt="POSCAR", filename=os.path.join(output_dir, "structure.vasp")
+            )
 
         def cl_args(self, nprocs, nthreads, workdir):
             """
@@ -180,10 +185,13 @@ class MockSolver(SolverBase):
     def solver_run_schemes(self):
         return ("function",)
 
-    #-- factory
+    # -- factory
     from typing import Union
     from .params import ALParams, DFTParams
 
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         return cls()
+
+
+register_solver("mock", MockSolver)
