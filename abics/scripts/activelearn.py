@@ -38,7 +38,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
 from abics.applications.latgas_abinitio_interface.params import ALParams, DFTParams
 
 from abics.util import exists_on_all_nodes
@@ -65,7 +65,7 @@ def main_impl(params_root: MutableMapping):
     mcparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
-    solver: SolverBase = SolverBase.create(alparams.solver, alparams)
+    solver: SolverBase = create_solver(alparams.solver, alparams)
 
     perturb = alparams.perturb
     solver_output = solver.output
