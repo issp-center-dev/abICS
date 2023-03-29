@@ -20,6 +20,7 @@ from collections import namedtuple
 
 from pymatgen.core.structure import Structure
 
+from .params import ALParams, DFTParams
 
 class SolverBase(object):
     """
@@ -179,22 +180,61 @@ class SolverBase(object):
         """
         return ()
 
-    #-- factory
-    from typing import Union
-    from .params import ALParams, DFTParams
-
     @classmethod
-    def create(cls, type_name, params: Union[ALParams, DFTParams]):
-        solver_table = {
-            "VASPSolver":          [ "vasp" ],
-            "QESolver":            [ "qe" ],
-            "AenetSolver":         [ "aenet" ],
-            "AenetPyLammpsSolver": [ "aenetPyLammps" ],
-            "OpenMXSolver":        [ "openmx" ],
-            "MockSolver":          [ "mock" ],
-        }
-        for subcls in cls.__subclasses__():
-            if type_name in solver_table[subcls.__name__]:
-                return subcls.create(params)
-        print("FATAL: base_solver.create: unknown solver type: type={}".format(type_name))
-        return None
+    def create(cls, params: ALParams | DFTParams) -> SolverBase:
+        """
+        Create solver instance.
+
+        Parameters
+        ----------
+        params : ALParams or DFTParams
+            Parameters.
+
+        Returns
+        -------
+        solver : SolverBase
+            Solver instance.
+        """
+        raise NotImplementedError()
+
+
+__solver_table = {}
+
+def register_solver(solver_name: str, solver_class) -> None:
+    """
+    Register solver class.
+
+    Parameters
+    ----------
+    solver_name : str
+        Solver name (case insensible).
+    solver_class : SolverBase
+        Solver class, which should be a subclass of SolverBase.
+    """
+
+    if SolverBase not in solver_class.mro():
+        raise TypeError("solver_class must be a subclass of SolverBase")
+    __solver_table[solver_name.lower()] = solver_class
+
+
+def create_solver(solver_name, params: ALParams | DFTParams) -> SolverBase:
+    """
+    Create solver instance.
+
+    Parameters
+    ----------
+    solver_name : str
+        Solver name (case insensible).
+    params : ALParams or DFTParams
+        Parameters.
+
+    Returns
+    -------
+    solver : SolverBase
+        Solver instance.
+    """
+    sn = solver_name.lower()
+    if sn not in __solver_table:
+        raise ValueError(f"Unknown solver: {solver_name}")
+    solver_class = __solver_table[sn]
+    return solver_class.create(params)
