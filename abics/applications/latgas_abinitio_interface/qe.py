@@ -19,6 +19,8 @@ To deal with QuantumESPRESSO
 
 """
 
+from __future__ import annotations
+
 from collections import namedtuple
 import xml.etree.ElementTree as ET
 import operator
@@ -30,7 +32,8 @@ import scipy.constants as spc
 from pymatgen.core import Structure
 from qe_tools.parsers import PwInputFile
 
-from .base_solver import SolverBase
+from .params import ALParams, DFTParams
+from .base_solver import SolverBase, register_solver
 from ...util import expand_path
 from ...exception import InputError
 
@@ -180,7 +183,8 @@ class QESolver(SolverBase):
                     self.pwi.namelists[name] = {}
             self.pwi.namelists["CONTROL"]["prefix"] = "pwscf"
             self.pwi.namelists["CONTROL"]["pseudo_dir"] = expand_path(
-                self.pwi.namelists["CONTROL"]["pseudo_dir"], base_input_dir
+                self.pwi.namelists["CONTROL"]["pseudo_dir"],
+                base_input_dir
                 # self.pwi.namelists["CONTROL"]["pseudo_dir"], os.getcwd()
             )
 
@@ -429,12 +433,13 @@ class QESolver(SolverBase):
         """
         return "mpi_spawn"
 
-    #-- factory
-    from typing import Union
-    from .params import ALParams, DFTParams
+    # -- factory
 
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         path = params.path
         parallel_level = params.properties.get("parallel_level", {})
         return cls(path, parallel_level=parallel_level)
+
+
+register_solver("qe", QESolver)

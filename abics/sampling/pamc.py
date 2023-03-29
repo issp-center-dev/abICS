@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import sys
 import logging
+import pickle
 
 from mpi4py import MPI
 
@@ -43,12 +44,8 @@ class PAMCParams:
         The number of replicas
     nprocs_per_replica : int
         The number of processes which a replica uses
-    kTstart : float
-        The lower bound of temperature range
-    kTend : float
-        The upper bound of temperature range
-    kTnum : int
-        The number of temperature points
+    kTs: np.array[float]
+        The list of temperature
     nsteps : int
         The number of MC steps between annaling
     resample_frequency :
@@ -67,9 +64,7 @@ class PAMCParams:
     def __init__(self):
         self.nreplicas = 1
         self.nprocs_per_replica = 1
-        self.kTstart = 0.0
-        self.kTend = 1.0
-        self.kTnum = 1
+        self.kTs = np.zeros(0)
         self.nsteps = 0
         self.resample_frequency = 1
         self.sample_frequency = 1
@@ -95,11 +90,16 @@ class PAMCParams:
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
-        params.kTstart = d["kTstart"]
-        params.kTend = d["kTend"]
-        params.kTnum = d["kTnum"]
+        if "kTs" in d:
+            params.kTs = np.array(d["kTs"])
+            kTnum = len(params.kTs)
+        else:
+            kTstart = d["kTstart"]
+            kTend = d["kTend"]
+            kTnum = d["kTnum"]
+            params.kTs = np.linspace(kTstart, kTend, kTnum)
         if "nsteps_between_anneal" in d:
-            params.nsteps = d["nsteps_between_anneal"] * params.kTnum
+            params.nsteps = d["nsteps_between_anneal"] * kTnum
             if "nsteps" in d:
                 msg = f"Error: Both nsteps and nsteps_between_anneal are specified"
                 raise RuntimeError(msg)
@@ -182,8 +182,6 @@ class PopulationAnnealing(ParallelMC):
         self.mycalc.kT = kTs[0]
         self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
-        self.float_buffer = np.array(0.0, dtype=np.float64)
-        self.int_buffer = np.array(0, dtype=np.int64)
         self.obs_save = []
         self.Tindex = 0
         self.logweight = 0.0
@@ -263,6 +261,7 @@ class PopulationAnnealing(ParallelMC):
         logweights = buffer[:, 0]
         energies = buffer[:, 1]
 
+        # resample
         weights = np.exp(logweights - np.max(logweights))  # avoid overflow
         resampler = WalkerTable(weights)
         index = resampler.sample(size=self.procs)
@@ -272,10 +271,16 @@ class PopulationAnnealing(ParallelMC):
         for dst, src in enumerate(index):
             if src == self.rank:
                 mydst.append(dst)
+
+        # check sufficient buffer size of receiver
+        config_size = np.array([len(pickle.dumps(self.mycalc.config))], dtype=np.int32)
+        config_size_all = np.zeros(self.procs, dtype=np.int32)
+        self.comm.Allgather(config_size, config_size_all)
+
         send_reqs = [
             self.comm.isend(self.mycalc.config, dest=dst, tag=dst) for dst in mydst
         ]
-        recv_req = self.comm.irecv(source=mysrc, tag=self.rank)
+        recv_req = self.comm.irecv(config_size_all[mysrc], source=mysrc, tag=self.rank)
         for req in send_reqs:
             req.wait()
         newconfig = recv_req.wait()

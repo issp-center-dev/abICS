@@ -53,9 +53,9 @@ def main_potts(params_root: MutableMapping):
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTstart = rxparams.kTstart
-        kTend = rxparams.kTend
-        kTs = np.linspace(kTstart, kTend, nreplicas)
+        kTstart = rxparams.kTs[0]
+        kTend = rxparams.kTs[-1]
+        kTs = rxparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -68,7 +68,7 @@ def main_potts(params_root: MutableMapping):
         print_frequency = rxparams.print_frequency
 
         logger.info(f"-Running RXMC calculation with {nreplicas} replicas")
-        logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+        logger.info(f"--Temperature varies from {kTstart} to {kTend}")
 
         RXcalc = TemperatureRX_MPI(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
@@ -98,10 +98,11 @@ def main_potts(params_root: MutableMapping):
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTstart = pamcparams.kTstart
-        kTend = pamcparams.kTend
-        kTnum = pamcparams.kTnum
-        kTs = np.linspace(kTstart, kTend, kTnum)
+        kTstart = pamcparams.kTs[0]
+        kTend = pamcparams.kTs[-1]
+        if kTstart < kTend:
+            kTstart, kTend = kTend, kTstart
+        kTs = pamcparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = pamcparams.reload
@@ -114,7 +115,7 @@ def main_potts(params_root: MutableMapping):
         print_frequency = pamcparams.print_frequency
 
         logger.info(f"-Running PAMC calculation with {nreplicas} replicas")
-        logger.info(f"--Temperatures are linearly spaced from {kTstart} K to {kTend} K")
+        logger.info(f"--Anneal from {kTstart} to {kTend}")
 
         calc = PopulationAnnealing(
             comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node

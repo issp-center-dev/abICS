@@ -40,10 +40,8 @@ class RXParams:
         The number of replicas
     nprocs_per_replica : int
         The number of processes which a replica uses
-    kTstart : float
-        The lower bound of temperature range
-    kTend : float
-        The upper bound of temperature range
+    kTs: np.ndarray[float]
+        The temperature list
     nsteps : int
         The number of MC steps
     RXtrial_frequency :
@@ -62,8 +60,7 @@ class RXParams:
     def __init__(self):
         self.nreplicas = 1
         self.nprocs_per_replica = 1
-        self.kTstart = 0.0
-        self.kTend = 1.0
+        self.kTs = np.zeros(0)
         self.nsteps = 0
         self.RXtrial_frequency = 1
         self.sample_frequency = 1
@@ -90,8 +87,16 @@ class RXParams:
         params = cls()
         params.nreplicas = d["nreplicas"]
         params.nprocs_per_replica = d["nprocs_per_replica"]
-        params.kTstart = d["kTstart"]
-        params.kTend = d["kTend"]
+        if "kTs" in d:
+            params.kTs = np.array(d["kTs"])
+            if params.kTs.size != params.nreplicas:
+                raise ValueError(
+                    "The number of temperatures must be equal to the number of replicas."
+                )
+        else:
+            kTstart = d["kTstart"]
+            kTend = d["kTend"]
+            params.kTs = np.linspace(kTstart, kTend, params.nreplicas)
         params.nsteps = d["nsteps"]
         params.RXtrial_frequency = d.get("RXtrial_frequency", 1)
         params.sample_frequency = d.get("sample_frequency", 1)
