@@ -103,24 +103,48 @@
 <p>Module taking care of logging duties.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="abics.loggers.set_log_handles">
-<span class="sig-prename descclassname"><span class="pre">abics.loggers.</span></span><span class="sig-name descname"><span class="pre">set_log_handles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpi_log</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/loggers/loggers.html#set_log_handles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.loggers.set_log_handles" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">abics.loggers.</span></span><span class="sig-name descname"><span class="pre">set_log_handles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">console</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">console_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfile_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Path</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfile_mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfile_level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logfile_rank</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/loggers/loggers.html#set_log_handles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.loggers.set_log_handles" title="Permalink to this definition"></a></dt>
 <dd><p>Set desired level for package loggers and add file handlers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
+<li><p><strong>app_name</strong> (<em>str</em>) – application name</p></li>
 <li><p><strong>level</strong> (<em>int</em>) – logging level</p></li>
-<li><p><strong>log_path</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – path to log file, if None logs will be send only to console. If the parent
-directory does not exist it will be automatically created, by default None</p></li>
-<li><p><strong>mpi_log</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – mpi log type. Has three options. <cite>master</cite> will output logs to file and console
-only from rank==0. <cite>collect</cite> will write messages from all ranks to one file
-opened under rank==0 and to console. <cite>workers</cite> will open one log file for each
-worker designated by its rank, console behaviour is the same as for <cite>collect</cite>.
-If this argument is specified, package ‘mpi4py’ must be already installed.
-by default None</p></li>
+<li><p><strong>console</strong> (<em>&quot;default&quot;</em><em> | </em><em>&quot;mpi&quot;</em><em> | </em><em>&quot;serial&quot;</em><em> | </em><em>&quot;none&quot;</em>) – <dl class="simple">
+<dt>console output mode.</dt><dd><ul>
+<li><p><cite>default</cite> will examine if MPI environment is available or not.</p></li>
+<li><p><cite>mpi</cite> for parallel environment in which rank numbers are shown in error log.</p></li>
+<li><p><cite>serial</cite> for serial environment.</p></li>
+<li><p><cite>none</cite> suppresses console output.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>console_level</strong> (<em>int</em>) – logging level for console output, supercedes level parameter.</p></li>
+<li><p><strong>logfile_path</strong> (<em>Path object</em>) – path to log file. if None, logs will be send only to console.
+the parent directories will be automatically created if they are not present.
+by default None.</p></li>
+<li><p><strong>logfile_mode</strong> (<em>&quot;master&quot;</em><em> | </em><em>&quot;collect&quot;</em><em> | </em><em>&quot;workers&quot;</em><em> | </em><em>&quot;serial&quot;</em>) – <dl class="simple">
+<dt>mpi log type.</dt><dd><ul>
+<li><p><cite>master</cite> will output logs to fiile only from rank=0.</p></li>
+<li><p><cite>collect</cite> will write messages from all ranks to one file.</p></li>
+<li><p><cite>workers</cite> will open one log file for each process designated by its rank.</p></li>
+<li><p><cite>serial</cite> will not consider parallel environment.</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>logfile_level</strong> (<em>int</em>) – logging level for file output, supercedes level parameter.</p></li>
+<li><p><strong>logfile_rank</strong> (<em>int</em><em> or </em><em>list</em><em> of </em><em>int</em><em> or </em><em>None</em>) – rank number or list of rank numbers from which logs are written to file.
+if None, all ranks are taken account of.</p></li>
+<li><p><strong>params</strong> (<em>dict</em>) – the parameters above may be overwritten by the parameter pack given by params.
+keys are the same as those of the argument labels.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>RuntimeError</strong> – If the argument <cite>mpi_log</cite> is specified, package <cite>mpi4py</cite> is not installed.</p>
+<dd class="field-even"><p><strong>RuntimeError</strong> – If the argument <cite>console</cite> is set to <cite>default</cite> or <cite>mpi</cite>, or <cite>logfile_path</cite> is
+    specified and <cite>logfile_mode</cite> is <cite>master</cite>, <cite>collect</cite>, or <cite>workers</cite>,
+    while the package <cite>mpi4py</cite> is not installed.</p>
 </dd>
 </dl>
 <p class="rubric">References</p>

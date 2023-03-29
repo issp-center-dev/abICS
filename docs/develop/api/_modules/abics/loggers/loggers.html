@@ -70,7 +70,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;Logger initialization for package.&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
@@ -88,9 +88,7 @@
 <span class="n">FFORMATTER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
     <span class="s2">&quot;[</span><span class="si">%(asctime)s</span><span class="s2">] </span><span class="si">%(app_name)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
 <span class="p">)</span>
-<span class="n">CFORMATTER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
-    <span class="s2">&quot;</span><span class="si">%(app_name)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
-<span class="p">)</span>
+<span class="n">CFORMATTER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(app_name)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="n">FFORMATTER_MPI</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span>
     <span class="s2">&quot;[</span><span class="si">%(asctime)s</span><span class="s2">] </span><span class="si">%(app_name)s</span><span class="s2"> rank:</span><span class="si">%(rank)s</span><span class="s2"> </span><span class="si">%(levelname)s</span><span class="s2"> </span><span class="si">%(name)s</span><span class="s2"> </span><span class="si">%(message)s</span><span class="s2">&quot;</span>
 <span class="p">)</span>
@@ -124,17 +122,28 @@
 
 
 <span class="k">class</span> <span class="nc">_MPIMasterFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter that lets through only messages emited from rank==0.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter that lets through only messages emitted from rank==0.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MPI_master_log&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span> <span class="o">=</span> <span class="n">rank</span>
 
     <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span> <span class="o">==</span> <span class="mi">0</span>
+
+
+<span class="k">class</span> <span class="nc">_MPIRankSelectFilter</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">Filter</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Filter that lets through only messages emitted from rank if flag is set.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rank</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">output_flag</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MPI_rank_log&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span> <span class="o">=</span> <span class="n">rank</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_flag</span> <span class="o">=</span> <span class="n">output_flag</span>
+
+    <span class="k">def</span> <span class="nf">filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mpi_rank</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_flag</span>
 
 
 <span class="k">class</span> <span class="nc">_MPIFileStream</span><span class="p">:</span>
@@ -150,9 +159,7 @@
 <span class="sd">        file write mode, by default _MPI_APPEND_MODE</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="s2">&quot;Path&quot;</span><span class="p">,</span> <span class="n">MPI</span><span class="p">:</span> <span class="s2">&quot;MPI&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="s2">&quot;Path&quot;</span><span class="p">,</span> <span class="n">MPI</span><span class="p">:</span> <span class="s2">&quot;MPI&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">mode</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">MODE_CREATE</span> <span class="o">|</span> <span class="n">MPI</span><span class="o">.</span><span class="n">MODE_APPEND</span> <span class="o">|</span> <span class="n">MPI</span><span class="o">.</span><span class="n">MODE_WRONLY</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">File</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
@@ -190,12 +197,7 @@
 <span class="sd">        file access mode, by default &quot;_MPI_APPEND_MODE&quot;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">filename</span><span class="p">:</span> <span class="s2">&quot;Path&quot;</span><span class="p">,</span>
-        <span class="n">MPI</span><span class="p">:</span> <span class="s2">&quot;MPI&quot;</span><span class="p">,</span>
-        <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="s2">&quot;Path&quot;</span><span class="p">,</span> <span class="n">MPI</span><span class="p">:</span> <span class="s2">&quot;MPI&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">MPI</span> <span class="o">=</span> <span class="n">MPI</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mpi_mode</span> <span class="o">=</span> <span class="n">mode</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;b&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -210,31 +212,56 @@
 
 <div class="viewcode-block" id="set_log_handles"><a class="viewcode-back" href="../../../abics.loggers.loggers.html#abics.loggers.set_log_handles">[docs]</a><span class="k">def</span> <span class="nf">set_log_handles</span><span class="p">(</span>
     <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">level</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">log_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="n">mpi_log</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+    <span class="n">console</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
+    <span class="n">console_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">logfile_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;Path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">logfile_mode</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">logfile_level</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">logfile_rank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;dict&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Set desired level for package loggers and add file handlers.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    app_name: str</span>
+<span class="sd">        application name</span>
 <span class="sd">    level: int</span>
 <span class="sd">        logging level</span>
-<span class="sd">    log_path: Optional[str]</span>
-<span class="sd">        path to log file, if None logs will be send only to console. If the parent</span>
-<span class="sd">        directory does not exist it will be automatically created, by default None</span>
-<span class="sd">    mpi_log : Optional[str], optional</span>
-<span class="sd">        mpi log type. Has three options. `master` will output logs to file and console</span>
-<span class="sd">        only from rank==0. `collect` will write messages from all ranks to one file</span>
-<span class="sd">        opened under rank==0 and to console. `workers` will open one log file for each</span>
-<span class="sd">        worker designated by its rank, console behaviour is the same as for `collect`.</span>
-<span class="sd">        If this argument is specified, package &#39;mpi4py&#39; must be already installed.</span>
-<span class="sd">        by default None</span>
+<span class="sd">    console: &quot;default&quot; | &quot;mpi&quot; | &quot;serial&quot; | &quot;none&quot;</span>
+<span class="sd">        console output mode.</span>
+<span class="sd">         - `default` will examine if MPI environment is available or not.</span>
+<span class="sd">         - `mpi` for parallel environment in which rank numbers are shown in error log.</span>
+<span class="sd">         - `serial` for serial environment.</span>
+<span class="sd">         - `none` suppresses console output.</span>
+<span class="sd">    console_level: int</span>
+<span class="sd">        logging level for console output, supercedes level parameter.</span>
+<span class="sd">    logfile_path: Path object</span>
+<span class="sd">        path to log file. if None, logs will be send only to console.</span>
+<span class="sd">        the parent directories will be automatically created if they are not present.</span>
+<span class="sd">        by default None.</span>
+<span class="sd">    logfile_mode: &quot;master&quot; | &quot;collect&quot; | &quot;workers&quot; | &quot;serial&quot;</span>
+<span class="sd">        mpi log type.</span>
+<span class="sd">         - `master` will output logs to fiile only from rank=0.</span>
+<span class="sd">         - `collect` will write messages from all ranks to one file.</span>
+<span class="sd">         - `workers` will open one log file for each process designated by its rank.</span>
+<span class="sd">         - `serial` will not consider parallel environment.</span>
+<span class="sd">    logfile_level: int</span>
+<span class="sd">        logging level for file output, supercedes level parameter.</span>
+<span class="sd">    logfile_rank: int or list of int or None</span>
+<span class="sd">        rank number or list of rank numbers from which logs are written to file.</span>
+<span class="sd">        if None, all ranks are taken account of.</span>
+<span class="sd">    params: dict</span>
+<span class="sd">        the parameters above may be overwritten by the parameter pack given by params.</span>
+<span class="sd">        keys are the same as those of the argument labels.</span>
 
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    RuntimeError</span>
-<span class="sd">        If the argument `mpi_log` is specified, package `mpi4py` is not installed.</span>
+<span class="sd">        If the argument `console` is set to `default` or `mpi`, or `logfile_path` is</span>
+<span class="sd">        specified and `logfile_mode` is `master`, `collect`, or `workers`,</span>
+<span class="sd">        while the package `mpi4py` is not installed.</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -266,6 +293,22 @@
     <span class="c1"># # set TF cpp internal logging level</span>
     <span class="c1"># os.environ[&#39;TF_CPP_MIN_LOG_LEVEL&#39;] = str(int((level / 10) - 1))</span>
 
+    <span class="n">level_errlog</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span>
+
+    <span class="c1"># expand parameter pack</span>
+    <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">,</span> <span class="n">level</span><span class="p">)</span>
+        <span class="n">console</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;console&quot;</span><span class="p">,</span> <span class="n">console</span><span class="p">)</span>
+        <span class="n">console_level</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;console_level&quot;</span><span class="p">,</span> <span class="n">console_level</span><span class="p">)</span>
+        <span class="n">_logfile_path</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logfile_path&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_logfile_path</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+            <span class="n">logfile_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">_logfile_path</span><span class="p">)</span>
+        <span class="n">logfile_mode</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logfile_mode&quot;</span><span class="p">,</span> <span class="n">logfile_mode</span><span class="p">)</span>
+        <span class="n">logfile_level</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logfile_level&quot;</span><span class="p">,</span> <span class="n">logfile_level</span><span class="p">)</span>
+        <span class="n">logfile_rank</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logfile_rank&quot;</span><span class="p">,</span> <span class="n">logfile_rank</span><span class="p">)</span>
+
     <span class="c1"># get root logger</span>
     <span class="n">root_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
 
@@ -274,73 +317,154 @@
     <span class="k">for</span> <span class="n">hdlr</span> <span class="ow">in</span> <span class="n">root_log</span><span class="o">.</span><span class="n">handlers</span><span class="p">[:]:</span>
         <span class="n">root_log</span><span class="o">.</span><span class="n">removeHandler</span><span class="p">(</span><span class="n">hdlr</span><span class="p">)</span>
 
-    <span class="c1"># check if arguments are present</span>
+    <span class="c1"># check if MPI environment is available</span>
     <span class="n">MPI</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">mpi_log</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">console</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;serial&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">]</span>
+        <span class="ow">or</span> <span class="n">logfile_path</span> <span class="o">==</span> <span class="kc">None</span>
+        <span class="ow">or</span> <span class="n">logfile_mode</span> <span class="o">==</span> <span class="s2">&quot;serial&quot;</span>
+    <span class="p">):</span>
+        <span class="c1"># skip</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
         <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You cannot specify &#39;mpi_log&#39; when mpi4py not installed&quot;</span><span class="p">)</span> <span class="kn">from</span> <span class="nn">e</span>
+            <span class="k">pass</span>
+
+    <span class="c1"># check mode</span>
+    <span class="k">if</span> <span class="n">console</span> <span class="o">==</span> <span class="s2">&quot;default&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">MPI</span><span class="p">:</span>
+            <span class="n">console</span> <span class="o">=</span> <span class="s2">&quot;mpi&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">console</span> <span class="o">=</span> <span class="s2">&quot;serial&quot;</span>
+
+    <span class="k">if</span> <span class="n">console</span> <span class="o">==</span> <span class="s2">&quot;mpi&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">MPI</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="s2">&quot;You cannot specify &#39;mpi&#39; for console when mpi4py not available&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logfile_path</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">logfile_mode</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;master&quot;</span><span class="p">,</span> <span class="s2">&quot;collect&quot;</span><span class="p">,</span> <span class="s2">&quot;workers&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">MPI</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+                <span class="s2">&quot;You cannot specify &#39;</span><span class="si">{}</span><span class="s2">&#39; for logfile_mode when mpi4py not available&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">logfile_mode</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="c1"># check level</span>
+    <span class="n">console_level</span> <span class="o">=</span> <span class="n">console_level</span> <span class="k">if</span> <span class="n">console_level</span> <span class="k">else</span> <span class="n">level</span>
+    <span class="k">if</span> <span class="n">console</span> <span class="o">!=</span> <span class="s2">&quot;none&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">console_level</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You must specify either level or console_level&quot;</span><span class="p">)</span>
+
+    <span class="n">logfile_level</span> <span class="o">=</span> <span class="n">logfile_level</span> <span class="k">if</span> <span class="n">logfile_level</span> <span class="k">else</span> <span class="n">level</span>
+    <span class="k">if</span> <span class="n">logfile_path</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">logfile_level</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You must specify either level or logfile_level&quot;</span><span class="p">)</span>
+
+    <span class="c1"># check rank</span>
+    <span class="k">if</span> <span class="n">logfile_rank</span><span class="p">:</span>
+        <span class="n">logfile_rank</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">[</span><span class="n">logfile_rank</span><span class="p">]</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">logfile_rank</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">list</span> <span class="k">else</span> <span class="n">logfile_rank</span>
+        <span class="p">)</span>
 
     <span class="c1"># * add console handler ************************************************************</span>
-    <span class="n">ch</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">MPI</span><span class="p">:</span>
-        <span class="n">rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">mpi_log</span> <span class="o">==</span> <span class="s2">&quot;master&quot;</span><span class="p">:</span>
-            <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER</span><span class="p">)</span>
-            <span class="n">ch</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIMasterFilter</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER_MPI</span><span class="p">)</span>
-            <span class="n">ch</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIRankFilter</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">ch</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">console</span> <span class="o">==</span> <span class="s2">&quot;mpi&quot;</span><span class="p">:</span>
+        <span class="n">_rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
 
-    <span class="n">ch</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
-    <span class="n">ch</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_AppFilter</span><span class="p">(</span><span class="n">app_name</span><span class="p">))</span>
-    <span class="n">root_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch</span><span class="p">)</span>
+        <span class="c1"># - set console log handler</span>
+        <span class="n">ch_out</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">console_level</span><span class="p">)</span>
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIMasterFilter</span><span class="p">(</span><span class="n">_rank</span><span class="p">))</span>
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER</span><span class="p">)</span>
+
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_AppFilter</span><span class="p">(</span><span class="n">app_name</span><span class="p">))</span>
+        <span class="n">root_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch_out</span><span class="p">)</span>
+
+        <span class="c1"># - set error log handler</span>
+        <span class="n">ch_err</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level_errlog</span><span class="p">)</span>
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIRankFilter</span><span class="p">(</span><span class="n">_rank</span><span class="p">))</span>
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER_MPI</span><span class="p">)</span>
+
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_AppFilter</span><span class="p">(</span><span class="n">app_name</span><span class="p">))</span>
+        <span class="n">root_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch_err</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">console</span> <span class="o">==</span> <span class="s2">&quot;serial&quot;</span><span class="p">:</span>
+        <span class="c1"># - set console log handler</span>
+        <span class="n">ch_out</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">)</span>
+
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">console_level</span><span class="p">)</span>
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER</span><span class="p">)</span>
+
+        <span class="n">ch_out</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_AppFilter</span><span class="p">(</span><span class="n">app_name</span><span class="p">))</span>
+        <span class="n">root_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch_out</span><span class="p">)</span>
+
+        <span class="c1"># - et err log handler</span>
+        <span class="n">ch_err</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level_errlog</span><span class="p">)</span>
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">CFORMATTER</span><span class="p">)</span>
+
+        <span class="n">ch_err</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_AppFilter</span><span class="p">(</span><span class="n">app_name</span><span class="p">))</span>
+        <span class="n">root_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">ch_err</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">console</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+        <span class="c1"># - suppress console output</span>
+        <span class="k">pass</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unsupported console mode </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">console</span><span class="p">))</span>
 
     <span class="c1"># * add file handler ***************************************************************</span>
-    <span class="k">if</span> <span class="n">log_path</span><span class="p">:</span>
-
+    <span class="k">if</span> <span class="n">logfile_path</span><span class="p">:</span>
         <span class="c1"># create directory</span>
-        <span class="n">log_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">logfile_path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="n">fh</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="k">if</span> <span class="n">mpi_log</span> <span class="o">==</span> <span class="s2">&quot;master&quot;</span><span class="p">:</span>
-            <span class="n">rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
-                <span class="n">fh</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIMasterFilter</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">logfile_mode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">logfile_mode</span> <span class="o">==</span> <span class="s2">&quot;serial&quot;</span><span class="p">:</span>
+            <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">logfile_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FFORMATTER</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">logfile_mode</span> <span class="o">==</span> <span class="s2">&quot;master&quot;</span><span class="p">:</span>
+            <span class="n">_rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">_rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">logfile_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIMasterFilter</span><span class="p">(</span><span class="n">_rank</span><span class="p">))</span>
                 <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FFORMATTER</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">mpi_log</span> <span class="o">==</span> <span class="s2">&quot;collect&quot;</span><span class="p">:</span>
-            <span class="n">rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
-            <span class="n">fh</span> <span class="o">=</span> <span class="n">_MPIHandler</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">MPI</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">MODE_WRONLY</span> <span class="o">|</span> <span class="n">MPI</span><span class="o">.</span><span class="n">MODE_CREATE</span><span class="p">)</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_MPIRankFilter</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">logfile_mode</span> <span class="o">==</span> <span class="s2">&quot;collect&quot;</span><span class="p">:</span>
+            <span class="n">_rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+            <span class="n">fh</span> <span class="o">=</span> <span class="n">_MPIHandler</span><span class="p">(</span><span class="n">logfile_path</span><span class="p">,</span> <span class="n">MPI</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">MODE_WRONLY</span> <span class="o">|</span> <span class="n">MPI</span><span class="o">.</span><span class="n">MODE_CREATE</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span>
+                <span class="n">_MPIRankSelectFilter</span><span class="p">(</span>
+                    <span class="n">_rank</span><span class="p">,</span> <span class="n">logfile_rank</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_rank</span> <span class="ow">in</span> <span class="n">logfile_rank</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FFORMATTER_MPI</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">mpi_log</span> <span class="o">==</span> <span class="s2">&quot;workers&quot;</span><span class="p">:</span>
-            <span class="n">rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">logfile_mode</span> <span class="o">==</span> <span class="s2">&quot;workers&quot;</span><span class="p">:</span>
+            <span class="n">_rank</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
             <span class="c1"># if file has suffix than inser rank number before suffix</span>
             <span class="c1"># e.g deepmd.log -&gt; deepmd_&lt;rank&gt;.log</span>
             <span class="c1"># if no suffix is present, insert rank as suffix</span>
             <span class="c1"># e.g. deepmdlog -&gt; deepmdlog.&lt;rank&gt;</span>
-            <span class="k">if</span> <span class="n">log_path</span><span class="o">.</span><span class="n">suffix</span><span class="p">:</span>
-                <span class="n">worker_log</span> <span class="o">=</span> <span class="p">(</span><span class="n">log_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">log_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span>
-                    <span class="n">log_path</span><span class="o">.</span><span class="n">suffix</span>
-                <span class="p">)</span>
+            <span class="k">if</span> <span class="n">logfile_path</span><span class="o">.</span><span class="n">suffix</span><span class="p">:</span>
+                <span class="n">worker_log</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">logfile_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">logfile_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">_rank</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="n">logfile_path</span><span class="o">.</span><span class="n">suffix</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">worker_log</span> <span class="o">=</span> <span class="n">log_path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-            <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">worker_log</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FFORMATTER</span><span class="p">)</span>
+                <span class="n">worker_log</span> <span class="o">=</span> <span class="n">logfile_path</span><span class="o">.</span><span class="n">with_suffix</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;.</span><span class="si">{</span><span class="n">_rank</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">logfile_rank</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">_rank</span> <span class="ow">in</span> <span class="n">logfile_rank</span><span class="p">:</span>
+                <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">worker_log</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+                <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FFORMATTER</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">fh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">(</span><span class="n">log_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">FFORMATTER</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Unsupported logfile mode </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logfile_mode</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">fh</span><span class="p">:</span>
-            <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+            <span class="n">fh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logfile_level</span><span class="p">)</span>
             <span class="n">fh</span><span class="o">.</span><span class="n">addFilter</span><span class="p">(</span><span class="n">_AppFilter</span><span class="p">(</span><span class="n">app_name</span><span class="p">))</span>
             <span class="n">root_log</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span></div>
+
+    <span class="c1"># **********************************************************************************</span>
 </pre></div>
 
            </div>
