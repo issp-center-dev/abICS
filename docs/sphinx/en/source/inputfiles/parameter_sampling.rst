@@ -37,19 +37,30 @@ Keywords
 
 - About temperatures
 
+   - Specify temperature points by using ``kTs`` or ``kTstart``, ``kTend``, and ``kTnum`` (lineary spaced).
+     If ``kTs`` is specified, the others will be ignored.
+
+   - ``kTs``
+
+       **Format :** list of float (>0)
+
+       **Description :**
+       Temperature points.
+       When ``sampler = "RXMC"``, the number of temperature points should equal to ``nreplicas``.
+
    - ``kTstart``
 
        **Format :** float (>0)
 
        **Description :**
-       Minimum temperature for the replica.
+       Minimum temperature.
 
    - ``kTend``
 
        **Format :** float (>0)
 
        **Description :**
-       Maximum temperature for the replica.
+       Maximum temperature.
 
    - ``kTnum`` (Only for PAMC)
 
@@ -57,8 +68,7 @@ Keywords
 
        **Description :**
        The number of temperature points.
-
-   - When ``sampler = "PAMC"``, :math:`T = \infty` will be added as a highest temperature automatically.
+       When ``sampler = "RXMC"``, the number of temperature points will equal to ``nreplicas``.
 
 - About replica 
 
