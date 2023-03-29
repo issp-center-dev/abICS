@@ -20,6 +20,8 @@ Adapted from pymatgen.io.xcrysden distributed under the MIT License
 # Distributed under the terms of the MIT License.
 """
 
+from __future__ import annotations
+
 import os
 import sys, shutil, io
 from collections import namedtuple
