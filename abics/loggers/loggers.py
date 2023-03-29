@@ -19,9 +19,7 @@ __all__ = ["set_log_handles"]
 FFORMATTER = logging.Formatter(
     "[%(asctime)s] %(app_name)s %(levelname)s %(name)s %(message)s"
 )
-CFORMATTER = logging.Formatter(
-    "%(app_name)s %(levelname)s %(message)s"
-)
+CFORMATTER = logging.Formatter("%(app_name)s %(levelname)s %(message)s")
 FFORMATTER_MPI = logging.Formatter(
     "[%(asctime)s] %(app_name)s rank:%(rank)s %(levelname)s %(name)s %(message)s"
 )
@@ -55,7 +53,7 @@ class _MPIRankFilter(logging.Filter):
 
 
 class _MPIMasterFilter(logging.Filter):
-    """Filter that lets through only messages emited from rank==0."""
+    """Filter that lets through only messages emitted from rank==0."""
 
     def __init__(self, rank: int) -> None:
         super().__init__(name="MPI_master_log")
@@ -65,8 +63,9 @@ class _MPIMasterFilter(logging.Filter):
         record.rank = self.mpi_rank
         return self.mpi_rank == 0
 
+
 class _MPIRankSelectFilter(logging.Filter):
-    """Filter that lets through only messages emited from rank if flag is set."""
+    """Filter that lets through only messages emitted from rank if flag is set."""
 
     def __init__(self, rank: int, output_flag: bool) -> None:
         super().__init__(name="MPI_rank_log")
@@ -76,6 +75,7 @@ class _MPIRankSelectFilter(logging.Filter):
     def filter(self, record):
         record.rank = self.mpi_rank
         return self.output_flag
+
 
 class _MPIFileStream:
     """Wrap MPI.File` so it has the same API as python file streams.
@@ -90,9 +90,7 @@ class _MPIFileStream:
         file write mode, by default _MPI_APPEND_MODE
     """
 
-    def __init__(
-        self, filename: "Path", MPI: "MPI", mode: int = None
-    ) -> None:
+    def __init__(self, filename: "Path", MPI: "MPI", mode: int = None) -> None:
         if mode is None:
             mode = MPI.MODE_CREATE | MPI.MODE_APPEND | MPI.MODE_WRONLY
         self.stream = MPI.File.Open(MPI.COMM_WORLD, filename, mode)
@@ -130,12 +128,7 @@ class _MPIHandler(logging.FileHandler):
         file access mode, by default "_MPI_APPEND_MODE"
     """
 
-    def __init__(
-        self,
-        filename: "Path",
-        MPI: "MPI",
-        mode: int = None,
-    ) -> None:
+    def __init__(self, filename: "Path", MPI: "MPI", mode: int = None,) -> None:
         self.MPI = MPI
         self.mpi_mode = mode
         super().__init__(filename, mode="b", encoding=None, delay=False)
@@ -156,8 +149,8 @@ def set_log_handles(
     logfile_path: Optional["Path"] = None,
     logfile_mode: Optional[str] = None,
     logfile_level: int = None,
-    logfile_rank = None,
-    params: Optional['dict'] = None,
+    logfile_rank=None,
+    params: Optional["dict"] = None,
 ):
     """Set desired level for package loggers and add file handlers.
 
@@ -241,6 +234,7 @@ def set_log_handles(
         _logfile_path = params.get("logfile_path", None)
         if _logfile_path:
             from pathlib import Path
+
             logfile_path = Path(_logfile_path)
         logfile_mode = params.get("logfile_mode", logfile_mode)
         logfile_level = params.get("logfile_level", logfile_level)
@@ -256,7 +250,11 @@ def set_log_handles(
 
     # check if MPI environment is available
     MPI = None
-    if console in [ 'serial', 'none' ] or logfile_path == None or logfile_mode == 'serial':
+    if (
+        console in ["serial", "none"]
+        or logfile_path == None
+        or logfile_mode == "serial"
+    ):
         # skip
         pass
     else:
@@ -273,11 +271,17 @@ def set_log_handles(
             console = "serial"
 
     if console == "mpi" and not MPI:
-        raise RuntimeError("You cannot specify 'mpi' for console when mpi4py not available")
+        raise RuntimeError(
+            "You cannot specify 'mpi' for console when mpi4py not available"
+        )
 
     if logfile_path:
-        if logfile_mode in [ 'master', 'collect', 'workers' ] and not MPI:
-            raise RuntimeError("You cannot specify '{}' for logfile_mode when mpi4py not available".format(logfile_mode))
+        if logfile_mode in ["master", "collect", "workers"] and not MPI:
+            raise RuntimeError(
+                "You cannot specify '{}' for logfile_mode when mpi4py not available".format(
+                    logfile_mode
+                )
+            )
 
     # check level
     console_level = console_level if console_level else level
@@ -290,7 +294,9 @@ def set_log_handles(
 
     # check rank
     if logfile_rank:
-        logfile_rank = [ logfile_rank ] if type(logfile_rank) is not list else logfile_rank
+        logfile_rank = (
+            [logfile_rank] if type(logfile_rank) is not list else logfile_rank
+        )
 
     # * add console handler ************************************************************
     if console == "mpi":
@@ -360,7 +366,11 @@ def set_log_handles(
         elif logfile_mode == "collect":
             _rank = MPI.COMM_WORLD.Get_rank()
             fh = _MPIHandler(logfile_path, MPI, mode=MPI.MODE_WRONLY | MPI.MODE_CREATE)
-            fh.addFilter(_MPIRankSelectFilter(_rank, logfile_rank is None or _rank in logfile_rank))
+            fh.addFilter(
+                _MPIRankSelectFilter(
+                    _rank, logfile_rank is None or _rank in logfile_rank
+                )
+            )
             fh.setFormatter(FFORMATTER_MPI)
         elif logfile_mode == "workers":
             _rank = MPI.COMM_WORLD.Get_rank()
@@ -369,7 +379,9 @@ def set_log_handles(
             # if no suffix is present, insert rank as suffix
             # e.g. deepmdlog -> deepmdlog.<rank>
             if logfile_path.suffix:
-                worker_log = (logfile_path.parent / f"{logfile_path.stem}_{_rank}").with_suffix(logfile_path.suffix)
+                worker_log = (
+                    logfile_path.parent / f"{logfile_path.stem}_{_rank}"
+                ).with_suffix(logfile_path.suffix)
             else:
                 worker_log = logfile_path.with_suffix(f".{_rank}")
             if logfile_rank is None or _rank in logfile_rank:
