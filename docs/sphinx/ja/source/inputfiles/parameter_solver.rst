@@ -53,7 +53,36 @@
    **形式 :** str型
 
    **説明 :**
-   ソルバーの種類(``OpenMX, QE, VASP, aenet, aenetPyLammps, user, potts`` )を指定します.
+   ソルバーの種類を指定します. 大文字小文字の区別はありません.
+
+   -  ``OpenMX``
+
+      - OpenMXを利用します.
+
+   -  ``QE``
+
+      - Quantum Espressoを利用します.
+
+   -  ``VASP``
+
+      - VASPを利用します.
+
+   -  ``aenet``
+
+      - aenetを利用します.
+
+   -  ``aenetPyLammps``
+
+      - LAMMPS を経由してaenetを利用します.
+
+   -  ``user``
+   
+      - ユーザー定義のソルバーを利用します.
+
+   -  ``potts``
+
+      - Potts 模型ソルバーを利用します.
+      - 主にアルゴリズムのテストおよびチュートリアルを目的としたソルバーです.
 
    ``type = "potts"`` の場合には以下のパラメータは利用しません.
 

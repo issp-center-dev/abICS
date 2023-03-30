@@ -106,18 +106,14 @@ Example::
 - 2列目、3列目は分配関数 :math:`\log Z_i/Z_0` とその誤差
 - 4列目、5列目は直前の温度との比 :math:`\log Z_i/Z_{i-1}` とその誤差
 
-``result.dat``
+``<name>.dat``
 =================
 温度ごとの物理量 :math:`O` のカノニカル平均 :math:`\langle O \rangle` とその統計誤差 :math:`\sigma[O]` 。
+``name`` は ``[[observer.solver]]`` の ``name`` キーワードで指定した名前です。
 
 - 1列目 は温度 :math:`T_i`
-- 2列目、3列目はエネルギーの期待値 :math:`\langle E \rangle` と統計誤差
-- 4列目、5列目はエネルギーの2乗の期待値 :math:`\langle E^2 \rangle` と統計誤差
-- 6列目、7列目はエネルギーのゆらぎ :math:`\langle E^2 \rangle - \langle E \rangle^2` と統計誤差
+- 2列目、3列目は期待値 :math:`\langle O \rangle` と統計誤差
+- 4列目、5列目は2乗の期待値 :math:`\langle O^2 \rangle` と統計誤差
+- 6列目、7列目はゆらぎ :math:`\langle O^2 \rangle - \langle O \rangle^2` と統計誤差
 
-   - エネルギーのゆらぎは熱容量 :math:`C` と次のようにして結びついています: :math:`k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]`
-
-
-Potts ソルバーの場合、全磁化 :math:`\langle M \rangle = \langle \sum_i \delta_{\sigma_i,0} - 1/Q \rangle`,
-全磁化の2乗 :math:`\langle M^2 \rangle`, 磁化のゆらぎ :math:`\langle M^2 \rangle - \langle M \rangle^2`
-も8列目以降に出力されます。
+   - 例えばエネルギーのゆらぎは熱容量 :math:`C` と次のようにして結びついています: :math:`k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]`
