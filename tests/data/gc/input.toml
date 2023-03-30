@@ -83,3 +83,8 @@ mu = 0.2
 [[config.chemical_potential]]
 species = ["Al", "Mg"]
 mu = 0.3
+[[config.grandcanonical_move]]
+species = 'Mg'
+[[config.grandcanonical_move]]
+from = 'Al'
+to = 'Mg'

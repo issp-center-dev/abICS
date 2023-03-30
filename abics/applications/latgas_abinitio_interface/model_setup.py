@@ -346,20 +346,20 @@ class DFTLatticeGas(Model):
         else:
             return True
 
-    def _try_add_remove(self, config, chem, do_add):
+    def _try_add_remove(self, config, spec, do_add):
         if do_add:
-            return self._try_add(config, chem)
+            return self._try_add(config, spec)
         else:
-            return self._try_remove(config, chem)
+            return self._try_remove(config, spec)
 
-    def _try_remove(self, config, chem):
+    def _try_remove(self, config, spec):
         # remove (a set of) particles
         logger.debug("src:")
         for sublat in config.defect_sublattices:
             logger.debug("state = {}".format([s for s,t in sublat.latgas_rep]))
 
-        groups, mu = chem["species"], chem["mu"]
-        logger.debug("try_remove: groups={}, mu={}".format(groups,mu))
+        groups = spec[0]
+        logger.debug("try_remove: groups={}".format(groups))
 
         # find sublattices which each species belongs to
         # sublats := [ (grp, [ sublat_id ]) ]
@@ -386,7 +386,7 @@ class DFTLatticeGas(Model):
         if is_unremovable:
             logger.debug("try_remove: there is no choice")
             if self.debug:
-                return False, { 'mode': 'remove', 'result': 'nochoice', 'chem': chem }
+                return False, { 'mode': 'remove', 'result': 'nochoice', 'spec': spec }
             else:
                 return False
 
@@ -408,18 +408,18 @@ class DFTLatticeGas(Model):
             logger.debug("state = {}".format([s for s,t in sublat.latgas_rep]))
 
         if self.debug:
-            return True, { 'mode': 'remove', 'result': 'ok', 'chem': chem, 'choice': choice }
+            return True, { 'mode': 'remove', 'result': 'ok', 'spec': spec, 'choice': choice }
         else:
             return True
 
-    def _try_add(self, config, chem):
+    def _try_add(self, config, spec):
         # add (a set of) particles
         logger.debug("src:")
         for sublat in config.defect_sublattices:
             logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
 
-        groups, mu = chem["species"], chem["mu"]
-        logger.debug("try_add: groups={}, mu={}".format(groups,mu))
+        groups = spec[1]
+        logger.debug("try_add: groups={}".format(groups))
 
         # find sublattices which each species belongs to
         # sublats := [ (grp, [ sublat_id ]) ]
@@ -446,7 +446,7 @@ class DFTLatticeGas(Model):
         if is_unaddable:
             logger.debug("try_add: there is no choice")
             if self.debug:
-                return False, { 'mode': 'add', 'result': 'nochoice', 'chem': chem }
+                return False, { 'mode': 'add', 'result': 'nochoice', 'spec': spec }
             else:
                 return False
 
@@ -481,7 +481,7 @@ class DFTLatticeGas(Model):
             if len(vac_list) < nspecies:
                 logger.debug("try_add: nsublat=1, there is no choice")
                 if self.debug:
-                    return False, { 'mode': 'add', 'result': 'nochoice', 'chem': chem }
+                    return False, { 'mode': 'add', 'result': 'nochoice', 'spec': spec }
                 else:
                     return False
 
@@ -525,7 +525,7 @@ class DFTLatticeGas(Model):
                 if retry >= max_retry:
                     logger.debug("try_add: no choice. quit")
                     if self.debug:
-                        return False, { 'mode': 'add', 'result': 'dup', 'chem': chem }
+                        return False, { 'mode': 'add', 'result': 'dup', 'spec': spec }
                     else:
                         return False
             logger.debug("try_add: general branch. choice={}".format(choice))
@@ -540,10 +540,102 @@ class DFTLatticeGas(Model):
             logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
 
         if self.debug:
-            return True, { 'mode': 'add', 'result': 'ok', 'chem': chem, 'choice': choice }
+            return True, { 'mode': 'add', 'result': 'ok', 'spec': spec, 'choice': choice }
         else:
             return True
 
+    def _try_replace(self, config, spec):
+        # replace set of particles to another set
+        # single species version, i.e. A -> B
+        logger.debug("src:")
+        for sublat in config.defect_sublattices:
+            logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
+
+        sp_from = spec["from"]
+        sp_to   = spec["to"]
+
+        logger.debug("try_replace: groups from={}, to={}".format(sp_from, sp_to))
+
+        if len(sp_from) != len(sp_to):
+            logger.error("try_replace: supports only from single species to single species case")
+            if self.debug:
+                return False, { 'mode': 'replace', 'result': 'unsupported', 'spec': spec }
+            else:
+                return False
+
+        # find sublattices which each species belongs to
+        # sublats := [ (grp, [ sublat_id ]) ]
+        sublats = [ (grp, [ sublat_id
+                            for sublat_id, sublat in enumerate(config.defect_sublattices)
+                            if grp in sublat.group_dict.keys() ])
+                    for grp in sp_from ]
+
+        # sublattice, and indexes of group and vacancy in latgas_rep
+        # for each sublattice which each group belongs to
+        # rep_table := [ (grp, [ (sublat_id, rep_index) ]) ]
+        rep_table = []
+        for grp, sublat_ids in sublats:
+            tbl = []
+            for sublat_id in sublat_ids:
+                lat = config.defect_sublattices[sublat_id]
+                idxs = match_latgas_group(lat.latgas_rep, lat.group_dict[grp])
+                tbl += [ (sublat_id, idx) for idx in idxs ]
+            rep_table += [(grp, tbl)]
+        logger.debug("try_replace: rep_table={}".format(rep_table))
+
+        # check if there are any choice
+        is_unremovable = any([len(tbl) == 0 for grp, tbl in rep_table])
+        if is_unremovable:
+            logger.debug("try_replace: there is no choice")
+            if self.debug:
+                return False, { 'mode': 'replace', 'result': 'nochoice', 'spec': spec }
+            else:
+                return False
+
+        # choose sublattice and latgas_rep index
+        # for each species and vacancy associated with the species
+        choice = []
+        for grp, tbl in rep_table:
+            sublat_id, idx = tbl[rand.choice(len(tbl))]
+            choice += [(grp, sublat_id, idx)]
+        logger.debug("try_replace: choice={}".format(choice))
+
+        # assign new groups to vacant places
+        group_assign = rand.permutation(sp_to)
+
+        logger.debug("try_replace: assign={}".format(group_assign))
+
+        # check if choice is valid
+        noassign = False
+        for k, newgrp in enumerate(group_assign):
+            grp, sublat_id, idx = choice[k]
+
+            if newgrp in config.defect_sublattices[sublat_id].group_dict.keys():
+                pass
+            else:
+                noassign = True
+                break
+        if noassign:
+            logger.debug("try_replace: assignment not satisfied")
+            if self.debug:
+                return False, { 'mode': 'replace', 'result': 'noassign', 'spec': spec }
+            else:
+                return False
+
+        # update config
+        for k, newgrp in enumerate(group_assign):
+            grp, sublat_id, idx = choice[k]
+            lat = config.defect_sublattices[sublat_id]
+            lat.latgas_rep[idx] = [newgrp, rand.choice(lat.group_dict[newgrp].orientations)]
+
+        logger.debug("dst:")
+        for sublat in config.defect_sublattices:
+            logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
+
+        if self.debug:
+            return True, { 'mode': 'replace', 'result': 'ok', 'spec': spec, 'choice': choice }
+        else:
+            return True
 
     def trialstep(self, config, energy_now):
         """
@@ -586,7 +678,7 @@ class DFTLatticeGas(Model):
         nretry = 0
         while True:
             # for defect_sublattice in [rand.choice(config.defect_sublattices)]: #config.defect_sublattices:
-            logger.debug("=== retry {}".format(nretry))
+            logger.debug("=== trial {}".format(nretry))
             nretry += 1
             # print(latgas_rep)
 
@@ -643,24 +735,51 @@ class DFTLatticeGas(Model):
             else:
                 # grandcanonical move
 
-                # choose a species set
-                #chem = rand.choice(config.chemical_potential)
-                chem_id = rand.randint(len(config.chemical_potential))
-                chem = config.chemical_potential[chem_id]
-                do_add = rand.rand() < 0.5
+                # # choose a species set
+                # #chem = rand.choice(config.chemical_potential)
+                # chem_id = rand.randint(len(config.chemical_potential))
+                # chem = config.chemical_potential[chem_id]
+                # do_add = rand.rand() < 0.5
 
-                if do_add:
-                    logger.debug("trialstep: try grandcanonical move, type=add, chem={}".format(chem))
-                    if self.debug:
-                        trial, trial_info = self._try_add(config, chem)
-                    else:
-                        trial = self._try_add(config, chem)
+                # if do_add:
+                #     logger.debug("trialstep: try grandcanonical move, type=add, chem={}".format(chem))
+                #     if self.debug:
+                #         trial, trial_info = self._try_add(config, chem)
+                #     else:
+                #         trial = self._try_add(config, chem)
+                # else:
+                #     logger.debug("trialstep: try grandcanonical move, type=remove, chem={}".format(chem))
+                #     if self.debug:
+                #         trial, trial_info = self._try_remove(config, chem)
+                #     else:
+                #         trial = self._try_remove(config, chem)
+
+
+                # choose a move
+                move_id = rand.randint(len(config.gc_move))
+                move = config.gc_move[move_id]
+                do_forward = (move['reverse'] == False) or (rand.rand() < 0.5)
+
+                spec = (move['from'],move['to']) if do_forward else (move['to'],move['from'])
+
+                if len(spec[0]) == 0:
+                    # [] - >[A,..]
+                    trial = self._try_add(config, spec)
+
+                elif len(spec[1]) == 0:
+                    # [A,..] -> []
+                    trial = self._try_remove(config, spec)
+
+                elif len(spec[0]) == len(spec[1]):
+                    # [A] -> [B]
+                    trial = self._try_replace(config, spec)
+
                 else:
-                    logger.debug("trialstep: try grandcanonical move, type=remove, chem={}".format(chem))
-                    if self.debug:
-                        trial, trial_info = self._try_remove(config, chem)
-                    else:
-                        trial = self._try_remove(config, chem)
+                    # most general case: to be implemented
+                    raise RuntimeError("unsupported move")
+
+                if self.debug:
+                    trial, trial_info = trial
 
             if trial is False:
                 #- retry
@@ -1005,6 +1124,7 @@ class Config:
         constraint_energy=None,
         perfect_structure=None,
         chemical_potential=None,
+        gc_move=None,
     ):
         """
 
@@ -1025,6 +1145,8 @@ class Config:
             Strucure of all sites (union of base and defect), by default None
         chemical_potential : dict
             { tuple of species names: chemical potential }
+        gc_move : list
+            grandcanonical moves: { species from, species to, reversible }
         """
         try:
             num_defect_sublat = len(defect_sublattices)
@@ -1137,8 +1259,9 @@ class Config:
         if not constraint_fullfilled:
             self.shuffle()
 
-        # store chemical potential parameters
+        # store chemical potential parameters and grandcanonical move
         self.chemical_potential = chemical_potential
+        self.gc_move = gc_move
 
     def set_latgas(self, defect_sublattices=False):
         """

@@ -122,8 +122,34 @@ class DFTConfigParams:
                 self.chemical_potential.append({'species': species, 'mu': mu})
         else:
             self.chemical_potential = None
-
         logger.debug("chemical_potential = {}".format(self.chemical_potential))
+
+        if "grandcanonical_move" in dconfig:
+            self.gc_move = []
+            for entry in dconfig["grandcanonical_move"]:
+                if "species" in entry.keys():
+                    species = entry["species"]
+                    species = [ species ] if type(species) is not list else species
+                    self.gc_move.append({ 'from': species, 'to': [], 'reverse': True })
+                else:
+                    sp_from = entry.get("from", [])
+                    sp_to   = entry.get("to", [])
+                    sp_rev  = entry.get("reverse", True)
+                    if sp_from is [] and sp_to is []:
+                        raise("invalid input for grandcanonical_move")
+                    sp_from = [ sp_from ] if type(sp_from) is not list else sp_from
+                    sp_to   = [ sp_to ]   if type(sp_to)   is not list else sp_to
+                    self.gc_move.append({ 'from': sp_from, 'to': sp_to, 'reverse': sp_rev })
+        else:
+            if self.chemical_potential is None:
+                self.gc_move = None
+            else:
+                # taken from chemical_potential table: assume add/remove of species
+                self.gc_move = []
+                for entry in self.chemical_potential:
+                    species = entry["species"]
+                    self.gc_move.append({ 'from': species, 'to': [], 'reverse': True })
+        logger.debug("grandcanonical_move = {}".format(self.gc_move))
 
     @classmethod
     def from_dict(cls, d: MutableMapping) -> "DFTConfigParams":
@@ -173,6 +199,7 @@ def defect_config(cparam: DFTConfigParams) -> Config:
         constraint_func = cparam.constraint_func,
         constraint_energy = cparam.constraint_energy,
         chemical_potential = cparam.chemical_potential,
+        gc_move = cparam.gc_move,
     )
     spinel_config.shuffle()
     return spinel_config

@@ -47,7 +47,7 @@ class StabCalculator:
 class Params:
     def __init__(self):
         pass
-    def create_params(self, sublat, chem=None):
+    def create_params(self, sublat, chem=None, gc_move=None):
 
         params = toml.loads(
             """
@@ -145,6 +145,9 @@ coords = [
         if chem:
             params['config']['chemical_potential'] = chem
 
+        if gc_move:
+            params['config']['grandcanonical_move'] = gc_move
+
         return params
 
 class TestGrandCanonical(unittest.TestCase):
@@ -157,22 +160,25 @@ class TestGrandCanonical(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def try_add_remove(self, proto, chem_tbl, mode, choice, src, expect_stat, expect_dst):
+    def try_add_remove(self, model_desc, mode, choice, src, expect_stat, expect_dst):
 
         # examples of arguments:
-        #   proto -- list of species on each sublattice
-        #     [ [ 'A' ], [ 'A', 'B' ] ]
-        #   chem_tbl -- table of chemical potentials
-        #     [ { 'species': ['A'], 'mu': 0.1 }, { 'species': ['A','B'], 'mu': 0.2 } ]
-        #   mode -- add or remove
-        #     add = True, remove = False
+        #   model_desc -- model description
+        #     'proto' -- list of species on each sublattice
+        #       [ [ 'A' ], [ 'A', 'B' ] ]
+        #     'chem_tbl' -- table of chemical potentials
+        #       [ { 'species': ['A'], 'mu': 0.1 }, { 'species': ['A','B'], 'mu': 0.2 } ]
+        #     'move_tbl' -- table of grandcanonical moves
+        #       [ { 'from': ['A'], 'to': [] }, { 'species': ['A','B'] } ]
+        #   mode -- run mode
+        #     "add" or "remove"
         #   choice -- move choice from chem table, specify id
         #     0 (for ['A'])
         #   src -- input state
         #     [ [ 4 ], [ 2, 2 ] ]
-        #   stat -- expected status
+        #   exect_stat -- expected return status
         #     True/False
-        #   expect -- expected result
+        #   expect_dst -- expected result
         #     [ [[ 5 ], [ 2, 2 ]], [[ 4 ], [ 3, 2 ]] ]
 
         # create model
@@ -182,11 +188,16 @@ class TestGrandCanonical(unittest.TestCase):
                               gc_ratio = 1.0,
                               debug = True)
 
+        proto = model_desc.get('proto', [])
+        
         # proto = [ ['A'], ['A','B'] ]
         # -> [ { name: A, num: NA1 } ], [ { name: A, num: NA2 }, { name: B, num: NB } ]
         pp = [ [ { 'name': q, 'num': src[i][k] } for k,q in enumerate(p) ] for i,p in enumerate(proto) ]
 
-        p = Params().create_params(pp, chem_tbl)
+        chem_tbl = model_desc.get('chem_tbl', None)
+        move_tbl = model_desc.get('move_tbl', None)
+
+        p = Params().create_params(pp, chem_tbl, move_tbl)
         # print(p)
 
         # create parameter set
@@ -201,7 +212,15 @@ class TestGrandCanonical(unittest.TestCase):
         ]
 
         # try
-        stat, info = model._try_add_remove(config, chem_tbl[choice], mode)
+        move = config.gc_move[choice]  # from: [A] -> to: []
+        if mode == "add":
+            spec = (move['to'],move['from'])
+            self.assertTrue(len(spec[0]) == 0)
+        else:
+            spec = (move['from'],move['to'])
+            self.assertTrue(len(spec[1]) == 0)
+
+        stat, info = model._try_add_remove(config, spec, mode=="add")
         print("--- stat =", stat, info)
 
         # new state
@@ -226,7 +245,7 @@ class TestGrandCanonical(unittest.TestCase):
                 for rep_idx,(v0,v1) in enumerate(zip(rep0, rep1)):
                     for grp,sublat_id,idx in info['choice']:
                         if lat == sublat_id and rep_idx == idx:
-                            if mode: # try add
+                            if mode == "add": # try add
                                 self.assertTrue(v0[0] == '@' and v1[0] == grp)
                             else:
                                 self.assertTrue(v0[0] == grp and v1[0] == '@')
@@ -241,11 +260,11 @@ class TestGrandCanonical(unittest.TestCase):
 
         pass
 
-    def try_add(self, proto, chem_tbl, choice, src, expect_stat, expect_dst):
-        return self.try_add_remove(proto, chem_tbl, True, choice, src, expect_stat, expect_dst)
+    def try_add(self, model, choice, src, expect_stat, expect_dst):
+        return self.try_add_remove(model, "add", choice, src, expect_stat, expect_dst)
 
-    def try_remove(self, proto, chem_tbl, choice, src, expect_stat, expect_dst):
-        return self.try_add_remove(proto, chem_tbl, False, choice, src, expect_stat, expect_dst)
+    def try_remove(self, model, choice, src, expect_stat, expect_dst):
+        return self.try_add_remove(model, "remove", choice, src, expect_stat, expect_dst)
 
     def try_exchange(self, proto, choice, src, nrepeat=10):
 
@@ -436,6 +455,76 @@ class TestGrandCanonical(unittest.TestCase):
 
         pass
 
+    def try_replace(self, src, expect_stat, expect_dst, args={}):
+
+        # examples of arguments:
+        #   src -- input state
+        #     [ [ 4 ], [ 2, 2 ] ]
+        #   expect_stat -- expected return status
+        #     True/False
+        #   expect_dst  -- expected state
+        #     [ [[ 5 ], [ 2, 2 ]], [[ 4 ], [ 3, 2 ]] ]
+
+        # create model
+        model = DFTLatticeGas(StabCalculator(),
+                              save_history = False,
+                              enable_grandcanonical = True,
+                              gc_ratio = 1.0,
+                              debug = True)
+
+        proto = args.get('proto', [ ['A', 'B'] ])
+
+        # proto = [ ['A'], ['A','B'] ] and src = [ [NA1], [NA2,NB] ]
+        # -> [ { name: A, num: NA1 } ], [ { name: A, num: NA2 }, { name: B, num: NB } ]
+        pp = [ [ { 'name': q, 'num': src[i][k] } for k,q in enumerate(p) ] for i,p in enumerate(proto) ]
+
+        chem_tbl = args.get('chem_tbl', [
+            { 'species': 'A', 'mu': 0.1 },
+            { 'species': 'B', 'mu': 0.1 },
+        ])
+
+        move_tbl = args.get('move_tbl', [
+            { 'from': 'A', 'to': 'B', 'reverse': True },
+        ])
+        
+        p = Params().create_params(pp, chem_tbl, move_tbl)
+        #print(p)
+
+        # create parameter set
+        params = DFTConfigParams.from_dict(p['config'])
+
+        # create config
+        config = defect_config(params)
+
+        # backup
+        config_latgas_bak = [
+            copy.deepcopy(sublat.latgas_rep) for sublat in config.defect_sublattices
+        ]
+
+        # try
+        stat, info = model._try_replace(config, config.gc_move[0])
+        print("--- stat =", stat, info)
+
+        # new state
+        config_latgas = [
+            copy.deepcopy(sublat.latgas_rep) for sublat in config.defect_sublattices
+        ]
+
+        # check if move is successful/unsatisfied as expected
+        self.assertEqual(stat, expect_stat, "return status unexpected")
+
+        if stat:
+            # check number of particles
+            x = [ [ len([ i for i,v in enumerate(subl.latgas_rep) if v[0] == grp ])
+                    for grp in proto[k] ]
+                  for k,subl in enumerate(config.defect_sublattices) ]
+
+            print("--- dst =", x)
+            self.assertTrue(x in expect_dst)
+
+        else:
+            pass
+
     #----------------
     def test_rotate_1species(self):
         proto = [ ['A'] ]
@@ -486,157 +575,184 @@ class TestGrandCanonical(unittest.TestCase):
 
     #----------------
     def test_addremove_1sublat_1species(self):
-        chem_tbl = [
-            { 'species': [ 'A' ], 'mu': 0.1 },
-        ]
-
-        proto = [ ['A'] ]
+        model = {
+            'proto': [ ['A'] ],
+            'chem_tbl': [
+                { 'species': [ 'A' ], 'mu': 0.1 },
+            ],
+            'move_tbl': [
+                { 'species': 'A' },
+            ],
+        }
         N = 24
 
         if True:
         # if False:
             # try add
-            self.try_add(proto, chem_tbl, 0, [[N]],   False, [ [[-1]] ])
-            self.try_add(proto, chem_tbl, 0, [[N-1]], True,  [ [[N]] ])
-            self.try_add(proto, chem_tbl, 0, [[0]],   True,  [ [[1]] ])
+            self.try_add(model, 0, [[N]],   False, [ [[-1]] ])
+            self.try_add(model, 0, [[N-1]], True,  [ [[N]] ])
+            self.try_add(model, 0, [[0]],   True,  [ [[1]] ])
 
             # try remove
-            self.try_remove(proto, chem_tbl, 0, [[0]], False, [ [[-1]] ])
-            self.try_remove(proto, chem_tbl, 0, [[1]], True,  [ [[0]] ])
-            self.try_remove(proto, chem_tbl, 0, [[N]], True,  [ [[N-1]] ])
+            self.try_remove(model, 0, [[0]], False, [ [[-1]] ])
+            self.try_remove(model, 0, [[1]], True,  [ [[0]] ])
+            self.try_remove(model, 0, [[N]], True,  [ [[N-1]] ])
 
     #----------------
     def test_addremove_1sublat_2species(self):
-        chem_tbl = [
-            { 'species': [ 'A' ], 'mu': 0.1 },
-            { 'species': [ 'B' ], 'mu': 0.2 },
-            { 'species': [ 'A', 'B' ], 'mu': 0.3 },
-        ]
-
-        proto = [ ['A', 'B'] ]
+        model = {
+            'proto': [ ['A', 'B'] ],
+            'chem_tbl': [
+                { 'species': [ 'A' ], 'mu': 0.1 },
+                { 'species': [ 'B' ], 'mu': 0.2 },
+                { 'species': [ 'A', 'B' ], 'mu': 0.3 },
+            ],
+        }
         N = 24
 
         if True:
         # if False:
             # try add A
-            self.try_add(proto, chem_tbl, 0, [[N, 0]],    False, [ [[-1, -1]] ])
-            self.try_add(proto, chem_tbl, 0, [[N-1, 1]],  False, [ [[-1, -1]] ])
-            self.try_add(proto, chem_tbl, 0, [[N-1, 0]],  True,  [ [[N, 0]] ])
-            self.try_add(proto, chem_tbl, 0, [[0, N//2]], True,  [ [[1, N//2]] ])
+            self.try_add(model, 0, [[N, 0]],    False, [ [[-1, -1]] ])
+            self.try_add(model, 0, [[N-1, 1]],  False, [ [[-1, -1]] ])
+            self.try_add(model, 0, [[N-1, 0]],  True,  [ [[N, 0]] ])
+            self.try_add(model, 0, [[0, N//2]], True,  [ [[1, N//2]] ])
 
             # try remove A
-            self.try_remove(proto, chem_tbl, 0, [[0, 0]], False, [ [[-1, -1]] ])
-            self.try_remove(proto, chem_tbl, 0, [[1, 0]], True,  [ [[0, 0]] ])
-            self.try_remove(proto, chem_tbl, 0, [[N, 0]], True,  [ [[N-1, 0]] ])
+            self.try_remove(model, 0, [[0, 0]], False, [ [[-1, -1]] ])
+            self.try_remove(model, 0, [[1, 0]], True,  [ [[0, 0]] ])
+            self.try_remove(model, 0, [[N, 0]], True,  [ [[N-1, 0]] ])
 
             # try add A,B pair
-            self.try_add(proto, chem_tbl, 2, [[N, 0]],    False, [ [[-1, -1]] ])
-            self.try_add(proto, chem_tbl, 2, [[N-1, 0]],  False, [ [[-1, -1]] ])
-            self.try_add(proto, chem_tbl, 2, [[N//2-1, N//2]],    False, [ [[-1, -1]] ])
-            self.try_add(proto, chem_tbl, 2, [[N-2, 0]],  True,  [ [[N-1, 1]] ])
-            self.try_add(proto, chem_tbl, 2, [[N//2-1, N//2-1]],  True,  [ [[N//2, N//2]] ])
-            self.try_add(proto, chem_tbl, 2, [[0, 0]],    True,  [ [[1, 1]] ])
+            self.try_add(model, 2, [[N, 0]],    False, [ [[-1, -1]] ])
+            self.try_add(model, 2, [[N-1, 0]],  False, [ [[-1, -1]] ])
+            self.try_add(model, 2, [[N//2-1, N//2]],    False, [ [[-1, -1]] ])
+            self.try_add(model, 2, [[N-2, 0]],  True,  [ [[N-1, 1]] ])
+            self.try_add(model, 2, [[N//2-1, N//2-1]],  True,  [ [[N//2, N//2]] ])
+            self.try_add(model, 2, [[0, 0]],    True,  [ [[1, 1]] ])
 
             # try remove A,B pair
-            self.try_remove(proto, chem_tbl, 2, [[0, 0]], False, [ [[-1, -1]] ])
-            self.try_remove(proto, chem_tbl, 2, [[1, 0]], False, [ [[-1, -1]] ])
-            self.try_remove(proto, chem_tbl, 2, [[1, 1]], True,  [ [[0, 0]] ])
-            self.try_remove(proto, chem_tbl, 2, [[N//2, N//2]], True,  [ [[N//2-1, N//2-1]] ])
+            self.try_remove(model, 2, [[0, 0]], False, [ [[-1, -1]] ])
+            self.try_remove(model, 2, [[1, 0]], False, [ [[-1, -1]] ])
+            self.try_remove(model, 2, [[1, 1]], True,  [ [[0, 0]] ])
+            self.try_remove(model, 2, [[N//2, N//2]], True,  [ [[N//2-1, N//2-1]] ])
 
     #----------------
     def test_addremove_2sublat_2species_disjoint(self):
-        chem_tbl = [
-            { 'species': [ 'A' ], 'mu': 0.1 },
-            { 'species': [ 'B' ], 'mu': 0.2 },
-            { 'species': [ 'A', 'B' ], 'mu': 0.3 },
-        ]
-
-        proto = [ ['A'], ['B'] ]
+        model = {
+            'proto': [ ['A'], ['B'] ],
+            'chem_tbl': [
+                { 'species': [ 'A' ], 'mu': 0.1 },
+                { 'species': [ 'B' ], 'mu': 0.2 },
+                { 'species': [ 'A', 'B' ], 'mu': 0.3 },
+            ],
+        }
         N = 12
 
         if True:
         # if False:
             # try add A
-            self.try_add(proto, chem_tbl, 0, [[N],[N]],    False, [])
-            self.try_add(proto, chem_tbl, 0, [[N-1],[N]],  True,  [ [[N],[N]] ])
-            self.try_add(proto, chem_tbl, 0, [[0],[N//2]], True,  [ [[1],[N//2]] ])
+            self.try_add(model, 0, [[N],[N]],    False, [])
+            self.try_add(model, 0, [[N-1],[N]],  True,  [ [[N],[N]] ])
+            self.try_add(model, 0, [[0],[N//2]], True,  [ [[1],[N//2]] ])
 
             # try remove A
-            self.try_remove(proto, chem_tbl, 0, [[0],[N]], False, [])
-            self.try_remove(proto, chem_tbl, 0, [[1],[N]], True,  [ [[0],[N]] ])
-            self.try_remove(proto, chem_tbl, 0, [[N],[N]], True,  [ [[N-1],[N]] ])
+            self.try_remove(model, 0, [[0],[N]], False, [])
+            self.try_remove(model, 0, [[1],[N]], True,  [ [[0],[N]] ])
+            self.try_remove(model, 0, [[N],[N]], True,  [ [[N-1],[N]] ])
 
             # try add A,B pair
-            self.try_add(proto, chem_tbl, 2, [[N],[N]],    False, [])
-            self.try_add(proto, chem_tbl, 2, [[N-1],[N]],  False, [])
-            self.try_add(proto, chem_tbl, 2, [[N],[N-1]],  False, [])
-            self.try_add(proto, chem_tbl, 2, [[N-1],[N-1]],  True, [ [[N],[N]] ])
-            self.try_add(proto, chem_tbl, 2, [[N//2],[N//2]],  True, [ [[N//2+1],[N//2+1]] ])
+            self.try_add(model, 2, [[N],[N]],    False, [])
+            self.try_add(model, 2, [[N-1],[N]],  False, [])
+            self.try_add(model, 2, [[N],[N-1]],  False, [])
+            self.try_add(model, 2, [[N-1],[N-1]],  True, [ [[N],[N]] ])
+            self.try_add(model, 2, [[N//2],[N//2]],  True, [ [[N//2+1],[N//2+1]] ])
 
             # try remove A,B pair
-            self.try_remove(proto, chem_tbl, 2, [[0],[0]],    False, [])
-            self.try_remove(proto, chem_tbl, 2, [[1],[0]],    False, [])
-            self.try_remove(proto, chem_tbl, 2, [[0],[1]],    False, [])
-            self.try_remove(proto, chem_tbl, 2, [[1],[1]],    True, [ [[0],[0]] ])
-            self.try_remove(proto, chem_tbl, 2, [[N//2],[N//2]],   True, [ [[N//2-1],[N//2-1]] ])
+            self.try_remove(model, 2, [[0],[0]],    False, [])
+            self.try_remove(model, 2, [[1],[0]],    False, [])
+            self.try_remove(model, 2, [[0],[1]],    False, [])
+            self.try_remove(model, 2, [[1],[1]],    True, [ [[0],[0]] ])
+            self.try_remove(model, 2, [[N//2],[N//2]],   True, [ [[N//2-1],[N//2-1]] ])
 
     #----------------
     def test_addremove_2sublat_2species_multilayer(self):
-        chem_tbl = [
-            { 'species': [ 'A' ], 'mu': 0.1 },
-            { 'species': [ 'B' ], 'mu': 0.2 },
-            { 'species': [ 'A', 'B' ], 'mu': 0.3 },
-        ]
-
-        proto = [ ['A'], ['A', 'B'] ]
+        model = {
+            'proto': [ ['A'], ['A', 'B'] ],
+            'chem_tbl': [
+                { 'species': [ 'A' ], 'mu': 0.1 },
+                { 'species': [ 'B' ], 'mu': 0.2 },
+                { 'species': [ 'A', 'B' ], 'mu': 0.3 },
+            ],
+        }
         N = 12
 
         if True:
         # if False:
             # try add A
-            self.try_add(proto, chem_tbl, 0, [[N], [0,N]],   False, [])
-            self.try_add(proto, chem_tbl, 0, [[N], [1,N-1]], False, [])
-            self.try_add(proto, chem_tbl, 0, [[N], [N,0]],   False, [])
-            self.try_add(proto, chem_tbl, 0, [[N], [0,N-1]], True,  [ [[N],[1,N-1]] ])
-            self.try_add(proto, chem_tbl, 0, [[N], [1,N-2]], True,  [ [[N],[2,N-2]] ])
-            self.try_add(proto, chem_tbl, 0, [[N-1], [0,N]], True,  [ [[N],[0,N]] ])
-            self.try_add(proto, chem_tbl, 0, [[N-1], [0,N-1]], True,  [ [[N],[0,N-1]], [[N-1],[1,N-1]] ])
+            self.try_add(model, 0, [[N], [0,N]],   False, [])
+            self.try_add(model, 0, [[N], [1,N-1]], False, [])
+            self.try_add(model, 0, [[N], [N,0]],   False, [])
+            self.try_add(model, 0, [[N], [0,N-1]], True,  [ [[N],[1,N-1]] ])
+            self.try_add(model, 0, [[N], [1,N-2]], True,  [ [[N],[2,N-2]] ])
+            self.try_add(model, 0, [[N-1], [0,N]], True,  [ [[N],[0,N]] ])
+            self.try_add(model, 0, [[N-1], [0,N-1]], True,  [ [[N],[0,N-1]], [[N-1],[1,N-1]] ])
 
             # try remove A
-            self.try_remove(proto, chem_tbl, 0, [[0], [0,N]],   False, [])
-            self.try_remove(proto, chem_tbl, 0, [[1], [0,N]],   True,  [ [[0],[0,N]] ])
-            self.try_remove(proto, chem_tbl, 0, [[0], [1,N-1]], True,  [ [[0],[0,N-1]] ])
-            self.try_remove(proto, chem_tbl, 0, [[1], [1,N-1]], True,  [ [[0],[1,N-1]], [[1],[0,N-1]] ])
+            self.try_remove(model, 0, [[0], [0,N]],   False, [])
+            self.try_remove(model, 0, [[1], [0,N]],   True,  [ [[0],[0,N]] ])
+            self.try_remove(model, 0, [[0], [1,N-1]], True,  [ [[0],[0,N-1]] ])
+            self.try_remove(model, 0, [[1], [1,N-1]], True,  [ [[0],[1,N-1]], [[1],[0,N-1]] ])
 
             # try add B
-            self.try_add(proto, chem_tbl, 1, [[N], [0,N]],         False, [])
-            self.try_add(proto, chem_tbl, 1, [[N], [1,N-1]],       False, [])
-            self.try_add(proto, chem_tbl, 1, [[N], [N//2,N//2]],   False, [])
-            self.try_add(proto, chem_tbl, 1, [[N], [0,N-1]],       True,  [ [[N],[0,N]] ])
-            self.try_add(proto, chem_tbl, 1, [[N], [N//2,N//2-1]], True,  [ [[N],[N//2,N//2]] ])
+            self.try_add(model, 1, [[N], [0,N]],         False, [])
+            self.try_add(model, 1, [[N], [1,N-1]],       False, [])
+            self.try_add(model, 1, [[N], [N//2,N//2]],   False, [])
+            self.try_add(model, 1, [[N], [0,N-1]],       True,  [ [[N],[0,N]] ])
+            self.try_add(model, 1, [[N], [N//2,N//2-1]], True,  [ [[N],[N//2,N//2]] ])
 
             # try remove B
-            self.try_remove(proto, chem_tbl, 1, [[N], [0,0]],   False, [])
-            self.try_remove(proto, chem_tbl, 1, [[N], [N,0]],   False, [])
-            self.try_remove(proto, chem_tbl, 1, [[N], [0,1]],   True, [ [[N],[0,0]] ])
-            self.try_remove(proto, chem_tbl, 1, [[N], [0,N]],   True, [ [[N],[0,N-1]] ])
+            self.try_remove(model, 1, [[N], [0,0]],   False, [])
+            self.try_remove(model, 1, [[N], [N,0]],   False, [])
+            self.try_remove(model, 1, [[N], [0,1]],   True, [ [[N],[0,0]] ])
+            self.try_remove(model, 1, [[N], [0,N]],   True, [ [[N],[0,N-1]] ])
 
             # try add A,B pair
-            self.try_add(proto, chem_tbl, 2, [[0], [0,N]],         False, [])
-            self.try_add(proto, chem_tbl, 2, [[0], [1,N-1]],       False, [])
-            self.try_add(proto, chem_tbl, 2, [[N], [0,N-1]],       False, [])
-            self.try_add(proto, chem_tbl, 2, [[N], [1,N-2]],       False, [])
-            self.try_add(proto, chem_tbl, 2, [[N], [1,N-2]],       False, [])
+            self.try_add(model, 2, [[0], [0,N]],         False, [])
+            self.try_add(model, 2, [[0], [1,N-1]],       False, [])
+            self.try_add(model, 2, [[N], [0,N-1]],       False, [])
+            self.try_add(model, 2, [[N], [1,N-2]],       False, [])
+            self.try_add(model, 2, [[N], [1,N-2]],       False, [])
 
-            self.try_add(proto, chem_tbl, 2, [[N], [0,N-2]],       True, [ [[N],[1,N-1]] ])
-            self.try_add(proto, chem_tbl, 2, [[N-1], [0,N-1]],     True, [ [[N],[0,N]] ])
-            self.try_add(proto, chem_tbl, 2, [[N//2], [0,N//2]],   True, [ [[N//2+1],[0,N//2+1]], [[N//2],[1,N//2+1]] ])
+            self.try_add(model, 2, [[N], [0,N-2]],       True, [ [[N],[1,N-1]] ])
+            self.try_add(model, 2, [[N-1], [0,N-1]],     True, [ [[N],[0,N]] ])
+            self.try_add(model, 2, [[N//2], [0,N//2]],   True, [ [[N//2+1],[0,N//2+1]], [[N//2],[1,N//2+1]] ])
 
             # try remove A,B pair
-            self.try_remove(proto, chem_tbl, 2, [[0], [0,0]], False, [])
-            self.try_remove(proto, chem_tbl, 2, [[1], [0,1]], True, [ [[0],[0,0]] ])
-            self.try_remove(proto, chem_tbl, 2, [[0], [1,1]], True, [ [[0],[0,0]] ])
-            self.try_remove(proto, chem_tbl, 2, [[N//2], [N//2,N//2]], True, [ [[N//2-1],[N//2,N//2-1]], [[N//2],[N//2-1,N//2-1]] ])
+            self.try_remove(model, 2, [[0], [0,0]], False, [])
+            self.try_remove(model, 2, [[1], [0,1]], True, [ [[0],[0,0]] ])
+            self.try_remove(model, 2, [[0], [1,1]], True, [ [[0],[0,0]] ])
+            self.try_remove(model, 2, [[N//2], [N//2,N//2]], True, [ [[N//2-1],[N//2,N//2-1]], [[N//2],[N//2-1,N//2-1]] ])
+
+    #----------------
+    def test_replace(self):
+        N = 24
+
+        model = {
+            'proto': [ ['A','B','C'] ],
+            'chem_tbl': [
+                {'species': 'A', 'mu': 0.1},
+                {'species': 'B', 'mu': 0.1},
+                {'species': 'C', 'mu': 0.1},
+            ],
+            'move_tbl': [
+                {'from': 'A', 'to': 'C'},
+            ],
+        }
+
+        self.try_replace([[0,0,N]], False, [], model)
+        self.try_replace([[1,0,N-1]], True, [ [[0,0,N]] ], model)
+        self.try_replace([[N,0,0]], True, [ [[N-1,0,1]] ], model)
 
     #----------------
     def test_input(self):
@@ -697,5 +813,13 @@ class TestGrandCanonical(unittest.TestCase):
         self.assertEqual(config.chemical_potential[1]['mu'], 0.2)
         self.assertEqual(config.chemical_potential[2]['species'], ['Al', 'Mg'])
         self.assertEqual(config.chemical_potential[2]['mu'], 0.3)
+
+        self.assertEqual(len(config.gc_move), 2)
+        self.assertEqual(config.gc_move[0]['from'], ['Mg'])
+        self.assertEqual(config.gc_move[0]['to'], [])
+        self.assertEqual(config.gc_move[0]['reverse'], True)
+        self.assertEqual(config.gc_move[1]['from'], ['Al'])
+        self.assertEqual(config.gc_move[1]['to'], ['Mg'])
+        self.assertEqual(config.gc_move[1]['reverse'], True)
 
         pass

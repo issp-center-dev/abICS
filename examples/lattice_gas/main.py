@@ -156,6 +156,11 @@ def main(params):
                 'mu': 0.0,
             },
         ],
+        'grandcanonical_move': [
+            {
+                'species': 'A'
+            },
+        ],
     }
 
     # initialize random number sequence
