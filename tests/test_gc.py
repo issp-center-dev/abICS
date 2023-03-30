@@ -455,7 +455,7 @@ class TestGrandCanonical(unittest.TestCase):
 
         pass
 
-    def try_replace(self, src, expect_stat, expect_dst, args={}):
+    def try_replace(self, choice, src, expect_stat, expect_dst, args={}):
 
         # examples of arguments:
         #   src -- input state
@@ -502,7 +502,8 @@ class TestGrandCanonical(unittest.TestCase):
         ]
 
         # try
-        stat, info = model._try_replace(config, config.gc_move[0])
+        move = config.gc_move[choice]
+        stat, info = model._try_replace(config, (move['from'],move['to']))
         print("--- stat =", stat, info)
 
         # new state
@@ -750,9 +751,9 @@ class TestGrandCanonical(unittest.TestCase):
             ],
         }
 
-        self.try_replace([[0,0,N]], False, [], model)
-        self.try_replace([[1,0,N-1]], True, [ [[0,0,N]] ], model)
-        self.try_replace([[N,0,0]], True, [ [[N-1,0,1]] ], model)
+        self.try_replace(0, [[0,0,N]], False, [], model)
+        self.try_replace(0, [[1,0,N-1]], True, [ [[0,0,N]] ], model)
+        self.try_replace(0, [[N,0,0]], True, [ [[N-1,0,1]] ], model)
 
     #----------------
     def test_input(self):
