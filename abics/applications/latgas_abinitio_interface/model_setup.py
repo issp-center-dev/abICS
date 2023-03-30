@@ -551,9 +551,7 @@ class DFTLatticeGas(Model):
         for sublat in config.defect_sublattices:
             logger.debug("  {}".format([s for s,t in sublat.latgas_rep]))
 
-        sp_from = spec["from"]
-        sp_to   = spec["to"]
-
+        sp_from, sp_to = spec
         logger.debug("try_replace: groups from={}, to={}".format(sp_from, sp_to))
 
         if len(sp_from) != len(sp_to):
