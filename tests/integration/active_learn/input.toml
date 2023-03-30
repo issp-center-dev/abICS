@@ -24,10 +24,9 @@ nreplicas = 2
 ndata = 10
 
 [mlref.solver]
-type = 'mock'
-base_input_dir = './baseinput_ref'
+type = 'user'
+function = 'mock.calc_energy'
 perturb = 0.05
-ignore_species = []
 
 [train]
 type = 'aenet'

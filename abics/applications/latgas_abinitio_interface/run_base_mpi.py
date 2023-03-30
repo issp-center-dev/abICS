@@ -588,7 +588,6 @@ class RunFunction(Run):
         os.chdir(output_dir)
         args = solverinput.cl_args(self.nprocs, self.nthreads, output_dir)
         to_rerun = False
-        # print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 self.path_to_solver(fi, *args)

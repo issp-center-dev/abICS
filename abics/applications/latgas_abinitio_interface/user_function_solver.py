@@ -15,68 +15,63 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 """
-Mock for energy calculator
+User-defined function as energy calculator
 """
 
 from __future__ import annotations
 
-import numpy as np
-
 from collections import namedtuple
+import os
+import sys
+import importlib
+
 from pymatgen.core import Structure
-import os.path
 
 from .base_solver import SolverBase, register_solver
+from .params import ALParams, DFTParams
 
 
-class MockSolver(SolverBase):
+class UserFunctionSolver(SolverBase):
     """
-    Mock solver
+    UserFunction solver
 
     Attributes
     ----------
-    path_to_solver : str
-        Path to the solver
-    input : MockSolver.Input
+    path_to_solver : function(st) -> float
+    input : SimpleFunctionSolver.Input
         Input manager
-    output : MockSolver.Output
+    output : SimpleFunctionSolver.Output
         Output manager
     """
 
-    def __init__(self):
+    def __init__(self, function = None):
         """
         Initialize the solver.
 
         """
-        super(MockSolver, self).__init__("")
-        self.path_to_solver = self.calc_energy
-        self.input = MockSolver.Input()
-        self.output = MockSolver.Output()
+        super(UserFunctionSolver, self).__init__("")
+        self.input = UserFunctionSolver.Input()
+        self.output = UserFunctionSolver.Output()
+        self.path_to_solver = self.__call__
+        self.__fn = function
 
-    def name(self):
-        return "Mock"
-
-    def calc_energy(self, fi, output_dir):
-        st = Structure.from_file(os.path.join(output_dir, "structure.vasp"))
-        ene = 0.0
-        st_local = st.copy()
-        dm = st_local.distance_matrix
-        n = len(st_local)
-        an_mean = 0
-        for i in range(n):
-            an_mean += st_local.species[i].number
-        an_mean /= n
-        for i in range(n):
-            an_i = st_local.species[i].number - an_mean
-            for j in range(i + 1, n):
-                an_j = st_local.species[j].number - an_mean
-                ene += (an_i * an_j) / (dm[i, j] ** 2)
+    def __call__(self, fi, output_dir):
+        st = self.input.st
+        if self.__fn is None:
+            raise ValueError("Function is not set")
+        ene = self.__fn(st)
         with open(os.path.join(output_dir, "energy.dat"), "w") as f:
             f.write("{:.15f}\n".format(ene))
 
+    def name(self):
+        return "UserFunction"
+
+    def set_function(self, fn):
+        self.__fn = fn
+
     class Input(object):
         """
-        Input manager for Mock
+        Input manager for SimpleFunction
 
         Attributes
         ----------
@@ -176,7 +171,7 @@ class MockSolver(SolverBase):
                 and coodinates is measured in the units of Angstrom.
             """
             # Read results from files in output_dir and calculate values
-            Phys = namedtuple("PhysVaules", ("energy", "structure"))
+            Phys = namedtuple("PhysValues", ("energy", "structure"))
             with open(os.path.join(workdir, "energy.dat")) as f:
                 ene = float(f.read())
             st = Structure.from_file(os.path.join(workdir, "structure.vasp"))
@@ -185,13 +180,20 @@ class MockSolver(SolverBase):
     def solver_run_schemes(self):
         return ("function",)
 
-    # -- factory
-    from typing import Union
-    from .params import ALParams, DFTParams
-
     @classmethod
     def create(cls, params: ALParams | DFTParams):
-        return cls()
+        fn = None
+        if params.function_module:
+            sys.path.append(os.getcwd())
+            pkg = params.function_module.split('.')
+            modname = '.'.join(pkg[:-1])
+            funcname = pkg[-1]
+            try:
+                mod = importlib.import_module(modname)
+                fn = getattr(mod, funcname)
+            except ImportError:
+                raise ImportError(f"Cannot import module {modname}")
+        return cls(fn)
 
 
-register_solver("mock", MockSolver)
+register_solver("User", UserFunctionSolver)

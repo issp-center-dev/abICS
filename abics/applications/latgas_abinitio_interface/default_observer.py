@@ -28,7 +28,7 @@ from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkCompa
 from abics import __version__
 from abics.util import expand_path
 from abics.mc import ObserverBase, MCAlgorithm
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.base_solver import create_solver
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     Runner,
 )
@@ -103,18 +103,12 @@ class DefaultObserver(ObserverBase):
         self.calculators = []
         for params_solver in params_solvers:
             dft_params = DFTParams.from_dict(params_solver)
-            solver = SolverBase.create(params_solver["type"], dft_params)
+            solver = create_solver(params_solver["type"], dft_params)
             obsname = params_solver["name"]
-            ensemble = params_solver.get("ensemble", False)
             nrunners = len(dft_params.base_input_dir)
-            if ensemble:
-                perturbs = [dft_params.perturb] * nrunners
-                for i in range(nrunners):
-                    self.names.append(f"[{obsname} {i}]")
-            else:
-                perturbs = [0.0] * nrunners
-                perturbs[0] = dft_params.perturb
-                self.names.append(obsname)
+            perturbs = [0.0] * nrunners
+            perturbs[0] = dft_params.perturb
+            self.names.append(obsname)
             runners = [
                 Runner(
                     base_input_dir=bid,
@@ -129,7 +123,7 @@ class DefaultObserver(ObserverBase):
                 for perturb, bid in zip(perturbs, dft_params.base_input_dir)
             ]
             self.calculators.append(
-                {"name": obsname, "runners": runners, "ensemble": ensemble}
+                {"name": obsname, "runners": runners}
             )
 
         if "reference_structure" in params:
@@ -171,20 +165,12 @@ class DefaultObserver(ObserverBase):
         for calculator in self.calculators:
             name = calculator["name"]
             runners: list[Runner] = calculator["runners"]
-            nrunners = len(runners)
-            ensemble = calculator["ensemble"]
-            if ensemble:
-                for i, runner in enumerate(runners):
-                    output_dir = os.path.join(os.getcwd(), f"ensemble{i}")
-                    value, _ = runner.submit(structure, output_dir)
-                    result.append(value)
-            else:
-                new_st = structure
-                value = 0.0
-                for i, runner in enumerate(runners):
-                    output_dir = os.path.join(os.getcwd(), f"output{i}")
-                    value, new_st = runner.submit(new_st, output_dir)
-                result.append(value)
+            new_st = structure
+            value = 0.0
+            for i, runner in enumerate(runners):
+                output_dir = os.path.join(os.getcwd(), f"output{i}")
+                value, new_st = runner.submit(new_st, output_dir)
+            result.append(value)
 
         if self.references is not None:
             assert(self.reference_species is not None)

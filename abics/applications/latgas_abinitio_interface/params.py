@@ -29,6 +29,7 @@ class DFTParams:
         self.properties = {}
         self.ignore_species = None
         self.constraint_module = None
+        self.function_module = None
         self.ensemble = False
         self.par_ensemble = False
         self.use_tmpdir = False
@@ -56,7 +57,7 @@ class DFTParams:
             map(lambda x: expand_path(x, os.getcwd()), base_input_dir)
         )
         params.solver = d["type"]
-        params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
+        params.solver_run_scheme = d.get("run_scheme", "function")
 
         if params.solver_run_scheme != "function":
             params.path = expand_cmd_path(d["path"])
@@ -66,6 +67,7 @@ class DFTParams:
         params.perturb = d.get("perturb", 0.1)
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
+        params.function_module = d.get("function", None)
         params.ensemble = d.get("ensemble", False)
         params.par_ensemble = d.get("par_ensemble", False)
         params.use_tmpdir = d.get("use_tmpdir", True)
@@ -104,6 +106,7 @@ class ALParams:
         self.properties = {}
         self.ignore_species = None
         self.constraint_module = None
+        self.function_module = None
         self.only_input = False
         self.vac_space_holder = []
 
@@ -135,9 +138,15 @@ class ALParams:
         # params.path = expand_path(d["path"], os.getcwd())
 
         params.perturb = d.get("perturb", 0.1)
-        params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
+        params.solver_run_scheme = d.get("run_scheme", "function")
+        if params.solver_run_scheme != "function":
+            params.path = expand_cmd_path(d["path"])
+        else:
+            params.path = ""
+
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
+        params.function_module = d.get("function", None)
         params.only_input = d.get("only_input", False)
         params.vac_space_holder = d.get("vac_convert", [])
 
