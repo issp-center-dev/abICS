@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from typing import Any, MutableMapping
 import os, sys
+import numpy as np
 
 from pymatgen.core import Lattice, Structure
 
@@ -124,22 +125,26 @@ class DFTConfigParams:
             self.chemical_potential = None
         logger.debug("chemical_potential = {}".format(self.chemical_potential))
 
+        def _uniq_count(xs):
+            return [(i,j) for i,j in zip(*np.unique(xs,return_counts=True))]
+
         if "grandcanonical_move" in dconfig:
             self.gc_move = []
             for entry in dconfig["grandcanonical_move"]:
                 if "species" in entry.keys():
                     species = entry["species"]
                     species = [ species ] if type(species) is not list else species
-                    self.gc_move.append({ 'from': species, 'to': [], 'reverse': True })
+                    self.gc_move.append({ 'from': _uniq_count(species), 'to': [], 'reverse': True })
                 else:
                     sp_from = entry.get("from", [])
                     sp_to   = entry.get("to", [])
-                    sp_rev  = entry.get("reverse", True)
+                    #sp_rev  = entry.get("reverse", True)
+                    sp_rev  = True  # consider only reversible case
                     if sp_from is [] and sp_to is []:
                         raise("invalid input for grandcanonical_move")
                     sp_from = [ sp_from ] if type(sp_from) is not list else sp_from
                     sp_to   = [ sp_to ]   if type(sp_to)   is not list else sp_to
-                    self.gc_move.append({ 'from': sp_from, 'to': sp_to, 'reverse': sp_rev })
+                    self.gc_move.append({ 'from': _uniq_count(sp_from), 'to': _uniq_count(sp_to), 'reverse': sp_rev })
         else:
             if self.chemical_potential is None:
                 self.gc_move = None
@@ -148,7 +153,7 @@ class DFTConfigParams:
                 self.gc_move = []
                 for entry in self.chemical_potential:
                     species = entry["species"]
-                    self.gc_move.append({ 'from': species, 'to': [], 'reverse': True })
+                    self.gc_move.append({ 'from': _uniq_count(species), 'to': [], 'reverse': True })
         logger.debug("grandcanonical_move = {}".format(self.gc_move))
 
     @classmethod

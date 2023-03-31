@@ -362,27 +362,27 @@ class DFTLatticeGas(Model):
         logger.debug("try_remove: groups={}".format(groups))
 
         # find sublattices which each species belongs to
-        # sublats := [ (grp, [ sublat_id ]) ]
-        sublats = [ (grp, [ sublat_id
-                            for sublat_id, sublat in enumerate(config.defect_sublattices)
-                            if grp in sublat.group_dict.keys() ])
-                    for grp in groups ]
+        # sublats := [ (grp, cnt, [ sublat_id ]) ]
+        sublats = [ (grp, cnt, [ sublat_id
+                                 for sublat_id, sublat in enumerate(config.defect_sublattices)
+                                 if grp in sublat.group_dict.keys() ])
+                    for grp, cnt in groups ]
 
         # sublattice, and indexes of group and vacancy in latgas_rep
         # for each sublattice which each group belongs to
-        # rep_table := [ (grp, [ (sublat_id, rep_index) ]) ]
+        # rep_table := [ (grp, cnt, [ (sublat_id, rep_index) ]) ]
         rep_table = []
-        for grp, sublat_ids in sublats:
+        for grp, cnt, sublat_ids in sublats:
             tbl = []
             for sublat_id in sublat_ids:
                 lat = config.defect_sublattices[sublat_id]
                 idxs = match_latgas_group(lat.latgas_rep, lat.group_dict[grp])
                 tbl += [ (sublat_id, idx) for idx in idxs ]
-            rep_table += [(grp, tbl)]
+            rep_table += [(grp, cnt, tbl)]
         logger.debug("try_remove: rep_table={}".format(rep_table))
 
         # check if there are any choice
-        is_unremovable = any([len(tbl) == 0 for grp, tbl in rep_table])
+        is_unremovable = any([len(tbl) < cnt for grp, cnt, tbl in rep_table])
         if is_unremovable:
             logger.debug("try_remove: there is no choice")
             if self.debug:
@@ -393,15 +393,17 @@ class DFTLatticeGas(Model):
         # choose sublattice and latgas_rep index
         # for each species and vacancy associated with the species
         choice = []
-        for grp, tbl in rep_table:
-            sublat_id, idx = tbl[rand.choice(len(tbl))]
-            choice += [(grp, sublat_id, idx)]
+        for grp, cnt, tbl in rep_table:
+            ch = [ tbl[i] for i in np.sort(rand.choice(len(tbl), cnt, replace=False)) ]
+            choice += [(grp, ch)]
         logger.debug("try_remove: choice={}".format(choice))
 
         # update config
-        for grp, sublat_id, idx in choice:
-            lat = config.defect_sublattices[sublat_id]
-            lat.latgas_rep[idx] = [lat.vac_group, 0]
+        for grp, choices in choice:
+            for ch in choices:
+                sublat_id, idx = ch
+                lat = config.defect_sublattices[sublat_id]
+                lat.latgas_rep[idx] = [lat.vac_group, 0]
 
         logger.debug("dst:")
         for sublat in config.defect_sublattices:
@@ -422,27 +424,27 @@ class DFTLatticeGas(Model):
         logger.debug("try_add: groups={}".format(groups))
 
         # find sublattices which each species belongs to
-        # sublats := [ (grp, [ sublat_id ]) ]
-        sublats = [ (grp, [ sublat_id
+        # sublats := [ (grp, cnt, [ sublat_id ]) ]
+        sublats = [ (grp, cnt, [ sublat_id
                             for sublat_id, sublat in enumerate(config.defect_sublattices)
                             if grp in sublat.group_dict.keys() ])
-                    for grp in groups ]
+                    for grp, cnt in groups ]
 
         # sublattice, and indexes of group and vacancy in latgas_rep
         # for each sublattice which each group belongs to
         # rep_table := [ (grp, [ (sublat_id, rep_index) ]) ]
         vac_table = []
-        for grp, sublat_ids in sublats:
+        for grp, cnt, sublat_ids in sublats:
             tbl = []
             for sublat_id in sublat_ids:
                 lat = config.defect_sublattices[sublat_id]
                 idxs = match_latgas_group(lat.latgas_rep, lat.group_dict[lat.vac_group])
                 tbl += [ (sublat_id, idx) for idx in idxs ]
-            vac_table += [(grp, tbl)]
+            vac_table += [(grp, cnt, tbl)]
         logger.debug("try_add: vac_table={}".format(vac_table))
 
         # check if there are any choice
-        is_unaddable = any([len(tbl) == 0 for grp, tbl in vac_table])
+        is_unaddable = any([len(tbl) < cnt for grp, cnt, tbl in vac_table])
         if is_unaddable:
             logger.debug("try_add: there is no choice")
             if self.debug:
@@ -454,19 +456,19 @@ class DFTLatticeGas(Model):
         nspecies = len(sublats)
 
         # number of sublattices to which any of species belong to
-        nsublat = len(set(sum([ sublat_ids for grp,sublat_ids in sublats ], [])))
+        nsublat = len(set(sum([ sublat_ids for grp,cnt,sublat_ids in sublats ], [])))
 
         # sublattices of each species are disjoint or not
-        is_disjoint = all([ set(a[1]) & set(b[1]) == set() for a, b in itertools.combinations(sublats, 2) ])
+        is_disjoint = all([ set(a[2]) & set(b[2]) == set() for a, b in itertools.combinations(sublats, 2) ])
 
         logger.debug("try_add: nspecies={}, nsublat={}, is_disjoint={}".format(nspecies, nsublat, is_disjoint))
 
         if nspecies == 1:
             # there is only one species: no conflict
             choice = []
-            for grp, tbl in vac_table:
-                sublat_id, idx = tbl[rand.choice(len(tbl))]
-                choice += [(grp, sublat_id, idx)]
+            for grp, cnt, tbl in vac_table:
+                ch = [ tbl[i] for i in np.sort(rand.choice(len(tbl), cnt, replace=False)) ]
+                choice += [(grp, ch)]
             logger.debug("try_add: nspecies=1 branch. choice={}".format(choice))
 
         elif nsublat == 1:
@@ -474,28 +476,35 @@ class DFTLatticeGas(Model):
             # set of vacancies for each species is identical.
 
             # assert identical
-            assert(all([ set(a[1]) == set(b[1]) for a,b in itertools.combinations(vac_table, 2) ]))
+            assert(all([ set(a[2]) == set(b[2]) for a,b in itertools.combinations(vac_table, 2) ]))
 
-            vac_list = vac_table[0][1]
+            vac_list = vac_table[0][2]
 
-            if len(vac_list) < nspecies:
+            nelem = np.sum([j for i,j in groups])
+
+            if len(vac_list) < nelem:
                 logger.debug("try_add: nsublat=1, there is no choice")
                 if self.debug:
                     return False, { 'mode': 'add', 'result': 'nochoice', 'spec': spec }
                 else:
                     return False
 
-            ch = rand.choice(len(vac_list), nspecies, replace=False)
+            ch = rand.choice(len(vac_list), nelem, replace=False)
             logger.debug(">>> {}".format(ch))
-            choice = [ (grp, *(vac_list[chidx])) for (grp,tbl),chidx in zip(vac_table, ch) ]
+
+            choice = []
+            ix = 0
+            for grp, cnt, tbl in vac_table:
+                choice += [(grp, [ tbl[k] for k in ch[ix:ix+cnt] ])]
+                ix += cnt
             logger.debug("try_add: nsublat=1 branch. choice={}".format(choice))
 
         elif is_disjoint:
             # if sublattices of each species are disjoint, may choose independently
             choice = []
-            for grp, tbl in vac_table:
-                sublat_id, idx = tbl[rand.choice(len(tbl))]
-                choice += [(grp, sublat_id, idx)]
+            for grp, cnt, tbl in vac_table:
+                ch = [ tbl[i] for i in np.sort(rand.choice(len(tbl), cnt, replace=False)) ]
+                choice += [(grp, ch)]
             logger.debug("try_add: is_disjoint branch. choice={}".format(choice))
 
         else:
@@ -506,17 +515,13 @@ class DFTLatticeGas(Model):
                 # choose sublattice and latgas_rep index
                 # for each species and vacancy associated with the species
                 choice = []
-                for grp, tbl in vac_table:
-                    sublat_id, idx = tbl[rand.choice(len(tbl))]
-                    choice += [(grp, sublat_id, idx)]
+                for grp, cnt, tbl in vac_table:
+                    ch = [ tbl[i] for i in np.sort(rand.choice(len(tbl), cnt, replace=False)) ]
+                    choice += [(grp, ch)]
 
                 # check consistency
-                is_dup = False
-                for a,b in itertools.combinations(choice, 2):
-                    if a[1] == b[1] and a[2] == b[2]:
-                        is_dup = True
-                        break
-                if is_dup == False:
+                is_nodup = all([ set(a[1]) & set(b[1]) == set() for a, b in itertools.combinations(choice, 2) ])
+                if is_nodup:
                     break
 
                 logger.debug("try_add: duplicated. retry. choice={}".format(choice))
@@ -531,9 +536,11 @@ class DFTLatticeGas(Model):
             logger.debug("try_add: general branch. choice={}".format(choice))
 
         # update config
-        for grp, sublat_id, idx in choice:
-            lat = config.defect_sublattices[sublat_id]
-            lat.latgas_rep[idx] = [grp, rand.choice(lat.group_dict[grp].orientations)]
+        for grp, choices in choice:
+            for ch in choices:
+                sublat_id, idx = ch
+                lat = config.defect_sublattices[sublat_id]
+                lat.latgas_rep[idx] = [grp, rand.choice(lat.group_dict[grp].orientations)]
 
         logger.debug("dst:")
         for sublat in config.defect_sublattices:
@@ -554,7 +561,10 @@ class DFTLatticeGas(Model):
         sp_from, sp_to = spec
         logger.debug("try_replace: groups from={}, to={}".format(sp_from, sp_to))
 
-        if len(sp_from) != len(sp_to):
+        def _sum(xs):
+            return np.sum([j for i,j in xs])
+
+        if _sum(sp_from) != _sum(sp_to):
             logger.error("try_replace: supports only from single species to single species case")
             if self.debug:
                 return False, { 'mode': 'replace', 'result': 'unsupported', 'spec': spec }
@@ -562,27 +572,27 @@ class DFTLatticeGas(Model):
                 return False
 
         # find sublattices which each species belongs to
-        # sublats := [ (grp, [ sublat_id ]) ]
-        sublats = [ (grp, [ sublat_id
-                            for sublat_id, sublat in enumerate(config.defect_sublattices)
-                            if grp in sublat.group_dict.keys() ])
-                    for grp in sp_from ]
+        # sublats := [ (grp, cnt, [ sublat_id ]) ]
+        sublats = [ (grp, cnt, [ sublat_id
+                                 for sublat_id, sublat in enumerate(config.defect_sublattices)
+                                 if grp in sublat.group_dict.keys() ])
+                    for grp,cnt in sp_from ]
 
         # sublattice, and indexes of group and vacancy in latgas_rep
         # for each sublattice which each group belongs to
-        # rep_table := [ (grp, [ (sublat_id, rep_index) ]) ]
+        # rep_table := [ (grp, cnt, [ (sublat_id, rep_index) ]) ]
         rep_table = []
-        for grp, sublat_ids in sublats:
+        for grp, cnt, sublat_ids in sublats:
             tbl = []
             for sublat_id in sublat_ids:
                 lat = config.defect_sublattices[sublat_id]
                 idxs = match_latgas_group(lat.latgas_rep, lat.group_dict[grp])
                 tbl += [ (sublat_id, idx) for idx in idxs ]
-            rep_table += [(grp, tbl)]
+            rep_table += [(grp, cnt, tbl)]
         logger.debug("try_replace: rep_table={}".format(rep_table))
 
         # check if there are any choice
-        is_unremovable = any([len(tbl) == 0 for grp, tbl in rep_table])
+        is_unremovable = any([len(tbl) < cnt for grp, cnt, tbl in rep_table])
         if is_unremovable:
             logger.debug("try_replace: there is no choice")
             if self.debug:
@@ -593,26 +603,32 @@ class DFTLatticeGas(Model):
         # choose sublattice and latgas_rep index
         # for each species and vacancy associated with the species
         choice = []
-        for grp, tbl in rep_table:
-            sublat_id, idx = tbl[rand.choice(len(tbl))]
-            choice += [(grp, sublat_id, idx)]
+        for grp, cnt, tbl in rep_table:
+            ch = [ tbl[i] for i in np.sort(rand.choice(len(tbl), cnt, replace=False)) ]
+            choice += [(grp, ch)]
         logger.debug("try_replace: choice={}".format(choice))
 
         # assign new groups to vacant places
-        group_assign = rand.permutation(sp_to)
+        new_vac = sum([ch for grp, ch in choice], [])
+        new_vac_shuffle = rand.permutation(new_vac)
 
+        group_assign = []
+        ix = 0
+        for grp, cnt in sp_to:
+            group_assign += [(grp, cnt, new_vac_shuffle[ix:ix+cnt])]
+            ix += cnt
         logger.debug("try_replace: assign={}".format(group_assign))
 
         # check if choice is valid
         noassign = False
-        for k, newgrp in enumerate(group_assign):
-            grp, sublat_id, idx = choice[k]
-
-            if newgrp in config.defect_sublattices[sublat_id].group_dict.keys():
-                pass
-            else:
-                noassign = True
-                break
+        for newgrp, cnt, choices in group_assign:
+            for ch in choices:
+                sublat_id, idx = ch
+                if newgrp in config.defect_sublattices[sublat_id].group_dict.keys():
+                    pass
+                else:
+                    noassign = True
+                    break
         if noassign:
             logger.debug("try_replace: assignment not satisfied")
             if self.debug:
@@ -621,10 +637,11 @@ class DFTLatticeGas(Model):
                 return False
 
         # update config
-        for k, newgrp in enumerate(group_assign):
-            grp, sublat_id, idx = choice[k]
-            lat = config.defect_sublattices[sublat_id]
-            lat.latgas_rep[idx] = [newgrp, rand.choice(lat.group_dict[newgrp].orientations)]
+        for newgrp, cnt, choices in group_assign:
+            for ch in choices:
+                sublat_id, idx = ch
+                lat = config.defect_sublattices[sublat_id]
+                lat.latgas_rep[idx] = [newgrp, rand.choice(lat.group_dict[newgrp].orientations)]
 
         logger.debug("dst:")
         for sublat in config.defect_sublattices:

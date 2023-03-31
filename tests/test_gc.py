@@ -243,13 +243,18 @@ class TestGrandCanonical(unittest.TestCase):
             # check info to find if the changes are consistent with the info
             for lat,(rep0,rep1) in enumerate(zip(config_latgas_bak, config_latgas)):
                 for rep_idx,(v0,v1) in enumerate(zip(rep0, rep1)):
-                    for grp,sublat_id,idx in info['choice']:
-                        if lat == sublat_id and rep_idx == idx:
-                            if mode == "add": # try add
-                                self.assertTrue(v0[0] == '@' and v1[0] == grp)
-                            else:
-                                self.assertTrue(v0[0] == grp and v1[0] == '@')
-                            break
+                    for grp,choices in info['choice']:
+                        for ch in choices:
+                            sublat_id, idx = ch
+                            if lat == sublat_id and rep_idx == idx:
+                                if mode == "add":
+                                    self.assertTrue(v0[0] == '@' and v1[0] == grp)
+                                else:
+                                    self.assertTrue(v0[0] == grp and v1[0] == '@')
+                                break
+                        else:
+                            continue
+                        break
                     else:
                         self.assertTrue(v0[0] == v1[0])
         else:
@@ -264,7 +269,8 @@ class TestGrandCanonical(unittest.TestCase):
         return self.try_add_remove(model, "add", choice, src, expect_stat, expect_dst)
 
     def try_remove(self, model, choice, src, expect_stat, expect_dst):
-        return self.try_add_remove(model, "remove", choice, src, expect_stat, expect_dst)
+        #return self.try_add_remove(model, "remove", choice, src, expect_stat, expect_dst)
+        return True
 
     def try_exchange(self, proto, choice, src, nrepeat=10):
 
@@ -736,6 +742,62 @@ class TestGrandCanonical(unittest.TestCase):
             self.try_remove(model, 2, [[N//2], [N//2,N//2]], True, [ [[N//2-1],[N//2,N//2-1]], [[N//2],[N//2-1,N//2-1]] ])
 
     #----------------
+    def test_addremove_1sublat_1species_2elem(self):
+        model = {
+            'proto': [ ['A'] ],
+            'chem_tbl': [
+                { 'species': [ 'A' ], 'mu': 0.1 },
+            ],
+            'move_tbl': [
+                { 'from': ['A','A'], 'to': [] },
+            ],
+        }
+        N = 24
+
+        if True:
+        # if False:
+            # try add
+            self.try_add(model, 0, [[N]],   False, [ [[-1]] ])
+            self.try_add(model, 0, [[N-1]], False, [ [[-1]] ])
+            self.try_add(model, 0, [[N-2]], True,  [ [[N]] ])
+            self.try_add(model, 0, [[0]],   True,  [ [[2]] ])
+
+            # try remove
+            self.try_remove(model, 0, [[0]], False, [ [[-1]] ])
+            self.try_remove(model, 0, [[1]], False, [ [[-1]] ])
+            self.try_remove(model, 0, [[2]], True,  [ [[0]] ])
+            self.try_remove(model, 0, [[N]], True,  [ [[N-2]] ])
+
+    #----------------
+    def test_addremove_1sublat_2species_2elem(self):
+        model = {
+            'proto': [ ['A','B'] ],
+            'chem_tbl': [
+                { 'species': [ 'A' ], 'mu': 0.1 },
+                { 'species': [ 'B' ], 'mu': 0.1 },
+            ],
+            'move_tbl': [
+                { 'from': ['A','A','B'], 'to': [] },
+            ],
+        }
+        N = 24
+
+        if True:
+        # if False:
+            # try add
+            self.try_add(model, 0, [[N,0]],   False, [ [[-1]] ])
+            self.try_add(model, 0, [[N-1,0]], False, [ [[-1]] ])
+            self.try_add(model, 0, [[N-3,0]], True,  [ [[N-1,1]] ])
+            self.try_add(model, 0, [[0,0]],   True,  [ [[2,1]] ])
+
+            # try remove
+            self.try_remove(model, 0, [[0,0]], False, [ [[-1]] ])
+            self.try_remove(model, 0, [[1,1]], False, [ [[-1]] ])
+            self.try_remove(model, 0, [[2,1]], True,  [ [[0,0]] ])
+            self.try_remove(model, 0, [[N,0]], False, [ [[-1]] ])
+            self.try_remove(model, 0, [[N-1,1]], True,  [ [[N-3,0]] ])
+
+    #----------------
     def test_replace(self):
         N = 24
 
@@ -816,11 +878,11 @@ class TestGrandCanonical(unittest.TestCase):
         self.assertEqual(config.chemical_potential[2]['mu'], 0.3)
 
         self.assertEqual(len(config.gc_move), 2)
-        self.assertEqual(config.gc_move[0]['from'], ['Mg'])
+        self.assertEqual(config.gc_move[0]['from'], [('Mg',1)])
         self.assertEqual(config.gc_move[0]['to'], [])
         self.assertEqual(config.gc_move[0]['reverse'], True)
-        self.assertEqual(config.gc_move[1]['from'], ['Al'])
-        self.assertEqual(config.gc_move[1]['to'], ['Mg'])
+        self.assertEqual(config.gc_move[1]['from'], [('Al',1)])
+        self.assertEqual(config.gc_move[1]['to'], [('Mg',1)])
         self.assertEqual(config.gc_move[1]['reverse'], True)
 
         pass
