@@ -849,10 +849,16 @@ class DFTLatticeGas(Model):
         logger.debug("trialstep: dE={:16.12e}, dW={:.5e}".format(dE, dW))
         logger.debug("<<< end trialstep")
 
-        if self.debug:
-            return dconfig, dE, dW, trial_info
+        if self.enable_grandcanonical:
+            if self.debug:
+                return dconfig, dE, dW, trial_info
+            else:
+                return dconfig, dE, dW
         else:
-            return dconfig, dE, dW
+            if self.debug:
+                return dconfig, dE, trial_info
+            else:
+                return dconfig, dE
 
 
     def newconfig(self, config, dconfig):

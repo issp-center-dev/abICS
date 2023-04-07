@@ -25,7 +25,7 @@ import numpy as np
 import scipy.constants as constants
 
 from abics import __version__
-from abics.mc import CanonicalMonteCarlo, RandomSampling
+from abics.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, RandomSampling
 
 from abics.sampling.mc_mpi import RX_MPI_init
 from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
@@ -308,6 +308,11 @@ def main_dft_latgas(params_root: MutableMapping):
             logger.error("You should train before MC sampling in AL mode.")
             sys.exit(1)
 
+    if gc_flag == True:
+        mc_class = WeightedCanonicalMonteCarlo
+    else:
+        mc_class = CanonicalMonteCarlo
+
     if commEnsemble.Get_rank() == 0:
         write_node = True
     else:
@@ -315,7 +320,7 @@ def main_dft_latgas(params_root: MutableMapping):
     if sampler_type == "RXMC":
         # RXMC calculation
         RXcalc = TemperatureRX_MPI(
-            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
@@ -335,7 +340,7 @@ def main_dft_latgas(params_root: MutableMapping):
     elif sampler_type == "PAMC":
         # PAMC calculation
         PAcalc = PopulationAnnealing(
-            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
@@ -368,7 +373,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     elif sampler_type == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
-            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             calc.reload()

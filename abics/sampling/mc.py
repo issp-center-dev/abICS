@@ -180,7 +180,7 @@ class CanonicalMonteCarlo(MCAlgorithm):
     # @profile
     def MCstep(self, nsubsteps_in_step: int = 1):
         for istep in range(nsubsteps_in_step):
-            dconfig, dE, *opt = self.model.trialstep(self.config, self.energy)
+            dconfig, dE = self.model.trialstep(self.config, self.energy)
             # if self.energy == float("inf"):
             #    self.config = self.model.newconfig(self.config, dconfig)
             #    self.energy = dE
