@@ -81,21 +81,21 @@ def main_impl(params_root: MutableMapping):
     rootdir = os.getcwd()
     structures = []
     energies = []
+    if len(previous_dirs) > 0:
+        logger.info("-Adding data in previous_dirs to data set")
 
-    logger.info("-Adding data in previous_dirs to data set")
-
-    for dir in previous_dirs:
-        os.chdir(dir)
-        num_st = len(os.listdir())
-        st_fis = ["structure.{}.xsf".format(i) for i in range(num_st)]
-        for fi in st_fis:
-            structures.append(Structure.from_file(fi))
-            with open(fi) as f:
-                li = f.readline()
-                e = float(li.split()[4])
-            energies.append(e)
-    os.chdir(rootdir)
-    logger.info("--Done")
+        for dir in previous_dirs:
+            os.chdir(dir)
+            num_st = len(os.listdir())
+            st_fis = ["structure.{}.xsf".format(i) for i in range(num_st)]
+            for fi in st_fis:
+                structures.append(Structure.from_file(fi))
+                with open(fi) as f:
+                    li = f.readline()
+                    e = float(li.split()[4])
+                energies.append(e)
+        os.chdir(rootdir)
+        logger.info("--Done")
 
 
     logger.info("-Mapping relaxed structures in AL* to on-lattice model...")
