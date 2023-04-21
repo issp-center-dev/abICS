@@ -30,7 +30,6 @@ from abics.mc_mpi import (
     RefParams,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
-# from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
     perturb_structure,
 )
@@ -38,7 +37,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
 from abics.applications.latgas_abinitio_interface.params import ALParams, DFTParams
 
 from abics.util import exists_on_all_nodes
@@ -46,10 +45,7 @@ from pymatgen.core import Structure
 
 import logging
 import abics.loggers as loggers
-from pathlib import Path
 
-#loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="master")
-loggers.set_log_handles(app_name="activelearn", level=logging.INFO, mpi_log="collect", log_path=Path("run.log"))
 logger = logging.getLogger("main")
 
 
@@ -65,7 +61,7 @@ def main_impl(params_root: MutableMapping):
     mcparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
-    solver: SolverBase = SolverBase.create(alparams.solver, alparams)
+    solver: SolverBase = create_solver(alparams.solver, alparams)
 
     perturb = alparams.perturb
     solver_output = solver.output
@@ -456,14 +452,21 @@ def main_impl(params_root: MutableMapping):
 
 
 def main():
-    import toml
 
     now = datetime.datetime.now()
-    logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
 
+    import toml
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    logger.info(f"-Reading input from: {tomlfile}")
     params_root = toml.load(tomlfile)
+
+    loggers.set_log_handles(
+        app_name="activelearn",
+        level=logging.INFO,
+        params=params_root.get("log", {}))
+
+    logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
+    logger.info(f"-Reading input from: {tomlfile}")
+
     main_impl(params_root)
 
 

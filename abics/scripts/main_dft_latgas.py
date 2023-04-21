@@ -26,20 +26,20 @@ import scipy.constants as constants
 
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, RandomSampling
+from abics.observer import ObserverParams
 
 from abics.sampling.mc_mpi import RX_MPI_init
 from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
 from abics.sampling.pamc import PopulationAnnealing, PAMCParams
 from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, ParallelRandomParams
 
-from abics.applications.latgas_abinitio_interface import (
+from abics.applications.latgas_abinitio_interface.default_observer import (
     DefaultObserver,
     EnsembleParams,
     EnsembleErrorObserver,
 )
 from abics.applications.latgas_abinitio_interface.model_setup import (
     DFTLatticeGas,
-    ObserverParams,
 )
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
@@ -50,7 +50,7 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerEnsemble,
     RunnerMultistep,
 )
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
@@ -61,6 +61,7 @@ logger = logging.getLogger("main")
 def main_dft_latgas(params_root: MutableMapping):
     dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     sampler_type = params_root["sampling"].get("sampler", "RXMC")
+    params_observer = params_root.get("observer", {})
     if sampler_type == "RXMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
         nreplicas = rxparams.nreplicas
@@ -160,15 +161,15 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
 
+
     solvers = []
     for i in range(len(dftparams.base_input_dir)):
-        solver: SolverBase = SolverBase.create(dftparams.solver, dftparams)
+        solver: SolverBase = create_solver(dftparams.solver, dftparams)
         solvers.append(solver)
     
     logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
     logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
 
-# >>>>>>> develop
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
     # on the "configuration" defined below
@@ -232,14 +233,14 @@ def main_dft_latgas(params_root: MutableMapping):
     #    configs.append(copy.deepcopy(spinel_config))
     configs = [spinel_config] * nreplicas
 
-    obsparams = ObserverParams.from_dict(params_root["observer"])
+    obsparams = ObserverParams.from_dict(params_observer)
 
     logger.info("--Success.")
 
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-        solver = SolverBase.create(ensembleparams.solver, ensembleparams)
+        solver = create_solver(ensembleparams.solver, ensembleparams)
 
         energy_calculators = [
             Runner(
@@ -255,7 +256,7 @@ def main_dft_latgas(params_root: MutableMapping):
         ]
         observer: DefaultObserver = EnsembleErrorObserver(commEnsemble, energy_calculators, Lreload)
     else:
-        observer = DefaultObserver(comm, Lreload)
+        observer = DefaultObserver(comm, Lreload, params_observer)
 
     ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 

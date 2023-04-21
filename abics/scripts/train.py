@@ -38,7 +38,6 @@ from abics.applications.latgas_abinitio_interface.defect import (
 import logging
 import abics.loggers as loggers
 
-loggers.set_log_handles(app_name="train", level=logging.INFO)
 logger = logging.getLogger("main")
 
 
@@ -267,12 +266,21 @@ def main_impl(params_root: MutableMapping):
 
 
 def main():
-    import toml
     now = datetime.datetime.now()
-    logger.info(f"Running abics_train (abICS v{__version__}) on {now}")
+
+    import toml
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    logger.info(f"-Reading input from: {tomlfile}")
     params_root = toml.load(tomlfile)
+
+    loggers.set_log_handles(
+        app_name = "train",
+        level = logging.INFO,
+        console = "serial",
+        params=params_root.get("log", {}))
+
+    logger.info(f"Running abics_train (abICS v{__version__}) on {now}")
+    logger.info(f"-Reading input from: {tomlfile}")
+
     main_impl(params_root)
 
 

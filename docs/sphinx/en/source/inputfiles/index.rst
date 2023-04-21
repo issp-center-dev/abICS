@@ -16,6 +16,8 @@ The input file of abICS is constructed by the following five sections:
 
 5. [config] section specifies the configuration of the alloy, etc.
 
+6. [log] section specifies the settings of logging.
+
 The following sections describe the detail of each section.
 
 .. toctree::
@@ -27,4 +29,5 @@ The following sections describe the detail of each section.
    parameter_train
    parameter_observer
    parameter_config
+   parameter_log
    

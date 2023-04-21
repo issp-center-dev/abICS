@@ -588,7 +588,6 @@ class RunFunction(Run):
         os.chdir(output_dir)
         args = solverinput.cl_args(self.nprocs, self.nthreads, output_dir)
         to_rerun = False
-        # print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 self.path_to_solver(fi, *args)
@@ -639,7 +638,7 @@ class Runner:
         Solver,
         nprocs_per_solver,
         comm,
-        perturb=0,
+        perturb=0.0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
         use_tmpdir=False,
@@ -746,7 +745,7 @@ class Runner:
             output_dir = os.path.join(self.tmpdir.name, output_dir)
         self.run.submit(self.solver_name, solverinput, output_dir)
         results = self.output.get_results(output_dir)
-        return np.float64(results.energy), results.structure
+        return float(results.energy), results.structure
 
 
 class RunnerMultistep:
@@ -766,7 +765,7 @@ class RunnerMultistep:
         runner: Type[Runner],
         nprocs_per_solver,
         comm,
-        perturb=0,
+        perturb=0.0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
         use_tmpdir=False,
@@ -847,7 +846,7 @@ class RunnerEnsemble:
         runner: Type[Runner],
         nprocs_per_solver,
         comm,
-        perturb=0,
+        perturb=0.0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
         use_tmpdir=False,
