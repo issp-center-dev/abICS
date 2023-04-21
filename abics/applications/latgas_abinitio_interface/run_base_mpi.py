@@ -907,19 +907,19 @@ class RunnerEnsemble:
         if npar > 1:
             assert npar == len(self.runners)
             myrank = self.comm.Get_rank()
-            energy, _ = self.runners[myrank].submit(
+            energy, structure_new = self.runners[myrank].submit(
                 structure, os.path.join(output_dir, "ensemble{}".format(myrank))
             )
             energies = self.comm.allgather(energy)
         else:
             energies = []
             for i in range(len(self.runners)):
-                energy, _ = self.runners[i].submit(
+                energy, structure_new = self.runners[i].submit(
                     structure, os.path.join(output_dir, "ensemble{}".format(i))
                 )
                 energies.append(energy)
 
-        return np.mean(energies), structure
+        return np.mean(energies), structure_new
 
 
 if __version__ < "3":
