@@ -115,7 +115,7 @@ class DefaultObserver(ObserverBase):
             runners = [
                 Runner(
                     base_input_dir=bid,
-                    Solver=copy.deepcopy(solver),
+                    Solver=solver,
                     nprocs_per_solver=1,
                     comm=comm,
                     perturb=perturb,
