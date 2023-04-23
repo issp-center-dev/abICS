@@ -252,7 +252,7 @@ def set_log_handles(
     MPI = None
     if (
         console in ["serial", "none"]
-        or logfile_path == None
+        # or logfile_path == None
         or logfile_mode == "serial"
     ):
         # skip
