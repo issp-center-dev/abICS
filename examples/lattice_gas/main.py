@@ -121,17 +121,19 @@ def main(params):
     else:
         ptable = np.linspace(pstart, pend, psteps, endpoint=True)
 
-    conf_start = params_sampling.get('conf_start', 'full')
-    if conf_start == 'empty':
-        nstart = 0
-    elif conf_start == 'half':
-        nstart = nspin // 2
-    elif conf_start == 'full':
-        nstart = nspin
-    else:
-        nstart = rand.randint(nspin+1)
-
+    # initialize random number sequence
     random_seed = params_sampling.get('random_seed', 123456789)
+    random.seed(random_seed)
+
+    conf_start = params_sampling.get('conf_start', 0.0)
+    if conf_start < 0:
+        nstart = random.randint(nspin+1)
+    else:
+        nstart = round(nspin * conf_start)
+        if nstart < 0:
+            nstart = 0
+        elif nstart > nspin:
+            nstart = nspin
 
     conf_base = {
         'unitcell': [ [1,0,0],[0,1,0],[0,0,1] ],
@@ -163,8 +165,8 @@ def main(params):
         ],
     }
 
-    # initialize random number sequence
-    random.seed(random_seed)
+    # # initialize random number sequence
+    # random.seed(random_seed)
 
     #-------- 
     logger.info("parameters:")
@@ -178,6 +180,7 @@ def main(params):
     logger.info("  sample_frequency         = {}".format(sample_frequency))
     logger.info("  print_frequency          = {}".format(print_frequency))
     logger.info("  random_seed              = {}".format(random_seed))
+    logger.info("  initial occupancy        = {}".format(nstart/nspin))
 
     # logger.info("ptable = {}".format(ptable))
 

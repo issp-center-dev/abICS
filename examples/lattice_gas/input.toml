@@ -16,7 +16,7 @@ p_steps = 20
 p_scale = 'linear'
 # p_scale = 'log'
 
-conf_start = 'full'
+conf_start = 1.0
 
 random_seed = 123456789
 
