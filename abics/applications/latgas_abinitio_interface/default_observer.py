@@ -20,9 +20,11 @@ import os
 import numpy as np
 
 from abics import __version__
-from abics.util import expand_path
+from abics.util import expand_path, expand_cmd_path
 from abics.mc import ObserverBase, MCAlgorithm
 
+import logging
+logger = logging.getLogger(__name__)
 
 class DefaultObserver(ObserverBase):
     """
@@ -54,12 +56,14 @@ class DefaultObserver(ObserverBase):
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float]:
-        if calc_state.energy < self.minE:
-            self.minE = calc_state.energy
+        energy_internal = calc_state.model.internal_energy(calc_state.config)
+        energy = calc_state.model.energy(calc_state.config)
+        if energy_internal < self.minE:
+            self.minE = energy_internal
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             calc_state.config.structure_norel.to(fmt="POSCAR", filename="minE.vasp")
-        return (calc_state.energy,)
+        return (energy_internal, energy)
 
     def writefile(self, calc_state: MCAlgorithm) -> None:
         calc_state.config.structure.to(
@@ -88,12 +92,17 @@ class EnsembleErrorObserver(DefaultObserver):
         self.comm = comm
 
     def logfunc(self, calc_state: MCAlgorithm):
-        if calc_state.energy < self.minE:
-            self.minE = calc_state.energy
+        energy_internal = calc_state.model.internal_energy(calc_state.config)
+        energy = calc_state.model.energy(calc_state.config)
+
+        if energy_internal < self.minE:
+            self.minE = energy_internal
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             calc_state.config.structure.to(fmt="POSCAR", filename="minE.vasp")
-        energies = [calc_state.energy]
+
+        #energies = [(energy_internal, energy)]
+        energies = [energy_internal]
         npar = self.comm.Get_size()
         if npar > 1:
             assert npar == len(self.calculators)
@@ -116,6 +125,7 @@ class EnsembleErrorObserver(DefaultObserver):
             std = np.std(energies_tmp, ddof=1)
         energies.extend(energies_tmp)
         energies.append(std)
+
         return np.asarray(energies)
 
 
@@ -144,7 +154,8 @@ class EnsembleParams:
             map(lambda x: expand_path(x, os.getcwd()), base_input_dirs)
         )
         params.solver = d["type"]
-        params.path = expand_path(d["path"], os.getcwd())
+        #params.path = expand_path(d["path"], os.getcwd())
+        params.path = expand_cmd_path(d["path"])
         params.perturb = d.get("perturb", 0.1)
         params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)

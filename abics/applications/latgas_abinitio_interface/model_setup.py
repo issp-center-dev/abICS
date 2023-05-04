@@ -181,6 +181,16 @@ class DFTLatticeGas(Model):
         logger.debug("gc_ratio = {}".format(self.gc_ratio))
 
     def energy(self, config):
+        # grand potential
+        energy = self._calc_energy(config)
+        if self.enable_grandcanonical:
+            energy -= self._calc_muN_term(config)
+        return np.float64(energy)
+
+    def internal_energy(self, config):
+        return self._calc_energy(config)
+
+    def _calc_energy(self, config):
         """
         Calculate total energy
 
@@ -228,10 +238,6 @@ class DFTLatticeGas(Model):
                 del config.calc_history[0:5]
         config.structure_norel = structure0
         config.structure = structure
-
-        # grand potential
-        if self.enable_grandcanonical:
-            energy -= self._calc_muN_term(config)
 
         return np.float64(energy)
 
