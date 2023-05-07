@@ -181,14 +181,16 @@ class DFTLatticeGas(Model):
         logger.debug("gc_ratio = {}".format(self.gc_ratio))
 
     def energy(self, config):
-        # grand potential
-        energy = self._calc_energy(config)
-        if self.enable_grandcanonical:
-            energy -= self._calc_muN_term(config)
-        return np.float64(energy)
+        if config.energy is None:
+            config.energy = self.internal_energy(config)
+            if self.enable_grandcanonical:
+                config.energy -= self._calc_muN_term(config)
+        return config.energy
 
     def internal_energy(self, config):
-        return self._calc_energy(config)
+        if config.internal_energy is None:
+            config.internal_energy = self._calc_energy(config)
+        return config.internal_energy
 
     def _calc_energy(self, config):
         """
@@ -686,6 +688,8 @@ class DFTLatticeGas(Model):
         logger.debug("energy = {:16.12e}".format(energy_now))
 
         e0 = energy_now
+        old_internal_energy = config.internal_energy
+        old_energy = config.energy
 
         if self.enable_grandcanonical:
             # w0 = self._calc_weight(config)
@@ -756,26 +760,6 @@ class DFTLatticeGas(Model):
             else:
                 # grandcanonical move
 
-                # # choose a species set
-                # #chem = rand.choice(config.chemical_potential)
-                # chem_id = rand.randint(len(config.chemical_potential))
-                # chem = config.chemical_potential[chem_id]
-                # do_add = rand.rand() < 0.5
-
-                # if do_add:
-                #     logger.debug("trialstep: try grandcanonical move, type=add, chem={}".format(chem))
-                #     if self.debug:
-                #         trial, trial_info = self._try_add(config, chem)
-                #     else:
-                #         trial = self._try_add(config, chem)
-                # else:
-                #     logger.debug("trialstep: try grandcanonical move, type=remove, chem={}".format(chem))
-                #     if self.debug:
-                #         trial, trial_info = self._try_remove(config, chem)
-                #     else:
-                #         trial = self._try_remove(config, chem)
-
-
                 # choose a move
                 move_id = rand.randint(len(config.gc_move))
                 move = config.gc_move[move_id]
@@ -820,17 +804,19 @@ class DFTLatticeGas(Model):
 
         if trial is True:
             # do vasp calculation on structure
-            e1 = self.energy(config)
+            new_internal_energy = self._calc_energy(config)
 
             if self.enable_grandcanonical:
-                # w1 = self._calc_weight(config)
-                # dW = w1 - w0
+                new_energy = new_internal_energy - self._calc_muN_term(config)
                 numvec1 = self._find_num_group_list(config)
                 dW = self._calc_dweight(numvec0, numvec1)
             else:
+                new_energy = new_internal_energy
                 dW = 0.0
         else:
-            e1 = e0  # nominal value
+            # nominal value
+            new_internal_energy = old_internal_energy
+            new_energy = old_energy
             dW = float("nan")
 
         # return old structure
@@ -842,15 +828,15 @@ class DFTLatticeGas(Model):
         config.defect_sublattices = defect_sublattices0
 
         # Simply pass new structure and latgas_rep  in dconfig to be used by newconfig():
-        dconfig = structure, structure_norel, defect_sublattices
+        dconfig = structure, structure_norel, defect_sublattices, new_energy, new_internal_energy
         if e0 == float("inf"):
-            dE = e1
+            dE = new_energy
         else:
-            dE = e1 - e0
+            dE = new_energy - old_energy
 
         for subl in defect_sublattices:
             logger.debug("state = {}".format([ v[0] for v in subl.latgas_rep ]))
-        logger.debug("energy = {:16.12f}".format(e1))
+        logger.debug("energy = {:16.12f}".format(new_energy))
 
         logger.debug("trialstep: dE={:16.12e}, dW={:.5e}".format(dE, dW))
         logger.debug("<<< end trialstep")
@@ -883,7 +869,7 @@ class DFTLatticeGas(Model):
         config: config object
             New configuration
         """
-        config.structure, config.structure_norel, config.defect_sublattices = dconfig
+        config.structure, config.structure_norel, config.defect_sublattices, config.energy, config.internal_energy = dconfig
         if self.l_update_basestruct:
             self.update_basestruct(config)
         return config
@@ -1285,6 +1271,10 @@ class Config:
         constraint_fullfilled = self.set_latgas()
         if not constraint_fullfilled:
             self.shuffle()
+
+        # internal energy and grand potential
+        self.internal_energy = None
+        self.energy = None
 
         # store chemical potential parameters and grandcanonical move
         self.chemical_potential = chemical_potential

@@ -47,7 +47,8 @@ class DefaultObserver(ObserverBase):
             Reload or not
         """
         super(DefaultObserver, self).__init__()
-        self.minE = 100000.0
+        #self.minE = 100000.0
+        self.minE = None
         myrank = comm.Get_rank()
         if Lreload:
             with open(os.path.join(str(myrank), "minEfi.dat"), "r") as f:
@@ -58,7 +59,7 @@ class DefaultObserver(ObserverBase):
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float]:
         energy_internal = calc_state.model.internal_energy(calc_state.config)
         energy = calc_state.model.energy(calc_state.config)
-        if energy_internal < self.minE:
+        if self.minE is None or energy_internal < self.minE:
             self.minE = energy_internal
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
@@ -95,7 +96,7 @@ class EnsembleErrorObserver(DefaultObserver):
         energy_internal = calc_state.model.internal_energy(calc_state.config)
         energy = calc_state.model.energy(calc_state.config)
 
-        if energy_internal < self.minE:
+        if self.minE is None or energy_internal < self.minE:
             self.minE = energy_internal
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
