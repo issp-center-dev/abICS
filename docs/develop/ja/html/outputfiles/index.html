@@ -133,24 +133,22 @@ direct
 <li><p>4列目、5列目は直前の温度との比 <span class="math notranslate nohighlight">\(\log Z_i/Z_{i-1}\)</span> とその誤差</p></li>
 </ul>
 </section>
-<section id="result-dat">
-<h2><span class="section-number">6.10. </span><code class="docutils literal notranslate"><span class="pre">result.dat</span></code><a class="headerlink" href="#result-dat" title="この見出しへのパーマリンク">¶</a></h2>
-<p>温度ごとの物理量 <span class="math notranslate nohighlight">\(O\)</span> のカノニカル平均 <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> とその統計誤差 <span class="math notranslate nohighlight">\(\sigma[O]\)</span> 。</p>
+<section id="name-dat">
+<h2><span class="section-number">6.10. </span><code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.dat</span></code><a class="headerlink" href="#name-dat" title="この見出しへのパーマリンク">¶</a></h2>
+<p>温度ごとの物理量 <span class="math notranslate nohighlight">\(O\)</span> のカノニカル平均 <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> とその統計誤差 <span class="math notranslate nohighlight">\(\sigma[O]\)</span> 。
+<code class="docutils literal notranslate"><span class="pre">name</span></code> は <code class="docutils literal notranslate"><span class="pre">[[observer.solver]]</span></code> の <code class="docutils literal notranslate"><span class="pre">name</span></code> キーワードで指定した名前です。</p>
 <ul>
 <li><p>1列目 は温度 <span class="math notranslate nohighlight">\(T_i\)</span></p></li>
-<li><p>2列目、3列目はエネルギーの期待値 <span class="math notranslate nohighlight">\(\langle E \rangle\)</span> と統計誤差</p></li>
-<li><p>4列目、5列目はエネルギーの2乗の期待値 <span class="math notranslate nohighlight">\(\langle E^2 \rangle\)</span> と統計誤差</p></li>
-<li><p>6列目、7列目はエネルギーのゆらぎ <span class="math notranslate nohighlight">\(\langle E^2 \rangle - \langle E \rangle^2\)</span> と統計誤差</p>
+<li><p>2列目、3列目は期待値 <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> と統計誤差</p></li>
+<li><p>4列目、5列目は2乗の期待値 <span class="math notranslate nohighlight">\(\langle O^2 \rangle\)</span> と統計誤差</p></li>
+<li><p>6列目、7列目はゆらぎ <span class="math notranslate nohighlight">\(\langle O^2 \rangle - \langle O \rangle^2\)</span> と統計誤差</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>エネルギーのゆらぎは熱容量 <span class="math notranslate nohighlight">\(C\)</span> と次のようにして結びついています: <span class="math notranslate nohighlight">\(k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]\)</span></p></li>
+<li><p>例えばエネルギーのゆらぎは熱容量 <span class="math notranslate nohighlight">\(C\)</span> と次のようにして結びついています: <span class="math notranslate nohighlight">\(k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]\)</span></p></li>
 </ul>
 </div></blockquote>
 </li>
 </ul>
-<p>Potts ソルバーの場合、全磁化 <span class="math notranslate nohighlight">\(\langle M \rangle = \langle \sum_i \delta_{\sigma_i,0} - 1/Q \rangle\)</span>,
-全磁化の2乗 <span class="math notranslate nohighlight">\(\langle M^2 \rangle\)</span>, 磁化のゆらぎ <span class="math notranslate nohighlight">\(\langle M^2 \rangle - \langle M \rangle^2\)</span>
-も8列目以降に出力されます。</p>
 </section>
 </section>
 
@@ -187,7 +185,7 @@ direct
 <li class="toctree-l2"><a class="reference internal" href="#rank-logweight-hist-npy">6.7. <code class="docutils literal notranslate"><span class="pre">RANK/logweight_hist.npy</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rank-acceptance-ratio-dat">6.8. <code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logz-dat">6.9. <code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#result-dat">6.10. <code class="docutils literal notranslate"><span class="pre">result.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#name-dat">6.10. <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.dat</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
@@ -231,7 +229,7 @@ direct
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

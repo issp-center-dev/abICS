@@ -83,8 +83,7 @@ Comments can also be entered by adding # (Subsequent characters are ignored).</p
 </section>
 <section id="keywords">
 <h2><span class="section-number">5.3.2. </span>Keywords<a class="headerlink" href="#keywords" title="Permalink to this heading">¶</a></h2>
-<blockquote>
-<div><ul>
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
 <p><strong>Format :</strong> str</p>
 <p><strong>Description :</strong>
@@ -108,21 +107,17 @@ If multiple calculations are set up in the form of a list, each calculation usin
 If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ignore_species</span></code></p>
-<blockquote>
-<div><p><strong>Format :</strong> list</p>
+<p><strong>Format :</strong> list</p>
 <p><strong>Description :</strong>
 Specify atomic species to “ignore” in neural network models such as <code class="docutils literal notranslate"><span class="pre">aenet</span></code>. For those that always have an occupancy of 1, it is computationally more efficient to ignore their presence when training and evaluating neural network models.</p>
-</div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> (Only for <code class="docutils literal notranslate"><span class="pre">sampling.solver</span></code>)</p>
-<blockquote>
-<div><p><strong>Format :</strong> str</p>
+<p><strong>Format :</strong> str</p>
 <p><strong>Description :</strong>
 Way to invoke the solver program.
 For details, please see <a class="reference internal" href="../how_to_use/index.html#solver-specific-notes"><span class="std std-ref">Specific notes for first-principles solvers</span></a></p>
-</div></blockquote>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">parallel_level</span></code> (Only for QuantumESPRESSO)</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">parallel_level</span></code> (Only for <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">&quot;QE&quot;</span></code>)</p>
 <p><strong>Format :</strong> dict</p>
 <p><strong>Description :</strong>
 How to split parallel cpu resources, i.e., <a class="reference external" href="https://www.quantum-espresso.org/Doc/user_guide/node18.html">Parallelization levels</a> .
@@ -130,8 +125,23 @@ Key names are long-form command-line options (without the leading hyphen), that 
 Values are the number of parallelization.
 Only the specified elements will be passed to <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> as command-line options.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">function</span></code> (Only for <code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">&quot;user&quot;</span></code>)</p>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>
+Specify a user-defined solver function.</p>
+<ul>
+<li><p>The solver function must take a <code class="docutils literal notranslate"><span class="pre">pymatgen.core.Structure</span></code> object as an argument and return a <code class="docutils literal notranslate"><span class="pre">float</span></code> value.</p></li>
+<li><p>When <code class="docutils literal notranslate"><span class="pre">.</span></code> is included, it is assumed that the function is defined in a module, and the module will be automatically imported.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>For example, if <code class="docutils literal notranslate"><span class="pre">function</span> <span class="pre">=</span> <span class="pre">&quot;mypackage.mymodule.myfunction&quot;</span></code> is specified, <code class="docutils literal notranslate"><span class="pre">mypackage.mymodule</span></code> is imported and <code class="docutils literal notranslate"><span class="pre">myfunction</span></code> is called.</p></li>
+<li><p>The package is searched from the current directory as well as from the directories specified by the <code class="docutils literal notranslate"><span class="pre">PYTHONPATH</span></code> environment variable.</p></li>
 </ul>
 </div></blockquote>
+</li>
+</ul>
+</li>
+</ul>
 </section>
 </section>
 
@@ -212,7 +222,7 @@ Only the specified elements will be passed to <code class="docutils literal notr
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

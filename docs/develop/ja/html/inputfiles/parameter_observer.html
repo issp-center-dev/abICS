@@ -35,11 +35,22 @@
             
   <section id="observer">
 <h1><span class="section-number">5.5. </span>[observer] セクション<a class="headerlink" href="#observer" title="この見出しへのパーマリンク">¶</a></h1>
-<p>取得する物理量の種類などを指定します.
+<p>計算する物理量を指定します.
 以下のようなファイルフォーマットをしています.</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[observer]
-type = &#39;default&#39;
+[observer.similarity]
+reference_structure = &#39;./MgAl2O4.vasp&#39;
+ignored_species = [&quot;O&quot;]
+
+[[observer.solver]]
+name = &quot;magnetization&quot;
+type = &#39;aenet&#39;
+path= &#39;~/opt/aenet/bin/predict.x_serial&#39;
+base_input_dir = &#39;./baseinput_mag&#39;
+perturb = 0.0
+run_scheme = &#39;subprocess&#39;
+ignore_species = [&quot;O&quot;]
 </pre></div>
 </div>
 </div></blockquote>
@@ -50,15 +61,41 @@ type = &#39;default&#39;
 </section>
 <section id="id2">
 <h2><span class="section-number">5.5.2. </span>キーワード<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
-<blockquote>
-<div><ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[observer.solver]]</span></code></p>
+<p>物理量を計算するためのオプションを指定します.
+本セクションは複数指定することができます.
+<code class="docutils literal notranslate"><span class="pre">name</span></code> を除き, <code class="docutils literal notranslate"><span class="pre">sampling.solver</span></code> セクションと同様の形式で指定します.</p>
+<p>なお、 <code class="docutils literal notranslate"><span class="pre">name</span> <span class="pre">=</span> <span class="pre">&quot;energy&quot;</span></code> という物理量については、 <code class="docutils literal notranslate"><span class="pre">sampling.solver</span></code> セクションで指定したものが自動的に適用されます.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
 <p><strong>形式 :</strong> str型</p>
 <p><strong>説明 :</strong>
-物理量セットを指定します.</p>
+物理量の名前を指定します.
+計算終了後、温度ごとの期待値として, <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.dat</span></code> というファイルが出力されます.</p>
 </li>
 </ul>
-</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[observer.similarity]</span></code></p>
+<p>原子配置の「類似度(similarity)」を計算するためのオプションを指定します.
+類似度は元素種ごとに、参照状態と同じ場所にある原子の割合として計算されます.
+計算終了後、温度ごとの期待値として <code class="docutils literal notranslate"><span class="pre">similarity_X.dat</span></code> というファイルが出力されます (<code class="docutils literal notranslate"><span class="pre">X</span></code> は元素記号).
+本サブセクションが指定されていない場合は、類似度は計算されません.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">reference_structure</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+参照状態の構造ファイルを指定します.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ignored_species</span></code></p>
+<p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+類似度を計算する際に無視する原子種を指定します.
+例えば, 酸素を固定した計算の場合には、このキーワードに <code class="docutils literal notranslate"><span class="pre">[&quot;O&quot;]</span></code> を指定します.</p>
+</li>
+</ul>
+</li>
+</ul>
 </section>
 </section>
 
@@ -138,7 +175,7 @@ type = &#39;default&#39;
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

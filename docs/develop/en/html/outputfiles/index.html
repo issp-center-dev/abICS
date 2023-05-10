@@ -132,14 +132,15 @@ The first column is temperature and the second column is acceptance ratio (numbe
 <li><p>The 4th and 5th columms are <span class="math notranslate nohighlight">\(\log Z_i/Z_{i-1}\)</span> and its error.</p></li>
 </ul>
 </section>
-<section id="result-dat">
-<h2><span class="section-number">6.10. </span><code class="docutils literal notranslate"><span class="pre">result.dat</span></code><a class="headerlink" href="#result-dat" title="Permalink to this heading">¶</a></h2>
-<p>Canonical expectation value <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> and statistical error <span class="math notranslate nohighlight">\(\sigma[O]\)</span> of observables <span class="math notranslate nohighlight">\(O\)</span> for each temperature.</p>
+<section id="name-dat">
+<h2><span class="section-number">6.10. </span><code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.dat</span></code><a class="headerlink" href="#name-dat" title="Permalink to this heading">¶</a></h2>
+<p>Canonical expectation value <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> and statistical error <span class="math notranslate nohighlight">\(\sigma[O]\)</span> of an observable <span class="math notranslate nohighlight">\(O\)</span> for each temperature.
+<code class="docutils literal notranslate"><span class="pre">&lt;name&gt;</span></code> is the name of the observable which is specified by <code class="docutils literal notranslate"><span class="pre">name</span></code> keyword in <code class="docutils literal notranslate"><span class="pre">[[observer.solver]]</span></code> section of the input file.</p>
 <ul>
 <li><p>The 1st column is temperature <span class="math notranslate nohighlight">\(T_i\)</span>.</p></li>
-<li><p>The 2nd and 3rd columns are energy <span class="math notranslate nohighlight">\(\langle E \rangle\)</span> and its error.</p></li>
-<li><p>The 4th and 5th columns are squared energy <span class="math notranslate nohighlight">\(\langle E^2 \rangle\)</span> and its error.</p></li>
-<li><p>The 6th and 7th columns are fluctuation of energy <span class="math notranslate nohighlight">\(\langle E^2 \rangle - \langle E \rangle^2\)</span> and its error.</p>
+<li><p>The 2nd and 3rd columns are <span class="math notranslate nohighlight">\(\langle O \rangle\)</span> and its error.</p></li>
+<li><p>The 4th and 5th columns are <span class="math notranslate nohighlight">\(\langle O^2 \rangle\)</span> and its error.</p></li>
+<li><p>The 6th and 7th columns are fluctuation, <span class="math notranslate nohighlight">\(\langle O^2 \rangle - \langle O \rangle^2\)</span> and its error.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>Note that the heat capacity <span class="math notranslate nohighlight">\(C\)</span> is related to the fluctuation of energy as <span class="math notranslate nohighlight">\(k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]\)</span>.</p></li>
@@ -147,7 +148,6 @@ The first column is temperature and the second column is acceptance ratio (numbe
 </div></blockquote>
 </li>
 </ul>
-<p>For Potts solver, total magnetization <span class="math notranslate nohighlight">\(\langle M \rangle = \langle \sum_i \delta_{\sigma_i,0} - 1/Q \rangle\)</span>, squared magnetization <span class="math notranslate nohighlight">\(\langle M^2 \rangle\)</span>, and fluctuation <span class="math notranslate nohighlight">\(\langle M^2 \rangle - \langle M \rangle^2\)</span> will be saved as 8th and the following columns.</p>
 </section>
 </section>
 
@@ -185,7 +185,7 @@ The first column is temperature and the second column is acceptance ratio (numbe
 <li class="toctree-l2"><a class="reference internal" href="#rank-logweight-hist-npy">6.7. <code class="docutils literal notranslate"><span class="pre">RANK/logweight_hist.npy</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rank-acceptance-ratio-dat">6.8. <code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="#logz-dat">6.9. <code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code></a></li>
-<li class="toctree-l2"><a class="reference internal" href="#result-dat">6.10. <code class="docutils literal notranslate"><span class="pre">result.dat</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#name-dat">6.10. <code class="docutils literal notranslate"><span class="pre">&lt;name&gt;.dat</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. Miscellaneous tools</a></li>
@@ -229,7 +229,7 @@ The first column is temperature and the second column is acceptance ratio (numbe
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.1.3</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
