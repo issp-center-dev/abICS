@@ -218,6 +218,16 @@ class ObserverBase:
         else:
             return obs_log
 
+    def obs_names(self) -> list[str]:
+        """
+
+        Returns
+        -------
+        names: list
+            names of observables
+        """
+        return self.names
+
 
 class ObserverParams:
     type: str

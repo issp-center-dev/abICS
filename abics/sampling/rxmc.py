@@ -26,7 +26,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
-from abics.sampling.mc import verylargeint, MCAlgorithm
+from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
@@ -325,6 +325,7 @@ class TemperatureRX_MPI(ParallelMC):
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
+            write_obs_header(output, self.mycalc, observer)
             ntrials = self.mycalc.ntrials
             naccepted = self.mycalc.naccepted
             for i in range(1, nsteps + 1):

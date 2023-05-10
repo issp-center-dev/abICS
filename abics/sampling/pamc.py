@@ -28,7 +28,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
-from abics.sampling.mc import verylargeint, MCAlgorithm
+from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.sampling.resampling import WalkerTable
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
@@ -351,6 +351,7 @@ class PopulationAnnealing(ParallelMC):
             obs = np.zeros([len(self.kTs), obs_len])
         nsample = 0
         output = open("obs.dat", "a")
+        write_obs_header(output, self.mycalc, observer)
         numT = self.betas.size
         while self.Tindex < numT:
             if self.Tindex > 0:
