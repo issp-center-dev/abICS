@@ -11,11 +11,9 @@ reload = false
 seed = 12345
 
 [sampling.solver]
-type = 'mock'
-path= ''
-base_input_dir = './baseinput'
+type = 'user'
 perturb = 0.0
-run_scheme = 'function'
+function = 'mock.calc_energy'
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],

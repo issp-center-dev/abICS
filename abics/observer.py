@@ -16,12 +16,16 @@
 
 from __future__ import annotations
 
-from typing import TextIO, Union
+from typing import TextIO, Union, TYPE_CHECKING
 
-import sys
+import sys, os
 import numpy as np
 
+if TYPE_CHECKING:
+    from mpi4py import MPI
+
 from abics import __version__
+
 
 class ObsInfo:
     nargs: int
@@ -95,8 +99,18 @@ def obs_encode(*args):
 
 
 class ObserverBase:
-    def __init__(self):
+    comm: (None|MPI.Comm)
+    Lreload: bool
+    params: dict
+    lprintcount: int
+    names: list[str]
+
+    def __init__(self, comm: (None|MPI.Comm) = None, Lreload: bool = False, params: dict = {}):
+        self.comm = comm
         self.lprintcount = 0
+        self.Lreload = Lreload
+        self.params = params
+        self.names = ["energy"]
 
     def obs_info(self, calc_state: "MCAlgorithm") -> ObsInfo:
         """
@@ -124,7 +138,7 @@ class ObserverBase:
                 obs_ND.append(obs_save)
         return ObsInfo(*obs_log, *obs_ND)
 
-    def logfunc(self, calc_state: "MCAlgorithm") -> tuple[float]:
+    def logfunc(self, calc_state: "MCAlgorithm") -> tuple[float, ...]:
         """returns values of observables
 
         Parameters
@@ -139,7 +153,7 @@ class ObserverBase:
         """
         return (calc_state.energy,)
 
-    def savefunc(self, calc_state: "MCAlgorithm") -> Union[tuple[float], tuple[()]]:
+    def savefunc(self, calc_state: "MCAlgorithm") -> tuple[float, ...]:
         """returns values of observables, which will be not printed in observe method.
 
         Parameters
@@ -203,6 +217,71 @@ class ObserverBase:
             return np.concatenate((obs_log, obs_save))
         else:
             return obs_log
+
+    def obs_names(self) -> list[str]:
+        """
+
+        Returns
+        -------
+        names: list
+            names of observables
+        """
+        return self.names
+
+
+class ObserverParams:
+    type: str
+    observer_class: (type | None)
+    dict: dict
+
+    def __init__(self):
+        self.type = "default"
+        self.observer_class = None
+        self.dict = {}
+
+    @classmethod
+    def from_dict(cls, d: dict):
+        """
+
+        Parameters
+        ----------
+        d: dict
+            Dictionary
+
+        Returns
+        -------
+        oparams: ObserverParams
+            self
+        """
+        params = cls()
+        params.type = d.get("type", "default")
+        if params.type == "import":
+            sys.path.append(os.getcwd())
+            from observer_module import Observer
+
+            params.observer_class = Observer
+
+        params.dict = {k: v for k, v in d.items() if k != "type"}
+        return params
+
+    @classmethod
+    def from_toml(cls, f):
+        """
+
+        Parameters
+        ----------
+        f: str
+            Name of input toml File
+
+        Returns
+        -------
+        oparams : ObserverParams
+            self
+        """
+        import toml
+
+        d = toml.load(f)
+        return cls.from_dict(d["observer"])
 
 
 # For backward compatibility

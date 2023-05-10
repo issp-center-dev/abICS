@@ -15,6 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from __future__ import annotations
+from typing import overload
 
 import os
 import sys
@@ -112,6 +113,28 @@ class RefParams:
         return cls.from_dict(d["mlref"])
 
 
+@overload
+def RX_MPI_init(nreplicas: int) -> MPI.Cartcomm:
+    ...
+
+
+@overload
+def RX_MPI_init(nreplicas: int, seed: int) -> MPI.Cartcomm:
+    ...
+
+
+@overload
+def RX_MPI_init(nreplicas: int, seed: int, nensemble: None) -> MPI.Cartcomm:
+    ...
+
+
+@overload
+def RX_MPI_init(
+    nreplicas: int, seed: int, nensemble: int
+) -> tuple[MPI.Cartcomm, MPI.Cartcomm, MPI.Cartcomm]:
+    ...
+
+
 def RX_MPI_init(nreplicas: int, seed: int = 0, nensemble=None):
     """
 
@@ -129,26 +152,26 @@ def RX_MPI_init(nreplicas: int, seed: int = 0, nensemble=None):
         nensemble_ = 1
     else:
         nensemble_ = nensemble
-    nreplicas = nreplicas * nensemble_
+    nprocs = nreplicas * nensemble_
     commworld = MPI.COMM_WORLD
     worldrank = commworld.Get_rank()
     worldprocs = commworld.Get_size()
 
-    if worldprocs < nreplicas:
+    if worldprocs < nprocs:
         if worldrank == 0:
             print(
                 "ERROR! Please run with at least as many MPI processes as the number of replicas"
             )
         sys.exit(1)
 
-    if worldprocs > nreplicas:
+    if worldprocs > nprocs:
         if worldrank == 0:
             print(
                 "Setting number of replicas smaller than MPI processes; I hope you"
                 + " know what you're doing..."
             )
             sys.stdout.flush()
-        if worldrank >= nreplicas:
+        if worldrank >= nprocs:
             # belong to comm that does nothing
             comm = commworld.Split(color=1, key=worldrank)
             comm.Free()

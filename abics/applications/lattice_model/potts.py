@@ -55,13 +55,15 @@ class Configuration:
         return npara_old - npara_new
 
     def neighbor_spins(self, index) -> np.ndarray:
-        ret = np.zeros(2*self.spins.ndim, dtype=np.int64)
+        ret = np.zeros(2 * self.spins.ndim, dtype=np.int64)
         index_neighbor = np.array(index)
         for d in range(self.spins.ndim):
             index_neighbor[d] = (index[d] + 1) % self.spins.shape[d]
-            ret[2*d] = self.spins[tuple(index_neighbor)]
-            index_neighbor[d] = (index[d] - 1 + self.spins.shape[d]) % self.spins.shape[d]
-            ret[2*d+1] = self.spins[tuple(index_neighbor)]
+            ret[2 * d] = self.spins[tuple(index_neighbor)]
+            index_neighbor[d] = (index[d] - 1 + self.spins.shape[d]) % self.spins.shape[
+                d
+            ]
+            ret[2 * d + 1] = self.spins[tuple(index_neighbor)]
             index_neighbor[d] = index[d]
         return ret
 
@@ -77,6 +79,12 @@ class DConfig:
 
 
 class Observer(ObserverBase):
+    def __init__(
+        self, comm: (None | MPI.Comm) = None, Lreload: bool = False, params: dict = {}
+    ):
+        super().__init__(comm, Lreload, params)
+        self.names = ["energy", "magnetization"]
+
     def logfunc(self, calc_state: MCAlgorithm):
         config: Configuration = calc_state.config
         spins = config.spins
