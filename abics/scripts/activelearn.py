@@ -256,7 +256,10 @@ def main_impl(params_root: MutableMapping):
         MCdir = os.path.join(os.getcwd(), MCdirname)
         nsamples = 0
         with open(os.path.join(MCdir, str(myreplica), "obs.dat")) as f:
-            for _ in f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("#"):
+                    continue
                 nsamples += 1
         ndigits = len(str(nsamples))
         fmtstr = "input{:0>" + str(ndigits) + "d}"
