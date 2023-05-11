@@ -28,7 +28,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
-from abics.sampling.mc import verylargeint, MCAlgorithm
+from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.sampling.resampling import WalkerTable
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
@@ -325,6 +325,8 @@ class PopulationAnnealing(ParallelMC):
             Observation list
         """
 
+        self.obsnames = observer.names
+
         kTnum = len(self.kTs)
         nba = nsteps // kTnum
         self.nsteps_between_anneal = nba * np.ones(kTnum, dtype=int)
@@ -349,6 +351,7 @@ class PopulationAnnealing(ParallelMC):
             obs = np.zeros([len(self.kTs), obs_len])
         nsample = 0
         output = open("obs.dat", "a")
+        write_obs_header(output, self.mycalc, observer)
         numT = self.betas.size
         while self.Tindex < numT:
             if self.Tindex > 0:
@@ -462,15 +465,29 @@ class PopulationAnnealing(ParallelMC):
         if self.rank == 0:
             o_mean = o_all.mean(axis=0)
             o_err = o_all.std(axis=0)
-            with open("result.dat", "w") as f:
-                for iT in range(nT):
-                    f.write(str(self.kTs[iT]))
-                    for iobs in range(3 * nobs):
-                        f.write(f" {o_mean[iT, iobs]} {o_err[iT, iobs]}")
-                    f.write("\n")
+            for iobs, oname in enumerate(self.obsnames):
+                with open(f"{oname}.dat", "w") as f:
+                    f.write( "# $1: temperature\n")
+                    f.write(f"# $2: <{oname}>\n")
+                    f.write(f"# $3: ERROR of <{oname}>\n")
+                    f.write(f"# $4: <{oname}^2>\n")
+                    f.write(f"# $5: ERROR of <{oname}^2>\n")
+                    f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
+                    f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
+
+                    for iT in range(nT):
+                        f.write(f"{self.kTs[iT]}")
+                        for j in range(3):
+                            f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
+                        f.write("\n")
             dlogZ = np.log(o_mean[:, 3 * nobs]) + lzw_max[:]
             dlogZ_err = o_err[:, 3 * nobs] / o_mean[:, 3 * nobs]
             with open("logZ.dat", "w") as f:
+                f.write("# $1: temperature\n")
+                f.write("# $2: logZ\n")
+                f.write("# $3: ERROR of log(Z)\n")
+                f.write("# $4: log(Z/Z')\n")
+                f.write("# $5: ERROR of log(Z/Z')\n")
                 F = 0.0
                 dF = 0.0
                 f.write(f"inf 0.0 0.0 0.0 0.0\n")

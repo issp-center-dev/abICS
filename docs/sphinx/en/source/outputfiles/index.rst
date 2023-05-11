@@ -103,15 +103,14 @@ The logarithm of the partition function, :math:`\log Z_i/Z_0` where :math:`i` is
 - The 2nd and 3rd columns are :math:`\log Z_i/Z_0` and its error.
 - The 4th and 5th columms are :math:`\log Z_i/Z_{i-1}` and its error.
 
-``result.dat``
+``<name>.dat``
 ===============
-Canonical expectation value :math:`\langle O \rangle` and statistical error :math:`\sigma[O]` of observables :math:`O` for each temperature.
+Canonical expectation value :math:`\langle O \rangle` and statistical error :math:`\sigma[O]` of an observable :math:`O` for each temperature.
+``<name>`` is the name of the observable which is specified by ``name`` keyword in ``[[observer.solver]]`` section of the input file.
 
 - The 1st column is temperature :math:`T_i`.
-- The 2nd and 3rd columns are energy :math:`\langle E \rangle` and its error.
-- The 4th and 5th columns are squared energy :math:`\langle E^2 \rangle` and its error.
-- The 6th and 7th columns are fluctuation of energy :math:`\langle E^2 \rangle - \langle E \rangle^2` and its error.
+- The 2nd and 3rd columns are :math:`\langle O \rangle` and its error.
+- The 4th and 5th columns are :math:`\langle O^2 \rangle` and its error.
+- The 6th and 7th columns are fluctuation, :math:`\langle O^2 \rangle - \langle O \rangle^2` and its error.
 
    - Note that the heat capacity :math:`C` is related to the fluctuation of energy as :math:`k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]`.
-
-For Potts solver, total magnetization :math:`\langle M \rangle = \langle \sum_i \delta_{\sigma_i,0} - 1/Q \rangle`, squared magnetization :math:`\langle M^2 \rangle`, and fluctuation :math:`\langle M^2 \rangle - \langle M \rangle^2` will be saved as 8th and the following columns.

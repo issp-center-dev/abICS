@@ -43,7 +43,6 @@ def main_potts(params_root: MutableMapping):
     write_node = True
 
     model = Potts()
-    observer = Observer()
     sampler_type = params_root["sampling"].get("sampler", "RXMC")
     if sampler_type == "RXMC":
         rxparams = RXParams.from_dict(params_root["sampling"])
@@ -60,6 +59,8 @@ def main_potts(params_root: MutableMapping):
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
+
+        observer = Observer(comm, Lreload, {})
 
         nsteps = rxparams.nsteps
         RXtrial_frequency = rxparams.RXtrial_frequency
@@ -106,6 +107,8 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = pamcparams.reload
 
+        observer = Observer(comm, Lreload, {})
+
         nsteps = pamcparams.nsteps
         resample_frequency = pamcparams.resample_frequency
         sample_frequency = pamcparams.sample_frequency
@@ -141,6 +144,8 @@ def main_potts(params_root: MutableMapping):
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
 
+        observer = Observer(comm, Lreload, {})
+
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency
         print_frequency = rxparams.print_frequency
@@ -172,6 +177,8 @@ def main_potts(params_root: MutableMapping):
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
+
+        observer = Observer(comm, Lreload, {})
 
         nsteps = rxparams.nsteps
         sample_frequency = rxparams.sample_frequency

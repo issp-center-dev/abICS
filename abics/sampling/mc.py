@@ -36,6 +36,7 @@ logger = logging.getLogger("main")
 
 verylargeint = sys.maxsize
 
+
 def binning(x, nlevels: int):
     """
 
@@ -91,6 +92,11 @@ class MCAlgorithm(metaclass=ABCMeta):
     @abstractmethod
     def parameters(self) -> list:
         """returns parameters (e.g., temperature)"""
+        ...
+
+    @abstractmethod
+    def param_names(self) -> list:
+        """returns names of parameters (e.g., temperature)"""
         ...
 
     def run(
@@ -205,6 +211,10 @@ class CanonicalMonteCarlo(MCAlgorithm):
     def parameters(self):
         return [self.kT]
 
+    def param_names(self):
+        return ["Temperature"]
+
+
 class WeightedCanonicalMonteCarlo(CanonicalMonteCarlo):
     def __init__(self, model: Model, kT: float, config):
         super().__init__(model, kT, config)
@@ -253,3 +263,14 @@ class RandomSampling(CanonicalMonteCarlo):
         self.energy = self.model.energy(self.config)
         self.ntrials += 1
         self.naccepted += 1
+
+
+def write_obs_header(output, calc_state: MCAlgorithm, observer: ObserverBase):
+    output.write("# $1: step\n")
+    i = 2
+    for name in calc_state.param_names():
+        output.write(f"# ${i}: {name}\n")
+        i+=1
+    for name in observer.obs_names():
+        output.write(f"# ${i}: {name}\n")
+        i+=1

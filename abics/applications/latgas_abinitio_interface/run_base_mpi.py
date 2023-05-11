@@ -588,7 +588,6 @@ class RunFunction(Run):
         os.chdir(output_dir)
         args = solverinput.cl_args(self.nprocs, self.nthreads, output_dir)
         to_rerun = False
-        # print(' '.join(command))
         with open(os.path.join(output_dir, "stdout"), "w") as fi:
             try:
                 self.path_to_solver(fi, *args)
@@ -639,7 +638,7 @@ class Runner:
         Solver,
         nprocs_per_solver,
         comm,
-        perturb=0,
+        perturb=0.0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
         use_tmpdir=False,
@@ -746,7 +745,7 @@ class Runner:
             output_dir = os.path.join(self.tmpdir.name, output_dir)
         self.run.submit(self.solver_name, solverinput, output_dir)
         results = self.output.get_results(output_dir)
-        return np.float64(results.energy), results.structure
+        return float(results.energy), results.structure
 
 
 class RunnerMultistep:
@@ -762,11 +761,11 @@ class RunnerMultistep:
     def __init__(
         self,
         base_input_dirs,
-        Solver,
+        Solvers,
         runner: Type[Runner],
         nprocs_per_solver,
         comm,
-        perturb=0,
+        perturb=0.0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
         use_tmpdir=False,
@@ -797,7 +796,7 @@ class RunnerMultistep:
         self.runners.append(
             runner(
                 base_input_dirs[0],
-                copy.deepcopy(Solver),
+                Solvers[0],
                 nprocs_per_solver,
                 comm,
                 perturb,
@@ -810,7 +809,7 @@ class RunnerMultistep:
             self.runners.append(
                 runner(
                     base_input_dirs[i],
-                    copy.deepcopy(Solver),
+                    Solvers[i],
                     nprocs_per_solver,
                     comm,
                     perturb=0,
@@ -843,11 +842,11 @@ class RunnerEnsemble:
     def __init__(
         self,
         base_input_dirs,
-        Solver,
+        Solvers,
         runner: Type[Runner],
         nprocs_per_solver,
         comm,
-        perturb=0,
+        perturb=0.0,
         nthreads_per_proc=1,
         solver_run_scheme="mpi_spawn_ready",
         use_tmpdir=False,
@@ -857,8 +856,8 @@ class RunnerEnsemble:
         ----------
         base_input_dirs : list[str]
             List of paths to directories including base input files
-        Solver : SolverBase
-            Solver
+        Solvers : list[SolverBase]
+            list of Solvers
         nprocs_per_solver : int
             Number of processes which one solver program uses
         comm : MPI.Comm
@@ -878,7 +877,7 @@ class RunnerEnsemble:
         self.runners.append(
             runner(
                 base_input_dirs[0],
-                copy.deepcopy(Solver),
+                Solvers[0],
                 nprocs_per_solver,
                 comm,
                 perturb,
@@ -891,7 +890,7 @@ class RunnerEnsemble:
             self.runners.append(
                 runner(
                     base_input_dirs[i],
-                    copy.deepcopy(Solver),
+                    Solvers[i],
                     nprocs_per_solver,
                     comm,
                     perturb=0,
@@ -908,19 +907,19 @@ class RunnerEnsemble:
         if npar > 1:
             assert npar == len(self.runners)
             myrank = self.comm.Get_rank()
-            energy, _ = self.runners[myrank].submit(
+            energy, structure_new = self.runners[myrank].submit(
                 structure, os.path.join(output_dir, "ensemble{}".format(myrank))
             )
             energies = self.comm.allgather(energy)
         else:
             energies = []
             for i in range(len(self.runners)):
-                energy, _ = self.runners[i].submit(
+                energy, structure_new = self.runners[i].submit(
                     structure, os.path.join(output_dir, "ensemble{}".format(i))
                 )
                 energies.append(energy)
 
-        return np.mean(energies), structure
+        return np.mean(energies), structure_new
 
 
 if __version__ < "3":

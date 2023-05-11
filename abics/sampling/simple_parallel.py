@@ -26,7 +26,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
-from abics.sampling.mc import MCAlgorithm, verylargeint
+from abics.sampling.mc import MCAlgorithm, verylargeint, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
@@ -307,6 +307,7 @@ class EmbarrassinglyParallelSampling:
             observe = False
         nsample = 0
         with open("obs.dat", "a") as output:
+            write_obs_header(output, self.mycalc, observer)
             for i in range(1, nsteps + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
 

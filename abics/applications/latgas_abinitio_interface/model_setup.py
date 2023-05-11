@@ -25,8 +25,6 @@ import numpy as np
 import numpy.random as rand
 from scipy.special import gammaln
 
-# from mpi4py import MPI
-
 from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 import pymatgen.analysis.structure_analyzer as analy
@@ -1583,48 +1581,6 @@ class Config:
         vac_structure = self.perfect_structure.copy()
         vac_structure.remove_sites(filledsites)
         return vac_structure
-
-
-class ObserverParams:
-    def __init__(self):
-        pass
-
-    @classmethod
-    def from_dict(cls, d):
-        """
-
-        Parameters
-        ----------
-        d: dict
-            Dictionary
-
-        Returns
-        -------
-        oparams: ObserverParams
-            self
-        """
-        params = cls()
-        # params.ignored_species = d["ignored_species"]
-        return params
-
-    @classmethod
-    def from_toml(cls, f):
-        """
-
-        Parameters
-        ----------
-        f: str
-            Name of input toml File
-
-        Returns
-        -------
-        oparams : ObserverParams
-            self
-        """
-        import toml
-
-        d = toml.load(f)
-        return cls.from_dict(d["observer"])
 
 
 # For backward compatibility
