@@ -76,9 +76,21 @@ class LatticeGas(DFTLatticeGas):
 
     def energy(self, config):
         logger.debug(">>> LatticeGas.energy()")
+        if config.energy is None:
+            config.energy = self.internal_energy(config)
+            if self.enable_grandcanonical:
+                config.energy -= self._calc_muN_term(config)
+        return config.energy
+
+    def internal_energy(self, config):
+        logger.debug(">>> LatticeGas.internal_energy()")
+        if config.internal_energy is None:
+            config.internal_energy = self._calc_energy(config)
+        return config.internal_energy
+
+    def _calc_energy(self, config):
+        logger.debug(">>> LatticeGas._internal_energy()")
         ev = self.abinitio_run.calc(config)
-        if self.enable_grandcanonical:
-            ev -= self._calc_muN_term(config)
         return ev
 
     def density(self, config):
