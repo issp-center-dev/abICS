@@ -9,9 +9,11 @@ adsorption of particles to two-dimensional surfaces.
 The lattice gas model is defined on a discrete space in which each lattice cell
 labeled by $i$ is occupied by a particle ($e_i=1$) or not ($e_i=0$).
 The Hamiltonian is given by
+
 ```math
 \mathcal{H} = J \sum_{\langle i j \rangle} e_i\,e_j + \left(E_\text{ads} - \mu\right)\sum_i e_i
 ```
+
 where the first term denotes interaction between nearest neighbor sites $i$ and $j$ with coupling constant $J$.
 The second term is the effect of adsorption with the adsorption energy $E_\text{ads}$.
 $\mu$ is the chemical potential, which is related to the pressure $p$ by
@@ -22,16 +24,17 @@ when particles in gas are adsorbed onto a solid surface under a certain temperat
 In the Langmuir adsorption model, it is assumed that adsorption occurs onto a homogeneous
 surface with mono-layer coverage.
 The Langmuir adsorption equation leads for the adsorption ratio $\theta$ as
+
 ```math
 \theta = \dfrac{Kp}{1+Kp}
 ```
+
 with an equilibrium constant $K$.
 
 In this sample, the lattice gas model on two-dimesional $L_x \times L_y$ lattice with
 a species $A$ is examined by the grand canonical Monte Carlo simulation
 at a range of pressure values and at a fixed temperature, and the adsorption ratio at
 each $p$ is evaluated.
-
 
 ## Prerequisites
 
@@ -43,9 +46,11 @@ A script `main.py` performs grand canonical sampling of the lattice gas model
 for a specified range of pressure, and calculates expectation values of
 adsorption ratio $\theta$.
 To run the script, type in the command with a parameter file as follows:
+
 ```bash
 python3 main.py input.toml
 ```
+
 The parameter file `input.toml` contains simulation parameters in TOML format.
 The list of parameters is summarized below:
 
@@ -70,6 +75,3 @@ The figure shows a plot of the adsorption ratio against the pressure.
 The solid line represents a fit to Langmuir formula.
 
 ![Figure: Adsorption ratio of the two-dimensional lattice gas model varying the pressure. Solid curve is a fit to Langmuir formula.](./plot.png)
-
-
-## References
