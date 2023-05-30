@@ -100,7 +100,7 @@ class DefaultObserver(ObserverBase):
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
-        self.names = ["energy"]
+        self.names = ["energy_internal", "energy"]
 
         params_solvers = params.get("solver", [])
         self.calculators = []
