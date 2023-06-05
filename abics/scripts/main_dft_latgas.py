@@ -25,7 +25,7 @@ import numpy as np
 import scipy.constants as constants
 
 from abics import __version__
-from abics.mc import CanonicalMonteCarlo, RandomSampling
+from abics.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, RandomSampling
 from abics.observer import ObserverParams
 
 from abics.sampling.mc_mpi import RX_MPI_init
@@ -59,11 +59,16 @@ import logging
 logger = logging.getLogger("main")
 
 def main_dft_latgas(params_root: MutableMapping):
-    dftparams = DFTParams.from_dict(params_root["sampling"]["solver"])
-    sampler_type = params_root["sampling"].get("sampler", "RXMC")
+    params_sampling = params_root.get("sampling", None)
+    if not params_sampling:
+        logger.error("sampling section is missing in parameters")
+        sys.exit(1)
+    dftparams = DFTParams.from_dict(params_sampling["solver"])
+    sampler_type = params_sampling.get("sampler", "RXMC")
     params_observer = params_root.get("observer", {})
+
     if sampler_type == "RXMC":
-        rxparams = RXParams.from_dict(params_root["sampling"])
+        rxparams = RXParams.from_dict(params_sampling)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
 
@@ -90,7 +95,7 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"--Temperature varies from {kTstart} K to {kTend} K")
 
     elif sampler_type == "PAMC":
-        pamcparams = PAMCParams.from_dict(params_root["sampling"])
+        pamcparams = PAMCParams.from_dict(params_sampling)
         nreplicas = pamcparams.nreplicas
         nprocs_per_replica = pamcparams.nprocs_per_replica
 
@@ -119,7 +124,7 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"--Anneal from {kTstart} K to {kTend} K")
 
     elif sampler_type == "parallelRand":
-        rxparams = ParallelRandomParams.from_dict(params_root["sampling"])
+        rxparams = ParallelRandomParams.from_dict(params_sampling)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
         nensemble = len(dftparams.base_input_dir)
@@ -134,7 +139,7 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"-Running parallel random sampling")
 
     elif sampler_type == "parallelMC":
-        rxparams = RXParams.from_dict(params_root["sampling"])
+        rxparams = RXParams.from_dict(params_sampling)
         nreplicas = rxparams.nreplicas
         nprocs_per_replica = rxparams.nprocs_per_replica
 
@@ -210,7 +215,16 @@ def main_dft_latgas(params_root: MutableMapping):
                 solver_run_scheme=dftparams.solver_run_scheme,
                 use_tmpdir=dftparams.use_tmpdir,
             )
-    model = DFTLatticeGas(energy_calculator, save_history=False)
+
+    gc_flag  = params_sampling.get("enable_grandcanonical", False)
+    gc_ratio = params_sampling.get("gc_ratio", 0.3)
+
+    model = DFTLatticeGas(energy_calculator,
+                          save_history=False,
+                          enable_grandcanonical=gc_flag,
+                          gc_ratio=gc_ratio,
+    )
+
     logger.info("--Success.")
     logger.info("-Setting up the on-lattice model.")
     
@@ -300,6 +314,11 @@ def main_dft_latgas(params_root: MutableMapping):
             logger.error("You should train before MC sampling in AL mode.")
             sys.exit(1)
 
+    if gc_flag == True:
+        mc_class = WeightedCanonicalMonteCarlo
+    else:
+        mc_class = CanonicalMonteCarlo
+
     if commEnsemble.Get_rank() == 0:
         write_node = True
     else:
@@ -307,7 +326,7 @@ def main_dft_latgas(params_root: MutableMapping):
     if sampler_type == "RXMC":
         # RXMC calculation
         RXcalc = TemperatureRX_MPI(
-            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
@@ -327,7 +346,7 @@ def main_dft_latgas(params_root: MutableMapping):
     elif sampler_type == "PAMC":
         # PAMC calculation
         PAcalc = PopulationAnnealing(
-            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
@@ -360,7 +379,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     elif sampler_type == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
-            comm, CanonicalMonteCarlo, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node
         )
         if Lreload:
             calc.reload()

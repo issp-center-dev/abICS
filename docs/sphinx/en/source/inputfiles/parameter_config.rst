@@ -180,6 +180,51 @@ In the case of ``solver.type != "potts"``
          **Description :**
          The number of atom groups of the type specified in this section.
 
+- ``[[config.chemical_potential]]`` section
+
+  This section specifies the chemical potentials of the atoms and atom groups for the grand canonical sampling.
+
+      - ``species``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+	 Name of atom or atom group, or a list of names of atom groups when a set of atom groups are considered simultaneously.
+
+      - ``mu``
+
+         **Format :** float
+
+         **Description :**
+	 The value of chemical potential that corresponds to ``species``.
+
+- ``[[config.grandcanonical_move]]`` section
+
+  This section specifies how the atoms or atom groups are added/removed.
+  It also describes how atoms of one type are replaced by those of another type
+  when such processes are considered.
+
+  - add/remove atoms or atom groups:
+
+      - ``species``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+	 Name of atom or atom group, or a list of names of atom groups when a set of atom groups are considered simultaneously.
+
+
+  - replace atoms:
+    
+      - ``from``, ``to``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+         Names of atoms or atom groups to be replaced are specified in the form of ``from A to B``. It also implies the reverse process ``from B to A``. The number of atoms of ``from`` and ``to`` must be equal, and the atoms are assumed to belong to the same defect sublattice.
+
+  If ``grandcanonical_move`` is not specified, the addition/removal of ``species`` of ``chemical_potential`` are implicitly introduced. Otherwise, only the specified processes may occur.
+
 
 In the case of ``solver.type = "potts"``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

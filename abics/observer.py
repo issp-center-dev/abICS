@@ -151,7 +151,8 @@ class ObserverBase:
         calc_state.energy: tuple
             (Energy)
         """
-        return (calc_state.energy,)
+        energy = calc_state.model.energy(calc_state.config)
+        return (energy,)
 
     def savefunc(self, calc_state: "MCAlgorithm") -> tuple[float, ...]:
         """returns values of observables, which will be not printed in observe method.

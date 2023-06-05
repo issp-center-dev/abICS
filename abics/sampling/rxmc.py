@@ -359,7 +359,10 @@ class TemperatureRX_MPI(ParallelMC):
 
         with open("acceptance_ratio.dat", "w") as f:
             for T, acc, trial in zip(self.kTs, self.naccepted, self.ntrials):
-                f.write(f"{T} {acc/trial}\n")
+                if trial > 0:
+                    f.write(f"{T} {acc/trial}\n")
+                else:
+                    f.write(f"{T} {acc}/{trial}\n")
 
         if nsample != 0:
             obs_buffer = np.empty(obs.shape)

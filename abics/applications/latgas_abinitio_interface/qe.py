@@ -400,7 +400,11 @@ class QESolver(SolverBase):
                 and coordinates is measured in the units of Angstrom.
             """
             # Read results from files in output_dir and calculate values
-            tree = ET.parse(os.path.join(workdir, "pwscf.save", "data-file-schema.xml"))
+            try:
+                tree = ET.parse(os.path.join(workdir, "pwscf.save", "data-file-schema.xml"))
+            except Exception as e:
+                print("ERROR: QESolver.Output.get_results:", e)
+                exit(1)
             root = tree.getroot()
             A = np.zeros((3, 3))
             child = root.find("input").find("atomic_structure").find("cell")

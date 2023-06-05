@@ -26,8 +26,8 @@ from pymatgen.core import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher, FrameworkComparator
 
 from abics import __version__
+from abics.util import expand_path, expand_cmd_path
 from abics.exception import InputError
-from abics.util import expand_path
 from abics.mc import ObserverBase, MCAlgorithm
 from abics.applications.latgas_abinitio_interface.base_solver import create_solver
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
@@ -64,6 +64,8 @@ def similarity(
     nsites += len(sites)
     return matched / nsites
 
+import logging
+logger = logging.getLogger(__name__)
 
 class DefaultObserver(ObserverBase):
     """
@@ -90,7 +92,7 @@ class DefaultObserver(ObserverBase):
             Reload or not
         """
         super().__init__(comm, Lreload, params)
-        self.minE = 100000.0
+        self.minE = None
         myrank = comm.Get_rank()
         if Lreload:
             with open(os.path.join(str(myrank), "minEfi.dat"), "r") as f:
@@ -98,7 +100,7 @@ class DefaultObserver(ObserverBase):
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
-        self.names = ["energy"]
+        self.names = ["energy_internal", "energy"]
 
         params_solvers = params.get("solver", [])
         self.calculators = []
@@ -159,13 +161,18 @@ class DefaultObserver(ObserverBase):
     def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
         assert calc_state.config is not None
         structure: Structure = calc_state.config.structure_norel
-        energy = calc_state.energy
-        result = [energy]
-        if energy < self.minE:
+
+        energy_internal = calc_state.model.internal_energy(calc_state.config)
+        energy = calc_state.model.energy(calc_state.config)
+
+        result = [energy_internal, energy]
+
+        if self.minE is None or energy < self.minE:
             self.minE = energy
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             structure.to(fmt="POSCAR", filename="minE.vasp")
+
         for calculator in self.calculators:
             name = calculator["name"]
             runners: list[Runner] = calculator["runners"]
@@ -212,12 +219,16 @@ class EnsembleErrorObserver(DefaultObserver):
         self.comm = comm
 
     def logfunc(self, calc_state: MCAlgorithm):
-        if calc_state.energy < self.minE:
-            self.minE = calc_state.energy
+        energy_internal = calc_state.model.internal_energy(calc_state.config)
+        energy = calc_state.model.energy(calc_state.config)
+
+        if self.minE is None or energy_internal < self.minE:
+            self.minE = energy_internal
             with open("minEfi.dat", "a") as f:
                 f.write(str(self.minE) + "\n")
             calc_state.config.structure.to(fmt="POSCAR", filename="minE.vasp")
-        energies = [calc_state.energy]
+
+        energies = [energy_internal]
         npar = self.comm.Get_size()
         if npar > 1:
             assert npar == len(self.calculators)
@@ -240,6 +251,7 @@ class EnsembleErrorObserver(DefaultObserver):
             std = np.std(energies_tmp, ddof=1)
         energies.extend(energies_tmp)
         energies.append(std)
+
         return np.asarray(energies)
 
 
@@ -268,7 +280,8 @@ class EnsembleParams:
             map(lambda x: expand_path(x, os.getcwd()), base_input_dirs)
         )
         params.solver = d["type"]
-        params.path = expand_path(d["path"], os.getcwd())
+        #params.path = expand_path(d["path"], os.getcwd())
+        params.path = expand_cmd_path(d["path"])
         params.perturb = d.get("perturb", 0.1)
         params.solver_run_scheme = d.get("run_scheme", "mpi_spawn_ready")
         params.ignore_species = d.get("ignore_species", None)

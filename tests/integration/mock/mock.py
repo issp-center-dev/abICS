@@ -13,3 +13,16 @@ def calc_energy(st):
             an_j = st_local.species[j].number - an_mean
             ene += (an_i * an_j) / (dm[i, j] ** 2)
     return ene
+
+def num_element(st, sp):
+    n = 0
+    for i in range(len(st)):
+        if st.species[i].symbol == sp:
+            n += 1
+    return n
+
+def num_Al(st):
+    return num_element(st, "Al")
+
+def num_Mg(st):
+    return num_element(st, "Mg")

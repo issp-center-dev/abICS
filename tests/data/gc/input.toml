@@ -1,21 +1,3 @@
-[sampling]
-nreplicas = 2
-nprocs_per_replica = 1 
-kTstart = 1200.0
-kTend = 1500.0
-nsteps = 320 # Number of steps for sampling
-RXtrial_frequency = 16
-sample_frequency = 8
-print_frequency = 4
-reload = false
-seed = 12345
-enable_grandcanonical = true
-
-[sampling.solver]
-type = 'user'
-perturb = 0.0
-function = 'mock.calc_energy'
-
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
             [0.0000000000, 8.1135997772, 0.0000000000],
@@ -88,35 +70,21 @@ coords = [
      ]
 [[config.defect_structure.groups]]
 name = 'Al'
-# species = ['Al']    # default
-# coords = [[[0,0,0]]]  # default
-num = 8 #432 #16000
+num = 12
 [[config.defect_structure.groups]]
 name = 'Mg'
-# species = ['Mg']    # default
-# coords = [[[0,0,0]]]  # default
-num = 4 #216 #8000
-
+num = 8
 [[config.chemical_potential]]
-species = 'Al'
-mu = -100.0
-
+species = "Al"
+mu = 0.1
 [[config.chemical_potential]]
+species = "Mg"
+mu = 0.2
+[[config.chemical_potential]]
+species = ["Al", "Mg"]
+mu = 0.3
+[[config.grandcanonical_move]]
 species = 'Mg'
-mu = 100.0
-
-[observer]
-ignored_species = ['O']
-
-[[observer.solver]]
-name = 'num_Al'
-type = 'user'
-perturb = 0.0
-function = 'mock.num_Al'
-
-[[observer.solver]]
-name = 'num_Mg'
-type = 'user'
-perturb = 0.0
-function = 'mock.num_Mg'
-
+[[config.grandcanonical_move]]
+from = 'Al'
+to = 'Mg'
