@@ -196,9 +196,12 @@ aenetPyLammps
 
 - URL : https://github.com/HidekiMori-CIT/aenet-lammps
 
-- 以下の `コミット <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ で動作確認済。
+- `コミット 5d0f4bc <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ で動作確認済。
+
+  - ``git checkout 5d0f4bc``
 
 - 上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。
+
   - ``aenet``
 
     - ``makefiles/Makefile.*`` 中の ``FCFLAGS`` オプションに ``-fPIC`` を追加してください。

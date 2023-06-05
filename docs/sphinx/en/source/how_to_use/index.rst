@@ -194,7 +194,9 @@ aenetPyLammps
 
 - URL : https://github.com/HidekiMori-CIT/aenet-lammps
 
-- Checked with `the following commit <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ .
+- Use `the commit 5d0f4bca <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ .
+
+  - ``git checkout 5d0f4bca``
 
 - Please install ``aenet-lammps``` according to the procedure specified in the above URL. Below are notes on installation.
 
