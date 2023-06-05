@@ -11,7 +11,7 @@ Active learning
 abICS was originally developed for directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform configurational sampling,
 but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
 In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
-dramatically improving the sampling speed `[preprint] <https://arxiv.org/abs/2008.02572>`_ .
+dramatically improving the sampling speed `[Kasamatsu et al., 2022] <https://doi.org/10.1063/5.0096645>`_ .
 
 The general flow of the active learning method implemented in abICS is as follows.
 
@@ -185,6 +185,48 @@ By using ``abics_sampling``, Monte Carlo sampling can be performed by using the 
 (The number of MPI processes must be larger than the number of replicas.)
 Running the program will create directories named by the replica numbers under the current directory, 
 and each replica runs the solver in it.
+
+By using ``aenetPyLammps``, you can perform high-speed sampling using ``aenet`` which is libraryized by using ``lammps``.
+To use ``aenetPyLammps``, you need to install ``aenet-lammps`` and ``lammps``. See below for details.
+
+aenetPyLammps
+**************
+
+- URL : https://github.com/HidekiMori-CIT/aenet-lammps
+
+- Use `the commit 5d0f4bca <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ .
+
+  - ``git checkout 5d0f4bca``
+
+- Please install ``aenet-lammps``` according to the procedure specified in the above URL. Below are notes on installation.
+
+  - ``aenet``
+
+    - Make sure to add ``-fPIC`` to ``FCFLAGS`` in ``makefiles/Makefile.*``.
+
+  - ``lammps``
+
+    - Make sure to add ``LMP_INC = -DLAMMPS_EXCEPTIONS`` in ``src/Makefile``.
+    - Make sure to add ``mode=shared`` to the make command option as ``make mode=shared mpi`` (when GCC, for example).
+
+  - After completing the above installation, run ``make install-python``.
+
+    - ``lammps`` python package will be installed to the Python environment which is invoked by ``python`` command.
+
+- Reference file rules
+
+  - Place the input file ``in.lammps`` for ``aenet-lammps`` in the ``predict`` directory to evaluate the energy for the input coordinates using the trained potential model.
+    The format of ``in.lammmps`` is written in the README of ``aenet-lammps`` repository.
+
+- abICS control file
+
+  - `In the ``[sampling.solver]`` section, set ``type`` to ``aenetPyLammps`` and ``run_scheme`` to ``function``.
+
+  .. code-block:: bash
+
+     type = “aenetPyLammps”
+     run_scheme = ‘function’
+
 
 
 .. solver_specific_notes:

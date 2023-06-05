@@ -11,7 +11,7 @@
 abICSは元々、第一原理計算とレプリカ交換モンテカルロ法を直接組み合わせて統計熱力学計算を行うことを念頭に開発されましたが、
 計算できるモデル規模やステップ数が、第一原理計算の大きな計算コストのために限られてしまいます。
 これに対して、Ver. 2では、構造最適化後のエネルギーを高速に予測する機械学習モデルを構成するための能動学習手法を実装し、
-飛躍的にサンプリング速度を向上させました `[論文プレプリント] <https://arxiv.org/abs/2008.02572>`_ 。
+飛躍的にサンプリング速度を向上させました `[Kasamatsu et al. 2022] <https://doi.org/10.1063/5.0096645>`_ 。
 
 abICSに実装されている能動学習手法の大まかな流れは以下の通りです。
 
@@ -128,7 +128,7 @@ OpenMX
 機械学習モデル訓練および評価用参照ファイルの準備
 ---------------------------------------------------
 
-使用する機械学習モデルソルバー（現在はaenetのみに対応）の入力形式に従った入力ファイルを用意します。
+使用する機械学習モデルソルバー（現在はaenet, aenetPyLammpsのみに対応）の入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある ``[solver]`` セクションの ``base_input_dir`` で指定します。
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。
 
@@ -187,5 +187,44 @@ aenet
 
 ``abics_sampling`` を用いてモンテカルロサンプリングを行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
 実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。
+なお、``aenetPyLammps`` を利用すると、 ``lammps`` を利用することでライブラリ化された ``aenet`` を用いた高速サンプリングが可能です。
+``aenetPyLammps`` の利用には、 ``aenet-lammps`` および ``lammps`` のインストールが必要です。詳細は以下をご覧ください。
 
+
+aenetPyLammps
+**************
+
+- URL : https://github.com/HidekiMori-CIT/aenet-lammps
+
+- `コミット 5d0f4bc <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ で動作確認済。
+
+  - ``git checkout 5d0f4bc``
+
+- 上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。
+
+  - ``aenet``
+
+    - ``makefiles/Makefile.*`` 中の ``FCFLAGS`` オプションに ``-fPIC`` を追加してください。
+  - ``lammps``
+
+    - ``src/Makefile`` 中に ``LMP_INC = -DLAMMPS_EXCEPTIONS`` を追加してください。
+    - make 時にオプションで ``mode=shared`` をつけるようにしてください。
+
+  - 上記のインストール終了後、 ``make install-python`` を実行してください。
+
+    - ``python`` コマンドで起動するPython 環境に ``lammps`` パッケージがインストールされます。
+
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+
+  - ``aenet-lammps`` 用の入力ファイル ``in.lammps`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の  ``predict`` ディレクトリに設置してください。
+    ``in.lammmps`` のフォーマットは、 ``aenet-lammps`` のGitHubリポジトリにあるREADMEを参照してください。
+
+- abICS 入力ファイル
+
+  - ``[sampling.solver]`` セクションで ``type`` に ``aenetPyLammps`` 、  ``run_scheme`` に ``function`` を設定してください。
+
+  .. code-block:: bash
+
+     type = “aenetPyLammps”
+     run_scheme = ‘function’
 

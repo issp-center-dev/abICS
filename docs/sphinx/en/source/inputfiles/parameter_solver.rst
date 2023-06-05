@@ -46,61 +46,72 @@ Comments can also be entered by adding # (Subsequent characters are ignored).
 Keywords
 ^^^^^^^^^^
 
-    -  ``type``
+-  ``type``
 
-       **Format :** str
+   **Format :** str
 
-       **Description :**
-       The solver type (``OpenMX, QE, VASP, aenet, potts``).
-       When ``potts``, the following parameters are not used.
+   **Description :**
+   The solver type (``OpenMX, QE, VASP, aenet, aenetPyLammps, potts``).
+   When ``potts``, the following parameters are not used.
 
-    -  ``path``
+-  ``path``
 
-       **Format :** str
+   **Format :** str
 
-       **Description :**
-       The path to the solver.
+   **Description :**
+   The path to the solver.
 
-    -  ``base_input_dir``
+-  ``base_input_dir``
 
-       **Format :** str or list of str
+   **Format :** str or list of str
 
-       **Description :**
-       The path to the base input file.
-       If multiple calculations are set up in the form of a list, each calculation using each input is performed in turn. For the second and subsequent calculations, the structure from the last step of the previous calculation is used as the initial coordinates, and the energy from the last calculation is used. For example, it is possible to perform a fast structural optimization in the first input file at the expense of accuracy, and then perform the structural optimization in the second and later input files with a higher accuracy setting. Or, in the case of grid vector relaxation, one can run the same input multiple times to reset the computational mesh based on a set plane-wave cutoff.
+   **Description :**
+   The path to the base input file.
+   If multiple calculations are set up in the form of a list, each calculation using each input is performed in turn. For the second and subsequent calculations, the structure from the last step of the previous calculation is used as the initial coordinates, and the energy from the last calculation is used. For example, it is possible to perform a fast structural optimization in the first input file at the expense of accuracy, and then perform the structural optimization in the second and later input files with a higher accuracy setting. Or, in the case of grid vector relaxation, one can run the same input multiple times to reset the computational mesh based on a set plane-wave cutoff.
 
-    -  ``perturb``
+-  ``perturb``
 
-       **Format :** float
+   **Format :** float
 
-       **Description :**
-       If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.
-
-
-    - ``ignore_species``
-
-       **Format :** list
-
-       **Description :**
-       Specify atomic species to "ignore" in neural network models such as ``aenet``. For those that always have an occupancy of 1, it is computationally more efficient to ignore their presence when training and evaluating neural network models.
-
-      
-    - ``run_scheme`` (Only for ``sampling.solver``)
-
-       **Format :** str
-
-       **Description :**
-       Way to invoke the solver program.
-       For details, please see :ref:`solver_specific_notes`
-
-    -  ``parallel_level`` (Only for QuantumESPRESSO)
-
-       **Format :** dict
-
-       **Description :** 
-       How to split parallel cpu resources, i.e., `Parallelization levels <https://www.quantum-espresso.org/Doc/user_guide/node18.html>`_ .
-       Key names are long-form command-line options (without the leading hyphen), that is, ``nimage``, ``npools``, ``nband``, ``ntg``, and ``ndiag``.
-       Values are the number of parallelization.
-       Only the specified elements will be passed to ``pw.x`` as command-line options.
+   **Description :**
+   If a structure with good symmetry is input, structure optimization tends to stop at the saddle point. In order to avoid this, an initial structure is formed by randomly displacing each atom in proportion to this parameter. It can also be set to 0.0 or false. Default value = 0.0.
 
 
+-  ``ignore_species``
+
+   **Format :** list
+
+   **Description :**
+   Specify atomic species to "ignore" in neural network models such as ``aenet``. For those that always have an occupancy of 1, it is computationally more efficient to ignore their presence when training and evaluating neural network models.
+
+  
+-  ``run_scheme`` (Only for ``sampling.solver``)
+
+   **Format :** str
+
+   **Description :**
+   Way to invoke the solver program.
+   For details, please see :ref:`solver_specific_notes`
+
+-  ``parallel_level`` (Only for ``type = "QE"``)
+
+   **Format :** dict
+
+   **Description :** 
+   How to split parallel cpu resources, i.e., `Parallelization levels <https://www.quantum-espresso.org/Doc/user_guide/node18.html>`_ .
+   Key names are long-form command-line options (without the leading hyphen), that is, ``nimage``, ``npools``, ``nband``, ``ntg``, and ``ndiag``.
+   Values are the number of parallelization.
+   Only the specified elements will be passed to ``pw.x`` as command-line options.
+
+-  ``function`` (Only for ``type = "user"``)
+
+   **Format :** str
+
+   **Description :** 
+   Specify a user-defined solver function.
+
+   - The solver function must take a ``pymatgen.core.Structure`` object as an argument and return a ``float`` value.
+   - When ``.`` is included, it is assumed that the function is defined in a module, and the module will be automatically imported.
+
+      - For example, if ``function = "mypackage.mymodule.myfunction"`` is specified, ``mypackage.mymodule`` is imported and ``myfunction`` is called.
+      - The package is searched from the current directory as well as from the directories specified by the ``PYTHONPATH`` environment variable.

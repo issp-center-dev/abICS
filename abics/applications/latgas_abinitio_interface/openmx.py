@@ -14,13 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from .base_solver import SolverBase
+from __future__ import annotations
+
 from collections import namedtuple
-import numpy as np
 import os
-import scipy.constants as spc
 import subprocess
+
+import numpy as np
+import scipy.constants as spc
+
 from pymatgen.core import Structure
+
+from .base_solver import SolverBase, register_solver
+from .params import ALParams, DFTParams
 
 hartree2eV = spc.value("Hartree energy in eV")
 Bohr2AA = spc.value("Bohr radius") * 1e10
@@ -257,7 +263,7 @@ class OpenMXSolver(SolverBase):
             output_file = os.path.join(
                 output_dir, "{}.dat".format(self.base_openmx_input["System.Name"][0])
             )
-            self.base_openmx_input['System.CurrrentDirectory'] = [output_dir + '/']
+            self.base_openmx_input["System.CurrrentDirectory"] = [output_dir + "/"]
             with open(output_file, "w") as f:
                 for key, values in self.base_openmx_input.items():
                     if key in self.base_openmx_input.vec_list:
@@ -394,3 +400,11 @@ class OpenMXSolver(SolverBase):
 
     def solver_run_schemes(self):
         return ("mpi_spawn_ready", "mpi_spawn_wrapper")
+
+    # -- factory
+    @classmethod
+    def create(cls, params: ALParams | DFTParams):
+        path = params.path
+        return cls(path)
+
+register_solver("openmx", OpenMXSolver)

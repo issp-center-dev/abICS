@@ -9,13 +9,12 @@ sample_frequency = 8
 print_frequency = 4
 reload = false
 seed = 12345
+enable_grandcanonical = true
 
 [sampling.solver]
-type = 'mock'
-path= ''
-base_input_dir = './baseinput'
+type = 'user'
 perturb = 0.0
-run_scheme = 'function'
+function = 'mock.calc_energy'
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
@@ -91,13 +90,33 @@ coords = [
 name = 'Al'
 # species = ['Al']    # default
 # coords = [[[0,0,0]]]  # default
-num = 16 #432 #16000
+num = 8 #432 #16000
 [[config.defect_structure.groups]]
 name = 'Mg'
 # species = ['Mg']    # default
 # coords = [[[0,0,0]]]  # default
-num = 8 #216 #8000
+num = 4 #216 #8000
 
+[[config.chemical_potential]]
+species = 'Al'
+mu = -100.0
+
+[[config.chemical_potential]]
+species = 'Mg'
+mu = 100.0
 
 [observer]
 ignored_species = ['O']
+
+[[observer.solver]]
+name = 'num_Al'
+type = 'user'
+perturb = 0.0
+function = 'mock.num_Al'
+
+[[observer.solver]]
+name = 'num_Mg'
+type = 'user'
+perturb = 0.0
+function = 'mock.num_Mg'
+

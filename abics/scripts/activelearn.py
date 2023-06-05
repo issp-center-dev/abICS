@@ -16,10 +16,8 @@
 
 from typing import MutableMapping
 
-from mpi4py import MPI
-
 import sys
-import os, copy
+import os
 import glob
 import datetime
 
@@ -32,7 +30,6 @@ from abics.mc_mpi import (
     RefParams,
 )
 from abics.applications.latgas_abinitio_interface import map2perflat
-from abics.applications.latgas_abinitio_interface import DefaultObserver
 from abics.applications.latgas_abinitio_interface.model_setup import (
     perturb_structure,
 )
@@ -40,16 +37,16 @@ from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
 )
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase
-from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
-from abics.applications.latgas_abinitio_interface.qe import QESolver
-from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXSolver
-from abics.applications.latgas_abinitio_interface.mocksolver import MockSolver
-from abics.applications.latgas_abinitio_interface.params import ALParams
+from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
+from abics.applications.latgas_abinitio_interface.params import ALParams, DFTParams
 
 from abics.util import exists_on_all_nodes
 from pymatgen.core import Structure
+
+import logging
+import abics.loggers as loggers
+
+logger = logging.getLogger("main")
 
 
 def main_impl(params_root: MutableMapping):
@@ -61,25 +58,10 @@ def main_impl(params_root: MutableMapping):
     ndata = rxparams.ndata
     comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
+    mcparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
-    solver: SolverBase
-    if alparams.solver == "vasp":
-        solver = VASPSolver(alparams.path, alparams.ignore_species)
-    elif alparams.solver == "qe":
-        parallel_level = alparams.properties.get("parallel_level", {})
-        solver = QESolver(alparams.path, parallel_level=parallel_level)
-    elif alparams.solver == "aenet":
-        solver = AenetSolver(
-            alparams.path, alparams.ignore_species, alparams.solver_run_scheme
-        )
-    elif alparams.solver == "openmx":
-        solver = OpenMXSolver(alparams.path)
-    elif alparams.solver == "mock":
-        solver = MockSolver()
-    else:
-        print("unknown solver: {}".format(alparams.solver))
-        sys.exit(1)
+    solver: SolverBase = create_solver(alparams.solver, alparams)
 
     perturb = alparams.perturb
     solver_output = solver.output
@@ -100,9 +82,7 @@ def main_impl(params_root: MutableMapping):
 
         if exists_on_all_nodes(comm, "AL0"):
             if exists_on_all_nodes(comm, "ALloop.progress"):
-                print(
-                    "It seems you've already run the first active learning step. You should train now."
-                )
+                logger.error("It seems you've already run the first active learning step. You should train now.")
                 sys.exit(1)
             os.chdir("AL0")
 
@@ -123,30 +103,17 @@ def main_impl(params_root: MutableMapping):
             energies = []
 
             # Preparing ignored species structure to add in postprocess
-            config = defect_config(configparams)
-            if alparams.ignore_species:
-                ignore_structure = config.dummy_structure()
-                remove_sp = filter(
-                    lambda sp: sp not in alparams.ignore_species,
-                    ignore_structure.symbol_set,
-                )
-                ignore_structure.remove_species(remove_sp)
+            #config = defect_config(configparams)
+            
             rundir_list = []
 
-            if myreplica == 0:
-                print(
-                    f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}..."
-                )
-                if finalrun:
-                    print(
-                        f"--This is the final {alparams.solver} calculation step for AL0"
-                    )
-                else:
-                    print(
-                        "--Input files for the next calculation step will be",
-                        f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
-                        sep=os.linesep,
-                    )
+            logger.info(f"-Parsing {alparams.solver} results in AL0/*/input*/baseinput{runstep}...")
+            if finalrun:
+                logger.info(f"--This is the final {alparams.solver} calculation step for AL0")
+            else:
+                logger.info("--Input files for the next calculation step will be")
+                logger.info(f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}")
+
             for i in range(ndata):
                 energy, st = solver_output.get_results(
                     os.path.join(
@@ -156,9 +123,20 @@ def main_impl(params_root: MutableMapping):
                 if finalrun:
                     # energy_calculator may return the structure w/o ignored structure
                     if alparams.ignore_species:
+                        # Get original structure for calculating relaxation magnitude
+                        ignore_structure = Structure.from_file(
+                            os.path.join(str(myreplica),fmtstr.format(i), "initial.vasp")
+                        )
+                        remove_sp = filter(
+                            lambda sp: sp not in alparams.ignore_species,
+                            ignore_structure.symbol_set,
+                        )
+                        ignore_structure.remove_species(remove_sp)
+                    
                         for site in ignore_structure:
                             st.append(site.species_string, site.frac_coords)
 
+                    st.sort(key=lambda site: site.species_string)
                     st.to(
                         fmt="POSCAR",
                         filename=os.path.join(str(myreplica), f"structure.{i}.vasp"),
@@ -192,16 +170,13 @@ def main_impl(params_root: MutableMapping):
                 comm.Barrier()
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
-                        print("-Writing ALloop.progress")
+                        logger.info("-Writing ALloop.progress")
                         fi.write("AL0\n")
                         fi.flush()
                         os.fsync(fi.fileno())
                     now = datetime.datetime.now()
-                    print(
-                        "--Done. Please run abics_train next.",
-                        f"Exiting normally on {now}.\n",
-                        sep=os.linesep,
-                    )
+                    logger.info("--Done. Please run abics_train next.")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
             else:
                 comm.Barrier()
@@ -211,27 +186,18 @@ def main_impl(params_root: MutableMapping):
                         fi.flush()
                         os.fsync(fi.fileno())
 
-                    print(
-                        f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput{runstep+1}.",
-                        "--See rundirs.txt for a full list of the directories.",
-                        sep=os.linesep,
-                    )
-                    print(
-                        "-Please perform the calculations in those directories before running abics_mlref again."
-                    )
+                    logger.info(f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput{runstep+1}.")
+                    logger.info("--See rundirs.txt for a full list of the directories.")
+                    logger.info("-Please perform the calculations in those directories before running abics_mlref again.")
                     now = datetime.datetime.now()
-                    print(f"Exiting normally on {now}.\n")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
         else:
             # "AL0" nor "MC0" does not exist:
             # this should be the first time running this script
             if myreplica == 0:
-                print(
-                    "-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(
-                        alparams.solver
-                    )
-                )
-                print("--Input files will be prepared in AL0/*/input*/baseinput0")
+                logger.info("-No preceding MC or AL runs exist. Preparing {} input by random sampling".format(alparams.solver))
+                logger.info("--Input files will be prepared in AL0/*/input*/baseinput0")
 
             configparams = DFTConfigParams.from_dict(params_root["config"])
             config = defect_config(configparams)
@@ -241,7 +207,7 @@ def main_impl(params_root: MutableMapping):
 
             # Wait until the new directory is visible from all ranks
             if not exists_on_all_nodes(comm, "AL0"):
-                print("Failed to create AL0 directory.")
+                logger.error("Failed to create AL0 directory.")
                 sys.exit(1)
 
             os.chdir("AL0")
@@ -249,15 +215,24 @@ def main_impl(params_root: MutableMapping):
             solver_input = solver.input
             solver_input.from_directory(alparams.base_input_dir[0])
             for i in range(ndata):
-                config.shuffle()
-                perturb_structure(config.structure, perturb)
+                config.shuffle() # randomize config
                 config.structure.sort(key=lambda site: site.species_string)
+                structure0 = config.structure.copy()  
+                perturb_structure(config.structure, perturb)
                 solver_input.update_info_by_structure(config.structure)
                 inputfile = os.path.abspath(
                     os.path.join(str(myreplica), fmtstr.format(i), "baseinput0")
                 )
                 solver_input.write_input(inputfile)
                 rundir_list.append(inputfile)
+
+                # save structure before running through solver (contains ignored species)
+                structure0.to(
+                    fmt='POSCAR',
+                    filename=os.path.abspath(
+                        os.path.join(str(myreplica), fmtstr.format(i), "initial.vasp")
+                        ),
+                )
             rundir_list = comm.gather(rundir_list, root=0)
             if myreplica == 0:
                 rundir_list = [rundir for sublist in rundir_list for rundir in sublist]
@@ -267,16 +242,11 @@ def main_impl(params_root: MutableMapping):
                     fi.flush()
                     os.fsync(fi.fileno())
 
-                print(
-                    f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput0.",
-                    "--See rundirs.txt for a full list of the directories.",
-                    sep=os.linesep,
-                )
-                print(
-                    "--Please perform the calculations in those directories before running abics_mlref again."
-                )
+                logger.info(f"-Finished preparing {alparams.solver} input in AL0/*/input*/baseinput0.")
+                logger.info("--See rundirs.txt for a full list of the directories.")
+                logger.info("--Please perform the calculations in those directories before running abics_mlref again.")
                 now = datetime.datetime.now()
-                print(f"Exiting normally on {now}.\n")
+                logger.info(f"Exiting normally on {now}.\n")
 
                 sys.exit(0)
 
@@ -286,31 +256,27 @@ def main_impl(params_root: MutableMapping):
         MCdir = os.path.join(os.getcwd(), MCdirname)
         nsamples = 0
         with open(os.path.join(MCdir, str(myreplica), "obs.dat")) as f:
-            for _ in f:
+            for line in f:
+                line = line.strip()
+                if line.startswith("#"):
+                    continue
                 nsamples += 1
         ndigits = len(str(nsamples))
         fmtstr = "input{:0>" + str(ndigits) + "d}"
         with open("ALloop.progress", "r") as fi:
             last_li = fi.readlines()[-1].strip()
         if last_li != MCdirname:
-            print("The last action:")
-            print(f"  expected: {MCdirname}")
-            print(f"  actual:   {last_li}")
-            print("You shouldn't run activelearn now.")
-            print("Either train (abics_train) or MC (abics_sampling) first.")
+            logger.error("The last action:")
+            logger.error(f"  expected: {MCdirname}")
+            logger.error(f"  actual:   {last_li}")
+            logger.error("You shouldn't run activelearn now.")
+            logger.error("Either train (abics_train) or MC (abics_sampling) first.")
             sys.exit(1)
         obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
         energy_ref = obs[:, 0]
         ALstep = nextMC_index
         ALdir = os.path.join(os.getcwd(), f"AL{ALstep}", str(myreplica))
         config = defect_config(configparams)
-        perf_st = config.dummy_structure()
-        if alparams.ignore_species:
-            ignore_structure = perf_st.copy()
-            remove_sp = filter(
-                lambda sp: sp not in alparams.ignore_species, perf_st.symbol_set
-            )
-            ignore_structure.remove_species(remove_sp)
 
         if exists_on_all_nodes(comm, ALdir):  # We're going to read solver results
             os.chdir(ALdir)
@@ -333,20 +299,12 @@ def main_impl(params_root: MutableMapping):
                 finalrun = False
                 solver_input.from_directory(alparams.base_input_dir[runstep + 1])
 
-            if myreplica == 0:
-                print(
-                    f"-Parsing {alparams.solver} results in AL{nextMC_index}/*/input*/baseinput{runstep}..."
-                )
-                if finalrun:
-                    print(
-                        f"--This is the final {alparams.solver} calculation step for AL{nextMC_index}"
-                    )
-                else:
-                    print(
-                        "--Input files for the next calculation step will be",
-                        f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}",
-                        sep=os.linesep,
-                    )
+            logger.info(f"-Parsing {alparams.solver} results in AL{nextMC_index}/*/input*/baseinput{runstep}...")
+            if finalrun:
+                logger.info(f"--This is the final {alparams.solver} calculation step for AL{nextMC_index}")
+            else:
+                logger.info("--Input files for the next calculation step will be")
+                logger.info(f"---prepared in AL{nextMC_index}/*/input*/baseinput{runstep+1}")
 
             energy_corrlist = []
             relax_max = []
@@ -361,23 +319,19 @@ def main_impl(params_root: MutableMapping):
                 )
                 if finalrun:
                     # Get original structure for calculating relaxation magnitude
-                    # In st_in, used for aenet,
-                    # (i)  "Ignore species" are omitted and should be added.
-                    # (ii) "Vacancy element" is included and should be removed.
                     st_in = Structure.from_file(
-                        os.path.join(MCdir, str(myreplica), f"structure.{i}.vasp")
+                        os.path.join(fmtstr.format(i), "initial.vasp")
                     )
-
-                    # (i)
-                    st = map2perflat(perf_st, st_in)
-                    st.remove_species(["X"])
-                    # (ii)
-                    if alparams.vac_space_holder:
-                        st.remove_species(alparams.vac_space_holder)
-                    stbak = st.copy()
-
+                    
                     # energy_calculator may return the structure w/o ignored structure
+                    # so we need to add them
                     if alparams.ignore_species:
+                        # initial.vasp contains full structure with ignored atoms
+                        ignore_structure = st_in.copy()
+                        remove_sp = filter(
+                            lambda sp: sp not in alparams.ignore_species, ignore_structure.symbol_set
+                            )
+                        ignore_structure.remove_species(remove_sp)
                         for site in ignore_structure:
                             st_rel.append(site.species_string, site.frac_coords)
 
@@ -387,7 +341,7 @@ def main_impl(params_root: MutableMapping):
                     # Examine relaxation
                     dmax = 0
                     dmax_id = 0
-                    for j, site in enumerate(stbak):
+                    for j, site in enumerate(st_in):
                         d = site.distance(st_rel[j])
                         if d > dmax:
                             dmax = d
@@ -411,7 +365,6 @@ def main_impl(params_root: MutableMapping):
                     os.fsync(fi.fileno())
 
             if finalrun:
-                # np.savetxt("energy_corr.dat", energy_corrlist)
                 with open("energy_corr.dat", "w") as fi:
                     for i in range(len(energy_corrlist)):
                         ene_nn, ene_ref, step = energy_corrlist[i]
@@ -423,16 +376,13 @@ def main_impl(params_root: MutableMapping):
                 comm.Barrier()
                 if myreplica == 0:
                     with open("ALloop.progress", "a") as fi:
-                        print("-Writing ALloop.progress")
+                        logger.info("-Writing ALloop.progress")
                         fi.write("AL{}\n".format(ALstep))
                         fi.flush()
                         os.fsync(fi.fileno())
                     now = datetime.datetime.now()
-                    print(
-                        "--Done. Please run abics_train next.",
-                        f"Exiting normally on {now}.\n",
-                        sep=os.linesep,
-                    )
+                    logger.info("--Done. Please run abics_train next.")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
             else:
                 comm.Barrier()
@@ -443,49 +393,48 @@ def main_impl(params_root: MutableMapping):
                         fi.write(str(runstep) + "\n")
                         fi.flush()
                         os.fsync(fi.fileno())
-                    print(
-                        f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput{runstep+1}.",
-                        "--See rundirs.txt for a full list of the directories.",
-                        sep=os.linesep,
-                    )
-                    print(
-                        "--Please perform the calculations in those directories before running abics_mlref again."
-                    )
+                    logger.info(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput{runstep+1}.")
+                    logger.info("--See rundirs.txt for a full list of the directories.")
+                    logger.info("--Please perform the calculations in those directories before running abics_mlref again.")
                     now = datetime.datetime.now()
-                    print(f"Exiting normally on {now}.\n")
+                    logger.info(f"Exiting normally on {now}.\n")
                 sys.exit(0)
 
         else:  # Create first input for this AL step
-            if myreplica == 0:
-                print(f"-This is the first run for AL{nextMC_index}")
-                print(
-                    f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input"
-                )
+            logger.info(f"-This is the first run for AL{nextMC_index}")
+            logger.info(f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input")
             os.makedirs(ALdir, exist_ok=False)
             solver_input.from_directory(alparams.base_input_dir[0])
             os.chdir(ALdir)
             sample_list = rxparams.sampling(nsamples)
             rundir_list = []
             for i in sample_list:
-                # In st_in, used for aenet,
-                # (i)  "Ignore species" are omitted and should be added.
-                # (ii) "Vacancy element" is included and should be removed.
-
-                st_in = Structure.from_file(
+                # We read structures from MC, but we also need to add ignored species.
+                # We utilize structure_norel.*.vasp, which is the structure before solver run
+                # in MC with ignored species.
+                st = Structure.from_file(
                     os.path.join(MCdir, str(myreplica), f"structure.{i}.vasp")
                 )
+                ignore_structure = Structure.from_file(
+                    os.path.join(MCdir, str(myreplica), f"structure_norel.{i}.vasp")
+                )
 
-                # (i)
-                st = map2perflat(perf_st, st_in)
-                st.remove_species(["X"])
-                # (ii)
-                if alparams.vac_space_holder:
-                    st.remove_species(alparams.vac_space_holder)
+                if mcparams.ignore_species:
+                    remove_sp = filter(
+                        lambda sp: sp not in mcparams.ignore_species, ignore_structure.symbol_set
+                        )
+                    ignore_structure.remove_species(remove_sp)
+                    for site in ignore_structure:
+                        st.append(site.species_string, site.frac_coords)
+                st.sort(key=lambda site: site.species_string)
+                st0 = st.copy()
+                
                 perturb_structure(st, perturb)
                 solver_input.update_info_by_structure(st)
                 solver_input.write_input(
                     os.path.abspath(os.path.join(fmtstr.format(i), "baseinput0"))
                 )
+                st0.to(fmt='POSCAR',filename=os.path.abspath(os.path.join(fmtstr.format(i), "initial.vasp")))
                 rundir_list.append(
                     os.path.abspath(os.path.join(fmtstr.format(i), "baseinput0"))
                 )
@@ -497,30 +446,30 @@ def main_impl(params_root: MutableMapping):
                     fi.write("\n")
                     fi.flush()
                     os.fsync(fi.fileno())
-                print(
-                    f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.",
-                    "--See rundirs.txt for a full list of the directories.",
-                    sep=os.linesep,
-                )
-                print(
-                    "--Please perform the calculations in those directories before running abics_mlref again."
-                )
+                logger.info(f"-Finished preparing {alparams.solver} input in AL{nextMC_index}/*/input*/baseinput0.")
+                logger.info("--See rundirs.txt for a full list of the directories.")
+                logger.info("--Please perform the calculations in those directories before running abics_mlref again.")
                 now = datetime.datetime.now()
-                print(f"Exiting normally on {now}.\n")
+                logger.info(f"Exiting normally on {now}.\n")
             sys.exit(0)
 
 
 def main():
-    import toml
 
     now = datetime.datetime.now()
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        print(f"Running abics_mlref (abICS v{__version__}) on {now}")
 
+    import toml
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
-    if MPI.COMM_WORLD.Get_rank() == 0:
-        print(f"-Reading input from: {tomlfile}")
     params_root = toml.load(tomlfile)
+
+    loggers.set_log_handles(
+        app_name="activelearn",
+        level=logging.INFO,
+        params=params_root.get("log", {}))
+
+    logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
+    logger.info(f"-Reading input from: {tomlfile}")
+
     main_impl(params_root)
 
 

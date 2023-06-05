@@ -1,0 +1,25 @@
+#atom_style      atomic
+#units           metal
+#boundary        p p p
+
+#read_data       BZ.data
+
+pair_style      aenet
+pair_coeff      * * v00 Al Mg 15t-15t.nn Al Mg
+
+neighbor        0.1 bin
+
+#thermo_style    custom step etotal pe ke temp press
+#thermo          50
+
+#reset_timestep  0
+#timestep        0.0005
+
+#velocity        all create 750 12345 dist gaussian
+
+#dump            d1 all cfg 100 run*.cfg mass type xs ys zs
+#dump_modify     d1 element O Sc Zr
+
+#fix             f1 all nve
+#run             0
+

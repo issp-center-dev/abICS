@@ -17,13 +17,18 @@
 from __future__ import annotations
 
 from typing import Any, MutableMapping
+import os, sys
+import numpy as np
 
 from pymatgen.core import Lattice, Structure
 
 from .model_setup import Config, DefectSublattice, base_structure
 
 from abics.exception import InputError
-from abics.util import read_matrix
+from abics.util import read_matrix, expand_path
+
+import logging
+logger = logging.getLogger("main")
 
 
 class DFTConfigParams:
@@ -55,15 +60,43 @@ class DFTConfigParams:
         constraint_module = dconfig.get("constraint_module", False)
         if not isinstance(constraint_module, bool):
             raise InputError('"config.constraint_module" should be true or false')
+        self.constraint_energy = None
         if constraint_module:
-            import os, sys
-
             sys.path.append(os.getcwd())
-            from constraint_module import constraint_func
-
-            self.constraint_func = constraint_func
+            import constraint_module
+            self.constraint_func = constraint_module.constraint_func
+            if 'constraint_energy' in dir(constraint_module):
+                self.constraint_energy = constraint_module.constraint_energy
         else:
             self.constraint_func = bool
+
+        # alternative: provide module and function name as a parameter value
+        constraint_package = dconfig.get("constraint", None)
+        if constraint_package:
+            import importlib
+            _cpkg = constraint_package.split('.')
+            _cpkg_mod_name = '.'.join(_cpkg[0:-1])
+            _cpkg_func_name = _cpkg[-1]
+            try:
+                _cpkg_mod = importlib.import_module(_cpkg_mod_name)
+                _cpkg_func = getattr(_cpkg_mod, _cpkg_func_name)
+            except BaseException:
+                raise InputError("constraint module could not be loaded.")
+            self.constraint_func = _cpkg_func #overwrite
+
+        init_structure_path = dconfig.get("init_structure", None)
+        if init_structure_path is not None:
+            init_structure_path = expand_path(init_structure_path, os.getcwd())
+            if not os.path.isfile(init_structure_path):
+                raise InputError(
+                    'cannot find {}; "config.init_structure" should be path to a structure file'.format(init_structure_path)
+                    )
+            try:
+                self.init_structure = Structure.from_file(init_structure_path)
+            except:
+                raise InputError('failed reading {}; check that the file is pymatgen-compatible.'.format(init_structure_path))
+        else:
+            self.init_structure = None
 
         if "base_structure" not in dconfig:
             raise InputError('"base_structure" is not found in the "config" section.')
@@ -78,6 +111,50 @@ class DFTConfigParams:
             {g["name"]: g["num"] for g in ds["groups"]}
             for ds in dconfig["defect_structure"]
         ]
+
+        if "chemical_potential" in dconfig:
+            self.chemical_potential = []
+            for entry in dconfig["chemical_potential"]:
+                species = entry.get("species", None)
+                mu = entry.get("mu", None)
+                if type is None or mu is None:
+                    raise InputError("invalid input for chemical potentials")
+                species = [species] if type(species) is str else species
+                self.chemical_potential.append({'species': species, 'mu': mu})
+        else:
+            self.chemical_potential = None
+        logger.debug("chemical_potential = {}".format(self.chemical_potential))
+
+        def _uniq_count(xs):
+            return [(i,j) for i,j in zip(*np.unique(xs,return_counts=True))]
+
+        if "grandcanonical_move" in dconfig:
+            self.gc_move = []
+            for entry in dconfig["grandcanonical_move"]:
+                if "species" in entry.keys():
+                    species = entry["species"]
+                    species = [ species ] if type(species) is not list else species
+                    self.gc_move.append({ 'from': _uniq_count(species), 'to': [], 'reverse': True })
+                else:
+                    sp_from = entry.get("from", [])
+                    sp_to   = entry.get("to", [])
+                    #sp_rev  = entry.get("reverse", True)
+                    sp_rev  = True  # consider only reversible case
+                    if sp_from is [] and sp_to is []:
+                        raise("invalid input for grandcanonical_move")
+                    sp_from = [ sp_from ] if type(sp_from) is not list else sp_from
+                    sp_to   = [ sp_to ]   if type(sp_to)   is not list else sp_to
+                    self.gc_move.append({ 'from': _uniq_count(sp_from), 'to': _uniq_count(sp_to), 'reverse': sp_rev })
+        else:
+            if self.chemical_potential is None:
+                self.gc_move = None
+            else:
+                # taken from chemical_potential table: assume add/remove of species
+                self.gc_move = []
+                for entry in self.chemical_potential:
+                    species = entry["species"]
+                    self.gc_move.append({ 'from': _uniq_count(species), 'to': [], 'reverse': True })
+        logger.debug("grandcanonical_move = {}".format(self.gc_move))
 
     @classmethod
     def from_dict(cls, d: MutableMapping) -> "DFTConfigParams":
@@ -120,11 +197,14 @@ def defect_config(cparam: DFTConfigParams) -> Config:
         spinel configure object
     """
     spinel_config = Config(
-        cparam.base_structure,
-        cparam.defect_sublattices,
-        cparam.num_defects,
-        cparam.supercell,
-        cparam.constraint_func,
+        base_structure = cparam.base_structure,
+        defect_sublattices = cparam.defect_sublattices,
+        num_defects = cparam.num_defects,
+        cellsize = cparam.supercell,
+        constraint_func = cparam.constraint_func,
+        constraint_energy = cparam.constraint_energy,
+        chemical_potential = cparam.chemical_potential,
+        gc_move = cparam.gc_move,
     )
     spinel_config.shuffle()
     return spinel_config

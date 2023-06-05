@@ -37,19 +37,30 @@ Keywords
 
 - About temperatures
 
+   - Specify temperature points by using ``kTs`` or ``kTstart``, ``kTend``, and ``kTnum`` (lineary spaced).
+     If ``kTs`` is specified, the others will be ignored.
+
+   - ``kTs``
+
+       **Format :** list of float (>0)
+
+       **Description :**
+       Temperature points.
+       When ``sampler = "RXMC"``, the number of temperature points should equal to ``nreplicas``.
+
    - ``kTstart``
 
        **Format :** float (>0)
 
        **Description :**
-       Minimum temperature for the replica.
+       Minimum temperature.
 
    - ``kTend``
 
        **Format :** float (>0)
 
        **Description :**
-       Maximum temperature for the replica.
+       Maximum temperature.
 
    - ``kTnum`` (Only for PAMC)
 
@@ -57,8 +68,7 @@ Keywords
 
        **Description :**
        The number of temperature points.
-
-   - When ``sampler = "PAMC"``, :math:`T = \infty` will be added as a highest temperature automatically.
+       When ``sampler = "RXMC"``, the number of temperature points will equal to ``nreplicas``.
 
 - About replica 
 
@@ -119,8 +129,20 @@ Keywords
 
        **Description :** Whether to restart a prior calculation from the last step finished last time. Default value = false.
 
-    -  ``throw_out``
+    - ``throw_out``
 
        **Format :** int or float
 
        **Description :** The number (int) or ratio (float) of measurements to be thrown out as thermalization in the process of the evaluation of expectation values. Default value = 0.5 .
+
+    - ``enable_grandcanonical``
+
+       **Format :** bool ("true" or "false")
+
+       **Description :** Whether to allow grand canonical sampling. Default value = false.
+
+    - ``gc_ratio``
+
+       **Format :** float
+
+       **Description :** The ratio of the grand canonical update that changes the number of elements among the trials of configuration updates, when the grand canonical sampling is turned on. Default value = 0.3 .

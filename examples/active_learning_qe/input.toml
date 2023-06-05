@@ -118,4 +118,5 @@ num = 8 #216 #8000
 
 
 [observer]
-ignored_species = ['O']
+reference_structure = "MgAl2O4.vasp"
+ignored_species = ["Al", "O"]

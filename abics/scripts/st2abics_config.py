@@ -145,12 +145,12 @@ def main():
             for coord in group["coords"]:
                 if len(coord) == 1:
                     c = coord[0]
-                    config.append('"{} {} {}"'.format(c[0], c[1], c[2]))
+                    config.append('[[{}, {}, {}]]'.format(c[0], c[1], c[2]))
                 else:
-                    config.append('"""')
+                    config.append('[')
                     for c in coord:
-                        config.append("{} {} {}".format(c[0], c[1], c[2]))
-                    config.append('""",')
+                        config.append("[{}, {}, {}],".format(c[0], c[1], c[2]))
+                    config.append('],')
             config.append("]")
             config.append("num = {}".format(group["num"]))
             config.append("")

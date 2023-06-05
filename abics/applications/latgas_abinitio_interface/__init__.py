@@ -14,6 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from .default_observer import *
+# from .default_observer import *
 from .map2perflat import *
 from .aenet_trainer import *
+
+from .vasp import VASPSolver
+from .qe import QESolver
+from .aenet import AenetSolver
+from .aenet_pylammps import AenetPyLammpsSolver
+from .openmx import OpenMXSolver
+from .user_function_solver import UserFunctionSolver

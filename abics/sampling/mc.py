@@ -31,7 +31,11 @@ from abics import __version__
 from abics.observer import ObserverBase
 from abics.model import Model
 
+import logging
+logger = logging.getLogger("main")
+
 verylargeint = sys.maxsize
+
 
 def binning(x, nlevels: int):
     """
@@ -72,11 +76,13 @@ class MCAlgorithm(metaclass=ABCMeta):
     kT: float
     naccepted: int
     ntrials: int
+    nfail: int
 
     @abstractmethod
     def __init__(self, *args):
         self.naccepted = 0
         self.ntrials = 0
+        self.nfail = 0
 
     @abstractmethod
     def MCstep(self, nsubstep_in_step: int = 1) -> None:
@@ -86,6 +92,11 @@ class MCAlgorithm(metaclass=ABCMeta):
     @abstractmethod
     def parameters(self) -> list:
         """returns parameters (e.g., temperature)"""
+        ...
+
+    @abstractmethod
+    def param_names(self) -> list:
+        """returns names of parameters (e.g., temperature)"""
         ...
 
     def run(
@@ -137,6 +148,9 @@ class MCAlgorithm(metaclass=ABCMeta):
                     self.obs_save.append(obs_step)
         output.close()
 
+        logger.info("MCAlgorithm: acceptance = {}".format(self.naccepted/self.ntrials))
+        logger.info("MCAlgotithm: nfail = {} / ntrials = {}".format(self.nfail, self.ntrials))
+
         if save_obs:
             np.save(open("obs_save.npy", "wb"), np.array(self.obs_save))
         if nsample > 0:
@@ -165,6 +179,10 @@ class CanonicalMonteCarlo(MCAlgorithm):
         self.kT = kT
         self.obs_save = []
 
+        logger.info("CanonicalMonteCarlo: parameters")
+        logger.info("  kT = {}".format(self.kT))
+
+
     # @profile
     def MCstep(self, nsubsteps_in_step: int = 1):
         for istep in range(nsubsteps_in_step):
@@ -175,16 +193,67 @@ class CanonicalMonteCarlo(MCAlgorithm):
             accepted = True
             if dE >= 0.0:
                 accept_probability = np.exp(-dE / self.kT)
-                accepted = rand.random() <= accept_probability
+                trial_rand = rand.random()
+                accepted = trial_rand <= accept_probability
+
             if accepted:
                 self.config = self.model.newconfig(self.config, dconfig)
                 self.energy += dE
                 self.naccepted += 1
             self.ntrials += 1
 
+            logger.debug("MCstep: dE/kT = {:e}".format(dE/self.kT))
+            if dE >= 0.0:
+                logger.debug("MCstep: prob  = {}".format(accept_probability))
+                logger.debug("MCstep: rand  = {}".format(trial_rand))
+            logger.debug("MCstep: {}".format("accepted" if accepted else "rejected"))
+
     def parameters(self):
         return [self.kT]
 
+    def param_names(self):
+        return ["Temperature"]
+
+
+class WeightedCanonicalMonteCarlo(CanonicalMonteCarlo):
+    def __init__(self, model: Model, kT: float, config):
+        super().__init__(model, kT, config)
+
+    # @profile
+    def MCstep(self, nsubsteps_in_step: int = 1):
+        for istep in range(nsubsteps_in_step):
+            dconfig, dE, *opt = self.model.trialstep(self.config, self.energy)
+
+            # ln weight factor
+            dW = opt[0] if len(opt) > 0 else 0.0
+
+            if np.isnan(dW):
+                dG = float("nan")
+                accepted = False
+                self.nfail += 1
+            else:
+                dG = dE/self.kT - dW
+
+                if dG >= 0.0:
+                    accept_probability = np.exp(-dG)
+                    trial_rand = rand.random()
+                    accepted = trial_rand <= accept_probability
+                else:
+                    accepted = True
+
+            if accepted:
+                self.config = self.model.newconfig(self.config, dconfig)
+                self.energy += dE
+                self.naccepted += 1
+
+            self.ntrials += 1
+
+            logger.debug("MCstep: dE/kT = {:e}".format(dE/self.kT))
+            logger.debug("MCstep: dG    = {:e}".format(dG))
+            if dG >= 0.0:
+                logger.debug("MCstep: prob  = {}".format(accept_probability))
+                logger.debug("MCstep: rand  = {}".format(trial_rand))
+            logger.debug("MCstep: {}".format("accepted" if accepted else "rejected"))
 
 class RandomSampling(CanonicalMonteCarlo):
     def MCstep(self, nsubsteps_in_step: int = 1):
@@ -194,3 +263,14 @@ class RandomSampling(CanonicalMonteCarlo):
         self.energy = self.model.energy(self.config)
         self.ntrials += 1
         self.naccepted += 1
+
+
+def write_obs_header(output, calc_state: MCAlgorithm, observer: ObserverBase):
+    output.write("# $1: step\n")
+    i = 2
+    for name in calc_state.param_names():
+        output.write(f"# ${i}: {name}\n")
+        i+=1
+    for name in observer.obs_names():
+        output.write(f"# ${i}: {name}\n")
+        i+=1

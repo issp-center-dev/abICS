@@ -1,12 +1,11 @@
+import os
 import numpy as np
 
-result = np.loadtxt("./result.dat")
-logZ = np.loadtxt("./logZ.dat")
+obs = np.loadtxt(os.path.join("0", "obs.dat"))
+num_Al = int(obs[-1, 4])
+num_Mg = int(obs[-1, 5])
 
-ref_result = np.loadtxt("./ref_result.dat")
-ref_logZ = np.loadtxt("./ref_logZ.dat")
-
-np.testing.assert_array_almost_equal(result, ref_result)
-np.testing.assert_array_almost_equal(logZ, ref_logZ)
+np.testing.assert_equal(num_Al, 0)
+np.testing.assert_equal(num_Mg, 24)
 
 print("OK")
