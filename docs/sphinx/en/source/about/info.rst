@@ -38,7 +38,7 @@ abICS is developed by the following members.
 Version information
 ------------------------------------------
 
-- ver. 2.2.0    : 2023/06/02.
+- ver. 2.1.0    : 2023/06/08.
 - ver. 2.0.1    : 2022/11/04.
 - ver. 2.0      : 2022/06/24.
 - ver. 1.0      : 2020/05/01.
