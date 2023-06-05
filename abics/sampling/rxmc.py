@@ -405,24 +405,32 @@ class TemperatureRX_MPI(ParallelMC):
         obs_save, Trank_hist, kT_hist = self.__merge_obs()
         nsteps, nobs = obs_save.shape
         nT = self.rank_to_T.size
-        obss = [[] for _ in range(nT)]
         if isinstance(throw_out, float):
             throw_out = int(nsteps * throw_out)
 
         # gather observables with same temperature (Trank == myrank)
-        for istep in range(throw_out, nsteps):
-            iT = Trank_hist[istep]
-            obss[iT].append(obs_save[istep, :])
-        recv_obss = [np.zeros(0)]
-        for rank in range(self.comm.size):
-            if len(obss[rank]) > 0:
-                send = np.array(obss[rank])
-            else:
-                send = np.zeros((0,nobs))
-            if rank == self.comm.rank:
-                recv_obss = self.comm.gather(send, root=rank)
-            else:
-                self.comm.gather(send, root=rank)
+        recv_obss = []
+        start = throw_out
+        buffer_size = 1000
+        while start < nsteps:
+            end = start + buffer_size
+            if end > nsteps:
+                end = nsteps
+            obs = [[] for _ in range(nT)]
+            for istep in range(start, end):
+                iT = Trank_hist[istep]
+                obs[iT].append(obs_save[istep, :])
+            start = end
+            send_obs = []
+            for rank in range(self.comm.size):
+                if len(obs[rank]) > 0:
+                    send = np.array(obs[rank])
+                else:
+                    send = np.zeros((0,nobs))
+                send_obs.append(send)
+            recv_obs = self.comm.alltoall(send_obs)
+            for ro in recv_obs:
+                recv_obss.append(ro)
         X = np.concatenate(recv_obss)  # nsamples X nobs
         nsamples = X.shape[0]
 
