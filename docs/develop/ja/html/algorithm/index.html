@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>8. アルゴリズム &#8212; abICS 2.0.0 ドキュメント</title>
+    <title>8. アルゴリズム &#8212; abICS 2.2.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -37,7 +37,7 @@
   <section id="id1">
 <h1><span class="section-number">8. </span>アルゴリズム<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
 <p>abICSは、拡張アンサンブル法と任意のエネルギー計算ソフトウェアを組み合わせるために設計されています。現在は、
-レプリカ交換モンテカルロ法のみが実装されています。</p>
+レプリカ交換モンテカルロ法およびポピュレーションアニーリングモンテカルロ法が実装されています。</p>
 <ul class="simple">
 <li><p>abICSの概要について</p>
 <ul>
@@ -110,6 +110,11 @@ orange は2種の原子種から構成される4原子で構成されるグル�
 各グループ内での原子の配置は <code class="docutils literal notranslate"><span class="pre">defect_structure.groups</span></code> セクション内の <code class="docutils literal notranslate"><span class="pre">coords</span></code> で指定できます。
 <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> を複数定義した場合は、それぞれの欠陥座標にそれぞれの原子グループが配置されます。
 (f) はモンテカルロ法のアップデートに関する概念図です。 アップデートでは欠陥の位置に入るグループを入れ替えるパターンと、配置は変えずに配位を変える2つのパターンがあります(どちらのアップデートを行うかは半分の確率で自動で選択されます)。提案された配置 <span class="math notranslate nohighlight">\(X_{trial}\)</span> から指定されたソルバーでエネルギーを計算し、採択率 <span class="math notranslate nohighlight">\(P(X_i \rightarrow X_{trial})\)</span> を計算します。</p>
+<p>グランドカノニカルサンプリングを <code class="docutils literal notranslate"><span class="pre">sampling.enable_grandcanonical</span></code> パラメータで有効にした場合、上記の配置更新に加えて、欠陥位置に入る原子グループを熱浴と出し入れする配置更新パターンが導入されます。原子グループの数は共役なパラメータである化学ポテンシャル <code class="docutils literal notranslate"><span class="pre">config.chemical_potential</span></code> で規定され、各グループごとに増減させることも、複数グループを同時に増減させることも記述できます。
+配置更新では、現在の配置と提案配置のエネルギー差を元に、採択確率</p>
+<div class="math notranslate nohighlight">
+\[P(X_i\to X_\text{trial}) = \min\left( 1,  \Delta W\,e^{-\beta(\Delta E - \mu \Delta N)} \right)\]</div>
+<p>による Metropolis-Hastings 法に基づいて配置が更新されます。 <span class="math notranslate nohighlight">\(\Delta W = Q(X_\text{trial}\to X_i)/Q(X_i\to X_\text{trial})\)</span> は、配置 <span class="math notranslate nohighlight">\(X\)</span> から配置 <span class="math notranslate nohighlight">\(X^\prime\)</span> を選択する提案確率 <span class="math notranslate nohighlight">\(Q(X\to X^\prime)\)</span> に基づく重み因子です。</p>
 <figure class="align-default" id="alg-sampling">
 <a class="reference internal image-reference" href="../_images/alg_sampling.png"><img alt="../_images/alg_sampling.png" src="../_images/alg_sampling.png" style="width: 513.4499999999999px; height: 1162.6499999999999px;" /></a>
 <figcaption>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>5.1. [sampling] セクション &#8212; abICS 2.0.0 ドキュメント</title>
+    <title>5.1. [sampling] セクション &#8212; abICS 2.2.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -157,6 +157,14 @@ print_frequency = 1
 <li><p><code class="docutils literal notranslate"><span class="pre">throw_out</span></code></p>
 <p><strong>形式 :</strong> int型 もしくは float型</p>
 <p><strong>説明 :</strong>     期待値計算時、熱平衡化のために捨てられる測定値の数(int)あるいは比率(float)を指定します. デフォルト値 = 0.5</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">enable_grandcanonical</span></code></p>
+<p><strong>形式 :</strong> bool型</p>
+<p><strong>説明 :</strong>     グランドカノニカルサンプリングを有効にします．デフォルト値 = false</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gc_ratio</span></code></p>
+<p><strong>形式 :</strong> float型</p>
+<p><strong>説明 :</strong>     グランドカノニカルサンプリングが有効な場合、配位更新の試行において粒子数を変えるグランドカノニカルアップデートの割合を指定します．デフォルト値 = 0.3</p>
 </li>
 </ul>
 </div></blockquote>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>3. 基本的な使用方法 &#8212; abICS 2.0.0 ドキュメント</title>
+    <title>3. 基本的な使用方法 &#8212; abICS 2.2.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -41,7 +41,7 @@
 <p>abICSは元々、第一原理計算とレプリカ交換モンテカルロ法を直接組み合わせて統計熱力学計算を行うことを念頭に開発されましたが、
 計算できるモデル規模やステップ数が、第一原理計算の大きな計算コストのために限られてしまいます。
 これに対して、Ver. 2では、構造最適化後のエネルギーを高速に予測する機械学習モデルを構成するための能動学習手法を実装し、
-飛躍的にサンプリング速度を向上させました <a class="reference external" href="https://arxiv.org/abs/2008.02572">[論文プレプリント]</a> 。</p>
+飛躍的にサンプリング速度を向上させました <a class="reference external" href="https://doi.org/10.1063/5.0096645">[Kasamatsu et al. 2022]</a> 。</p>
 <p>abICSに実装されている能動学習手法の大まかな流れは以下の通りです。</p>
 <ol class="arabic simple">
 <li><p>ランダムに生成した多数の原子配置に対して第一原理計算を行い、訓練データ（原子配置とエネルギーの対応関係）を用意する</p></li>
@@ -201,8 +201,8 @@ ignored_species = [&quot;Al&quot;, &quot;O&quot;]
 </pre></div>
 </div>
 </section>
-<section id="id4">
-<h2><span class="section-number">3.3. </span>第一原理ソルバー用参照ファイルの準備<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<section id="id3">
+<h2><span class="section-number">3.3. </span>第一原理ソルバー用参照ファイルの準備<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
 <p>訓練データの生成に用いる第一原理ソルバーの入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
 座標情報については記載する必要はありません。
@@ -238,7 +238,7 @@ K_POINTS gamma
 </pre></div>
 </div>
 <section id="solver-specific-notes">
-<span id="id5"></span><h3><span class="section-number">3.3.1. </span>第一原理ソルバー利用時の注意点<a class="headerlink" href="#solver-specific-notes" title="この見出しへのパーマリンク">¶</a></h3>
+<span id="id4"></span><h3><span class="section-number">3.3.1. </span>第一原理ソルバー利用時の注意点<a class="headerlink" href="#solver-specific-notes" title="この見出しへのパーマリンク">¶</a></h3>
 <p>原子座標以外の設定については基本的にソルバーごとに指定する必要があります。ただし、構造最適化をする原子の指定についてはabICS側で制御することが可能です。構造最適化機能を有効にする場合には、ソルバーの参照ファイルで構造最適化オプションを有効にした上で、構造最適化のステップ数なども指定することで最適化が行われます。
 また、abICSではソルバー毎に、参照ファイル名、実装時に仮定している参照ファイルのルールなどがあります。
 以下、それらについて説明します。</p>
@@ -290,13 +290,13 @@ K_POINTS gamma
 </section>
 </section>
 </section>
-<section id="id6">
-<h2><span class="section-number">3.4. </span>機械学習モデル訓練および評価用参照ファイルの準備<a class="headerlink" href="#id6" title="この見出しへのパーマリンク">¶</a></h2>
+<section id="id5">
+<h2><span class="section-number">3.4. </span>機械学習モデル訓練および評価用参照ファイルの準備<a class="headerlink" href="#id5" title="この見出しへのパーマリンク">¶</a></h2>
 <p>使用する機械学習モデルソルバー（現在はaenet, aenetPyLammpsのみに対応）の入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。</p>
 <section id="subsec-basic-input">
-<span id="id7"></span><h3><span class="section-number">3.4.1. </span>機械学習モデルソルバー利用時の注意点<a class="headerlink" href="#subsec-basic-input" title="この見出しへのパーマリンク">¶</a></h3>
+<span id="id6"></span><h3><span class="section-number">3.4.1. </span>機械学習モデルソルバー利用時の注意点<a class="headerlink" href="#subsec-basic-input" title="この見出しへのパーマリンク">¶</a></h3>
 <section id="aenet">
 <h4>aenet<a class="headerlink" href="#aenet" title="この見出しへのパーマリンク">¶</a></h4>
 <ul>
@@ -324,22 +324,22 @@ K_POINTS gamma
 </section>
 </section>
 </section>
-<section id="id8">
-<h2><span class="section-number">3.5. </span>学習データの作成<a class="headerlink" href="#id8" title="この見出しへのパーマリンク">¶</a></h2>
+<section id="id7">
+<h2><span class="section-number">3.5. </span>学習データの作成<a class="headerlink" href="#id7" title="この見出しへのパーマリンク">¶</a></h2>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を用いて訓練データの大元となる第一原理計算用の入力ファイルを生成します。</p></li>
 <li><p>1で生成した入力ファイルに対して第一原理計算を実施します(チュートリアルでは <code class="docutils literal notranslate"><span class="pre">GNU</span> <span class="pre">parallel</span></code> を利用し網羅計算を実行しています)。</p></li>
 </ol>
 </section>
-<section id="id9">
-<h2><span class="section-number">3.6. </span>機械学習モデルの作成<a class="headerlink" href="#id9" title="この見出しへのパーマリンク">¶</a></h2>
+<section id="id8">
+<h2><span class="section-number">3.6. </span>機械学習モデルの作成<a class="headerlink" href="#id8" title="この見出しへのパーマリンク">¶</a></h2>
 <ol class="arabic simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> を再度実行して、学習で用いる <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> が読み込めるよう第一原理計算の結果を変換します。</p></li>
 <li><p>次に <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> を実行して機械学習モデルの作成を行います。 計算が無事終了すると、 <code class="docutils literal notranslate"><span class="pre">baseinput</span></code> ディレクトリに学習済みの機械学習モデル（ニューラルネットワーク）が出力されます。</p></li>
 </ol>
 </section>
-<section id="id10">
-<h2><span class="section-number">3.7. </span>モンテカルロサンプリングの実行<a class="headerlink" href="#id10" title="この見出しへのパーマリンク">¶</a></h2>
+<section id="id9">
+<h2><span class="section-number">3.7. </span>モンテカルロサンプリングの実行<a class="headerlink" href="#id9" title="この見出しへのパーマリンク">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> を用いてモンテカルロサンプリングを行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
 実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。
 なお、<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> を利用すると、 <code class="docutils literal notranslate"><span class="pre">lammps</span></code> を利用することでライブラリ化された <code class="docutils literal notranslate"><span class="pre">aenet</span></code> を用いた高速サンプリングが可能です。
@@ -410,11 +410,11 @@ K_POINTS gamma
 <li class="toctree-l1 current"><a class="current reference internal" href="#">3. 基本的な使用方法</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id2">3.1. 能動学習について</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#abics">3.2. abICS制御用入力ファイルの準備</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id4">3.3. 第一原理ソルバー用参照ファイルの準備</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id6">3.4. 機械学習モデル訓練および評価用参照ファイルの準備</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id8">3.5. 学習データの作成</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id9">3.6. 機械学習モデルの作成</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id10">3.7. モンテカルロサンプリングの実行</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.3. 第一原理ソルバー用参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">3.4. 機械学習モデル訓練および評価用参照ファイルの準備</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">3.5. 学習データの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id8">3.6. 機械学習モデルの作成</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id9">3.7. モンテカルロサンプリングの実行</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>

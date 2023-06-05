@@ -11,7 +11,7 @@ Active learning
 abICS was originally developed for directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform configurational sampling,
 but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
 In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
-dramatically improving the sampling speed `[preprint] <https://arxiv.org/abs/2008.02572>`_ .
+dramatically improving the sampling speed `[Kasamatsu et al., 2022] <https://doi.org/10.1063/5.0096645>`_ .
 
 The general flow of the active learning method implemented in abICS is as follows.
 
