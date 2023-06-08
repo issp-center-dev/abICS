@@ -103,12 +103,30 @@ The size of super lattice by the list format[ <span class="math notranslate nohi
 The name of structure file (e.g., POSCAR, cif) to be used as the initial structure.
 If not specified, the initial structure is generated randomly based on <code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> and <code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code>.</p>
 </li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint_module</span></code></p>
+<p><strong>Format :</strong> bool (“true” or “false”)</p>
+<p><strong>Description :</strong>
+Whether to apply a constraint condition to configurations. The default value is <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+<p>When it is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the constraint condition is given as a user-defined function with the name <code class="docutils literal notranslate"><span class="pre">constraint_func</span></code> in <code class="docutils literal notranslate"><span class="pre">constraint_module.py</span></code>. This function takes structure data of pymatgen.core.Structure type, and returns a boolean value. The module may also contain a function named <code class="docutils literal notranslate"><span class="pre">constraint_energy</span></code> that evaluates energy from the structure data in the <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> operation.</p>
+</li>
 </ul>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint</span></code></p>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>
+The name of the user-defined function used for a constraint condition to configurations. If it is not specified, no constraint is applied. The default is unspecified.</p>
+<p>The constraint condition is given as a function that takes structure data of pymatgen.core.Structure type and returns a boolean value. The parameter <code class="docutils literal notranslate"><span class="pre">constraint</span></code> specifies the name of the function in the form <code class="docutils literal notranslate"><span class="pre">&quot;module_name.function_name&quot;</span></code>.
+When <code class="docutils literal notranslate"><span class="pre">constraint_module</span></code> is also set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the value of <code class="docutils literal notranslate"><span class="pre">constraint</span></code> is adopted for the function name.</p>
+</li>
+</ul>
+</div></blockquote>
 </div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> section</p>
-<dl>
-<dt><code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">coords</span></code> specify the atomic species that do not move in Monte Carlo calculation and their coordinates.</dt><dd><p>If there are multiple atomic species, specify multiple [[config.base_structure]] sections.</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">coords</span></code> specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
+If there are multiple atomic species, specify multiple [[config.base_structure]] sections.</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
 <p><strong>Format :</strong> str</p>
@@ -120,8 +138,7 @@ If not specified, the initial structure is generated randomly based on <code cla
 Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.</p>
 </li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> section</p>
 <blockquote>

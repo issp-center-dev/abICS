@@ -114,7 +114,20 @@ num = 8
 <p><strong>形式 :</strong> str型</p>
 <p><strong>説明 :</strong>
 モンテカルロサンプリングの初期構造ファイル(POSCAR やCIF 形式など)を指定します.
-指定しなかった場合、ランダムに生成されます.</p>
+指定しなかった場合，ランダムに生成されます.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint_module</span></code></p>
+<p><strong>形式 :</strong> bool型</p>
+<p><strong>説明 :</strong>
+配位に対して拘束条件を課すかどうかを指定します．デフォルト値は <code class="docutils literal notranslate"><span class="pre">false</span></code> です．</p>
+<p><code class="docutils literal notranslate"><span class="pre">true</span></code> の場合，拘束条件はユーザが定義する関数で与えます．この関数は <code class="docutils literal notranslate"><span class="pre">constraint_module.py</span></code> 内に <code class="docutils literal notranslate"><span class="pre">constraint_func</span></code> という関数名で配置し，pymatgen.core.Structure 型の構造データを引数にとりbool型の値を返す関数として定義します．また， <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> を行う際に構造データからエネルギー値を計算する <code class="docutils literal notranslate"><span class="pre">constraint_energy</span></code> 関数を定義して使用することもできます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+配位に対する拘束条件を与えるユーザ定義関数を指定します．指定しない場合は拘束条件を課しません．デフォルト値は指定なしです．</p>
+<p>拘束条件は，任意のモジュール内に配置された，pymatgen.core.Structure型の構造データを引数にとりbool型の値を返す関数として定義します． <code class="docutils literal notranslate"><span class="pre">constraint</span></code> パラメータには関数名を <code class="docutils literal notranslate"><span class="pre">&quot;モジュール名.関数名&quot;</span></code> の形式で指定します．
+<code class="docutils literal notranslate"><span class="pre">constraint_module</span></code> が <code class="docutils literal notranslate"><span class="pre">true</span></code> に指定されている場合は， <code class="docutils literal notranslate"><span class="pre">constraint</span></code> パラメータの指定が優先されます．</p>
 </li>
 </ul>
 </div></blockquote>
@@ -221,7 +234,7 @@ num = 8
 <li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
 <blockquote>
 <div><p><strong>形式 :</strong> str型 もしくは str型のリスト</p>
-<p><strong>説明 :</strong> 原子種または原子グループの名前を指定します．複数の原子種・原子グループにまとめて同じ値を設定する場合は、それらをリストで指定します。</p>
+<p><strong>説明 :</strong> 原子種または原子グループの名前を指定します．複数の原子種・原子グループにまとめて同じ値を設定する場合は，それらをリストで指定します．</p>
 </div></blockquote>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">mu</span></code></p>
@@ -235,14 +248,14 @@ num = 8
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">[[config.grandcanonical_move]]</span></code> セクション</p>
 <blockquote>
-<div><p>グランドカノニカルサンプリングにおいて、原子種または原子グループの増減や、原子種の入れ替えが起きる場合の入れ替わる原子種を指定します。指定方法は以下のとおりです。</p>
+<div><p>グランドカノニカルサンプリングにおいて，原子種または原子グループの増減や，原子種の入れ替えが起きる場合の入れ替わる原子種を指定します．指定方法は以下のとおりです．</p>
 <ul>
 <li><p>原子種または原子グループの増減</p>
 <blockquote>
 <div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
 <p><strong>形式 :</strong> str型 もしくは str型のリスト</p>
-<p><strong>説明 :</strong> 原子種または原子グループの名前を指定します．複数の原子種・原子グループを同時に増減させる場合は、それらをリストで指定します。同種の原子種を複数個指定することもできます。</p>
+<p><strong>説明 :</strong> 原子種または原子グループの名前を指定します．複数の原子種・原子グループを同時に増減させる場合は，それらをリストで指定します．同種の原子種を複数個指定することもできます．</p>
 </li>
 </ul>
 </div></blockquote>
@@ -252,14 +265,14 @@ num = 8
 <div><ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code></p>
 <p><strong>形式 :</strong> str型 もしくは str型のリスト</p>
-<p><strong>説明 :</strong> 入れ替わる原子種または原子グループの名前を <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">A</span> <span class="pre">to</span> <span class="pre">B</span></code> の形で指定します． <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">B</span> <span class="pre">to</span> <span class="pre">A</span></code> の入れ替えも自動的に考慮されます。 <code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code> で指定する原子種の数は同じで、同一の defect sublattice に配置されているとします。</p>
+<p><strong>説明 :</strong> 入れ替わる原子種または原子グループの名前を <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">A</span> <span class="pre">to</span> <span class="pre">B</span></code> の形で指定します． <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">B</span> <span class="pre">to</span> <span class="pre">A</span></code> の入れ替えも自動的に考慮されます． <code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code> で指定する原子種の数は同じで，同一の defect sublattice に配置されているとします．</p>
 </li>
 </ul>
 </div></blockquote>
 </li>
 </ul>
-<p><code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> の指定がないときは、 <code class="docutils literal notranslate"><span class="pre">chemical_potential</span></code> に記述される原子種・原子グループまたはその組が増減する指定が自動的に挿入されます。
-一方、 <code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> の指定が一つでもあれば、その操作のみが行われます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> の指定がないときは， <code class="docutils literal notranslate"><span class="pre">chemical_potential</span></code> に記述される原子種・原子グループまたはその組が増減する指定が自動的に挿入されます．
+一方， <code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> の指定が一つでもあれば，その操作のみが行われます．</p>
 </div></blockquote>
 </li>
 </ul>
