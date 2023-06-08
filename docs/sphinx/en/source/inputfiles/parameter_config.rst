@@ -79,9 +79,28 @@ In the case of ``solver.type != "potts"``
        The name of structure file (e.g., POSCAR, cif) to be used as the initial structure.
        If not specified, the initial structure is generated randomly based on ``[[config.base_structure]]`` and ``[[config.defect_structure]]``.
 
+    -  ``constraint_module``
+
+       **Format :** bool ("true" or "false")
+
+       **Description :**
+       Whether to apply a constraint condition to configurations. The default value is ``false``.
+
+       When it is set to ``true``, the constraint condition is given as a user-defined function with the name ``constraint_func`` in ``constraint_module.py``. This function takes structure data of pymatgen.core.Structure type, and returns a boolean value. The module may also contain a function named ``constraint_energy`` that evaluates energy from the structure data in the ``shuffle`` operation.
+
+     -  ``constraint``
+
+	**Format :** str
+
+	**Description :**
+	The name of the user-defined function used for a constraint condition to configurations. If it is not specified, no constraint is applied. The default is unspecified.
+
+	The constraint condition is given as a function that takes structure data of pymatgen.core.Structure type and returns a boolean value. The parameter ``constraint`` specifies the name of the function in the form ``"module_name.function_name"``.
+	When ``constraint_module`` is also set to ``true``, the value of ``constraint`` is adopted for the function name.
+       
 - ``[[config.base_structure]]`` section
 
-  ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
+    ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
     If there are multiple atomic species, specify multiple [[config.base_structure]] sections.
 
     - ``type``
