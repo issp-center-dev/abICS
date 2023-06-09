@@ -128,7 +128,7 @@ The coordinate information should not be written here because it will obviously 
 The lattice sites are specified in a separate abICS input file (see below), 
 and abICS will take care of generating the coordinates section at each sampling step.
 
-.. _subsec_basic_input:
+.. _trainer_specific_notes:
 
 Machine learning trainer/calculator-specific notes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

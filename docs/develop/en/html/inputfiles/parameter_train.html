@@ -34,9 +34,11 @@
             
   <section id="train-section">
 <h1><span class="section-number">5.4. </span>[train] section<a class="headerlink" href="#train-section" title="Permalink to this heading">¶</a></h1>
-<p>We create neural network potentials by learning the results of ab initio calculations made by abics_train using aenet.
-The input information for abics_train is described in the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section. The description of each parameter is as follows.</p>
-<p>This section specifies the type of physical quantity to be acquired.
+<p><code class="docutils literal notranslate"><span class="pre">abics_train</span></code> creates and trains a regression model from configurations to energies.
+Indeed, <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> uses an external program to train the model.
+In the current version, only <code class="docutils literal notranslate"><span class="pre">aenet</span></code> is supported as an external program.
+For software-specific notes (such as input file names), see <a class="reference internal" href="../how_to_use/index.html#trainer-specific-notes"><span class="std std-ref">Machine learning trainer/calculator-specific notes</span></a>.</p>
+<p>The input information for <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> is described in the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section. The description of each parameter is as follows.
 An example is shown as follows:</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[trainer] # Configure the model trainer.

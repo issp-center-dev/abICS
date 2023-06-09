@@ -35,9 +35,11 @@
             
   <section id="train">
 <h1><span class="section-number">5.4. </span>[train] セクション<a class="headerlink" href="#train" title="この見出しへのパーマリンク">¶</a></h1>
-<p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います。
-現在のところ、abICSではaenetのみに対応しています。
-以下のようなファイルフォーマットをしています.</p>
+<p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います。</p>
+<p>予測モデルの作成・学習には外部のプログラムを利用します。
+現在はaenetのみに対応しています。
+ソフトウェア固有の注意事項（入力ファイル名など）は <a class="reference internal" href="../how_to_use/index.html#trainer-specific-notes"><span class="std std-ref">機械学習モデルソルバー利用時の注意点</span></a> を参照してください.</p>
+<p>本セクションは以下のようなファイルフォーマットをしています.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./aenet_train_input&#39;</span>
