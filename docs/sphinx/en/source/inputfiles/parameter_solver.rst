@@ -16,6 +16,8 @@ In the present version, there are two main types of solvers.
 
       - Parameters of the DFT solver such as convergence criteria are specified by using input files of the solver.
 
+      - Solver specific notes (e.g., input filename) are described in :ref:`solver_specific_notes`.
+
    - Configurations (atomic positions, atomic species, etc.) are specified by the ``[config]`` section.
 
 - Potts model solver
