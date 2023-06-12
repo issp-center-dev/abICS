@@ -11,7 +11,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -46,6 +47,8 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">abics package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="abics.applications.html">abics.applications package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
 </ul>
 </li>
@@ -53,6 +56,9 @@
 <li class="toctree-l3"><a class="reference internal" href="abics.exception.html">abics.exception module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.mc.html">abics.mc module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.mc_mpi.html">abics.mc_mpi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mlref.html">abics.mlref module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html">abics.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.observer.html">abics.observer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html">abics.replica_params module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.util.html">abics.util module</a></li>
 </ul>
@@ -99,17 +105,50 @@
 <li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.html#module-contents">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.lattice_model.html">abics.applications.lattice_model package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.lattice_model.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.lattice_model.html#module-abics.applications.lattice_model">Module contents</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="abics.applications.html#module-abics.applications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.loggers.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.loggers.html">abics.loggers.loggers module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.loggers.loggers.html#abics.loggers.loggers.set_log_handles"><code class="docutils literal notranslate"><span class="pre">set_log_handles()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.loggers.html#module-abics.loggers">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html#abics.loggers.set_log_handles"><code class="docutils literal notranslate"><span class="pre">set_log_handles()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.html#submodules">Submodules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html">abics.sampling.mc module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html">abics.sampling.mc_mpi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html">abics.sampling.pamc module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html">abics.sampling.resampling module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html">abics.sampling.rxmc module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html">abics.sampling.simple_parallel module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.html#module-abics.sampling">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="abics.scripts.html#submodules">Submodules</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.abicsRXsepT.html">abics.scripts.abicsRXsepT module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.activelearn.html">abics.scripts.activelearn module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.scripts.activelearn_spawn.html">abics.scripts.activelearn_spawn module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.main.html">abics.scripts.main module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.main_dft_latgas.html">abics.scripts.main_dft_latgas module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.main_potts.html">abics.scripts.main_potts module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.mocksolver.html">abics.scripts.mocksolver module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.st2abics_config.html">abics.scripts.st2abics_config module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.scripts.train.html">abics.scripts.train module</a></li>
@@ -139,19 +178,32 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="abics.mc.html">abics.mc module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abics.mc_mpi.html">abics.mc_mpi module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abics.mlref.html">abics.mlref module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="abics.model.html">abics.model module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.model.html#abics.model.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html#abics.model.Model.energy"><code class="docutils literal notranslate"><span class="pre">Model.energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html#abics.model.Model.model_name"><code class="docutils literal notranslate"><span class="pre">Model.model_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html#abics.model.Model.newconfig"><code class="docutils literal notranslate"><span class="pre">Model.newconfig()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html#abics.model.Model.trialstep"><code class="docutils literal notranslate"><span class="pre">Model.trialstep()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.model.html#abics.model.model"><code class="docutils literal notranslate"><span class="pre">model</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.observer.html">abics.observer module</a></li>
 <li class="toctree-l1"><a class="reference internal" href="abics.replica_params.html">abics.replica_params module</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams</span></code></a><ul>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.nreplicas</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.nprocs_per_replica"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.nprocs_per_replica</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.kTstart"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.kTstart</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.kTend"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.kTend</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.nsteps"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.nsteps</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.sample_frequency"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.sample_frequency</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.print_frequency"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.print_frequency</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.reload"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.reload</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.seed"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.seed</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.from_dict"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.from_dict()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParalleMCParams.from_toml"><code class="docutils literal notranslate"><span class="pre">ParalleMCParams.from_toml()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.nprocs_per_replica"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.nprocs_per_replica</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.kTstart"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.kTstart</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.kTend"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.kTend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.nsteps"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.nsteps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.sample_frequency"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.sample_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.print_frequency"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.print_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.reload"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.reload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.seed"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.from_dict"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelMCParams.from_toml"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.from_toml()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="abics.replica_params.html#abics.replica_params.ParallelRandomParams"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams</span></code></a><ul>

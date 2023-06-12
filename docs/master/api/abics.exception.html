@@ -11,7 +11,8 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
@@ -54,6 +55,9 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="abics.mc.html">abics.mc module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.mc_mpi.html">abics.mc_mpi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mlref.html">abics.mlref module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html">abics.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.observer.html">abics.observer module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html">abics.replica_params module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="abics.util.html">abics.util module</a></li>
 </ul>
@@ -99,7 +103,7 @@
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="abics.exception.InputError">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.exception.</span></span><span class="sig-name descname"><span class="pre">InputError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/exception.html#InputError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.exception.InputError" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.exception.</span></span><span class="sig-name descname"><span class="pre">InputError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/exception.html#InputError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.exception.InputError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abics.exception.Error" title="abics.exception.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">Error</span></code></a></p>
 <p>Exception raised for errors in the input</p>
 <dl class="py attribute">
@@ -117,7 +121,7 @@
 
 <dl class="py exception">
 <dt class="sig sig-object py" id="abics.exception.MatrixParseError">
-<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.exception.</span></span><span class="sig-name descname"><span class="pre">MatrixParseError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/exception.html#MatrixParseError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.exception.MatrixParseError" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.exception.</span></span><span class="sig-name descname"><span class="pre">MatrixParseError</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/exception.html#MatrixParseError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.exception.MatrixParseError" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#abics.exception.Error" title="abics.exception.Error"><code class="xref py py-class docutils literal notranslate"><span class="pre">Error</span></code></a></p>
 <p>Exception raised for matrix parse errors</p>
 <dl class="py attribute">

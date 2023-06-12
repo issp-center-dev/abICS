@@ -12,6 +12,8 @@ Specific emphasis is placed on multi-component solid state systems such as metal
 The current version of abics can use neural network models implemented in aenet to be used as 
 the machine learning model. As of this moment, abICS can also generate Quantum Espresso, VASP, 
 and OpenMX input files for obtaining the reference training data for the machine learning model.
+For the sampling algorithms, abICS implements the extended Monte Carlo methods, namely, the replica exchange Monte Carlo method (RXMC) and the population annealing Monte Carlo method (PAMC).
+In addition, as a beta version, the grand canonical sampling is supported.
 
 
 Developers
@@ -36,7 +38,8 @@ abICS is developed by the following members.
 Version information
 ------------------------------------------
 
-- ver. 2.0.1    : 2022/06/24.
+- ver. 2.1.0    : 2023/06/12.
+- ver. 2.0.1    : 2022/11/04.
 - ver. 2.0      : 2022/06/24.
 - ver. 1.0      : 2020/05/01.
 - ver. 1.0-beta : 2020/03/31.
