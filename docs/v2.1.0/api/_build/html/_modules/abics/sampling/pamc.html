@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.sampling.pamc &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.sampling.pamc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.sampling.pamc</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.random</span> <span class="k">as</span> <span class="nn">rand</span>
+
+<span class="kn">from</span> <span class="nn">abics.model</span> <span class="kn">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">abics.observer</span> <span class="kn">import</span> <span class="n">ObserverBase</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.mc</span> <span class="kn">import</span> <span class="n">verylargeint</span><span class="p">,</span> <span class="n">MCAlgorithm</span><span class="p">,</span> <span class="n">write_obs_header</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.mc_mpi</span> <span class="kn">import</span> <span class="n">ParallelMC</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.resampling</span> <span class="kn">import</span> <span class="n">WalkerTable</span>
+<span class="kn">from</span> <span class="nn">abics.util</span> <span class="kn">import</span> <span class="n">pickle_dump</span><span class="p">,</span> <span class="n">pickle_load</span><span class="p">,</span> <span class="n">numpy_save</span><span class="p">,</span> <span class="n">numpy_load</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="PAMCParams"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams">[docs]</a><span class="k">class</span> <span class="nc">PAMCParams</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parameter set for population annealing Monte Carlo</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nreplicas : int</span>
+<span class="sd">        The number of replicas</span>
+<span class="sd">    nprocs_per_replica : int</span>
+<span class="sd">        The number of processes which a replica uses</span>
+<span class="sd">    kTs: np.array[float]</span>
+<span class="sd">        The list of temperature</span>
+<span class="sd">    nsteps : int</span>
+<span class="sd">        The number of MC steps between annaling</span>
+<span class="sd">    resample_frequency :</span>
+<span class="sd">        The number of annealing between resampling</span>
+<span class="sd">    sample_frequency :</span>
+<span class="sd">        The number of MC steps between measurements observables</span>
+<span class="sd">    print_frequency :</span>
+<span class="sd">        The number of MC steps between show information</span>
+<span class="sd">    reload : bool</span>
+<span class="sd">        Whether to restart simulation or not</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        The seed of the random number generator</span>
+<span class="sd">        If 0, some random number is used (e.g., system time or some random noise).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kTs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resample_frequency</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_frequency</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_frequency</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="PAMCParams.from_dict"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read information from dictionary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            Dictionary including parameters for replica exchange Monte Carlo method</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        params: DFTParams object</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nreplicas&quot;</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nprocs_per_replica&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s2">&quot;kTs&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">kTs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;kTs&quot;</span><span class="p">])</span>
+            <span class="n">kTnum</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">kTs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">kTstart</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;kTstart&quot;</span><span class="p">]</span>
+            <span class="n">kTend</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;kTend&quot;</span><span class="p">]</span>
+            <span class="n">kTnum</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;kTnum&quot;</span><span class="p">]</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">kTs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">kTstart</span><span class="p">,</span> <span class="n">kTend</span><span class="p">,</span> <span class="n">kTnum</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s2">&quot;nsteps_between_anneal&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">params</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nsteps_between_anneal&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">kTnum</span>
+            <span class="k">if</span> <span class="s2">&quot;nsteps&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error: Both nsteps and nsteps_between_anneal are specified&quot;</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;nsteps&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                <span class="n">params</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nsteps&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error: Neither nsteps nor nsteps_between_anneal are specified&quot;</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">resample_frequency</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;resample_frequency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sample_frequency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">print_frequency</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;print_frequency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">reload</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reload&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">reload</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Error: reload is not supported in PAMC of the current version.&quot;</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="PAMCParams.from_toml"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read information from toml file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        f: str</span>
+<span class="sd">            The name of input toml File</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        DFTParams: DFTParams object</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">toml</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="PopulationAnnealing"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing">[docs]</a><span class="k">class</span> <span class="nc">PopulationAnnealing</span><span class="p">(</span><span class="n">ParallelMC</span><span class="p">):</span>
+    <span class="n">Tindex</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">logweight</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="s2">&quot;Logarithm of Neal-Jarzynski weight&quot;</span>
+    <span class="n">logweight_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">dlogz</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">kT_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="n">acceptance_ratios</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+
+<div class="viewcode-block" id="PopulationAnnealing.__init__"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">comm</span><span class="p">,</span>
+        <span class="n">MCalgo</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">MCAlgorithm</span><span class="p">],</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span>
+        <span class="n">configs</span><span class="p">,</span>
+        <span class="n">kTs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">write_node</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        comm: comm world</span>
+<span class="sd">            MPI communicator</span>
+<span class="sd">        MCalgo: object for MonteCarlo algorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+<span class="sd">        model: dft_latgas</span>
+<span class="sd">            DFT lattice gas mapping  model</span>
+<span class="sd">        configs: config object</span>
+<span class="sd">            Configuration</span>
+<span class="sd">        kTs: list</span>
+<span class="sd">            Temperature list</span>
+<span class="sd">        subdirs: boolean</span>
+<span class="sd">            If true, working directory for this rank is made</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">kTs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: kTs[0] &lt; kTs[-1]. abICS reverses kTs.&quot;</span><span class="p">)</span>
+            <span class="n">kTs</span> <span class="o">=</span> <span class="n">kTs</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">MCalgo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">kT</span> <span class="o">=</span> <span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">betas</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kTs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logweight</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logweight_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dlogz</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kT_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptance_ratios</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lreload</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_resample_old</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="PopulationAnnealing.reload"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.reload">[docs]</a>    <span class="k">def</span> <span class="nf">reload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># not supported yet </span>
+        <span class="k">pass</span></div>
+        <span class="c1"># self.mycalc.config = pickle_load(os.path.join(str(self.rank), &quot;calc.pickle&quot;))</span>
+        <span class="c1"># self.obs_save0 = numpy_load(os.path.join(str(self.rank), &quot;obs_save.npy&quot;))</span>
+        <span class="c1"># self.mycalc.energy = self.obs_save0[-1, 0]</span>
+        <span class="c1"># wh = numpy_load(os.path.join(str(self.rank), &quot;logweight_hist.npy&quot;))</span>
+        <span class="c1"># self.logweight_history = [w for w in wh]</span>
+        <span class="c1"># self.logweight = self.logweight_history[-1]</span>
+        <span class="c1"># kh = numpy_load(os.path.join(str(self.rank), &quot;kT_hist.npy&quot;))</span>
+        <span class="c1"># self.kT_history = [T for T in kh]</span>
+        <span class="c1"># self.Tindex = np.unique(kh).size</span>
+        <span class="c1"># rand_state = pickle_load(os.path.join(str(self.rank), &quot;rand_state.pickle&quot;))</span>
+        <span class="c1"># rand.set_state(rand_state)</span>
+        <span class="c1"># self.Lreload = True</span>
+
+<div class="viewcode-block" id="PopulationAnnealing.save"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_obs</span><span class="p">:</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="c1"># save information for restart</span>
+        <span class="n">pickle_dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;calc.pickle&quot;</span><span class="p">)</span>
+        <span class="n">rand_state</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+        <span class="n">pickle_dump</span><span class="p">(</span><span class="n">rand_state</span><span class="p">,</span> <span class="s2">&quot;rand_state.pickle&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;obs_save0&quot;</span><span class="p">):</span>
+                <span class="n">obs_save_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obs_save_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="p">)</span>
+            <span class="n">numpy_save</span><span class="p">(</span><span class="n">obs_save_</span><span class="p">,</span> <span class="s2">&quot;obs_save.npy&quot;</span><span class="p">)</span>
+            <span class="n">numpy_save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logweight_history</span><span class="p">,</span> <span class="s2">&quot;logweight_hist.npy&quot;</span><span class="p">)</span>
+            <span class="n">numpy_save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kT_history</span><span class="p">,</span> <span class="s2">&quot;kT_hist.npy&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PopulationAnnealing.anneal"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.anneal">[docs]</a>    <span class="k">def</span> <span class="nf">anneal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">)</span>
+        <span class="n">from_beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+        <span class="n">to_beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span><span class="p">]</span>
+        <span class="n">mdbeta</span> <span class="o">=</span> <span class="n">from_beta</span> <span class="o">-</span> <span class="n">to_beta</span>
+        <span class="n">dlogz</span> <span class="o">=</span> <span class="n">mdbeta</span> <span class="o">*</span> <span class="n">energy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dlogz</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dlogz</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logweight</span> <span class="o">+=</span> <span class="n">dlogz</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">kT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="PopulationAnnealing.resample"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.resample">[docs]</a>    <span class="k">def</span> <span class="nf">resample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_resample_old</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__resample_old</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__resample_new</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__resample_old</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">procs</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">logweight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span><span class="p">)),</span> <span class="n">buffer</span><span class="p">)</span>
+        <span class="n">logweights</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">configs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">allgather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logweights</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">logweights</span><span class="p">))</span>  <span class="c1"># avoid overflow</span>
+        <span class="n">acc_weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">accumulate</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="n">acc_weights</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">acc_weights</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energies</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logweight</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="k">def</span> <span class="nf">__resample_new</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">procs</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">logweight</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span><span class="p">)),</span> <span class="n">buffer</span><span class="p">)</span>
+        <span class="n">logweights</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">buffer</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># resample</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logweights</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">logweights</span><span class="p">))</span>  <span class="c1"># avoid overflow</span>
+        <span class="n">resampler</span> <span class="o">=</span> <span class="n">WalkerTable</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">resampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">procs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Bcast</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">mysrc</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">mydst</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">dst</span><span class="p">,</span> <span class="n">src</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">index</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">src</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">:</span>
+                <span class="n">mydst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+        <span class="c1"># check sufficient buffer size of receiver</span>
+        <span class="n">config_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">pickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">))],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">config_size_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">procs</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="n">config_size</span><span class="p">,</span> <span class="n">config_size_all</span><span class="p">)</span>
+
+        <span class="n">send_reqs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">dst</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">dst</span><span class="p">)</span> <span class="k">for</span> <span class="n">dst</span> <span class="ow">in</span> <span class="n">mydst</span>
+        <span class="p">]</span>
+        <span class="n">recv_req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">irecv</span><span class="p">(</span><span class="n">config_size_all</span><span class="p">[</span><span class="n">mysrc</span><span class="p">],</span> <span class="n">source</span><span class="o">=</span><span class="n">mysrc</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">req</span> <span class="ow">in</span> <span class="n">send_reqs</span><span class="p">:</span>
+            <span class="n">req</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="n">newconfig</span> <span class="o">=</span> <span class="n">recv_req</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">newconfig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="n">energies</span><span class="p">[</span><span class="n">mysrc</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logweight</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<div class="viewcode-block" id="PopulationAnnealing.run"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nsteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">resample_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">sample_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">verylargeint</span><span class="p">,</span>
+        <span class="n">print_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">verylargeint</span><span class="p">,</span>
+        <span class="n">nsubsteps_in_step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">observer</span><span class="p">:</span> <span class="n">ObserverBase</span> <span class="o">=</span> <span class="n">ObserverBase</span><span class="p">(),</span>
+        <span class="n">subdirs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_obs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nsteps: int</span>
+<span class="sd">            The number of Monte Carlo steps.</span>
+<span class="sd">        resample_frequency: int</span>
+<span class="sd">            The number of anneals between resampling.</span>
+<span class="sd">        sample_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for observation of physical quantities.</span>
+<span class="sd">        print_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for saving physical quantities.</span>
+<span class="sd">        nsubsteps_in_step: int</span>
+<span class="sd">            The number of Monte Carlo substeps in one MC step.</span>
+<span class="sd">        observer: observer object</span>
+<span class="sd">        subdirs: boolean</span>
+<span class="sd">            If true, working directory for this rank is made</span>
+<span class="sd">        save_obs: boolean</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs_list: list</span>
+<span class="sd">            Observation list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">obsnames</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">names</span>
+
+        <span class="n">kTnum</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">)</span>
+        <span class="n">nba</span> <span class="o">=</span> <span class="n">nsteps</span> <span class="o">//</span> <span class="n">kTnum</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsteps_between_anneal</span> <span class="o">=</span> <span class="n">nba</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">kTnum</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nsteps</span> <span class="o">-</span> <span class="n">nba</span><span class="o">*</span><span class="n">kTnum</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">nsteps_between_anneal</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">nsteps</span> <span class="o">-</span> <span class="n">nba</span><span class="o">*</span><span class="n">kTnum</span><span class="p">):]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isamples_offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">kTnum</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lreload</span><span class="p">:</span>
+            <span class="c1">#self.mycalc.config.shuffle()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">anneal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">test_observe</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">lprint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">obs_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_observe</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">),</span> <span class="n">obs_len</span><span class="p">])</span>
+        <span class="n">nsample</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;obs.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+        <span class="n">write_obs_header</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">,</span> <span class="n">observer</span><span class="p">)</span>
+        <span class="n">numT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">&lt;</span> <span class="n">numT</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">anneal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Anneal from T=</span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">%</span> <span class="n">resample_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">resample</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Resampling finishes&quot;</span><span class="p">)</span>
+            <span class="n">ntrials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">ntrials</span>
+            <span class="n">naccepted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">naccepted</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nsteps_between_anneal</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">MCstep</span><span class="p">(</span><span class="n">nsubsteps_in_step</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">sample_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">obs_step</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">,</span>
+                        <span class="n">output</span><span class="p">,</span>
+                        <span class="n">i</span> <span class="o">%</span> <span class="n">print_frequency</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_node</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">obs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="n">obs_step</span>
+                    <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_step</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">logweight_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logweight</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">kT_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">kT</span><span class="p">)</span>
+                    <span class="n">nsample</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_node</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_obs</span><span class="p">)</span>
+            <span class="n">naccepted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">naccepted</span> <span class="o">-</span> <span class="n">naccepted</span>
+            <span class="n">ntrials</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">ntrials</span> <span class="o">-</span> <span class="n">ntrials</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acceptance_ratios</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">naccepted</span> <span class="o">/</span> <span class="n">ntrials</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;acceptance_ratio.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">T</span><span class="p">,</span> <span class="n">ar</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptance_ratios</span><span class="p">):</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">T</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ar</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">isamples_offsets</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">Tindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">nsample</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">nsample</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">obs_buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">/=</span> <span class="n">nsample</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allreduce</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">obs_buffer</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+            <span class="n">obs_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">obs_info</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">obs_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">)):</span>
+                <span class="n">obs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_info</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">obs_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">postproc</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">obs_list</span>
+
+        <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="PopulationAnnealing.postproc"><a class="viewcode-back" href="../../../abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.postproc">[docs]</a>    <span class="k">def</span> <span class="nf">postproc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">nT</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">)</span>
+        <span class="n">obs_arr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="p">)</span>
+        <span class="n">nobs</span> <span class="o">=</span> <span class="n">obs_arr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">obs1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nT</span><span class="p">,</span> <span class="n">nobs</span><span class="p">))</span>
+        <span class="n">obs2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nT</span><span class="p">,</span> <span class="n">nobs</span><span class="p">))</span>
+        <span class="n">logweights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nT</span><span class="p">)</span>
+        <span class="n">dlogz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dlogz</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">offset</span><span class="p">,</span> <span class="n">offset2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">isamples_offsets</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">isamples_offsets</span><span class="p">[</span><span class="mi">1</span><span class="p">:])):</span>
+            <span class="n">logweights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logweight_history</span><span class="p">[</span><span class="n">offset</span><span class="p">]</span>
+            <span class="n">o_a</span> <span class="o">=</span> <span class="n">obs_arr</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset2</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="n">obs1</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="n">o_a</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">obs2</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+=</span> <span class="p">(</span><span class="n">o_a</span><span class="o">*</span><span class="n">o_a</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nT</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nobs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iobs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nobs</span><span class="p">):</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">iobs</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs1</span><span class="p">[:,</span> <span class="n">iobs</span><span class="p">]</span>
+            <span class="n">obs</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">iobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">obs2</span><span class="p">[:,</span> <span class="n">iobs</span><span class="p">]</span>
+
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">procs</span>
+        <span class="n">buffer_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">nT</span><span class="p">,</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nobs</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">logweights</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dlogz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">obs</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+            <span class="p">),</span>
+            <span class="n">buffer_all</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">logweights_all</span> <span class="o">=</span> <span class="n">buffer_all</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">dlogz_all</span> <span class="o">=</span> <span class="n">buffer_all</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">obs_all</span> <span class="o">=</span> <span class="n">buffer_all</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">2</span><span class="p">:]</span>
+
+        <span class="n">logweights_max</span> <span class="o">=</span> <span class="n">logweights_all</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">logweights_all</span> <span class="o">-</span> <span class="n">logweights_max</span><span class="p">)</span>
+        <span class="n">ow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;ito,it-&gt;ito&quot;</span><span class="p">,</span> <span class="n">obs_all</span><span class="p">,</span> <span class="n">weights</span><span class="p">)</span>
+
+        <span class="n">lzw</span> <span class="o">=</span> <span class="n">logweights_all</span> <span class="o">+</span> <span class="n">dlogz_all</span> <span class="o">-</span> <span class="n">logweights_max</span>
+        <span class="n">lzw_max</span> <span class="o">=</span> <span class="n">lzw</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">zw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lzw</span> <span class="o">-</span> <span class="n">lzw_max</span><span class="p">)</span>
+
+        <span class="c1"># bootstrap</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">nreplicas</span><span class="p">)</span>
+        <span class="n">numer</span> <span class="o">=</span> <span class="n">ow</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">zw_numer</span> <span class="o">=</span> <span class="n">zw</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">denom</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nT</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iobs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nobs</span><span class="p">):</span>
+            <span class="n">o</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">iobs</span><span class="p">]</span> <span class="o">=</span> <span class="n">numer</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">iobs</span><span class="p">]</span> <span class="o">/</span> <span class="n">denom</span><span class="p">[:]</span>
+            <span class="n">o</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">iobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">numer</span><span class="p">[:,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">iobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">denom</span><span class="p">[:]</span>
+            <span class="n">o</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">iobs</span> <span class="o">+</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">o</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">iobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">o</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">iobs</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">o</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nobs</span><span class="p">]</span> <span class="o">=</span> <span class="n">zw_numer</span> <span class="o">/</span> <span class="n">denom</span>
+        <span class="n">o_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">nT</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nobs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">o_all</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">o_mean</span> <span class="o">=</span> <span class="n">o_all</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">o_err</span> <span class="o">=</span> <span class="n">o_all</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">iobs</span><span class="p">,</span> <span class="n">oname</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obsnames</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span> <span class="s2">&quot;# $1: temperature</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $2: &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $3: ERROR of &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $4: &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">^2&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $5: ERROR of &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">^2&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $6: &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">^2&gt; - &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">&gt;^2</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;# $7: ERROR of &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">^2&gt; - &lt;</span><span class="si">{</span><span class="n">oname</span><span class="si">}</span><span class="s2">&gt;^2</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                    <span class="k">for</span> <span class="n">iT</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nT</span><span class="p">):</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="n">iT</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; </span><span class="si">{</span><span class="n">o_mean</span><span class="p">[</span><span class="n">iT</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">*</span><span class="n">iobs</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">o_err</span><span class="p">[</span><span class="n">iT</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="o">*</span><span class="n">iobs</span><span class="o">+</span><span class="n">j</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">dlogZ</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">o_mean</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nobs</span><span class="p">])</span> <span class="o">+</span> <span class="n">lzw_max</span><span class="p">[:]</span>
+            <span class="n">dlogZ_err</span> <span class="o">=</span> <span class="n">o_err</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nobs</span><span class="p">]</span> <span class="o">/</span> <span class="n">o_mean</span><span class="p">[:,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nobs</span><span class="p">]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;logZ.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# $1: temperature</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# $2: logZ</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# $3: ERROR of log(Z)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# $4: log(Z/Z&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# $5: ERROR of log(Z/Z&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">F</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">dF</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;inf 0.0 0.0 0.0 0.0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">dlz</span><span class="p">,</span> <span class="n">dlz_e</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">dlogZ</span><span class="p">,</span> <span class="n">dlogZ_err</span><span class="p">)):</span>
+                    <span class="n">F</span> <span class="o">+=</span> <span class="n">dlz</span>
+                    <span class="n">dF</span> <span class="o">+=</span> <span class="n">dlz_e</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">F</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dF</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dlz</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">dlz_e</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

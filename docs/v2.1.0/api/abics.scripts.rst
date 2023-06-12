@@ -1,0 +1,26 @@
+abics.scripts package
+=====================
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   abics.scripts.abicsRXsepT
+   abics.scripts.abics_post
+   abics.scripts.activelearn
+   abics.scripts.main
+   abics.scripts.main_dft_latgas
+   abics.scripts.main_potts
+   abics.scripts.mocksolver
+   abics.scripts.st2abics_config
+   abics.scripts.train
+
+Module contents
+---------------
+
+.. automodule:: abics.scripts
+   :members:
+   :undoc-members:
+   :show-inheritance:

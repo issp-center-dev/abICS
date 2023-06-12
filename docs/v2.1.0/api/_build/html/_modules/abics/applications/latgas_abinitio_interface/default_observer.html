@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.latgas_abinitio_interface.default_observer &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.applications.latgas_abinitio_interface.default_observer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.applications.latgas_abinitio_interface.default_observer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.structure_matcher</span> <span class="kn">import</span> <span class="n">StructureMatcher</span><span class="p">,</span> <span class="n">FrameworkComparator</span>
+
+<span class="kn">from</span> <span class="nn">abics</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">abics.util</span> <span class="kn">import</span> <span class="n">expand_path</span><span class="p">,</span> <span class="n">expand_cmd_path</span>
+<span class="kn">from</span> <span class="nn">abics.exception</span> <span class="kn">import</span> <span class="n">InputError</span>
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">ObserverBase</span><span class="p">,</span> <span class="n">MCAlgorithm</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.base_solver</span> <span class="kn">import</span> <span class="n">create_solver</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.run_base_mpi</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Runner</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.params</span> <span class="kn">import</span> <span class="n">DFTParams</span>
+
+
+<div class="viewcode-block" id="similarity"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.similarity">[docs]</a><span class="k">def</span> <span class="nf">similarity</span><span class="p">(</span>
+    <span class="n">structure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span>
+    <span class="n">reference</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span>
+    <span class="n">sp</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">matcher</span><span class="p">:</span> <span class="n">StructureMatcher</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Arguments</span>
+<span class="sd">    =========</span>
+
+<span class="sd">    structure: Structure</span>
+<span class="sd">    references: dict[str, Structure]</span>
+<span class="sd">        Structure for each element (key) in reference structure</span>
+<span class="sd">    matcher: StructureMatcher</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">matched</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">nsites</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">sites</span> <span class="o">=</span> <span class="n">matcher</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">reference</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;structure does not match with reference structure&quot;</span><span class="p">)</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">species</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sites</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">sp</span><span class="p">:</span>
+            <span class="n">matched</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">nsites</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sites</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">matched</span> <span class="o">/</span> <span class="n">nsites</span></div>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DefaultObserver"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver">[docs]</a><span class="k">class</span> <span class="nc">DefaultObserver</span><span class="p">(</span><span class="n">ObserverBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Default observer.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    minE : float</span>
+<span class="sd">        Minimum of energy</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">references</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Structure</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">reference_species</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">calculators</span><span class="p">:</span> <span class="nb">list</span>
+
+<div class="viewcode-block" id="DefaultObserver.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="p">{}):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        comm: mpi4py.MPI.Intracomm</span>
+<span class="sd">            MPI communicator</span>
+<span class="sd">        Lreload: bool</span>
+<span class="sd">            Reload or not</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minE</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">myrank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myrank</span><span class="p">),</span> <span class="s2">&quot;minEfi.dat&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">minE</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">myrank</span><span class="p">),</span> <span class="s2">&quot;obs.dat&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;energy_internal&quot;</span><span class="p">,</span> <span class="s2">&quot;energy&quot;</span><span class="p">]</span>
+
+        <span class="n">params_solvers</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;solver&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculators</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">params_solver</span> <span class="ow">in</span> <span class="n">params_solvers</span><span class="p">:</span>
+            <span class="n">dft_params</span> <span class="o">=</span> <span class="n">DFTParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_solver</span><span class="p">)</span>
+            <span class="n">solver</span> <span class="o">=</span> <span class="n">create_solver</span><span class="p">(</span><span class="n">params_solver</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">dft_params</span><span class="p">)</span>
+            <span class="n">obsname</span> <span class="o">=</span> <span class="n">params_solver</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">obsname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Duplicated observer name: </span><span class="si">{</span><span class="n">obsname</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">nrunners</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dft_params</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span>
+            <span class="n">perturbs</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">nrunners</span>
+            <span class="n">perturbs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">dft_params</span><span class="o">.</span><span class="n">perturb</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obsname</span><span class="p">)</span>
+            <span class="n">runners</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Runner</span><span class="p">(</span>
+                    <span class="n">base_input_dir</span><span class="o">=</span><span class="n">bid</span><span class="p">,</span>
+                    <span class="n">Solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+                    <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span>
+                    <span class="n">perturb</span><span class="o">=</span><span class="n">perturb</span><span class="p">,</span>
+                    <span class="n">nthreads_per_proc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                    <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">dft_params</span><span class="o">.</span><span class="n">solver_run_scheme</span><span class="p">,</span>
+                    <span class="n">use_tmpdir</span><span class="o">=</span><span class="n">dft_params</span><span class="o">.</span><span class="n">use_tmpdir</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">perturb</span><span class="p">,</span> <span class="n">bid</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perturbs</span><span class="p">,</span> <span class="n">dft_params</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">calculators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">obsname</span><span class="p">,</span> <span class="s2">&quot;runners&quot;</span><span class="p">:</span> <span class="n">runners</span><span class="p">}</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;similarity&quot;</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">params_similarity</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;similarity&quot;</span><span class="p">]</span>
+            <span class="n">reference</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">params_similarity</span><span class="p">[</span><span class="s2">&quot;reference_structure&quot;</span><span class="p">])</span>
+            <span class="n">ignored_species</span> <span class="o">=</span> <span class="n">params_similarity</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ignored_species&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ignored_species</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">ignored_species</span> <span class="o">=</span> <span class="p">[</span><span class="n">ignored_species</span><span class="p">]</span>
+            <span class="n">reference</span><span class="o">.</span><span class="n">remove_species</span><span class="p">(</span><span class="n">ignored_species</span><span class="p">)</span>
+            <span class="n">sp_set</span> <span class="o">=</span> <span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">species</span><span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">references</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reference_species</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">sp_set</span><span class="p">:</span>
+                <span class="n">bs</span> <span class="o">=</span> <span class="n">reference</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">bs</span><span class="o">.</span><span class="n">remove_species</span><span class="p">(</span><span class="n">sp_set</span> <span class="o">-</span> <span class="p">{</span><span class="n">sp</span><span class="p">})</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reference_species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">references</span><span class="p">[</span><span class="n">sp</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;similarity_</span><span class="si">{</span><span class="n">sp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span> <span class="o">=</span> <span class="n">StructureMatcher</span><span class="p">(</span>
+                <span class="n">ltol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                <span class="n">primitive_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">allow_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">comparator</span><span class="o">=</span><span class="n">FrameworkComparator</span><span class="p">(),</span>
+                <span class="n">ignored_species</span><span class="o">=</span><span class="n">ignored_species</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">references</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reference_species</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="DefaultObserver.logfunc"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.logfunc">[docs]</a>    <span class="k">def</span> <span class="nf">logfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="n">MCAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="k">assert</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">structure</span><span class="p">:</span> <span class="n">Structure</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">structure_norel</span>
+
+        <span class="n">energy_internal</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">internal_energy</span><span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">energy_internal</span><span class="p">,</span> <span class="n">energy</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minE</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">minE</span> <span class="o">=</span> <span class="n">energy</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;minEfi.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minE</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;minE.vasp&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">calculator</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculators</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">calculator</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+            <span class="n">runners</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Runner</span><span class="p">]</span> <span class="o">=</span> <span class="n">calculator</span><span class="p">[</span><span class="s2">&quot;runners&quot;</span><span class="p">]</span>
+            <span class="n">new_st</span> <span class="o">=</span> <span class="n">structure</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">runner</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">runners</span><span class="p">):</span>
+                <span class="n">output_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="sa">f</span><span class="s2">&quot;output</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">value</span><span class="p">,</span> <span class="n">new_st</span> <span class="o">=</span> <span class="n">runner</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">new_st</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+            <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">references</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reference_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_species</span><span class="p">:</span>
+                <span class="n">ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">references</span><span class="p">[</span><span class="n">sp</span><span class="p">]</span>
+                <span class="n">sim</span> <span class="o">=</span> <span class="n">similarity</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">sp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sim</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">result</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DefaultObserver.writefile"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.writefile">[docs]</a>    <span class="k">def</span> <span class="nf">writefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="n">MCAlgorithm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+            <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;structure.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.vasp&quot;</span>
+        <span class="p">)</span>
+        <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">structure_norel</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+            <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;structure_norel.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.vasp&quot;</span>
+        <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="EnsembleErrorObserver"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleErrorObserver">[docs]</a><span class="k">class</span> <span class="nc">EnsembleErrorObserver</span><span class="p">(</span><span class="n">DefaultObserver</span><span class="p">):</span>
+<div class="viewcode-block" id="EnsembleErrorObserver.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleErrorObserver.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">energy_calculators</span><span class="p">,</span> <span class="n">Lreload</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        comm: mpi4py.MPI.Intracomm</span>
+<span class="sd">            MPI communicator</span>
+<span class="sd">        energy_calculators: abics.applications.latgas_abinitio_interface.run_base_mpi.runner</span>
+<span class="sd">            setup of the energy calculator</span>
+<span class="sd">        Lreload: bool</span>
+<span class="sd">            Reload or not</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculators</span> <span class="o">=</span> <span class="n">energy_calculators</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span></div>
+
+<div class="viewcode-block" id="EnsembleErrorObserver.logfunc"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleErrorObserver.logfunc">[docs]</a>    <span class="k">def</span> <span class="nf">logfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="n">MCAlgorithm</span><span class="p">):</span>
+        <span class="n">energy_internal</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">internal_energy</span><span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">minE</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">energy_internal</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">minE</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">minE</span> <span class="o">=</span> <span class="n">energy_internal</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;minEfi.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minE</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;POSCAR&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;minE.vasp&quot;</span><span class="p">)</span>
+
+        <span class="n">energies</span> <span class="o">=</span> <span class="p">[</span><span class="n">energy_internal</span><span class="p">]</span>
+        <span class="n">npar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">npar</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">npar</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculators</span><span class="p">)</span>
+            <span class="n">myrank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+            <span class="n">energy</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculators</span><span class="p">[</span><span class="n">myrank</span><span class="p">]</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;ensemble</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">myrank</span><span class="p">)),</span>
+            <span class="p">)</span>
+            <span class="n">energies_tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">allgather</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">energies_tmp</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energies_tmp</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">calculator</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calculators</span><span class="p">):</span>
+                <span class="n">energy</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">calculator</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                    <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;ensemble</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span>
+                <span class="p">)</span>
+                <span class="n">energies_tmp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+            <span class="n">std</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">energies_tmp</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">energies</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">energies_tmp</span><span class="p">)</span>
+        <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">energies</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="EnsembleParams"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleParams">[docs]</a><span class="k">class</span> <span class="nc">EnsembleParams</span><span class="p">:</span>
+<div class="viewcode-block" id="EnsembleParams.from_dict"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read information from dictionary</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            Dictionary</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        params: EnsembleParams object</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">base_input_dirs</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;base_input_dirs&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;./baseinput&quot;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_input_dirs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">base_input_dirs</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_input_dirs</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">base_input_dirs</span> <span class="o">=</span> <span class="n">base_input_dirs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+            <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">expand_path</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()),</span> <span class="n">base_input_dirs</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+        <span class="c1">#params.path = expand_path(d[&quot;path&quot;], os.getcwd())</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">expand_cmd_path</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;path&quot;</span><span class="p">])</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">perturb</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;perturb&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">solver_run_scheme</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;run_scheme&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">ignore_species</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ignore_species&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">constraint_module</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;constraint_module&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">d</span>
+
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="EnsembleParams.from_toml"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read information from toml file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        f: str</span>
+<span class="sd">            Name of input toml File</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        oDFTParams: DFTParams object</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">toml</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;ensemble&quot;</span><span class="p">])</span></div></div>
+
+
+<span class="c1"># For backward compatibility</span>
+<span class="k">if</span> <span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+    <span class="n">default_observer</span> <span class="o">=</span> <span class="n">DefaultObserver</span>
+    <span class="n">ensemble_error_observer</span> <span class="o">=</span> <span class="n">EnsembleErrorObserver</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

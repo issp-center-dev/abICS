@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>QuantumESPRESSO を用いた例 &#8212; abICS 2.1.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="quantumespresso">
+<h1>QuantumESPRESSO を用いた例<a class="headerlink" href="#quantumespresso" title="この見出しへのパーマリンク">¶</a></h1>
+<section id="abics">
+<h2>abICS の入力ファイルの準備<a class="headerlink" href="#abics" title="この見出しへのパーマリンク">¶</a></h2>
+<p>abICS の入力ファイルは <code class="docutils literal notranslate"><span class="pre">input_qe.toml</span></code> です。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
+nreplicas = 2
+nprocs_per_replica = 1
+
+kTstart = 1000.0
+kTend = 1200.0
+
+nsteps = 5  # Number of steps for sampling
+RXtrial_frequency = 1
+sample_frequency = 1
+print_frequency = 1
+</pre></div>
+</div>
+<p>レプリカ交換モンテカルロ法に関する情報です。
+この例では簡単のため、レプリカ数を2つに設定し、全ステップ数は 5 にしてあります。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling.solver]
+type = &#39;qe&#39;
+path= &#39;./pw.x&#39;
+base_input_dir = &#39;./baseinput&#39;
+perturb = 0.0
+run_scheme = &#39;mpi_spawn&#39;
+</pre></div>
+</div>
+<p>第一原理エネルギー計算を行うソルバーの情報です。
+この例では QuantumESPRESSO (QE) を用いるために <code class="docutils literal notranslate"><span class="pre">type</span></code> を <code class="docutils literal notranslate"><span class="pre">'qe'</span></code> にしています。
+QE のエネルギー計算ソルバー <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> が、実行箇所にあることを <code class="docutils literal notranslate"><span class="pre">path</span></code> で指定しています（シンボリックリンクでも構いません）。
+ソルバーごとに固有の入力パラメータファイルが収められたディレクトリとして、 <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> を用いて <code class="docutils literal notranslate"><span class="pre">./baseinput</span></code> を指定しています。
+<code class="docutils literal notranslate"><span class="pre">perturb</span></code> は構造最適化のために原子位置を乱数でずらすパラメータですが、今回は構造最適化を行わないために 0 にしてあります(このパラメータは緩和過程で、高い対称性に起因した鞍点にトラップされてしまうのを避ける際に有用です)。
+abICS は <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> を <code class="docutils literal notranslate"><span class="pre">MPI_Comm_spawn</span></code> で起動するため、 <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> として <code class="docutils literal notranslate"><span class="pre">mpi_spawn</span></code> を与えます。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[config]</span></code> は原子位置を指定するセクションです。
+<code class="docutils literal notranslate"><span class="pre">unitcell</span></code> および <code class="docutils literal notranslate"><span class="pre">supercell</span></code> でシミュレーションする空間を（オングストローム単位で）指定します。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+     [0.237399980, 0.237399980, 0.237399980],
+     [0.762599945, 0.762599945, 0.762599945],
+     [0.512599945, 0.012600004, 0.737399936],
+     [0.487399966, 0.987399936, 0.262599975],
+     [0.012600004, 0.737399936, 0.512599945],
+     [0.987399936, 0.262599975, 0.487399966],
+     [0.737399936, 0.512599945, 0.012600004],
+     [0.262599975, 0.487399966, 0.987399936],
+     [0.987399936, 0.487399966, 0.262599975],
+     [0.012600004, 0.512599945, 0.737399936],
+     [0.487399966, 0.262599975, 0.987399936],
+     [0.512599945, 0.737399936, 0.012600004],
+     [0.262599975, 0.987399936, 0.487399966],
+     [0.737399936, 0.012600004, 0.512599945],
+     [0.237399980, 0.737399936, 0.737399936],
+     [0.762599945, 0.262599975, 0.262599975],
+     [0.512599945, 0.512599945, 0.237399980],
+     [0.487399966, 0.487399966, 0.762599945],
+     [0.012600004, 0.237399980, 0.012600004],
+     [0.987399936, 0.762599945, 0.987399936],
+     [0.987399936, 0.987399936, 0.762599945],
+     [0.012600004, 0.012600004, 0.237399980],
+     [0.487399966, 0.762599945, 0.487399966],
+     [0.512599945, 0.237399980, 0.512599945],
+     [0.737399936, 0.237399980, 0.737399936],
+     [0.262599975, 0.762599945, 0.262599975],
+     [0.237399980, 0.512599945, 0.512599945],
+     [0.762599945, 0.487399966, 0.487399966],
+     [0.762599945, 0.987399936, 0.987399936],
+     [0.237399980, 0.012600004, 0.012600004],
+     [0.737399936, 0.737399936, 0.237399980],
+     [0.262599975, 0.262599975, 0.762599945],
+     ]
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> は、モンテカルロ計算で動かさない原子を指定するセクションです。
+<code class="docutils literal notranslate"><span class="pre">type</span></code> で原子名を指定し、 <code class="docutils literal notranslate"><span class="pre">coords</span></code> でその原子が位置する分率座標を指定します。
+<code class="docutils literal notranslate"><span class="pre">coords</span></code> ではリストのリストだけではなく、空白区切り3列で、原子数だけ行があるような数値行列を表す文字列を与えることもできます。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.defect_structure]]
+coords = [
+     [0.000000000, 0.000000000, 0.000000000],
+     [0.749999940, 0.249999985, 0.499999970],
+     [0.249999985, 0.749999940, 0.499999970],
+     [0.249999985, 0.499999970, 0.749999940],
+     [0.749999940, 0.499999970, 0.249999985],
+     [0.499999970, 0.749999940, 0.249999985],
+     [0.499999970, 0.249999985, 0.749999940],
+     [0.000000000, 0.499999970, 0.499999970],
+     [0.749999940, 0.749999940, 0.000000000],
+     [0.249999985, 0.249999985, 0.000000000],
+     [0.249999985, 0.000000000, 0.249999985],
+     [0.749999940, 0.000000000, 0.749999940],
+     [0.499999970, 0.000000000, 0.499999970],
+     [0.000000000, 0.749999940, 0.749999940],
+     [0.000000000, 0.249999985, 0.249999985],
+     [0.499999970, 0.499999970, 0.000000000],
+     [0.374999970, 0.374999970, 0.374999970],
+     [0.624999940, 0.624999940, 0.624999940],
+     [0.374999970, 0.874999940, 0.874999940],
+     [0.624999940, 0.124999993, 0.124999993],
+     [0.874999940, 0.874999940, 0.374999970],
+     [0.124999993, 0.124999993, 0.624999940],
+     [0.874999940, 0.374999970, 0.874999940],
+     [0.124999993, 0.624999940, 0.124999993],
+     ]
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> はモンテカルロ計算で動かす原子の位置を指定するセクションです。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 16
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 8
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure.groups]]</span></code> はモンテカルロ計算で動かす原子の名前と数を指定するセクションです。
+<code class="docutils literal notranslate"><span class="pre">Al</span></code> 原子 16 個と、 <code class="docutils literal notranslate"><span class="pre">Mg</span></code> 原子 8 個を <code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> で指定した座標中に動かします。</p>
+</section>
+<section id="qe">
+<h2>QE の入力ファイルの準備<a class="headerlink" href="#qe" title="この見出しへのパーマリンク">¶</a></h2>
+<p>abICS では、内部で保持した原子座標をもとに QE の入力ファイルを生成しますが、原子座標以外の情報、例えば擬ポテンシャルの情報は、ユーザが与える必要があります。
+QE の場合は、この情報は <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定したディレクトリの中に <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> という名前で、 <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> で使うファイルをそのまま置きます。
+このファイルをもとに、ユニットセルや原子座標などを書き換えた入力ファイルが自動生成されます。</p>
+<ul class="simple">
+<li><p>注意点</p>
+<ul>
+<li><p>擬ポテンシャルディレクトリ <code class="docutils literal notranslate"><span class="pre">pseudo_dir</span></code> は絶対パスで渡す必要があります。 行頭の <code class="docutils literal notranslate"><span class="pre">~</span></code> はユーザのホームディレクトリに展開されます。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculation</span></code> はSCF 計算 <code class="docutils literal notranslate"><span class="pre">scf</span></code> と構造最適化 <code class="docutils literal notranslate"><span class="pre">relax</span></code> のみが利用可能です。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">disk_io</span></code> を <code class="docutils literal notranslate"><span class="pre">none</span></code> にすると計算が進まなくなります。 <code class="docutils literal notranslate"><span class="pre">low</span></code> にしてください。</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id1">
+<h2>実行・解析<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h2>
+<p>MPI 実行におけるプロセス数やオプションの設定については <a class="reference internal" href="../how_to_use/index.html#sec-basic-usage"><span class="std std-ref">基本的な使用方法</span></a> を参照してください。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 abics_sampling input_qe.toml
+</pre></div>
+</div>
+<p>abics 計算終了後、反転度（もともと Mg 原子があった位置にAl 原子が占めている割合）を計算します。
+そのために <code class="docutils literal notranslate"><span class="pre">examples/spinel</span></code> ディレクトリにある <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> と <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトを用います。</p>
+<p>まず、 <code class="docutils literal notranslate"><span class="pre">separateT.py</span></code> を使い、レプリカごとに分かれていた構造情報を温度ごとにまとめます:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 python3 ./separateT.py input_qe.toml
+</pre></div>
+</div>
+<p>結果が <code class="docutils literal notranslate"><span class="pre">Tseparate</span></code> ディレクトリに格納されます。
+このディレクトリが既にあった場合は、 <code class="docutils literal notranslate"><span class="pre">Tseparate.DATE</span></code> というディレクトリに退避されます(<code class="docutils literal notranslate"><span class="pre">DATE</span></code> は現在時刻)。</p>
+<p>つぎに、 <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトで、反転度を計算します:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 python3 ./calc_DOI.py input_qe.toml
+</pre></div>
+</div>
+<p>結果が <code class="docutils literal notranslate"><span class="pre">Tseparate/DOI_T.dat</span></code> に出力されます。</p>
+<a class="reference internal image-reference" href="../_images/doi_2.png"><img alt="../_images/doi_2.png" class="align-center" src="../_images/doi_2.png" style="width: 400px;" /></a>
+<p>レプリカ数を増やすと様々な温度で計算ができます。
+また、ステップ数を増やすことでよりきれいな結果を得られます。
+モンテカルロ平均で最初に捨てるサンプル数は <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトにある <code class="docutils literal notranslate"><span class="pre">throwout</span></code> の値で指定できます。
+実際の計算ではさらに、DFT 計算の前に構造最適化をする必要があります。
+QE の場合には <code class="docutils literal notranslate"><span class="pre">baseinput/scf.in</span></code> の <code class="docutils literal notranslate"><span class="pre">CALCULATION</span></code> パラメータを <code class="docutils literal notranslate"><span class="pre">relax</span></code> にしてください。
+例えば、17 レプリカ、1000 ステップで、 <code class="docutils literal notranslate"><span class="pre">perturb</span> <span class="pre">=</span> <span class="pre">0.1</span></code> のもとで計算をすると</p>
+<a class="reference internal image-reference" href="../_images/doi_qe.png"><img alt="../_images/doi_qe.png" class="align-center" src="../_images/doi_qe.png" style="width: 400px;" /></a>
+<p>といった結果が得られます。
+温度を上げるほど反転度が上がっていくのがわかります。</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/tutorial/qe.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

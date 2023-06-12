@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>5.6. [config] section &#8212; abICS 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="5.7. [log] section" href="parameter_log.html" />
+    <link rel="prev" title="5.5. [observer] section" href="parameter_observer.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="config-section">
+<span id="id1"></span><h1><span class="section-number">5.6. </span>[config] section<a class="headerlink" href="#config-section" title="Permalink to this heading">¶</a></h1>
+<p>This section specifies configurations such as alloy coordination.
+An example is shown as follows:</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+
+[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+    [0.237399980, 0.237399980, 0.237399980],
+    [0.762599945, 0.762599945, 0.762599945],
+    ...
+    [0.262599975, 0.262599975, 0.762599945],
+    ]
+
+[[config.defect_structure]]
+coords = [
+    [0.000000000, 0.000000000, 0.000000000],
+    [0.749999940, 0.249999985, 0.499999970],
+    ...
+    [0.124999993, 0.624999940, 0.124999993],
+    ]
+[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 16
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+num = 8
+</pre></div>
+</div>
+</div></blockquote>
+<section id="input-format">
+<h2><span class="section-number">5.6.1. </span>Input Format<a class="headerlink" href="#input-format" title="Permalink to this heading">¶</a></h2>
+<p>Keywords and their values are specified by a keyword and its value in the form <code class="docutils literal notranslate"><span class="pre">keyword</span> <span class="pre">=</span> <span class="pre">value</span></code>.
+Comments can also be entered by adding # (Subsequent characters are ignored).</p>
+</section>
+<section id="key-words">
+<h2><span class="section-number">5.6.2. </span>Key words<a class="headerlink" href="#key-words" title="Permalink to this heading">¶</a></h2>
+<section id="in-the-case-of-solver-type-potts">
+<h3>In the case of <code class="docutils literal notranslate"><span class="pre">solver.type</span> <span class="pre">!=</span> <span class="pre">&quot;potts&quot;</span></code><a class="headerlink" href="#in-the-case-of-solver-type-potts" title="Permalink to this heading">¶</a></h3>
+<ul>
+<li><p>Specify lattice</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">unitcell</span></code></p>
+<p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>
+Lattice vector <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> by
+the list format [ <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] .</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">supercell</span></code></p>
+<p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>
+The size of super lattice by the list format[ <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> ].</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_structure</span></code></p>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>
+The name of structure file (e.g., POSCAR, cif) to be used as the initial structure.
+If not specified, the initial structure is generated randomly based on <code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> and <code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code>.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint_module</span></code></p>
+<p><strong>Format :</strong> bool (“true” or “false”)</p>
+<p><strong>Description :</strong>
+Whether to apply a constraint condition to configurations. The default value is <code class="docutils literal notranslate"><span class="pre">false</span></code>.</p>
+<p>When it is set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the constraint condition is given as a user-defined function with the name <code class="docutils literal notranslate"><span class="pre">constraint_func</span></code> in <code class="docutils literal notranslate"><span class="pre">constraint_module.py</span></code>. This function takes structure data of pymatgen.core.Structure type, and returns a boolean value. The module may also contain a function named <code class="docutils literal notranslate"><span class="pre">constraint_energy</span></code> that evaluates energy from the structure data in the <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> operation.</p>
+</li>
+</ul>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint</span></code></p>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>
+The name of the user-defined function used for a constraint condition to configurations. If it is not specified, no constraint is applied. The default is unspecified.</p>
+<p>The constraint condition is given as a function that takes structure data of pymatgen.core.Structure type and returns a boolean value. The parameter <code class="docutils literal notranslate"><span class="pre">constraint</span></code> specifies the name of the function in the form <code class="docutils literal notranslate"><span class="pre">&quot;module_name.function_name&quot;</span></code>.
+When <code class="docutils literal notranslate"><span class="pre">constraint_module</span></code> is also set to <code class="docutils literal notranslate"><span class="pre">true</span></code>, the value of <code class="docutils literal notranslate"><span class="pre">constraint</span></code> is adopted for the function name.</p>
+</li>
+</ul>
+</div></blockquote>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> section</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">coords</span></code> specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
+If there are multiple atomic species, specify multiple [[config.base_structure]] sections.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>  Atomic specie.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
+<p><strong>Format :</strong> list of lists or str</p>
+<p><strong>Description :</strong>
+Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> section</p>
+<blockquote>
+<div><p>This sections specifies the lattice coordinates (coords) and atoms (or atom groups) (groups) that can reside on those lattice sites. Monte Carlo sampling is performed on the lattice specified in this section. In Ver. 1.0, conversion tools from POSCAR and cif will be available.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
+<p><strong>Format :</strong> list of lists or str</p>
+<p><strong>Description :</strong>  The coordinates of the lattice sites where atoms reside.
+A list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.</p>
+</li>
+<li><p>[[config.defect_structure.groups]] section</p>
+<p>The atom group information to be updated by Monte Carlo.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
+<p><strong>Format :</strong> str</p>
+<p><strong>Description :</strong>
+The name of atomic group.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
+<p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>
+The atomic species belonging to the atom group.
+The default value is a list containing only one specified by <code class="docutils literal notranslate"><span class="pre">name</span></code>.
+A vacancy can be represented by an empty list <code class="docutils literal notranslate"><span class="pre">[]</span></code>.</p>
+</li>
+</ul>
+<ul id="coords-orr">
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
+<p><strong>Format :</strong> list of lists of lists or str</p>
+<p><strong>Description :</strong>  The coordinates of each atom in the atom group in each direction of local orientation.
+<em>N</em> (number of atoms) three-element lists, each of which is a list of three elements representing
+three-dimensional coordinates, is specified as a three-fold list, arranged by orientation. For example,
+if there are two atoms in the atom group and there are three different orientations, x,y,z, then <code class="docutils literal notranslate"><span class="pre">coords</span></code>
+can be specified as:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>coords = [
+[ # dir-1
+[0.0, 0.0, 0.0], [0.5, 0.0, 0.0]
+],
+[ # dir-2
+[0.0, 0.0, 0.0], [0.0, 0.5, 0.0]
+],
+[ # dir-3
+[0.0, 0.0, 0.0], [0.0, 0.0, 0.5]
+],
+]
+</pre></div>
+</div>
+<p>The default value is  <code class="docutils literal notranslate"><span class="pre">[[0.0,</span> <span class="pre">0.0,</span> <span class="pre">0.0]]</span></code>, so this keyword can be omitted if there is only one atom in the atom group.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relaxation</span></code></p>
+<p><strong>Format :</strong> list of lists or str</p>
+<p><strong>Description :</strong>  Whether to optimize structure (coordinates) or not for each atom and dimension.
+A list of N elements (number of atoms) with 3 booleans (“true” or “false”), or a string of “true” or “false” arranged in N rows and 3 columns.
+Default is <code class="docutils literal notranslate"><span class="pre">[&quot;true&quot;,</span> <span class="pre">&quot;true&quot;,</span> <span class="pre">&quot;true&quot;]</span></code> for all the atoms.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">magnetization</span></code></p>
+<p><strong>Format :</strong> list</p>
+<p><strong>Description :</strong>  Magnetization (the difference between the number of up and down electrons) for each atom.
+Default is 0.0 for all the atoms.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num</span></code></p>
+<p><strong>Format :</strong> int</p>
+<p><strong>Description :</strong>
+The number of atom groups of the type specified in this section.</p>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.chemical_potential]]</span></code> section</p>
+<p>This section specifies the chemical potentials of the atoms and atom groups for the grand canonical sampling.</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> str, or list of strs</p>
+<p><strong>Description :</strong>
+Name of atom or atom group, or a list of names of atom groups when a set of atom groups are considered simultaneously.</p>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mu</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> float</p>
+<p><strong>Description :</strong>
+The value of chemical potential that corresponds to <code class="docutils literal notranslate"><span class="pre">species</span></code>.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.grandcanonical_move]]</span></code> section</p>
+<p>This section specifies how the atoms or atom groups are added/removed.
+It also describes how atoms of one type are replaced by those of another type
+when such processes are considered.</p>
+<ul>
+<li><p>add/remove atoms or atom groups:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> str, or list of strs</p>
+<p><strong>Description :</strong>
+Name of atom or atom group, or a list of names of atom groups when a set of atom groups are considered simultaneously.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>replace atoms:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> str, or list of strs</p>
+<p><strong>Description :</strong>
+Names of atoms or atom groups to be replaced are specified in the form of <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">A</span> <span class="pre">to</span> <span class="pre">B</span></code>. It also implies the reverse process <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">B</span> <span class="pre">to</span> <span class="pre">A</span></code>. The number of atoms of <code class="docutils literal notranslate"><span class="pre">from</span></code> and <code class="docutils literal notranslate"><span class="pre">to</span></code> must be equal, and the atoms are assumed to belong to the same defect sublattice.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p>If <code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> is not specified, the addition/removal of <code class="docutils literal notranslate"><span class="pre">species</span></code> of <code class="docutils literal notranslate"><span class="pre">chemical_potential</span></code> are implicitly introduced. Otherwise, only the specified processes may occur.</p>
+</li>
+</ul>
+</section>
+<section id="id2">
+<h3>In the case of <code class="docutils literal notranslate"><span class="pre">solver.type</span> <span class="pre">=</span> <span class="pre">&quot;potts&quot;</span></code><a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Q</span></code></p>
+<p><strong>Format :</strong> int</p>
+<p><strong>Description :</strong> The local degree of freedom of a spin.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">L</span></code></p>
+<p><strong>Format :</strong> List of integers</p>
+<p><strong>Description :</strong> Size of a hyper cubic lattice.</p>
+</li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. About abICS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. Tutorial</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. Input Files Format</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parameter_sampling.html">5.1. [sampling] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_mlref.html">5.2. [mlref] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_solver.html">5.3. [sampling.solver], [mlref.solver] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_train.html">5.4. [train] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_observer.html">5.5. [observer] section</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.6. [config] section</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_log.html">5.7. [log] section</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. Output Files Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. Miscellaneous tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. Algorithm</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. Contacts</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html"><span class="section-number">5. </span>Input Files Format</a><ul>
+      <li>Previous: <a href="parameter_observer.html" title="previous chapter"><span class="section-number">5.5. </span>[observer] section</a></li>
+      <li>Next: <a href="parameter_log.html" title="next chapter"><span class="section-number">5.7. </span>[log] section</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/inputfiles/parameter_config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

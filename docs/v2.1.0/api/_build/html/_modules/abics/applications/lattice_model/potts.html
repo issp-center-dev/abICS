@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.lattice_model.potts &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.applications.lattice_model.potts</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.applications.lattice_model.potts</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.random</span>
+
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ObserverBase</span><span class="p">,</span> <span class="n">MCAlgorithm</span>
+
+
+<div class="viewcode-block" id="Configuration"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration">[docs]</a><span class="k">class</span> <span class="nc">Configuration</span><span class="p">:</span>
+    <span class="n">Q</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">spins</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">N</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">N_zero</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">Ls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">Q</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Ls</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Configuration.shuffle"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration.shuffle">[docs]</a>    <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spins</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calc_energy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calc_mag</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Configuration.calc_energy"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration.calc_energy">[docs]</a>    <span class="k">def</span> <span class="nf">calc_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">shape</span><span class="p">):</span>
+            <span class="n">spin</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">index</span><span class="p">)]</span>
+            <span class="n">npara</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neighbor_spins</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="n">spin</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">-=</span> <span class="n">npara</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">*=</span> <span class="mf">0.5</span>  <span class="c1"># due to double-counting</span></div>
+
+<div class="viewcode-block" id="Configuration.calc_mag"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration.calc_mag">[docs]</a>    <span class="k">def</span> <span class="nf">calc_mag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N_zero</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Configuration.flip_spin"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration.flip_spin">[docs]</a>    <span class="k">def</span> <span class="nf">flip_spin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newspin</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">denergy</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">denergy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">denergy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diff_energy</span><span class="p">(</span><span class="n">newspin</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">denergy</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N_zero</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">newspin</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N_zero</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Configuration.diff_energy"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration.diff_energy">[docs]</a>    <span class="k">def</span> <span class="nf">diff_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newspin</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="n">oldspin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">index</span><span class="p">)]</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbor_spins</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+        <span class="n">npara_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">neighbors</span> <span class="o">==</span> <span class="n">oldspin</span><span class="p">)</span>
+        <span class="n">npara_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">neighbors</span> <span class="o">==</span> <span class="n">newspin</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">npara_old</span> <span class="o">-</span> <span class="n">npara_new</span></div>
+
+<div class="viewcode-block" id="Configuration.neighbor_spins"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Configuration.neighbor_spins">[docs]</a>    <span class="k">def</span> <span class="nf">neighbor_spins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">ndim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">index_neighbor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">ndim</span><span class="p">):</span>
+            <span class="n">index_neighbor</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+            <span class="n">ret</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">index_neighbor</span><span class="p">)]</span>
+            <span class="n">index_neighbor</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">d</span><span class="p">])</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span>
+                <span class="n">d</span>
+            <span class="p">]</span>
+            <span class="n">ret</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">d</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">index_neighbor</span><span class="p">)]</span>
+            <span class="n">index_neighbor</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="n">d</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ret</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_zero</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span></div>
+
+
+<div class="viewcode-block" id="DConfig"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.DConfig">[docs]</a><span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">DConfig</span><span class="p">:</span>
+    <span class="n">newspin</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">index</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Observer"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Observer">[docs]</a><span class="k">class</span> <span class="nc">Observer</span><span class="p">(</span><span class="n">ObserverBase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span> <span class="o">|</span> <span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;magnetization&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Observer.logfunc"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Observer.logfunc">[docs]</a>    <span class="k">def</span> <span class="nf">logfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="n">MCAlgorithm</span><span class="p">):</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Configuration</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">spins</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">spins</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">spins</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">N_nonzero</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">spins</span><span class="p">)</span>
+        <span class="n">N_zero</span> <span class="o">=</span> <span class="n">N</span> <span class="o">-</span> <span class="n">N_nonzero</span>
+        <span class="n">mag</span> <span class="o">=</span> <span class="n">N_zero</span> <span class="o">/</span> <span class="n">N</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">Q</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span> <span class="n">mag</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Potts"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Potts">[docs]</a><span class="k">class</span> <span class="nc">Potts</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<div class="viewcode-block" id="Potts.energy"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Potts.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Configuration</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">config</span><span class="o">.</span><span class="n">energy</span></div>
+
+<div class="viewcode-block" id="Potts.trialstep"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Potts.trialstep">[docs]</a>    <span class="k">def</span> <span class="nf">trialstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Configuration</span><span class="p">,</span> <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">DConfig</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="n">index</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">spins</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="n">newspin</span> <span class="o">=</span> <span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">spins</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">Q</span><span class="p">))</span> <span class="o">%</span> <span class="n">config</span><span class="o">.</span><span class="n">Q</span>
+        <span class="n">denergy</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">diff_energy</span><span class="p">(</span><span class="n">newspin</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">DConfig</span><span class="p">(</span><span class="n">newspin</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="n">denergy</span></div>
+
+<div class="viewcode-block" id="Potts.newconfig"><a class="viewcode-back" href="../../../../abics.applications.lattice_model.potts.html#abics.applications.lattice_model.potts.Potts.newconfig">[docs]</a>    <span class="k">def</span> <span class="nf">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Configuration</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">:</span> <span class="n">DConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Configuration</span><span class="p">:</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">flip_spin</span><span class="p">(</span><span class="n">dconfig</span><span class="o">.</span><span class="n">newspin</span><span class="p">,</span> <span class="n">dconfig</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

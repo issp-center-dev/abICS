@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.sampling.rxmc module &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.sampling.simple_parallel module" href="abics.sampling.simple_parallel.html" />
+    <link rel="prev" title="abics.sampling.resampling module" href="abics.sampling.resampling.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.html">abics.applications package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="abics.sampling.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.sampling.html#module-abics.sampling">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+          <li class="breadcrumb-item"><a href="abics.sampling.html">abics.sampling package</a></li>
+      <li class="breadcrumb-item active">abics.sampling.rxmc module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.sampling.rxmc.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-abics.sampling.rxmc">
+<span id="abics-sampling-rxmc-module"></span><h1>abics.sampling.rxmc module<a class="headerlink" href="#module-abics.sampling.rxmc" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.sampling.rxmc.</span></span><span class="sig-name descname"><span class="pre">RXParams</span></span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#RXParams"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.RXParams" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parameter set for replica exchange Monte Carlo</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.nreplicas">
+<span class="sig-name descname"><span class="pre">nreplicas</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.nreplicas" title="Permalink to this definition"></a></dt>
+<dd><p>The number of replicas</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.nprocs_per_replica">
+<span class="sig-name descname"><span class="pre">nprocs_per_replica</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.nprocs_per_replica" title="Permalink to this definition"></a></dt>
+<dd><p>The number of processes which a replica uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.kTs">
+<span class="sig-name descname"><span class="pre">kTs</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.kTs" title="Permalink to this definition"></a></dt>
+<dd><p>The temperature list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.nsteps">
+<span class="sig-name descname"><span class="pre">nsteps</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.nsteps" title="Permalink to this definition"></a></dt>
+<dd><p>The number of MC steps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.RXtrial_frequency">
+<span class="sig-name descname"><span class="pre">RXtrial_frequency</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.RXtrial_frequency" title="Permalink to this definition"></a></dt>
+<dd><p>The number of MC steps between replica exchange operations</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.sample_frequency">
+<span class="sig-name descname"><span class="pre">sample_frequency</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.sample_frequency" title="Permalink to this definition"></a></dt>
+<dd><p>The number of MC steps between measurements observables</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.print_frequency">
+<span class="sig-name descname"><span class="pre">print_frequency</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.print_frequency" title="Permalink to this definition"></a></dt>
+<dd><p>The number of MC steps between show information</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.reload">
+<span class="sig-name descname"><span class="pre">reload</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.reload" title="Permalink to this definition"></a></dt>
+<dd><p>Whether to restart simulation or not</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><a class="headerlink" href="#abics.sampling.rxmc.RXParams.seed" title="Permalink to this definition"></a></dt>
+<dd><p>The seed of the random number generator
+If 0, some random number is used (e.g., system time or some random noise).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#RXParams.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.RXParams.from_dict" title="Permalink to this definition"></a></dt>
+<dd><p>Read information from dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>d</strong> (<em>dict</em>) – Dictionary including parameters for replica exchange Monte Carlo method</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>params</strong> – self</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DFTParams object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.RXParams.from_toml">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_toml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#RXParams.from_toml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.RXParams.from_toml" title="Permalink to this definition"></a></dt>
+<dd><p>Read information from toml file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>f</strong> (<em>str</em>) – The name of input toml File</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>DFTParams</strong> – self</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>DFTParams object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.sampling.rxmc.</span></span><span class="sig-name descname"><span class="pre">TemperatureRX_MPI</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MCalgo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm" title="abics.sampling.mc.MCAlgorithm"><span class="pre">abics.sampling.mc.MCAlgorithm</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="abics.model.html#abics.model.Model" title="abics.model.Model"><span class="pre">Model</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kTs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC" title="abics.sampling.mc_mpi.ParallelMC"><code class="xref py py-class docutils literal notranslate"><span class="pre">ParallelMC</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+<li><p><strong>MCalgo</strong> (<em>object for MonteCarlo algorithm</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>model</strong> (<em>dft_latgas</em>) – DFT lattice gas mapping  model</p></li>
+<li><p><strong>configs</strong> (<em>config object</em>) – Configuration</p></li>
+<li><p><strong>kTs</strong> (<em>list</em>) – Temperature list</p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – If true, working directory for this rank is made</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.Xtrial">
+<span class="sig-name descname"><span class="pre">Xtrial</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">XCscheme</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.Xtrial"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.Xtrial" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>XCscheme</strong> (<em>int</em>) – </p></li>
+<li><p><strong>Returns</strong> – </p></li>
+<li><p><strong>-------</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">MCalgo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm" title="abics.sampling.mc.MCAlgorithm"><span class="pre">abics.sampling.mc.MCAlgorithm</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="abics.model.html#abics.model.Model" title="abics.model.Model"><span class="pre">Model</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">configs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kTs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_node</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+<li><p><strong>MCalgo</strong> (<em>object for MonteCarlo algorithm</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>model</strong> (<em>dft_latgas</em>) – DFT lattice gas mapping  model</p></li>
+<li><p><strong>configs</strong> (<em>config object</em>) – Configuration</p></li>
+<li><p><strong>kTs</strong> (<em>list</em>) – Temperature list</p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – If true, working directory for this rank is made</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.find_procrank_from_Trank">
+<span class="sig-name descname"><span class="pre">find_procrank_from_Trank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Trank</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.find_procrank_from_Trank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.find_procrank_from_Trank" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>Trank</strong> (<em>int</em>) – Temperature rank</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>procrank</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.postproc">
+<span class="sig-name descname"><span class="pre">postproc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">throw_out</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.postproc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.postproc" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.reload">
+<span class="sig-name descname"><span class="pre">reload</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.reload"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.reload" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nsteps:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RXtrial_frequency:</span> <span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_frequency:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">9223372036854775807</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_frequency:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">9223372036854775807</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nsubsteps_in_step:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">throw_out:</span> <span class="pre">int</span> <span class="pre">|</span> <span class="pre">float</span> <span class="pre">=</span> <span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observer:</span> <span class="pre">~abics.observer.ObserverBase</span> <span class="pre">=</span> <span class="pre">&lt;abics.observer.ObserverBase</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_obs:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.run" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsteps</strong> (<em>int</em>) – The number of Monte Carlo steps for running.</p></li>
+<li><p><strong>RXtrial_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for replica exchange.</p></li>
+<li><p><strong>sample_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for observation of physical quantities.</p></li>
+<li><p><strong>print_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for saving physical quantities.</p></li>
+<li><p><strong>nsubsteps_in_step</strong> (<em>int</em>) – The number of Monte Carlo substeps in one MC step.</p></li>
+<li><p><strong>throw_out</strong> (<em>int</em><em> | </em><em>float</em>) – The number (int) or ratio (float) of measurements to be dropped out as thermalization</p></li>
+<li><p><strong>observer</strong> (<em>observer object</em>) – </p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – If true, working directory for this rank is made</p></li>
+<li><p><strong>save_obs</strong> (<em>boolean</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>obs_list</strong> – Observation list</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.sampling.rxmc.TemperatureRX_MPI.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdirs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/sampling/rxmc.html#TemperatureRX_MPI.save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.sampling.rxmc.TemperatureRX_MPI.save" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.sampling.resampling.html" class="btn btn-neutral float-left" title="abics.sampling.resampling module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abics.sampling.simple_parallel.html" class="btn btn-neutral float-right" title="abics.sampling.simple_parallel module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

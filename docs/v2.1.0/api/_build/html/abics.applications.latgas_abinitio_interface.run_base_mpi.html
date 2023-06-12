@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.latgas_abinitio_interface.run_base_mpi module &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.applications.latgas_abinitio_interface.user_function_solver module" href="abics.applications.latgas_abinitio_interface.user_function_solver.html" />
+    <link rel="prev" title="abics.applications.latgas_abinitio_interface.qe module" href="abics.applications.latgas_abinitio_interface.qe.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="abics.applications.html">abics.applications package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="abics.applications.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.html#module-abics.applications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.html">abics.applications package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.latgas_abinitio_interface.html">abics.applications.latgas_abinitio_interface package</a></li>
+      <li class="breadcrumb-item active">abics.applications.latgas_abinitio_interface.run_base_mpi module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.applications.latgas_abinitio_interface.run_base_mpi.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-abics.applications.latgas_abinitio_interface.run_base_mpi">
+<span id="abics-applications-latgas-abinitio-interface-run-base-mpi-module"></span><h1>abics.applications.latgas_abinitio_interface.run_base_mpi module<a class="headerlink" href="#module-abics.applications.latgas_abinitio_interface.run_base_mpi" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Run">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">Run</span></span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#Run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Run.submit">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solverinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#Run.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> (<em>str</em>) – Name of solver (e.g., VASP)</p></li>
+<li><p><strong>solverinput</strong> (<em>Solver.Input</em>) – Input manager</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Path to directory where a solver saves output</p></li>
+<li><p><strong>rerun</strong> (<em>int</em><em>, </em><em>default = 2</em>) – How many times to restart solver on failed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>status</strong> – Always returns 0</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunFunction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunFunction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><code class="xref py py-class docutils literal notranslate"><span class="pre">Run</span></code></a></p>
+<p>Invoker via function call</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>function name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses
+(Never used)</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses
+(Never used)</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em><em> or </em><em>NoneType</em>) – Never used</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunFunction.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses
+(Never used)</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses
+(Never used)</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em><em> or </em><em>NoneType</em>) – Never used</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solverinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunFunction.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> (<em>str</em>) – Name of solver (e.g., VASP)</p></li>
+<li><p><strong>solverinput</strong> (<em>Solver.Input</em>) – Input manager</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Path to directory where a solver saves output</p></li>
+<li><p><strong>rerun</strong> (<em>int</em><em>, </em><em>default = 2</em>) – How many times to restart solver on failed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>status</strong> – Always returns 0</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – Raises RuntimeError when solver failed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunMpispawn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><code class="xref py py-class docutils literal notranslate"><span class="pre">Run</span></code></a></p>
+<p>Invoker via mpi_comm_spawn</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Path to solver program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.nprocs">
+<span class="sig-name descname"><span class="pre">nprocs</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.nprocs" title="Permalink to this definition"></a></dt>
+<dd><p>Number of process which one solver uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.nthreads">
+<span class="sig-name descname"><span class="pre">nthreads</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.nthreads" title="Permalink to this definition"></a></dt>
+<dd><p>Number of threads which one solver process uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.comm">
+<span class="sig-name descname"><span class="pre">comm</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.comm" title="Permalink to this definition"></a></dt>
+<dd><p>MPI Communicator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MPI.Comm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.commsize">
+<span class="sig-name descname"><span class="pre">commsize</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.commsize" title="Permalink to this definition"></a></dt>
+<dd><p>Size of comm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.commrank">
+<span class="sig-name descname"><span class="pre">commrank</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.commrank" title="Permalink to this definition"></a></dt>
+<dd><p>My rank in comm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.worldrank">
+<span class="sig-name descname"><span class="pre">worldrank</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.worldrank" title="Permalink to this definition"></a></dt>
+<dd><p>My rank in MPI.COMM_WORLD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawn.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solverinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawn.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> (<em>str</em>) – Name of solver (e.g., VASP)</p></li>
+<li><p><strong>solverinput</strong> (<em>Solver.Input</em>) – Input manager</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Path to directory where a solver saves output</p></li>
+<li><p><strong>rerun</strong> (<em>int</em><em>, </em><em>default = 2</em>) – How many times to restart solver on failed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>status</strong> – Always returns 0</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunMpispawnReady</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_spawn_ready_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawnReady"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><code class="xref py py-class docutils literal notranslate"><span class="pre">Run</span></code></a></p>
+<p>Invoker via mpi_comm_spawn for solvers which is MPI_Comm_spawn-ready</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Path to solver program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.nprocs">
+<span class="sig-name descname"><span class="pre">nprocs</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.nprocs" title="Permalink to this definition"></a></dt>
+<dd><p>Number of process which one solver uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.nthreads">
+<span class="sig-name descname"><span class="pre">nthreads</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.nthreads" title="Permalink to this definition"></a></dt>
+<dd><p>Number of threads which one solver process uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.comm">
+<span class="sig-name descname"><span class="pre">comm</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.comm" title="Permalink to this definition"></a></dt>
+<dd><p>MPI Communicator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MPI.Comm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.commsize">
+<span class="sig-name descname"><span class="pre">commsize</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.commsize" title="Permalink to this definition"></a></dt>
+<dd><p>Size of comm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.commrank">
+<span class="sig-name descname"><span class="pre">commrank</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.commrank" title="Permalink to this definition"></a></dt>
+<dd><p>My rank in comm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.worldrank">
+<span class="sig-name descname"><span class="pre">worldrank</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.worldrank" title="Permalink to this definition"></a></dt>
+<dd><p>My rank in MPI.COMM_WORLD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_spawn_ready_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawnReady.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solverinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawnReady.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> (<em>str</em>) – Name of solver (e.g., VASP)</p></li>
+<li><p><strong>solverinput</strong> (<em>Solver.Input</em>) – Input manager</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Path to directory where a solver saves output</p></li>
+<li><p><strong>rerun</strong> (<em>int</em><em>, </em><em>default = 2</em>) – How many times to restart solver on failed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>status</strong> – Always returns 0</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>If a solver failed (returned nonzero),
+this calls <cite>MPI_Abort</cite> on <cite>MPI_COMM_WORLD</cite> .</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunMpispawnWrapper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawnWrapper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><code class="xref py py-class docutils literal notranslate"><span class="pre">Run</span></code></a></p>
+<p>Invoker via mpi_comm_spawn</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Path to solver program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.nprocs">
+<span class="sig-name descname"><span class="pre">nprocs</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.nprocs" title="Permalink to this definition"></a></dt>
+<dd><p>Number of process which one solver uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.nthreads">
+<span class="sig-name descname"><span class="pre">nthreads</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.nthreads" title="Permalink to this definition"></a></dt>
+<dd><p>Number of threads which one solver process uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.comm">
+<span class="sig-name descname"><span class="pre">comm</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.comm" title="Permalink to this definition"></a></dt>
+<dd><p>MPI Communicator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MPI.Comm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.commsize">
+<span class="sig-name descname"><span class="pre">commsize</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.commsize" title="Permalink to this definition"></a></dt>
+<dd><p>Size of comm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.commrank">
+<span class="sig-name descname"><span class="pre">commrank</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.commrank" title="Permalink to this definition"></a></dt>
+<dd><p>My rank in comm</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.worldrank">
+<span class="sig-name descname"><span class="pre">worldrank</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.worldrank" title="Permalink to this definition"></a></dt>
+<dd><p>My rank in MPI.COMM_WORLD</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawnWrapper.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solverinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunMpispawnWrapper.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> (<em>str</em>) – Name of solver (e.g., VASP)</p></li>
+<li><p><strong>solverinput</strong> (<em>Solver.Input</em>) – Input manager</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Path to directory where a solver saves output</p></li>
+<li><p><strong>rerun</strong> (<em>int</em><em>, </em><em>default = 2</em>) – How many times to restart solver on failed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>status</strong> – Always returns 0</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunSubprocess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunSubprocess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><code class="xref py py-class docutils literal notranslate"><span class="pre">Run</span></code></a></p>
+<p>Invoker via subprocess</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Path to solver program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.nprocs">
+<span class="sig-name descname"><span class="pre">nprocs</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.nprocs" title="Permalink to this definition"></a></dt>
+<dd><p>Number of process which one solver uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.nthreads">
+<span class="sig-name descname"><span class="pre">nthreads</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.nthreads" title="Permalink to this definition"></a></dt>
+<dd><p>Number of threads which one solver process uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em><em> or </em><em>NoneType</em>) – Never used</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunSubprocess.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path_to_solver</strong> (<em>str</em>) – Path to solver program</p></li>
+<li><p><strong>nprocs</strong> (<em>int</em>) – Number of process which one solver uses</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em><em> or </em><em>NoneType</em>) – Never used</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solverinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunSubprocess.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>solver_name</strong> (<em>str</em>) – Name of solver (e.g., VASP)</p></li>
+<li><p><strong>solverinput</strong> (<em>Solver.Input</em>) – Input manager</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Path to directory where a solver saves output</p></li>
+<li><p><strong>rerun</strong> (<em>int</em><em>, </em><em>default = 2</em>) – How many times to restart solver on failed</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>status</strong> – Always returns 0</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>RuntimeError</strong> – Raises RuntimeError when solver failed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">Runner</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs_per_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads_per_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_run_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi_spawn_ready'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#Runner"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class of runner (manager) of external solver program</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.solver_name">
+<span class="sig-name descname"><span class="pre">solver_name</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.solver_name" title="Permalink to this definition"></a></dt>
+<dd><p>Name of solver program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Path to solver program</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.run">
+<span class="sig-name descname"><span class="pre">run</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.run" title="Permalink to this definition"></a></dt>
+<dd><p>Runner object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.nprocs_per_solver">
+<span class="sig-name descname"><span class="pre">nprocs_per_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.nprocs_per_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Number of processes which solver program uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.nthreads_per_proc">
+<span class="sig-name descname"><span class="pre">nthreads_per_proc</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.nthreads_per_proc" title="Permalink to this definition"></a></dt>
+<dd><p>Number of threads which a solver process uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.comm">
+<span class="sig-name descname"><span class="pre">comm</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.comm" title="Permalink to this definition"></a></dt>
+<dd><p>MPI Communicator</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>MPI.Comm</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.perturb">
+<span class="sig-name descname"><span class="pre">perturb</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.perturb" title="Permalink to this definition"></a></dt>
+<dd><p>perturbation of atom position for structure optimization</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.base_solver_input">
+<span class="sig-name descname"><span class="pre">base_solver_input</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.base_solver_input" title="Permalink to this definition"></a></dt>
+<dd><p>Input manager</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Solver.Input</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.output">
+<span class="sig-name descname"><span class="pre">output</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.output" title="Permalink to this definition"></a></dt>
+<dd><p>Output manager</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Solver.Output</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_input_dir</strong> (<em>str</em>) – Path to the directory including input file templates</p></li>
+<li><p><strong>Solver</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><em>SolverBase</em></a>) – Solver</p></li>
+<li><p><strong>nprocs_per_solver</strong> (<em>int</em>) – Number of processes which one solver program uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+<li><p><strong>perturb</strong> (<em>float</em><em>, </em><em>default 0.0</em>) – Perturbation of atom position</p></li>
+<li><p><strong>nthreads_per_proc</strong> (<em>int</em><em>, </em><em>default 1</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>solver_run_scheme</strong> (<em>str</em><em>, </em><em>default &quot;mpi_spawn_ready&quot;</em>) – Scheme how to invoke a solver program</p></li>
+<li><p><strong>use_tmpdir</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to use temporary directory for solver run</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Raises ValueError if unknown <cite>solver_run_scheme</cite> is passed</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs_per_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads_per_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_run_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi_spawn_ready'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#Runner.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_input_dir</strong> (<em>str</em>) – Path to the directory including input file templates</p></li>
+<li><p><strong>Solver</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><em>SolverBase</em></a>) – Solver</p></li>
+<li><p><strong>nprocs_per_solver</strong> (<em>int</em>) – Number of processes which one solver program uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+<li><p><strong>perturb</strong> (<em>float</em><em>, </em><em>default 0.0</em>) – Perturbation of atom position</p></li>
+<li><p><strong>nthreads_per_proc</strong> (<em>int</em><em>, </em><em>default 1</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>solver_run_scheme</strong> (<em>str</em><em>, </em><em>default &quot;mpi_spawn_ready&quot;</em>) – Scheme how to invoke a solver program</p></li>
+<li><p><strong>use_tmpdir</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to use temporary directory for solver run</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – Raises ValueError if unknown <cite>solver_run_scheme</cite> is passed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">run</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Run" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><span class="pre">Run</span></a></em><a class="headerlink" href="#id0" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#Runner.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.submit" title="Permalink to this definition"></a></dt>
+<dd><p>Run a solver program and return results</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>structure</strong> (<em>pymatgen.Structure</em>) – Structure of compounds</p></li>
+<li><p><strong>output_dir</strong> (<em>str</em>) – Name of directory where solver program saves output files</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>energy</strong> (<em>float</em>) – Total energy</p></li>
+<li><p><strong>structure</strong> (<em>pymatgen.Structure</em>) – Structure of compounds after optimization</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunnerEnsemble</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solvers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner"><span class="pre">Runner</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs_per_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads_per_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_run_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi_spawn_ready'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunnerEnsemble"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Ensemble runner</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.runners">
+<span class="sig-name descname"><span class="pre">runners</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.runners" title="Permalink to this definition"></a></dt>
+<dd><p>Runners</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner">Runner</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_input_dirs</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of paths to directories including base input files</p></li>
+<li><p><strong>Solvers</strong> (<em>list</em><em>[</em><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><em>SolverBase</em></a><em>]</em>) – list of Solvers</p></li>
+<li><p><strong>nprocs_per_solver</strong> (<em>int</em>) – Number of processes which one solver program uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+<li><p><strong>perturb</strong> (<em>float</em><em>, </em><em>default 0.0</em>) – Perturbation of atom position</p></li>
+<li><p><strong>nthreads_per_proc</strong> (<em>int</em><em>, </em><em>default 1</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>solver_run_scheme</strong> (<em>str</em><em>, </em><em>default &quot;mpi_spawn_ready&quot;</em>) – Scheme how to invoke a solver program</p></li>
+<li><p><strong>use_tmpdir</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to use temporary directory for solver run</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solvers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner"><span class="pre">Runner</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs_per_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads_per_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_run_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi_spawn_ready'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunnerEnsemble.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_input_dirs</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of paths to directories including base input files</p></li>
+<li><p><strong>Solvers</strong> (<em>list</em><em>[</em><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><em>SolverBase</em></a><em>]</em>) – list of Solvers</p></li>
+<li><p><strong>nprocs_per_solver</strong> (<em>int</em>) – Number of processes which one solver program uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+<li><p><strong>perturb</strong> (<em>float</em><em>, </em><em>default 0.0</em>) – Perturbation of atom position</p></li>
+<li><p><strong>nthreads_per_proc</strong> (<em>int</em><em>, </em><em>default 1</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>solver_run_scheme</strong> (<em>str</em><em>, </em><em>default &quot;mpi_spawn_ready&quot;</em>) – Scheme how to invoke a solver program</p></li>
+<li><p><strong>use_tmpdir</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to use temporary directory for solver run</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunnerEnsemble.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.submit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">RunnerMultistep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solvers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner"><span class="pre">Runner</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs_per_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads_per_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_run_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi_spawn_ready'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunnerMultistep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Sequential runner</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.runners">
+<span class="sig-name descname"><span class="pre">runners</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.runners" title="Permalink to this definition"></a></dt>
+<dd><p>Runners</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner">Runner</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_input_dirs</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of paths to directories including base input files</p></li>
+<li><p><strong>Solver</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><em>SolverBase</em></a>) – Solver</p></li>
+<li><p><strong>nprocs_per_solver</strong> (<em>int</em>) – Number of processes which one solver program uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+<li><p><strong>perturb</strong> (<em>float</em><em>, </em><em>default 0.0</em>) – Perturbation of atom position</p></li>
+<li><p><strong>nthreads_per_proc</strong> (<em>int</em><em>, </em><em>default 1</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>solver_run_scheme</strong> (<em>str</em><em>, </em><em>default &quot;mpi_spawn_ready&quot;</em>) – Scheme how to invoke a solver program</p></li>
+<li><p><strong>use_tmpdir</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to use temporary directory for solver run</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dirs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Solvers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Type</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner"><span class="pre">Runner</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs_per_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perturb</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads_per_proc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_run_scheme</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'mpi_spawn_ready'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_tmpdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunnerMultistep.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_input_dirs</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – List of paths to directories including base input files</p></li>
+<li><p><strong>Solver</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><em>SolverBase</em></a>) – Solver</p></li>
+<li><p><strong>nprocs_per_solver</strong> (<em>int</em>) – Number of processes which one solver program uses</p></li>
+<li><p><strong>comm</strong> (<em>MPI.Comm</em>) – MPI Communicator</p></li>
+<li><p><strong>perturb</strong> (<em>float</em><em>, </em><em>default 0.0</em>) – Perturbation of atom position</p></li>
+<li><p><strong>nthreads_per_proc</strong> (<em>int</em><em>, </em><em>default 1</em>) – Number of threads which one solver process uses</p></li>
+<li><p><strong>solver_run_scheme</strong> (<em>str</em><em>, </em><em>default &quot;mpi_spawn_ready&quot;</em>) – Scheme how to invoke a solver program</p></li>
+<li><p><strong>use_tmpdir</strong> (<em>bool</em><em>, </em><em>default False</em>) – Whether to use temporary directory for solver run</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.submit">
+<span class="sig-name descname"><span class="pre">submit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/run_base_mpi.html#RunnerMultistep.submit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.submit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.run_function">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">run_function</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.run_function" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunFunction</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">run_mpispawn</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunMpispawn</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_ready">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">run_mpispawn_ready</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_ready" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunMpispawnReady</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_wrapper">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">run_mpispawn_wrapper</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_wrapper" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunMpispawnWrapper</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.run_subprocess">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">run_subprocess</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.run_subprocess" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunSubprocess</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.runner">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">runner</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.runner" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner" title="abics.applications.latgas_abinitio_interface.run_base_mpi.Runner"><code class="xref py py-class docutils literal notranslate"><span class="pre">Runner</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.runner_ensemble">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">runner_ensemble</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_ensemble" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunnerEnsemble</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.run_base_mpi.runner_multistep">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.run_base_mpi.</span></span><span class="sig-name descname"><span class="pre">runner_multistep</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_multistep" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep" title="abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep"><code class="xref py py-class docutils literal notranslate"><span class="pre">RunnerMultistep</span></code></a></p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.applications.latgas_abinitio_interface.qe.html" class="btn btn-neutral float-left" title="abics.applications.latgas_abinitio_interface.qe module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abics.applications.latgas_abinitio_interface.user_function_solver.html" class="btn btn-neutral float-right" title="abics.applications.latgas_abinitio_interface.user_function_solver module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

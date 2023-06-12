@@ -1,0 +1,584 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.applications.latgas_abinitio_interface.openmx &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abics.applications.latgas_abinitio_interface.openmx</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abics.applications.latgas_abinitio_interface.openmx</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">.base_solver</span> <span class="kn">import</span> <span class="n">SolverBase</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">spc</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="n">hartree2eV</span> <span class="o">=</span> <span class="n">spc</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Hartree energy in eV&quot;</span><span class="p">)</span>
+<span class="n">Bohr2AA</span> <span class="o">=</span> <span class="n">spc</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Bohr radius&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1e10</span>
+
+
+<div class="viewcode-block" id="OpenMXInputFile"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXInputFile">[docs]</a><span class="k">class</span> <span class="nc">OpenMXInputFile</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; OpenMX Input</span>
+
+<span class="sd">    This is a dictionary storing OpenMX input parameters</span>
+<span class="sd">    with additionary information, vec_list</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vec_list: list</span>
+<span class="sd">        vectors</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OpenMXInputFile.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXInputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_file: str</span>
+<span class="sd">            inputfile</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vec_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;Atoms.UnitVectors&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Atoms.SpeciesAndCoordinates&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;MD.Fixed.XYZ&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="c1"># delete comment out</span>
+            <span class="n">list_flag</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">line</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">:</span>
+                        <span class="n">list_flag</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">elif</span> <span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="p">[</span><span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">vals</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">vec_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">list_flag</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">list_flag</span><span class="p">:</span>
+                            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">words</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="p">[</span><span class="n">words</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">vec_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vec_list</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="OpenMXSolver"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver">[docs]</a><span class="k">class</span> <span class="nc">OpenMXSolver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class defines the OpenMX solver.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="OpenMXSolver.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the solver.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">                      Path to the solver.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OpenMXSolver</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path_to_solver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">=</span> <span class="n">OpenMXSolver</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">OpenMXSolver</span><span class="o">.</span><span class="n">Output</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OpenMXSolver.name"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the solver name.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        &quot;OpenMX&quot;</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;OpenMX&quot;</span></div>
+
+<div class="viewcode-block" id="OpenMXSolver.Input"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input">[docs]</a>    <span class="k">class</span> <span class="nc">Input</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_info</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos_info</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+
+<div class="viewcode-block" id="OpenMXSolver.Input.cleanup"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.cleanup">[docs]</a>        <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rundir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Clean up the directory where the solver runs.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            rundir: str</span>
+<span class="sd">                Name of the directory where the solver runs.</span>
+<span class="sd">            -------</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="n">checkfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rundir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">datadir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filetocheck</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">checkfile</span><span class="p">):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">checkfile</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OpenMXSolver.Input.from_directory"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.from_directory">[docs]</a>        <span class="k">def</span> <span class="nf">from_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_input_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">            Get base information for OpenMX from the input directory.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            base_input_dir: str</span>
+<span class="sd">                Name of the directory where the base input file is located.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            self.base_openmx_input:  OpenMXInput</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># TODO</span>
+            <span class="c1"># check the base input file name (now, set &quot;base.dat&quot;)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span> <span class="o">=</span> <span class="n">OpenMXInputFile</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">base_input_dir</span><span class="p">,</span> <span class="s2">&quot;base.dat&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vps_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_vps_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span></div>
+
+        <span class="k">def</span> <span class="nf">_get_vps_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">openmx_input</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Get vps information from the DFT_DATA19 directory.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            openmx_input: dict</span>
+<span class="sd">                Check whether Data.path is included in the base.dat file</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            vps_info:  dict (key: specie, value: electron number)</span>
+<span class="sd">                Dictionary for vps_info.</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">vps_info</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="s2">&quot;DATA.PATH&quot;</span> <span class="ow">in</span> <span class="n">openmx_input</span><span class="p">:</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">openmx_input</span><span class="p">[</span><span class="s2">&quot;DATA.PATH&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="s2">&quot;which </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">)</span>
+                <span class="n">fullpath</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">(</span><span class="n">cmd</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">fullpath</span><span class="p">),</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;DFT_DATA19&quot;</span><span class="p">)</span>
+                <span class="n">openmx_input</span><span class="p">[</span><span class="s2">&quot;DATA.PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">path</span><span class="p">]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;vps_info.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                    <span class="n">vps_info</span><span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">vps_info</span>
+
+<div class="viewcode-block" id="OpenMXSolver.Input.update_info_by_structure"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.update_info_by_structure">[docs]</a>        <span class="k">def</span> <span class="nf">update_info_by_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Update base_openmx_input by structure</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            structure: pymatgen.core.Structure</span>
+<span class="sd">                Structure for getting atom&#39;s species and coordinates</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Get lattice information</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
+            <span class="c1"># Update unitvector information</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Atoms.UnitVectors.Unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Ang&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Atoms.UnitVectors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span>  <span class="c1"># numpy.ndarray</span>
+            <span class="n">nat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">)</span>
+            <span class="c1"># For write_input, Atoms.Number must be list format.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Atoms.Number&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nat</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Atoms.SpeciesAndCoordinates.Unit&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FRAC&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Atoms.SpeciesAndCoordinates&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]</span>
+            <span class="p">]</span> <span class="o">*</span> <span class="n">nat</span>
+
+            <span class="n">mag</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">nat</span>
+            <span class="k">if</span> <span class="s2">&quot;magnetization&quot;</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span><span class="p">:</span>
+                <span class="n">mag</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span><span class="p">[</span><span class="s2">&quot;magnetization&quot;</span><span class="p">]</span>
+
+            <span class="c1"># Get electron_info</span>
+            <span class="n">atomic_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Definition.of.Atomic.Species&quot;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">site</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">structure</span><span class="o">.</span><span class="n">sites</span><span class="p">):</span>
+                <span class="n">electron_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vps_info</span><span class="p">[</span>
+                    <span class="p">[</span>
+                        <span class="n">specie</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                        <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">atomic_species</span>
+                        <span class="k">if</span> <span class="n">specie</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="p">)</span>
+                    <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;Atoms.SpeciesAndCoordinates&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">site</span><span class="o">.</span><span class="n">specie</span><span class="p">,</span>
+                    <span class="n">site</span><span class="o">.</span><span class="n">a</span><span class="p">,</span>
+                    <span class="n">site</span><span class="o">.</span><span class="n">b</span><span class="p">,</span>
+                    <span class="n">site</span><span class="o">.</span><span class="n">c</span><span class="p">,</span>
+                    <span class="mf">0.5</span> <span class="o">*</span> <span class="n">electron_number</span> <span class="o">+</span> <span class="n">mag</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                    <span class="mf">0.5</span> <span class="o">*</span> <span class="n">electron_number</span> <span class="o">-</span> <span class="n">mag</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span>
+                <span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;seldyn&quot;</span> <span class="ow">in</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span><span class="p">:</span>
+                <span class="n">seldyn_arr</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span><span class="p">[</span><span class="s2">&quot;seldyn&quot;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;MD.Fixed.XYZ&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="kc">False</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="kc">False</span><span class="p">)]</span>
+                <span class="p">]</span> <span class="o">*</span> <span class="n">nat</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">dyn_info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">seldyn_arr</span><span class="p">):</span>
+                    <span class="n">fix_info</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dyn_info</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;MD.Fixed.XYZ&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                        <span class="n">fix_info</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">fix_info</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">fix_info</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="p">]</span></div>
+
+<div class="viewcode-block" id="OpenMXSolver.Input.write_input"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.write_input">[docs]</a>        <span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generate input files at each directory.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            output_dir: str</span>
+<span class="sd">                Path to the output directory</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.dat&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;System.Name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s1">&#39;System.CurrrentDirectory&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">output_dir</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span><span class="p">]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="o">.</span><span class="n">vec_list</span><span class="p">:</span>
+                        <span class="n">print_stamp</span> <span class="o">=</span> <span class="s2">&quot;&lt;</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="n">value_list</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">value_list</span><span class="p">:</span>
+                                <span class="n">print_stamp</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                            <span class="n">print_stamp</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="n">print_stamp</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&gt;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">print_stamp</span> <span class="o">=</span> <span class="n">key</span>
+                        <span class="k">for</span> <span class="n">value_list</span> <span class="ow">in</span> <span class="n">values</span><span class="p">:</span>
+                            <span class="n">print_stamp</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value_list</span><span class="p">)</span>
+                        <span class="n">print_stamp</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">print_stamp</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OpenMXSolver.Input.cl_args"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.cl_args">[docs]</a>        <span class="k">def</span> <span class="nf">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Make command line to execute OpenMX from args.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            nprocs: int</span>
+<span class="sd">                Number of processes (not used).</span>
+
+<span class="sd">            nthreads: int</span>
+<span class="sd">                Number of threads.</span>
+
+<span class="sd">            output_dir: str</span>
+<span class="sd">                Output directory.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            clargs: dict</span>
+<span class="sd">                command line arguments</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">clargs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.dat&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;System.Name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;-nt&quot;</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">nthreads</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="k">return</span> <span class="n">clargs</span></div></div>
+
+        <span class="c1"># def submit: Use submit defined in run_base_mpi.py</span>
+
+<div class="viewcode-block" id="OpenMXSolver.Output"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Output">[docs]</a>    <span class="k">class</span> <span class="nc">Output</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">=</span> <span class="nb">input</span>
+            <span class="k">pass</span>
+
+<div class="viewcode-block" id="OpenMXSolver.Output.get_results"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Output.get_results">[docs]</a>        <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Read results from files in output_dir and calculate values</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            output_dir: str</span>
+<span class="sd">                    Output directory name</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            Phys: namedtuple</span>
+<span class="sd">                results</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Read results from files in output_dir and calculate values</span>
+            <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">output_dir</span><span class="p">,</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.out&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;System.Name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">fi</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="n">lines_strip</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+                <span class="c1"># Get total energy</span>
+                <span class="n">Utot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines_strip</span> <span class="k">if</span> <span class="s2">&quot;Utot.&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="c1"># Change energy unit from Hartree to eV</span>
+                <span class="n">Utot</span> <span class="o">*=</span> <span class="n">hartree2eV</span>
+
+            <span class="c1"># Get Cell information from dat# file</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">output_dir</span><span class="p">,</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.dat#&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;System.Name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">fi</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="n">lines_strip</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+                <span class="c1"># Get Cell information</span>
+                <span class="c1"># Read Atoms.UnitVectors.Unit</span>
+                <span class="n">Atoms_UnitVectors_Unit</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines_strip</span>
+                    <span class="k">if</span> <span class="s2">&quot;Atoms.UnitVectors.Unit&quot;</span> <span class="ow">in</span> <span class="n">line</span>
+                <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">line_number_unit_vector_start</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">i</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines_strip</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="s2">&quot;&lt;Atoms.UnitVectors&quot;</span> <span class="ow">in</span> <span class="n">line</span>
+                <span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                    <span class="n">lines_strip</span><span class="p">[</span>
+                        <span class="n">line_number_unit_vector_start</span>
+                        <span class="o">+</span> <span class="mi">1</span> <span class="p">:</span> <span class="n">line_number_unit_vector_start</span>
+                        <span class="o">+</span> <span class="mi">4</span>
+                    <span class="p">]</span>
+                <span class="p">):</span>
+                    <span class="n">A</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+                <span class="k">if</span> <span class="n">Atoms_UnitVectors_Unit</span> <span class="o">==</span> <span class="s2">&quot;AU&quot;</span><span class="p">:</span>
+                    <span class="n">A</span> <span class="o">*=</span> <span class="n">Bohr2AA</span>
+
+            <span class="c1"># Note:</span>
+            <span class="c1"># Since xyz format of OpenMX is not correct (3 columns are added at each line).</span>
+            <span class="c1"># pymatgen.io.xyz can not work.</span>
+            <span class="n">output_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">output_dir</span><span class="p">,</span>
+                <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">.xyz&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">base_openmx_input</span><span class="p">[</span><span class="s2">&quot;System.Name&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="p">)</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">positions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+                <span class="c1"># Get atomic species and positions</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">fi</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+                <span class="n">lines_strip</span> <span class="o">=</span> <span class="p">[</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines_strip</span><span class="p">[</span><span class="mi">2</span><span class="p">:]:</span>
+                    <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">positions</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]])</span>
+            <span class="n">structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">positions</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">Phys</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;PhysValues&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">Phys</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">Utot</span><span class="p">),</span> <span class="n">structure</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="OpenMXSolver.solver_run_schemes"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.solver_run_schemes">[docs]</a>    <span class="k">def</span> <span class="nf">solver_run_schemes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_spawn_wrapper&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

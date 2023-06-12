@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.latgas_abinitio_interface.aenet &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.applications.latgas_abinitio_interface.aenet</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.applications.latgas_abinitio_interface.aenet</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Adapted from pymatgen.io.xcrysden distributed under the MIT License</span>
+<span class="sd"># Copyright (c) Pymatgen Development Team.</span>
+<span class="sd"># Distributed under the terms of the MIT License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">io</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="kn">from</span> <span class="nn">.base_solver</span> <span class="kn">import</span> <span class="n">SolverBase</span><span class="p">,</span> <span class="n">register_solver</span>
+<span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">ALParams</span><span class="p">,</span> <span class="n">DFTParams</span>
+
+
+<div class="viewcode-block" id="to_XSF"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.to_XSF">[docs]</a><span class="k">def</span> <span class="nf">to_XSF</span><span class="p">(</span><span class="n">structure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">write_force_zero</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a string with the structure in XSF format</span>
+<span class="sd">    See http://www.xcrysden.org/doc/XSF.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">append</span>
+
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;CRYSTAL&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# Primitive lattice vectors in Angstrom&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;PRIMVEC&quot;</span><span class="p">)</span>
+    <span class="n">cell</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">app</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">%.14f</span><span class="s2"> </span><span class="si">%.14f</span><span class="s2"> </span><span class="si">%.14f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cell</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+
+    <span class="n">cart_coords</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">cart_coords</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;# Cartesian coordinates in Angstrom.&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot;PRIMCOORD&quot;</span><span class="p">)</span>
+    <span class="n">app</span><span class="p">(</span><span class="s2">&quot; </span><span class="si">%d</span><span class="s2"> 1&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">))</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">species</span>
+    <span class="n">site_properties</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span>
+    <span class="k">if</span> <span class="s2">&quot;forces&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">site_properties</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">write_force_zero</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">forces</span> <span class="o">=</span> <span class="n">site_properties</span><span class="p">[</span><span class="s2">&quot;forces&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">write_force_zero</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">)):</span>
+            <span class="n">app</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">species</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="o">+</span> <span class="s2">&quot; </span><span class="si">%20.14f</span><span class="s2"> </span><span class="si">%20.14f</span><span class="s2"> </span><span class="si">%20.14f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="o">+</span> <span class="s2">&quot; 0.0 0.0 0.0&quot;</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">)):</span>
+            <span class="n">app</span><span class="p">(</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">species</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="o">+</span> <span class="s2">&quot; </span><span class="si">%20.14f</span><span class="s2"> </span><span class="si">%20.14f</span><span class="s2"> </span><span class="si">%20.14f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">cart_coords</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+                <span class="o">+</span> <span class="s2">&quot; </span><span class="si">%20.14f</span><span class="s2"> </span><span class="si">%20.14f</span><span class="s2"> </span><span class="si">%20.14f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">forces</span><span class="p">[</span><span class="n">a</span><span class="p">])</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="from_XSF"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.from_XSF">[docs]</a><span class="k">def</span> <span class="nf">from_XSF</span><span class="p">(</span><span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initialize a `Structure` object from a string with data in XSF format.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_string: String with the structure in XSF format.</span>
+<span class="sd">            See http://www.xcrysden.org/doc/XSF.html</span>
+<span class="sd">        cls_: Structure class to be created. default: pymatgen structure</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># CRYSTAL                                        see (1)</span>
+    <span class="c1"># these are primitive lattice vectors (in Angstroms)</span>
+    <span class="c1"># PRIMVEC</span>
+    <span class="c1">#    0.0000000    2.7100000    2.7100000         see (2)</span>
+    <span class="c1">#    2.7100000    0.0000000    2.7100000</span>
+    <span class="c1">#    2.7100000    2.7100000    0.0000000</span>
+
+    <span class="c1"># these are conventional lattice vectors (in Angstroms)</span>
+    <span class="c1"># CONVVEC</span>
+    <span class="c1">#    5.4200000    0.0000000    0.0000000         see (3)</span>
+    <span class="c1">#    0.0000000    5.4200000    0.0000000</span>
+    <span class="c1">#    0.0000000    0.0000000    5.4200000</span>
+
+    <span class="c1"># these are atomic coordinates in a primitive unit cell  (in Angstroms)</span>
+    <span class="c1"># PRIMCOORD</span>
+    <span class="c1"># 2 1                                            see (4)</span>
+    <span class="c1"># 16      0.0000000     0.0000000     0.0000000  see (5)</span>
+    <span class="c1"># 30      1.3550000    -1.3550000    -1.3550000</span>
+
+    <span class="n">lattice</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">input_string</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="s2">&quot;PRIMVEC&quot;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">4</span><span class="p">):</span>
+                <span class="n">lattice</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()])</span>
+
+        <span class="k">if</span> <span class="s2">&quot;PRIMCOORD&quot;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+            <span class="n">num_sites</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">num_sites</span><span class="p">):</span>
+                <span class="n">tokens</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]])</span>
+            <span class="k">break</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid XSF data&quot;</span><span class="p">)</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span><span class="n">lattice</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">s</span></div>
+
+
+<div class="viewcode-block" id="AenetSolver"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver">[docs]</a><span class="k">class</span> <span class="nc">AenetSolver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class defines the aenet solver.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AenetSolver.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">,</span> <span class="n">ignore_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">run_scheme</span><span class="o">=</span><span class="s2">&quot;subprocess&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the solver.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">                      Path to the solver.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AenetSolver</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">path_to_solver</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input</span> <span class="o">=</span> <span class="n">AenetSolver</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">ignore_species</span><span class="p">,</span> <span class="n">run_scheme</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">AenetSolver</span><span class="o">.</span><span class="n">Output</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="AenetSolver.name"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;aenet&quot;</span></div>
+
+<div class="viewcode-block" id="AenetSolver.Input"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input">[docs]</a>    <span class="k">class</span> <span class="nc">Input</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore_species</span> <span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">run_scheme</span><span class="o">=</span><span class="s2">&quot;subprocess&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_info</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos_info</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ignore_species</span> <span class="o">=</span> <span class="n">ignore_species</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run_scheme</span> <span class="o">=</span> <span class="n">run_scheme</span>
+
+<div class="viewcode-block" id="AenetSolver.Input.from_directory"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.from_directory">[docs]</a>        <span class="k">def</span> <span class="nf">from_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base_input_dir</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Initialize information from files in base_input_dir.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            base_input_dir : str</span>
+<span class="sd">                Path to the directory including base input files.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+            <span class="c1"># set information of base_input and pos_info from files in base_input_dir</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_info</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">base_input_dir</span><span class="p">)</span></div>
+            <span class="c1"># self.pos_info = open(&#39;{}/structure.xsf&#39;.format(base_input_dir), &#39;r&#39;).read()</span>
+
+<div class="viewcode-block" id="AenetSolver.Input.update_info_by_structure"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.update_info_by_structure">[docs]</a>        <span class="k">def</span> <span class="nf">update_info_by_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">:</span> <span class="n">Structure</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Update information by atomic structure.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            structure : pymatgen.Structure</span>
+<span class="sd">                Atomic structure</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignore_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">structure</span><span class="o">.</span><span class="n">remove_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ignore_species</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos_info</span> <span class="o">=</span> <span class="n">to_XSF</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AenetSolver.Input.update_info_from_files"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.update_info_from_files">[docs]</a>        <span class="k">def</span> <span class="nf">update_info_from_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Do nothing.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rerun not implemented. Something has gone wrong&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AenetSolver.Input.write_input"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.write_input">[docs]</a>        <span class="k">def</span> <span class="nf">write_input</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">PathLike</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generate input files of the solver program.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            output_dir : os.PathLike</span>
+<span class="sd">                Path to working directory.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Write input files</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Fail to set base_info.&quot;</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_info</span><span class="p">):</span>
+                <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_info</span><span class="p">,</span> <span class="n">fname</span><span class="p">),</span> <span class="n">output_dir</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;structure.xsf&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos_info</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AenetSolver.Input.cl_args"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.cl_args">[docs]</a>        <span class="k">def</span> <span class="nf">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Generate command line arguments of the solver program.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            nprocs : int</span>
+<span class="sd">                The number of processes.</span>
+<span class="sd">            nthreads : int</span>
+<span class="sd">                The number of threads.</span>
+<span class="sd">            output_dir : str</span>
+<span class="sd">                Path to the working directory.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            args : list[str]</span>
+<span class="sd">                Arguments of command</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Specify command line arguments</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_scheme</span> <span class="o">==</span> <span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;predict.in&quot;</span><span class="p">),</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;structure.xsf&quot;</span><span class="p">),</span>
+                    <span class="n">output_dir</span><span class="p">,</span>
+                <span class="p">]</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_scheme</span> <span class="o">==</span> <span class="s2">&quot;subprocess&quot;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;predict.in&quot;</span><span class="p">),</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;structure.xsf&quot;</span><span class="p">),</span>
+                <span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="AenetSolver.Output"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Output">[docs]</a>    <span class="k">class</span> <span class="nc">Output</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AenetSolver.Output.get_results"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Output.get_results">[docs]</a>        <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Get energy and structure obtained by the solver program.</span>
+
+<span class="sd">            Parameters</span>
+<span class="sd">            ----------</span>
+<span class="sd">            output_dir: str</span>
+<span class="sd">                Path to the working directory.</span>
+
+<span class="sd">            Returns</span>
+<span class="sd">            -------</span>
+<span class="sd">            phys : named_tuple(&quot;energy&quot;, &quot;structure&quot;)</span>
+<span class="sd">                Total energy and atomic structure.</span>
+<span class="sd">                The energy is measured in the units of eV</span>
+<span class="sd">                and coordinates is measured in the units of Angstrom.</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="c1"># Read results from files in output_dir and calculate values</span>
+            <span class="n">Phys</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;PhysValues&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;energy&quot;</span><span class="p">,</span> <span class="s2">&quot;structure&quot;</span><span class="p">))</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;structure.xsf&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">structure</span> <span class="o">=</span> <span class="n">from_XSF</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;stdout&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="n">fi_io</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">fi_io</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s2">&quot;optimized&quot;</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+                <span class="k">while</span> <span class="s2">&quot;optimized&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="n">fi_io</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                    <span class="n">fi_io</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">structure</span><span class="p">)):</span>
+                    <span class="n">xyz</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">fi_io</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">]]</span>
+                    <span class="n">structure</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                        <span class="n">i</span><span class="p">,</span> <span class="n">structure</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">xyz</span><span class="p">,</span> <span class="n">coords_are_cartesian</span><span class="o">=</span><span class="kc">True</span>
+                    <span class="p">)</span>
+            <span class="k">while</span> <span class="s2">&quot;Total energy&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">fi_io</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">Phys</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">energy</span><span class="p">),</span> <span class="n">structure</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="AenetSolver.solver_run_schemes"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.solver_run_schemes">[docs]</a>    <span class="k">def</span> <span class="nf">solver_run_schemes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;subprocess&quot;</span><span class="p">,</span> <span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AenetSolver.create"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.create">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">ALParams</span> <span class="o">|</span> <span class="n">DFTParams</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">path</span>
+        <span class="n">ignore_species</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">ignore_species</span>
+        <span class="n">run_scheme</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">solver_run_scheme</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">ignore_species</span><span class="p">,</span> <span class="n">run_scheme</span><span class="p">)</span></div></div>
+
+<span class="n">register_solver</span><span class="p">(</span><span class="s2">&quot;aenet&quot;</span><span class="p">,</span> <span class="n">AenetSolver</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,517 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.mc_mpi module &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.util module" href="abics.util.html" />
+    <link rel="prev" title="abics.mc module" href="abics.mc.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abics.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abics.exception.html">abics.exception module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mc.html">abics.mc module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">abics.mc_mpi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.util.html">abics.util module</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="abics.html">abics package</a> &raquo;</li>
+        
+      <li>abics.mc_mpi module</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/abics.mc_mpi.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-abics.mc_mpi">
+<span id="abics-mc-mpi-module"></span><h1>abics.mc_mpi module<a class="headerlink" href="#module-abics.mc_mpi" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="abics.mc_mpi.ParallelMC">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc_mpi.</code><code class="sig-name descname">ParallelMC</code><span class="sig-paren">(</span><em class="sig-param">comm</em>, <em class="sig-param">MCalgo</em>, <em class="sig-param">model</em>, <em class="sig-param">configs</em>, <em class="sig-param">kTs</em>, <em class="sig-param">subdirs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#ParallelMC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.ParallelMC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+<li><p><strong>MCalgo</strong> (<em>object for MonteCarlo algorithm</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>model</strong> (<em>dft_latgas object</em>) – DFT lattice gas mapping model</p></li>
+<li><p><strong>configs</strong> (<em>config object</em>) – Configurations</p></li>
+<li><p><strong>kTs</strong> (<em>list</em>) – Temperature list</p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – if true,  working directory for this rank is made</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="abics.mc_mpi.ParallelMC.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">comm</em>, <em class="sig-param">MCalgo</em>, <em class="sig-param">model</em>, <em class="sig-param">configs</em>, <em class="sig-param">kTs</em>, <em class="sig-param">subdirs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#ParallelMC.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.ParallelMC.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+<li><p><strong>MCalgo</strong> (<em>object for MonteCarlo algorithm</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>model</strong> (<em>dft_latgas object</em>) – DFT lattice gas mapping model</p></li>
+<li><p><strong>configs</strong> (<em>config object</em>) – Configurations</p></li>
+<li><p><strong>kTs</strong> (<em>list</em>) – Temperature list</p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – if true,  working directory for this rank is made</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.ParallelMC.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">nsteps</em>, <em class="sig-param">sample_frequency</em>, <em class="sig-param">observer=&lt;abics.mc.observer_base object&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#ParallelMC.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.ParallelMC.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsteps</strong> (<em>int</em>) – Number of Monte Carlo steps for running.</p></li>
+<li><p><strong>sample_frequency</strong> (<em>int</em>) – Number of Monte Carlo steps for running.</p></li>
+<li><p><strong>observer</strong> (<em>observer object</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>obs_buffer</strong> – Observables</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="abics.mc_mpi.RXParams">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc_mpi.</code><code class="sig-name descname">RXParams</code><a class="reference internal" href="_modules/abics/mc_mpi.html#RXParams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.RXParams" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Parameter set for replica exchange Monte Carlo</p>
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.nreplicas">
+<code class="sig-name descname">nreplicas</code><a class="headerlink" href="#abics.mc_mpi.RXParams.nreplicas" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of replicas</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.nprocs_per_replica">
+<code class="sig-name descname">nprocs_per_replica</code><a class="headerlink" href="#abics.mc_mpi.RXParams.nprocs_per_replica" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of processes which a replica uses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.kTstart">
+<code class="sig-name descname">kTstart</code><a class="headerlink" href="#abics.mc_mpi.RXParams.kTstart" title="Permalink to this definition">¶</a></dt>
+<dd><p>The lower bound of temperature range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.kTend">
+<code class="sig-name descname">kTend</code><a class="headerlink" href="#abics.mc_mpi.RXParams.kTend" title="Permalink to this definition">¶</a></dt>
+<dd><p>The upper bound of temperature range</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.nsteps">
+<code class="sig-name descname">nsteps</code><a class="headerlink" href="#abics.mc_mpi.RXParams.nsteps" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MC steps</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.RXtrial_frequency">
+<code class="sig-name descname">RXtrial_frequency</code><a class="headerlink" href="#abics.mc_mpi.RXParams.RXtrial_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MC steps between replica exchange operations</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.sample_frequency">
+<code class="sig-name descname">sample_frequency</code><a class="headerlink" href="#abics.mc_mpi.RXParams.sample_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MC steps between measurements observables</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.print_frequency">
+<code class="sig-name descname">print_frequency</code><a class="headerlink" href="#abics.mc_mpi.RXParams.print_frequency" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of MC steps between show information</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.reload">
+<code class="sig-name descname">reload</code><a class="headerlink" href="#abics.mc_mpi.RXParams.reload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether to restart simulation or not</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="abics.mc_mpi.RXParams.seed">
+<code class="sig-name descname">seed</code><a class="headerlink" href="#abics.mc_mpi.RXParams.seed" title="Permalink to this definition">¶</a></dt>
+<dd><p>The seed of the random number generator
+If 0, some random number is used (e.g., system time or some random noise).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.RXParams.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param">d</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#RXParams.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.RXParams.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read information from dictionary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>d</strong> (<em>dict</em>) – Dictionary including parameters for replica exchange Monte Carlo method</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>params</strong> – self</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DFTParams object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.RXParams.from_toml">
+<em class="property">classmethod </em><code class="sig-name descname">from_toml</code><span class="sig-paren">(</span><em class="sig-param">fname</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#RXParams.from_toml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.RXParams.from_toml" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read information from toml file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>f</strong> (<em>str</em>) – The name of input toml File</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>DFTParams</strong> – self</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>DFTParams object</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="abics.mc_mpi.RX_MPI_init">
+<code class="sig-prename descclassname">abics.mc_mpi.</code><code class="sig-name descname">RX_MPI_init</code><span class="sig-paren">(</span><em class="sig-param">rxparams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#RX_MPI_init"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.RX_MPI_init" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rxparams</strong> (<a class="reference internal" href="#abics.mc_mpi.RXParams" title="abics.mc_mpi.RXParams"><em>RXParams</em></a>) – Parameters for replica exchange Monte Carlo method.</p></li>
+<li><p><strong>Returns</strong> – </p></li>
+<li><p><strong>-------</strong> – </p></li>
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="abics.mc_mpi.TemperatureRX_MPI">
+<em class="property">class </em><code class="sig-prename descclassname">abics.mc_mpi.</code><code class="sig-name descname">TemperatureRX_MPI</code><span class="sig-paren">(</span><em class="sig-param">comm</em>, <em class="sig-param">MCalgo</em>, <em class="sig-param">model</em>, <em class="sig-param">configs</em>, <em class="sig-param">kTs</em>, <em class="sig-param">subdirs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#TemperatureRX_MPI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.TemperatureRX_MPI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.mc_mpi.ParallelMC" title="abics.mc_mpi.ParallelMC"><code class="xref py py-class docutils literal notranslate"><span class="pre">abics.mc_mpi.ParallelMC</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+<li><p><strong>MCalgo</strong> (<em>object for MonteCarlo algorithm</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas" title="abics.applications.latgas_abinitio_interface.model_setup.dft_latgas"><em>dft_latgas</em></a>) – DFT lattice gas mapping  model</p></li>
+<li><p><strong>configs</strong> (<em>config object</em>) – Configuration</p></li>
+<li><p><strong>kTs</strong> (<em>list</em>) – Temperature list</p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – If true, working directory for this rank is made</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="abics.mc_mpi.TemperatureRX_MPI.Xtrial">
+<code class="sig-name descname">Xtrial</code><span class="sig-paren">(</span><em class="sig-param">XCscheme=-1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#TemperatureRX_MPI.Xtrial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.TemperatureRX_MPI.Xtrial" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>XCscheme</strong> (<em>int</em>) – </p></li>
+<li><p><strong>Returns</strong> – </p></li>
+<li><p><strong>-------</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.TemperatureRX_MPI.__init__">
+<code class="sig-name descname">__init__</code><span class="sig-paren">(</span><em class="sig-param">comm</em>, <em class="sig-param">MCalgo</em>, <em class="sig-param">model</em>, <em class="sig-param">configs</em>, <em class="sig-param">kTs</em>, <em class="sig-param">subdirs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#TemperatureRX_MPI.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.TemperatureRX_MPI.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comm</strong> (<em>comm world</em>) – MPI communicator</p></li>
+<li><p><strong>MCalgo</strong> (<em>object for MonteCarlo algorithm</em>) – MonteCarlo algorithm</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas" title="abics.applications.latgas_abinitio_interface.model_setup.dft_latgas"><em>dft_latgas</em></a>) – DFT lattice gas mapping  model</p></li>
+<li><p><strong>configs</strong> (<em>config object</em>) – Configuration</p></li>
+<li><p><strong>kTs</strong> (<em>list</em>) – Temperature list</p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – If true, working directory for this rank is made</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.TemperatureRX_MPI.find_procrank_from_Trank">
+<code class="sig-name descname">find_procrank_from_Trank</code><span class="sig-paren">(</span><em class="sig-param">Trank</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#TemperatureRX_MPI.find_procrank_from_Trank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.TemperatureRX_MPI.find_procrank_from_Trank" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Trank</strong> (<em>int</em>) – Temperature rank</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>procrank</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.TemperatureRX_MPI.reload">
+<code class="sig-name descname">reload</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#TemperatureRX_MPI.reload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.TemperatureRX_MPI.reload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="abics.mc_mpi.TemperatureRX_MPI.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">nsteps</em>, <em class="sig-param">RXtrial_frequency</em>, <em class="sig-param">sample_frequency=9223372036854775807</em>, <em class="sig-param">print_frequency=9223372036854775807</em>, <em class="sig-param">observer=&lt;abics.mc.observer_base object&gt;</em>, <em class="sig-param">subdirs=True</em>, <em class="sig-param">save_obs=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/mc_mpi.html#TemperatureRX_MPI.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#abics.mc_mpi.TemperatureRX_MPI.run" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nsteps</strong> (<em>int</em>) – The number of Monte Carlo steps for running.</p></li>
+<li><p><strong>RXtrial_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for replica exchange.</p></li>
+<li><p><strong>sample_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for observation of physical quantities.</p></li>
+<li><p><strong>print_frequency</strong> (<em>int</em>) – The number of Monte Carlo steps for saving physical quantities.</p></li>
+<li><p><strong>observer</strong> (<em>observer object</em>) – </p></li>
+<li><p><strong>subdirs</strong> (<em>boolean</em>) – If true, working directory for this rank is made</p></li>
+<li><p><strong>save_obs</strong> (<em>boolean</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>obs_list</strong> – Observation list</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="abics.util.html" class="btn btn-neutral float-right" title="abics.util module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="abics.mc.html" class="btn btn-neutral float-left" title="abics.mc module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

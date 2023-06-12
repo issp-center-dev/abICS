@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.util module &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="abics.replica_params module" href="abics.replica_params.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="abics.html#subpackages">Subpackages</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abics.exception.html">abics.exception module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mc.html">abics.mc module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mc_mpi.html">abics.mc_mpi module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.mlref.html">abics.mlref module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.model.html">abics.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.observer.html">abics.observer module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.replica_params.html">abics.replica_params module</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">abics.util module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.all_equal"><code class="docutils literal notranslate"><span class="pre">all_equal()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.exists_on_all_nodes"><code class="docutils literal notranslate"><span class="pre">exists_on_all_nodes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.expand_cmd_path"><code class="docutils literal notranslate"><span class="pre">expand_cmd_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.expand_path"><code class="docutils literal notranslate"><span class="pre">expand_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.numpy_load"><code class="docutils literal notranslate"><span class="pre">numpy_load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.numpy_save"><code class="docutils literal notranslate"><span class="pre">numpy_save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.pickle_dump"><code class="docutils literal notranslate"><span class="pre">pickle_dump()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.pickle_load"><code class="docutils literal notranslate"><span class="pre">pickle_load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.read_matrix"><code class="docutils literal notranslate"><span class="pre">read_matrix()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.read_tensor"><code class="docutils literal notranslate"><span class="pre">read_tensor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abics.util.read_vector"><code class="docutils literal notranslate"><span class="pre">read_vector()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+      <li class="breadcrumb-item active">abics.util module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.util.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-abics.util">
+<span id="abics-util-module"></span><h1>abics.util module<a class="headerlink" href="#module-abics.util" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.all_equal">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">all_equal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#all_equal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.all_equal" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.exists_on_all_nodes">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">exists_on_all_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_wait</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#exists_on_all_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.exists_on_all_nodes" title="Permalink to this definition"></a></dt>
+<dd><p>check <code class="docutils literal notranslate"><span class="pre">path</span></code> file is visible from all procs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.expand_cmd_path">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">expand_cmd_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#expand_cmd_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.expand_cmd_path" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.expand_path">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">expand_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basedir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#expand_path"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.expand_path" title="Permalink to this definition"></a></dt>
+<dd><p>Expand path (absolute path)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>) – path</p></li>
+<li><p><strong>basedir</strong> (<em>str</em>) – path to base directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>path</strong> – path combined basedir with path (absolute path)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.numpy_load">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">numpy_load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#numpy_load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.numpy_load" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.numpy_save">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">numpy_save</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_pickle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#numpy_save"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.numpy_save" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.pickle_dump">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">pickle_dump</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#pickle_dump"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.pickle_dump" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.pickle_load">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">pickle_load</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/util.html#pickle_load"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.pickle_load" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.read_matrix">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">read_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">list[float]</span> <span class="pre">|</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype[~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">~typing.Type[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._SupportsDType[~numpy.dtype[~typing.Any]]</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int]</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.SupportsIndex</span> <span class="pre">|</span> <span class="pre">~typing.Sequence[~typing.SupportsIndex]]</span> <span class="pre">|</span> <span class="pre">~typing.List[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._DTypeDict</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abics/util.html#read_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.read_matrix" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.read_tensor">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">read_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">list[float]</span> <span class="pre">|</span> <span class="pre">list[list]</span> <span class="pre">|</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank:</span> <span class="pre">int</span> <span class="pre">=</span> <span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype[~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">~typing.Type[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._SupportsDType[~numpy.dtype[~typing.Any]]</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int]</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.SupportsIndex</span> <span class="pre">|</span> <span class="pre">~typing.Sequence[~typing.SupportsIndex]]</span> <span class="pre">|</span> <span class="pre">~typing.List[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._DTypeDict</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abics/util.html#read_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.read_tensor" title="Permalink to this definition"></a></dt>
+<dd><p>Read tensor</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>v</strong> (<em>str</em><em> or </em><em>list</em><em> or </em><em>np.ndarray</em>) – tensor</p></li>
+<li><p><strong>dtype</strong> (<em>type</em>) – type of elements, default: np.float64</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>v</strong> – tensor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.util.read_vector">
+<span class="sig-prename descclassname"><span class="pre">abics.util.</span></span><span class="sig-name descname"><span class="pre">read_vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">list[float]</span> <span class="pre">|</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype:</span> <span class="pre">~numpy.dtype[~typing.Any]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">|</span> <span class="pre">~typing.Type[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._SupportsDType[~numpy.dtype[~typing.Any]]</span> <span class="pre">|</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int]</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.SupportsIndex</span> <span class="pre">|</span> <span class="pre">~typing.Sequence[~typing.SupportsIndex]]</span> <span class="pre">|</span> <span class="pre">~typing.List[~typing.Any]</span> <span class="pre">|</span> <span class="pre">~numpy._typing._dtype_like._DTypeDict</span> <span class="pre">|</span> <span class="pre">~typing.Tuple[~typing.Any</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;class</span> <span class="pre">'numpy.float64'&gt;</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="_modules/abics/util.html#read_vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.util.read_vector" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.replica_params.html" class="btn btn-neutral float-left" title="abics.replica_params module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

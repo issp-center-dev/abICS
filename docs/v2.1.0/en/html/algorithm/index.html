@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>8. Algorithm &#8212; abICS 2.1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="9. Acknowledgement" href="../acknowledge/index.html" />
+    <link rel="prev" title="7.2. abicsRXsepT" href="../tools/tools_abicsRXsepT.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="algorithm">
+<h1><span class="section-number">8. </span>Algorithm<a class="headerlink" href="#algorithm" title="Permalink to this heading">¶</a></h1>
+<p>abICS is designed for combining parallel extended ensemble methods with
+arbitrary energy calculators. At present,
+the replica exchange Monte Carlo method and
+the population annealing Monte Carlo method are implemented.</p>
+<ul class="simple">
+<li><p>Overview of abICS</p>
+<ul>
+<li><p><a class="reference external" href="https://iopscience.iop.org/article/10.1088/1361-648X/aaf75c/meta">S. Kasamatsu and O. Sugino, J. Phys. Condens. Matter, 31, 085901 (2019)</a>.</p></li>
+<li><p><a class="reference external" href="https://aip.scitation.org/doi/full/10.1063/5.0096645">S. Kasamatsu, Y. Motoyama, K. Yoshimi, U. Matsumoto, A. Kuwabara, and T. Ogawa, J. Chem. Phys. 157, 104114 (2022)</a>.</p></li>
+</ul>
+</li>
+</ul>
+<section id="replica-exchange-monte-carlo-method">
+<h2><span class="section-number">8.1. </span>Replica exchange Monte Carlo method<a class="headerlink" href="#replica-exchange-monte-carlo-method" title="Permalink to this heading">¶</a></h2>
+<p>A disadvantage of the widely-used Metropolis Monte Carlo algorithm is
+that it tends to get stuck in local minima.
+The replica exchange approach aims to overcome this problem by
+considering multiple copies, or replicas, of the system under study.
+The algorithm may be described roughly as follows
+(see references below for more accurate descriptions).
+Monte Carlo sampling is performed on each replica independently at
+varying temperatures. At preset intervals, the temperatures are
+exchanged according to a Metropolis criterion that essentially
+assigns lower temperatures to replicas that happen to have lower
+energies. This allows an efficient sampling of the global configuration
+space using replicas at higher temperatures and accurate sampling of
+the local energy landscape at lower temperatures.</p>
+<p>In abICS, parameters related to the replica exchange Monte Carlo method are specified in the <code class="docutils literal notranslate"><span class="pre">[replica]</span></code> section of the input file.
+By setting the lower limit of the replica temperature to <span class="math notranslate nohighlight">\(T_s =\)</span> <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> , the upper limit to <span class="math notranslate nohighlight">\(T_e =\)</span> <code class="docutils literal notranslate"><span class="pre">kTend</span></code>, and the number of replicas to <span class="math notranslate nohighlight">\(N_r =\)</span> <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code>,
+<span class="math notranslate nohighlight">\(N_r\)</span> replica systems with different temperatures ( <span class="math notranslate nohighlight">\(T_0, T_1, \cdots T_{N_r-1}\)</span>) are sampled, where</p>
+<div class="math notranslate nohighlight">
+\[T_i = \frac{T_e-T_s}{N_r-1} i + T_s.\]</div>
+<p>In abICS, using <code class="docutils literal notranslate"><span class="pre">nprocs_per_replica</span></code>, the number of parallel solver processes that performs the calculation on each replica can be specified.
+The number of Monte Carlo steps is specified by <code class="docutils literal notranslate"><span class="pre">nsteps</span></code>, and the exchange transition probability <span class="math notranslate nohighlight">\(R\)</span> for each <code class="docutils literal notranslate"><span class="pre">RXtrial_frequency</span></code> step is defined as</p>
+<div class="math notranslate nohighlight">
+\[R = \exp\left[-\left(\frac{1}{T_i}-\frac{1}{T_{k}}\right)\left(E(X_i)-E(X_{k})\right)\right],\]</div>
+<p>where  <span class="math notranslate nohighlight">\(X_i\)</span> is the state for <span class="math notranslate nohighlight">\(i\)</span> -th replica system. In abICS, the exchange transition is tried between replicas with adjacent temperatures.
+The temperature exchange <span class="math notranslate nohighlight">\(T_i \leftrightarrow T_{k}\)</span> is performed with the exchange transition probability <span class="math notranslate nohighlight">\(R\)</span>.
+Physical quantities such as the total energy is measured at each <code class="docutils literal notranslate"><span class="pre">sample_frequency</span></code> step.</p>
+<ul class="simple">
+<li><p>About replica exchange Monte Carlo method</p>
+<ul>
+<li><p><a class="reference external" href="https://journals.jps.jp/doi/abs/10.1143/JPSJ.65.1604">K. Hukushima and K. Nemoto, J. Phys. Soc. Japan, 65, 1604 (1996)</a>.</p></li>
+<li><p><a class="reference external" href="https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.57.2607">R. Swendsen and J. Wang, Phys. Rev. Lett. 57, 2607 (1986)</a>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="population-annealing-monte-carlo">
+<h2><span class="section-number">8.2. </span>Population Annealing Monte Carlo<a class="headerlink" href="#population-annealing-monte-carlo" title="Permalink to this heading">¶</a></h2>
+<p>The simulated annealing (SA) method is one of the Monte Carlo method for searching for the ground state.
+SA performs an ordinally MC sampling under a fixed temperature, and decreases temperature after a given number of MC steps finished.
+SA first searches a whole space, and then searches narrower regions gradually as temperature decreases.
+A disadvabtage of SA is that a change of temperature distorts the distribution from equilibrium, and hence thermalization steps are necessary to obtain canonical average of observables for each temperature.
+The annealed importance sampling (AIS) method overcomes this problem.
+AIS performs SA on many replicas in parallel, and compensates for deviation of distributions by introducing an extra weight.
+This weight (Neal-Jarzynski weight) is appropriately defined so that the weighted average of observables over replicas is just the canonical average for each temperature.
+In AIS, the variance of the NJ weights increases as the simulation progresses, and then only some replicas contribute to the average, in other words, an effective number of replicas decreases.
+Therefore, the population annealing Monte Carlo (PAMC) method resamples the replicas periodically so that the distribution of replicas is propotional to the NJ weights and resets the weights to 1.</p>
+<ul class="simple">
+<li><p>AIS</p>
+<ul>
+<li><p><a class="reference external" href="https://link.springer.com/article/10.1023/A:1008923215028">R. M. Neal, Statistics and Computing 11, 125-139 (2001)</a>.</p></li>
+</ul>
+</li>
+<li><p>PAMC</p>
+<ul>
+<li><p><a class="reference external" href="https://aip.scitation.org/doi/abs/10.1063/1.1632130">K. Hukushima and Y. Iba, AIP Conf. Proc. 690, 200 (2003)</a>.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="about-configuration-and-update">
+<h2><span class="section-number">8.3. </span>About configuration and update<a class="headerlink" href="#about-configuration-and-update" title="Permalink to this heading">¶</a></h2>
+<p>Here, the outline of the definition of the configuration in abICS and the update by the Monte Carlo method are explained using <a class="reference internal" href="#alg-sampling"><span class="std std-numref">Fig. 8.1</span></a> as an example.</p>
+<p>(a)-(c) are schematic figures of <code class="docutils literal notranslate"><span class="pre">unitcell</span></code>, <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>, and <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>, where blue, green, and black circles are the atomic types defined by <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>, respectively. The star symbol indicates the location of the defects defined by <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>.
+(d) is a schematic figure for specifying the atomic species in <code class="docutils literal notranslate"><span class="pre">base_structure</span></code>. Here, three atomic species of blue, green, and black are defined. How each atom is arranged is defined by <code class="docutils literal notranslate"><span class="pre">coords</span></code> for each atom type.
+(e) is a schematic figure for specifying the group of atoms to be located at the defect position with <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code>. orange defines a group consisting of four atoms composed of two types of atoms, and purple forms a group of three atoms composed of three types of atoms. These groups are placed at defect points specified by <code class="docutils literal notranslate"><span class="pre">defect_structure.coords</span></code>. The arrangement of atoms in each group can be specified by <code class="docutils literal notranslate"><span class="pre">coords</span></code> in the <code class="docutils literal notranslate"><span class="pre">defect_structure.groups</span></code> section.
+<code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> can be defined multiple times. Groups of each <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> will be placed at points of each one.
+(f) is a schematic figure about the update of the Monte Carlo method. In the update, there are two patterns, one that swaps two atom groups of different type
+, and the other that changes the orientation within the atom group without changing the arrangement. The type of updates is automatically selected with 1/2 probability. The energy is calculated with the specified solver from the proposed configuration <span class="math notranslate nohighlight">\(X_ {trial}\)</span> and then the adoption rate <span class="math notranslate nohighlight">\(P (X_i \rightarrow X_ {trial})\)</span> is calculated.</p>
+<p>When the grand canonical sampling is turned on by the parameter <code class="docutils literal notranslate"><span class="pre">sampling.enable_grandcanonical</span></code>, the additional update patterns are also introduced in which the atom groups are added from or removed to the reservoir. The numbers of the atom groups are controlled by the chemical potentials <code class="docutils literal notranslate"><span class="pre">config.chemical_potential</span></code> for each atom group or a set of groups simultaneously.
+The configuration is updated by the Metropolis-Hastings algorithm according to the adoption rate calculated from the differences of the energy and the particle numbers between the original and proposed configurations as</p>
+<div class="math notranslate nohighlight">
+\[P(X_i\to X_\text{trial}) = \min\left( 1,  \Delta W\,e^{-\beta(\Delta E - \mu \Delta N)} \right)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta W = Q(X_\text{trial}\to X_i)/Q(X_i\to X_\text{trial})\)</span> denotes the weight factor derived from the proposal distribution <span class="math notranslate nohighlight">\(Q(X\to X^\prime)\)</span> from a configuration <span class="math notranslate nohighlight">\(X\)</span> to <span class="math notranslate nohighlight">\(X^\prime\)</span>.</p>
+<figure class="align-default" id="alg-sampling">
+<a class="reference internal image-reference" href="../_images/alg_sampling.png"><img alt="../_images/alg_sampling.png" src="../_images/alg_sampling.png" style="width: 513.4499999999999px; height: 1162.6499999999999px;" /></a>
+<figcaption>
+<p><span class="caption-number">Fig. 8.1 </span><span class="caption-text">(a)-(e) Definition of lattice in abICS. (f) A schematic of MonteCarlo method. Details are described in the text.</span><a class="headerlink" href="#alg-sampling" title="Permalink to this image">¶</a></p>
+</figcaption>
+</figure>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. About abICS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. Install</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. Basic Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. Input Files Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. Output Files Format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. Miscellaneous tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">8. Algorithm</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#replica-exchange-monte-carlo-method">8.1. Replica exchange Monte Carlo method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#population-annealing-monte-carlo">8.2. Population Annealing Monte Carlo</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#about-configuration-and-update">8.3. About configuration and update</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. Acknowledgement</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. Contacts</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../tools/tools_abicsRXsepT.html" title="previous chapter"><span class="section-number">7.2. </span>abicsRXsepT</a></li>
+      <li>Next: <a href="../acknowledge/index.html" title="next chapter"><span class="section-number">9. </span>Acknowledgement</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/algorithm/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

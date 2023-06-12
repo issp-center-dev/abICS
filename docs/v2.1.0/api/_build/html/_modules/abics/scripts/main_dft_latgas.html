@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.scripts.main_dft_latgas &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.scripts.main_dft_latgas</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.scripts.main_dft_latgas</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.constants</span> <span class="k">as</span> <span class="nn">constants</span>
+
+<span class="kn">from</span> <span class="nn">abics</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">CanonicalMonteCarlo</span><span class="p">,</span> <span class="n">WeightedCanonicalMonteCarlo</span><span class="p">,</span> <span class="n">RandomSampling</span>
+<span class="kn">from</span> <span class="nn">abics.observer</span> <span class="kn">import</span> <span class="n">ObserverParams</span>
+
+<span class="kn">from</span> <span class="nn">abics.sampling.mc_mpi</span> <span class="kn">import</span> <span class="n">RX_MPI_init</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.rxmc</span> <span class="kn">import</span> <span class="n">TemperatureRX_MPI</span><span class="p">,</span> <span class="n">RXParams</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.pamc</span> <span class="kn">import</span> <span class="n">PopulationAnnealing</span><span class="p">,</span> <span class="n">PAMCParams</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.simple_parallel</span> <span class="kn">import</span> <span class="n">EmbarrassinglyParallelSampling</span><span class="p">,</span> <span class="n">ParallelRandomParams</span>
+
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.default_observer</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DefaultObserver</span><span class="p">,</span>
+    <span class="n">EnsembleParams</span><span class="p">,</span>
+    <span class="n">EnsembleErrorObserver</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.model_setup</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">DFTLatticeGas</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.defect</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">defect_config</span><span class="p">,</span>
+    <span class="n">DFTConfigParams</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.run_base_mpi</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Runner</span><span class="p">,</span>
+    <span class="n">RunnerEnsemble</span><span class="p">,</span>
+    <span class="n">RunnerMultistep</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.base_solver</span> <span class="kn">import</span> <span class="n">SolverBase</span><span class="p">,</span> <span class="n">create_solver</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.params</span> <span class="kn">import</span> <span class="n">DFTParams</span>
+
+<span class="kn">from</span> <span class="nn">abics.util</span> <span class="kn">import</span> <span class="n">exists_on_all_nodes</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="main_dft_latgas"><a class="viewcode-back" href="../../../abics.scripts.main_dft_latgas.html#abics.scripts.main_dft_latgas.main_dft_latgas">[docs]</a><span class="k">def</span> <span class="nf">main_dft_latgas</span><span class="p">(</span><span class="n">params_root</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">):</span>
+    <span class="n">params_sampling</span> <span class="o">=</span> <span class="n">params_root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sampling&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">params_sampling</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;sampling section is missing in parameters&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dftparams</span> <span class="o">=</span> <span class="n">DFTParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_sampling</span><span class="p">[</span><span class="s2">&quot;solver&quot;</span><span class="p">])</span>
+    <span class="n">sampler_type</span> <span class="o">=</span> <span class="n">params_sampling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sampler&quot;</span><span class="p">,</span> <span class="s2">&quot;RXMC&quot;</span><span class="p">)</span>
+    <span class="n">params_observer</span> <span class="o">=</span> <span class="n">params_root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;observer&quot;</span><span class="p">,</span> <span class="p">{})</span>
+
+    <span class="k">if</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;RXMC&quot;</span><span class="p">:</span>
+        <span class="n">rxparams</span> <span class="o">=</span> <span class="n">RXParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_sampling</span><span class="p">)</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nprocs_per_replica</span>
+
+        <span class="n">kB</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Boltzmann constant in eV/K&quot;</span><span class="p">)</span>
+
+        <span class="n">nensemble</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span>
+        <span class="n">comm</span><span class="p">,</span> <span class="n">commEnsemble</span><span class="p">,</span> <span class="n">commAll</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">nensemble</span><span class="p">)</span>
+
+        <span class="c1"># RXMC parameters</span>
+        <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+        <span class="n">kTs</span> <span class="o">=</span> <span class="n">kB</span> <span class="o">*</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span>
+        <span class="n">kTstart</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kTend</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">RXtrial_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">RXtrial_frequency</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running RXMC calculation with </span><span class="si">{</span><span class="n">nreplicas</span><span class="si">}</span><span class="s2"> replicas&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Temperature varies from </span><span class="si">{</span><span class="n">kTstart</span><span class="si">}</span><span class="s2"> K to </span><span class="si">{</span><span class="n">kTend</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;PAMC&quot;</span><span class="p">:</span>
+        <span class="n">pamcparams</span> <span class="o">=</span> <span class="n">PAMCParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_sampling</span><span class="p">)</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">nprocs_per_replica</span>
+
+        <span class="n">kB</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Boltzmann constant in eV/K&quot;</span><span class="p">)</span>
+
+        <span class="n">nensemble</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span>
+        <span class="n">comm</span><span class="p">,</span> <span class="n">commEnsemble</span><span class="p">,</span> <span class="n">commAll</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">pamcparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">nensemble</span><span class="p">)</span>
+
+        <span class="c1"># RXMC parameters</span>
+        <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+        <span class="n">kTstart</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kTend</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">kTstart</span> <span class="o">&lt;</span> <span class="n">kTend</span><span class="p">:</span>
+            <span class="n">kTstart</span><span class="p">,</span> <span class="n">kTend</span> <span class="o">=</span> <span class="n">kTend</span><span class="p">,</span> <span class="n">kTstart</span>
+        <span class="n">kTs</span> <span class="o">=</span> <span class="n">kB</span> <span class="o">*</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">kTs</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">resample_frequency</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">resample_frequency</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">print_frequency</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running PAMC calculation with </span><span class="si">{</span><span class="n">nreplicas</span><span class="si">}</span><span class="s2"> replicas&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Anneal from </span><span class="si">{</span><span class="n">kTstart</span><span class="si">}</span><span class="s2"> K to </span><span class="si">{</span><span class="n">kTend</span><span class="si">}</span><span class="s2"> K&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;parallelRand&quot;</span><span class="p">:</span>
+        <span class="n">rxparams</span> <span class="o">=</span> <span class="n">ParallelRandomParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_sampling</span><span class="p">)</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nprocs_per_replica</span>
+        <span class="n">nensemble</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span>
+        <span class="n">comm</span><span class="p">,</span> <span class="n">commEnsemble</span><span class="p">,</span> <span class="n">commAll</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">nensemble</span><span class="p">)</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running parallel random sampling&quot;</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;parallelMC&quot;</span><span class="p">:</span>
+        <span class="n">rxparams</span> <span class="o">=</span> <span class="n">RXParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_sampling</span><span class="p">)</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nprocs_per_replica</span>
+
+        <span class="n">kB</span> <span class="o">=</span> <span class="n">constants</span><span class="o">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;Boltzmann constant in eV/K&quot;</span><span class="p">)</span>
+
+        <span class="n">nensemble</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span>
+        <span class="n">comm</span><span class="p">,</span> <span class="n">commEnsemble</span><span class="p">,</span> <span class="n">commAll</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span><span class="p">,</span> <span class="n">nensemble</span><span class="p">)</span>
+
+        <span class="c1"># RXMC parameters</span>
+        <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+        <span class="n">kTstart</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kTend</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kTs</span> <span class="o">=</span> <span class="n">kB</span> <span class="o">*</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running parallel MC sampling&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown sampler. Exiting...&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+    <span class="n">solvers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)):</span>
+        <span class="n">solver</span><span class="p">:</span> <span class="n">SolverBase</span> <span class="o">=</span> <span class="n">create_solver</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span> <span class="n">dftparams</span><span class="p">)</span>
+        <span class="n">solvers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
+    
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Setting up </span><span class="si">{</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span><span class="si">}</span><span class="s2"> solver for configuration energies&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Base input is taken from </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)))</span>
+
+    <span class="c1"># model setup</span>
+    <span class="c1"># we first choose a &quot;model&quot; defining how to perform energy calculations and trial steps</span>
+    <span class="c1"># on the &quot;configuration&quot; defined below</span>
+    <span class="n">energy_calculator</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Runner</span><span class="p">,</span> <span class="n">RunnerEnsemble</span><span class="p">,</span> <span class="n">RunnerMultistep</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">ensemble</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;You must specify more than one base_input_dir for ensemble calculator&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">energy_calculator</span> <span class="o">=</span> <span class="n">RunnerEnsemble</span><span class="p">(</span>
+            <span class="n">base_input_dirs</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">,</span>
+            <span class="n">Solvers</span><span class="o">=</span><span class="n">solvers</span><span class="p">,</span>
+            <span class="n">runner</span><span class="o">=</span><span class="n">Runner</span><span class="p">,</span>
+            <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="n">nprocs_per_replica</span><span class="p">,</span>
+            <span class="n">comm</span><span class="o">=</span><span class="n">commEnsemble</span><span class="p">,</span>
+            <span class="n">perturb</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">perturb</span><span class="p">,</span>
+            <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver_run_scheme</span><span class="p">,</span>
+            <span class="n">use_tmpdir</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">use_tmpdir</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">energy_calculator</span> <span class="o">=</span> <span class="n">Runner</span><span class="p">(</span>
+                <span class="n">base_input_dir</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">Solver</span><span class="o">=</span><span class="n">solvers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="n">nprocs_per_replica</span><span class="p">,</span>
+                <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="p">,</span>
+                <span class="n">perturb</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">perturb</span><span class="p">,</span>
+                <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver_run_scheme</span><span class="p">,</span>
+                <span class="n">use_tmpdir</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">use_tmpdir</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energy_calculator</span> <span class="o">=</span> <span class="n">RunnerMultistep</span><span class="p">(</span>
+                <span class="n">base_input_dirs</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">,</span>
+                <span class="n">Solvers</span><span class="o">=</span><span class="n">solvers</span><span class="p">,</span>
+                <span class="n">runner</span><span class="o">=</span><span class="n">Runner</span><span class="p">,</span>
+                <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="n">nprocs_per_replica</span><span class="p">,</span>
+                <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="p">,</span>
+                <span class="n">perturb</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">perturb</span><span class="p">,</span>
+                <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver_run_scheme</span><span class="p">,</span>
+                <span class="n">use_tmpdir</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">use_tmpdir</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="n">gc_flag</span>  <span class="o">=</span> <span class="n">params_sampling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;enable_grandcanonical&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">gc_ratio</span> <span class="o">=</span> <span class="n">params_sampling</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;gc_ratio&quot;</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">DFTLatticeGas</span><span class="p">(</span><span class="n">energy_calculator</span><span class="p">,</span>
+                          <span class="n">save_history</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">enable_grandcanonical</span><span class="o">=</span><span class="n">gc_flag</span><span class="p">,</span>
+                          <span class="n">gc_ratio</span><span class="o">=</span><span class="n">gc_ratio</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Success.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Setting up the on-lattice model.&quot;</span><span class="p">)</span>
+    
+    <span class="n">configparams</span> <span class="o">=</span> <span class="n">DFTConfigParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">])</span>
+
+    <span class="n">spinel_config</span> <span class="o">=</span> <span class="n">defect_config</span><span class="p">(</span><span class="n">configparams</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">configparams</span><span class="o">.</span><span class="n">init_structure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">exit_code</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">spinel_config</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Rank </span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">commAll</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">(),</span> <span class="n">msg</span><span class="p">))</span>
+        <span class="n">exit_code</span> <span class="o">=</span> <span class="n">commAll</span><span class="o">.</span><span class="n">allgather</span><span class="p">(</span><span class="n">exit_code</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">exit_code</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Failed to initialize configuration. Exiting.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Initial structure will be set to &#39;config.init_structure&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">spinel_config</span><span class="o">.</span><span class="n">reset_from_structure</span><span class="p">(</span><span class="n">configparams</span><span class="o">.</span><span class="n">init_structure</span><span class="p">)</span>
+
+    <span class="c1"># configs = []</span>
+    <span class="c1"># for i in range(nreplicas):</span>
+    <span class="c1">#    configs.append(copy.deepcopy(spinel_config))</span>
+    <span class="n">configs</span> <span class="o">=</span> <span class="p">[</span><span class="n">spinel_config</span><span class="p">]</span> <span class="o">*</span> <span class="n">nreplicas</span>
+
+    <span class="n">obsparams</span> <span class="o">=</span> <span class="n">ObserverParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_observer</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Success.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># NNP ensemble error estimation</span>
+    <span class="k">if</span> <span class="s2">&quot;ensemble&quot;</span> <span class="ow">in</span> <span class="n">params_root</span><span class="p">:</span>
+        <span class="n">ensembleparams</span> <span class="o">=</span> <span class="n">EnsembleParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;ensemble&quot;</span><span class="p">])</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">create_solver</span><span class="p">(</span><span class="n">ensembleparams</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span> <span class="n">ensembleparams</span><span class="p">)</span>
+
+        <span class="n">energy_calculators</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Runner</span><span class="p">(</span>
+                <span class="n">base_input_dir</span><span class="o">=</span><span class="n">base_input_dir</span><span class="p">,</span>
+                <span class="n">Solver</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">solver</span><span class="p">),</span>
+                <span class="n">nprocs_per_solver</span><span class="o">=</span><span class="n">nprocs_per_replica</span><span class="p">,</span>
+                <span class="n">comm</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="p">,</span>
+                <span class="n">perturb</span><span class="o">=</span><span class="n">ensembleparams</span><span class="o">.</span><span class="n">perturb</span><span class="p">,</span>
+                <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">ensembleparams</span><span class="o">.</span><span class="n">solver_run_scheme</span><span class="p">,</span>
+                <span class="n">use_tmpdir</span><span class="o">=</span><span class="n">dftparams</span><span class="o">.</span><span class="n">use_tmpdir</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">base_input_dir</span> <span class="ow">in</span> <span class="n">ensembleparams</span><span class="o">.</span><span class="n">base_input_dirs</span>
+        <span class="p">]</span>
+        <span class="n">observer</span><span class="p">:</span> <span class="n">DefaultObserver</span> <span class="o">=</span> <span class="n">EnsembleErrorObserver</span><span class="p">(</span><span class="n">commEnsemble</span><span class="p">,</span> <span class="n">energy_calculators</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">observer</span> <span class="o">=</span> <span class="n">DefaultObserver</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="n">params_observer</span><span class="p">)</span>
+
+    <span class="n">ALrun</span> <span class="o">=</span> <span class="n">exists_on_all_nodes</span><span class="p">(</span><span class="n">commAll</span><span class="p">,</span> <span class="s2">&quot;ALloop.progress&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Active learning mode</span>
+    <span class="k">if</span> <span class="n">ALrun</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running in active learning mode.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;train0&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">():</span>
+            <span class="c1"># Check how many AL iterations have been performed</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">exists_on_all_nodes</span><span class="p">(</span><span class="n">commAll</span><span class="p">,</span> <span class="s2">&quot;MC</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ALloop.progress&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+                <span class="n">last_li</span> <span class="o">=</span> <span class="n">fi</span><span class="o">.</span><span class="n">readlines</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">&quot;train&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">last_li</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;You should train before next MC sampling.&quot;</span><span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Restarting run in MC</span><span class="si">{</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">rootdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;MC</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">MCid</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Make new directory and perform sampling there</span>
+                <span class="k">if</span> <span class="n">commAll</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--MC sampling will be run in MC</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="s2">&quot;MC</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">use_tmpdir</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;---Will use local tmpdir for </span><span class="si">{</span><span class="n">dftparams</span><span class="o">.</span><span class="n">solver</span><span class="si">}</span><span class="s2"> run&quot;</span><span class="p">)</span>
+                        <span class="c1"># backup baseinput for this AL step</span>
+                        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span><span class="p">):</span>
+                            <span class="n">shutil</span><span class="o">.</span><span class="n">copytree</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;MC</span><span class="si">{}</span><span class="s2">/baseinput</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">commAll</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+                <span class="n">rootdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="n">exists_on_all_nodes</span><span class="p">(</span><span class="n">commAll</span><span class="p">,</span> <span class="s2">&quot;MC</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)):</span>
+                    <span class="k">pass</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;MC</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="n">MCid</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;You should train before MC sampling in AL mode.&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gc_flag</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">mc_class</span> <span class="o">=</span> <span class="n">WeightedCanonicalMonteCarlo</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mc_class</span> <span class="o">=</span> <span class="n">CanonicalMonteCarlo</span>
+
+    <span class="k">if</span> <span class="n">commEnsemble</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">write_node</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">write_node</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;RXMC&quot;</span><span class="p">:</span>
+        <span class="c1"># RXMC calculation</span>
+        <span class="n">RXcalc</span> <span class="o">=</span> <span class="n">TemperatureRX_MPI</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">mc_class</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Reloading from previous calculation&quot;</span><span class="p">)</span>
+            <span class="n">RXcalc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Starting RXMC calculation&quot;</span><span class="p">)</span>
+            
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">RXcalc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">RXtrial_frequency</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;PAMC&quot;</span><span class="p">:</span>
+        <span class="c1"># PAMC calculation</span>
+        <span class="n">PAcalc</span> <span class="o">=</span> <span class="n">PopulationAnnealing</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">mc_class</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Reloading from previous calculation&quot;</span><span class="p">)</span>
+            <span class="n">PAcalc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Starting PAMC calculation&quot;</span><span class="p">)</span>
+            
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">PAcalc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">resample_frequency</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;parallelRand&quot;</span><span class="p">:</span>
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">EmbarrassinglyParallelSampling</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">RandomSampling</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">calc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;parallelMC&quot;</span><span class="p">:</span>
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">EmbarrassinglyParallelSampling</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">mc_class</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">calc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Sampling completed sucessfully.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ALrun</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">write_node</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Writing ALloop.progress&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ALloop.progress&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+                <span class="n">fi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;MC</span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">MCid</span><span class="p">))</span>
+                <span class="n">fi</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">fsync</span><span class="p">(</span><span class="n">fi</span><span class="o">.</span><span class="n">fileno</span><span class="p">())</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Exiting normally on </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

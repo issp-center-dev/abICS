@@ -1,0 +1,1023 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.applications.latgas_abinitio_interface.model_setup &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abics.applications.latgas_abinitio_interface.model_setup</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abics.applications.latgas_abinitio_interface.model_setup</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.random</span> <span class="k">as</span> <span class="nn">rand</span>
+
+<span class="c1"># from mpi4py import MPI</span>
+
+<span class="kn">from</span> <span class="nn">pymatgen</span> <span class="kn">import</span> <span class="n">Structure</span>
+<span class="kn">from</span> <span class="nn">pymatgen.analysis.structure_matcher</span> <span class="kn">import</span> <span class="n">StructureMatcher</span><span class="p">,</span> <span class="n">FrameworkComparator</span>
+<span class="kn">import</span> <span class="nn">pymatgen.analysis.structure_analyzer</span> <span class="k">as</span> <span class="nn">analy</span>
+
+<span class="kn">from</span> <span class="nn">abics.exception</span> <span class="kn">import</span> <span class="n">InputError</span>
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">model</span>
+<span class="kn">from</span> <span class="nn">abics.util</span> <span class="kn">import</span> <span class="n">read_vector</span><span class="p">,</span> <span class="n">read_matrix</span><span class="p">,</span> <span class="n">read_tensor</span>
+
+
+<div class="viewcode-block" id="gauss"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.gauss">[docs]</a><span class="k">def</span> <span class="nf">gauss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">sigma</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Gaussian function</span>
+
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x: float</span>
+<span class="sd">        The position</span>
+<span class="sd">    x0: float</span>
+<span class="sd">        The position of the center of the peak</span>
+<span class="sd">    sigma: float</span>
+<span class="sd">        The standard deviation</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        value: float</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="mf">1.0</span>
+        <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">)</span>
+        <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="match_id"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.match_id">[docs]</a><span class="k">def</span> <span class="nf">match_id</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the index list of lst which matches obj.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lst: list</span>
+<span class="sd">    obj: object</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        The index list of lst which matches obj.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mapping</span></div>
+
+
+<div class="viewcode-block" id="nomatch_id"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.nomatch_id">[docs]</a><span class="k">def</span> <span class="nf">nomatch_id</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the index list of lst which does not match obj.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lst: list</span>
+<span class="sd">    obj: object</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        The index list of lst which does not match obj.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">lst</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mapping</span></div>
+
+
+<div class="viewcode-block" id="match_latgas_group"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.match_latgas_group">[docs]</a><span class="k">def</span> <span class="nf">match_latgas_group</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">,</span> <span class="n">group</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the index list of latgas_rep which matches group.name.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    latgas_rep: list</span>
+<span class="sd">    group: object</span>
+<span class="sd">        Notes: the group must have name</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">        The index list of latgas_rep which matches group.name.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mapping</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">latgas_rep</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">group</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">mapping</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mapping</span></div>
+
+
+<div class="viewcode-block" id="perturb_structure"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.perturb_structure">[docs]</a><span class="k">def</span> <span class="nf">perturb_structure</span><span class="p">(</span><span class="n">st</span><span class="p">:</span> <span class="n">Structure</span><span class="p">,</span> <span class="n">distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Perform random perturbation of the atomic coordinates.</span>
+<span class="sd">    All atoms will be moved at the same distance.</span>
+
+<span class="sd">    Which components will be perturbed is specified by a boolean array stored as st.site_properties[&quot;seldyn&quot;].</span>
+<span class="sd">    If not stored, all the components will be perturbed.</span>
+<span class="sd">    Argument st will be mutated.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    st: Structure</span>
+<span class="sd">    distance: float</span>
+<span class="sd">        strength of perturb</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">num_sites</span>
+    <span class="n">seldyn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">site_properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seldyn&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="mi">3</span><span class="p">))),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">seldyn</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">seldyn</span> <span class="o">*=</span> <span class="n">rand</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">seldyn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">norm</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">sites</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span> <span class="o">+=</span> <span class="n">seldyn</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">/</span> <span class="n">norm</span> <span class="o">*</span> <span class="n">distance</span></div>
+
+
+<div class="viewcode-block" id="dft_latgas"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas">[docs]</a><span class="k">class</span> <span class="nc">dft_latgas</span><span class="p">(</span><span class="n">model</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This class defines the DFT lattice gas mapping  model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;dft_latgas&quot;</span>
+
+<div class="viewcode-block" id="dft_latgas.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">abinitio_run</span><span class="p">,</span>
+        <span class="n">save_history</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">l_update_basestruct</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">check_ion_move</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">ion_move_tol</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        abinitio_run: runner object</span>
+<span class="sd">            Runner (manager) of external solver program</span>
+<span class="sd">        save_history: boolean</span>
+<span class="sd">        l_update_basestruct: boolean</span>
+<span class="sd">        check_ion_move: boolean</span>
+<span class="sd">        ion_move_tol: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span> <span class="o">=</span> <span class="n">StructureMatcher</span><span class="p">(</span><span class="n">primitive_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_subset</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abinitio_run</span> <span class="o">=</span> <span class="n">abinitio_run</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_history</span> <span class="o">=</span> <span class="n">save_history</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l_update_basestruct</span> <span class="o">=</span> <span class="n">l_update_basestruct</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_ion_move</span> <span class="o">=</span> <span class="n">check_ion_move</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ion_move_tol</span> <span class="o">=</span> <span class="n">ion_move_tol</span></div>
+
+<div class="viewcode-block" id="dft_latgas.energy"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate total energy</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            Configurations</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        energy: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">site</span><span class="p">:</span> <span class="n">site</span><span class="o">.</span><span class="n">species_string</span><span class="p">)</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">structure</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_history</span><span class="p">:</span>
+            <span class="n">calc_history</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">calc_history</span>
+            <span class="c1"># Try to avoid doing dft calculation for the same structure.</span>
+            <span class="c1"># Assuming that calc_history is a list of ComputedStructureEntries</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">calc_history</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">calc_history</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;match found in history&quot;</span><span class="p">)</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                    <span class="n">config</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">calc_history</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="n">calc_history</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">structure0</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="n">energy</span><span class="p">,</span> <span class="n">structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abinitio_run</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+            <span class="n">structure</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s2">&quot;output&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ion_move</span><span class="p">:</span>
+            <span class="n">relax_analy</span> <span class="o">=</span> <span class="n">analy</span><span class="o">.</span><span class="n">RelaxationAnalyzer</span><span class="p">(</span><span class="n">structure0</span><span class="p">,</span> <span class="n">structure</span><span class="p">)</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">relax_analy</span><span class="o">.</span><span class="n">get_percentage_bond_dist_changes</span><span class="p">()</span>
+            <span class="n">breakflag</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">ion</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ion_move</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">breakflag</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">structure0</span><span class="o">.</span><span class="n">indices_from_symbol</span><span class="p">(</span><span class="n">ion</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">breakflag</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ion_move_tol</span><span class="p">:</span>
+                            <span class="n">energy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ion relaxed out of initial site&quot;</span><span class="p">)</span>
+                            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                            <span class="n">breakflag</span> <span class="o">=</span> <span class="kc">True</span>
+                            <span class="k">break</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_history</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">calc_history</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">energy</span><span class="p">,</span> <span class="n">structure0</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">calc_history</span><span class="p">)</span> <span class="o">==</span> <span class="mi">25</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">config</span><span class="o">.</span><span class="n">calc_history</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
+
+        <span class="n">config</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="dft_latgas.trialstep"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas.trialstep">[docs]</a>    <span class="k">def</span> <span class="nf">trialstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">energy_now</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            Configurations</span>
+<span class="sd">        energy_now: float</span>
+<span class="sd">            Present energy</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dconfig: float</span>
+<span class="sd">            Difference of configurations</span>
+<span class="sd">        dE : float</span>
+<span class="sd">            Difference of energies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">e0</span> <span class="o">=</span> <span class="n">energy_now</span>
+
+        <span class="c1"># Back up structure and defect_sublattices</span>
+        <span class="n">structure0</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="p">)</span>
+        <span class="n">defect_sublattices0</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">)</span>
+
+        <span class="c1"># for defect_sublattice in [rand.choice(config.defect_sublattices)]: #config.defect_sublattices:</span>
+
+        <span class="n">defect_sublattice</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">)</span>
+        <span class="n">latgas_rep</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">latgas_rep</span>
+        <span class="c1"># print(latgas_rep)</span>
+
+        <span class="c1"># If there is more than one group on the defect_sublattice,</span>
+        <span class="c1"># we either change orientation of one group, or  exchange groups between sites</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">defect_sublattice</span><span class="o">.</span><span class="n">groups</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">random_divide</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">random_divide</span> <span class="o">=</span> <span class="mf">2.0</span>
+        <span class="k">if</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">groups_orr</span> <span class="ow">and</span> <span class="n">rand</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">random_divide</span><span class="p">:</span>
+            <span class="c1"># Change orientation of one group with orientation attributes</span>
+            <span class="c1"># Let&#39;s first locate sites that have such groups</span>
+            <span class="n">rot_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">groups_orr</span><span class="p">:</span>
+                <span class="n">rot_ids</span> <span class="o">+=</span> <span class="n">match_latgas_group</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">,</span> <span class="n">group</span><span class="p">)</span>
+            <span class="c1"># Choose the site to rotate and rotate</span>
+            <span class="n">rot_id</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">rot_ids</span><span class="p">)</span>
+            <span class="n">rot_group</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">group_dict</span><span class="p">[</span><span class="n">latgas_rep</span><span class="p">[</span><span class="n">rot_id</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">rot_group_orr</span> <span class="o">=</span> <span class="n">latgas_rep</span><span class="p">[</span><span class="n">rot_id</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Remove the current orientation from the list of possible orientations</span>
+            <span class="n">or_choices</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">orx</span> <span class="k">for</span> <span class="n">orx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rot_group</span><span class="o">.</span><span class="n">orientations</span><span class="p">)</span> <span class="k">if</span> <span class="n">orx</span> <span class="o">!=</span> <span class="n">rot_group_orr</span>
+            <span class="p">]</span>
+            <span class="n">latgas_rep</span><span class="p">[</span><span class="n">rot_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">rot_group</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">rand</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">or_choices</span><span class="p">)]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Exchange different groups between sites</span>
+            <span class="n">ex1_group</span><span class="p">,</span> <span class="n">ex2_group</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">defect_sublattice</span><span class="o">.</span><span class="n">groups</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">ex1_id</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">match_latgas_group</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">,</span> <span class="n">ex1_group</span><span class="p">))</span>
+            <span class="n">ex2_id</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">match_latgas_group</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">,</span> <span class="n">ex2_group</span><span class="p">))</span>
+            <span class="n">latgas_rep</span><span class="p">[</span><span class="n">ex1_id</span><span class="p">],</span> <span class="n">latgas_rep</span><span class="p">[</span><span class="n">ex2_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">latgas_rep</span><span class="p">[</span><span class="n">ex2_id</span><span class="p">],</span>
+                <span class="n">latgas_rep</span><span class="p">[</span><span class="n">ex1_id</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="c1"># print(latgas_rep)</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">set_latgas</span><span class="p">()</span>
+
+        <span class="c1"># do vasp calculation on structure</span>
+        <span class="n">e1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="c1"># return old structure</span>
+        <span class="n">structure</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">structure</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">structure0</span>
+        <span class="n">defect_sublattices</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">defect_sublattices</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">defect_sublattices</span> <span class="o">=</span> <span class="n">defect_sublattices0</span>
+
+        <span class="c1"># Simply pass new structure and latgas_rep  in dconfig to be used by newconfig():</span>
+        <span class="n">dconfig</span> <span class="o">=</span> <span class="n">structure</span><span class="p">,</span> <span class="n">defect_sublattices</span>
+        <span class="k">if</span> <span class="n">e0</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">):</span>
+            <span class="n">dE</span> <span class="o">=</span> <span class="n">e1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">dE</span> <span class="o">=</span> <span class="n">e1</span> <span class="o">-</span> <span class="n">e0</span>
+
+        <span class="k">return</span> <span class="n">dconfig</span><span class="p">,</span> <span class="n">dE</span></div>
+
+<div class="viewcode-block" id="dft_latgas.newconfig"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas.newconfig">[docs]</a>    <span class="k">def</span> <span class="nf">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update config by the trial step, dconfig</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            Configuration</span>
+<span class="sd">        dconfig: config object</span>
+<span class="sd">            Difference of configuration</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            New configuration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">defect_sublattices</span> <span class="o">=</span> <span class="n">dconfig</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_update_basestruct</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update_basestruct</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span></div></div>
+
+
+<div class="viewcode-block" id="energy_lst"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.energy_lst">[docs]</a><span class="k">class</span> <span class="nc">energy_lst</span><span class="p">(</span><span class="n">dft_latgas</span><span class="p">):</span>
+<div class="viewcode-block" id="energy_lst.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.energy_lst.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">calcode</span><span class="p">,</span>
+        <span class="n">vasp_run</span><span class="p">,</span>
+        <span class="n">base_vaspinput</span><span class="p">,</span>
+        <span class="n">matcher_base</span><span class="p">,</span>  <span class="c1"># matcher, matcher_site,</span>
+        <span class="n">queen</span><span class="p">,</span>
+        <span class="n">reps</span><span class="p">,</span>
+        <span class="n">energy_lst</span><span class="p">,</span>
+        <span class="n">matcher</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calcode:</span>
+<span class="sd">        vasp_run: runner object</span>
+<span class="sd">            Runner (manager) of external solver program</span>
+<span class="sd">        base_vaspinput:</span>
+<span class="sd">        matcher_base:</span>
+<span class="sd">        queen:</span>
+<span class="sd">        reps:</span>
+<span class="sd">        energy_lst: list</span>
+<span class="sd">            Energy list</span>
+<span class="sd">        matcher:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">calcode</span><span class="p">,</span>
+            <span class="n">vasp_run</span><span class="p">,</span>
+            <span class="n">base_vaspinput</span><span class="p">,</span>
+            <span class="n">matcher_base</span><span class="p">,</span>  <span class="c1"># matcher, matcher_site,</span>
+            <span class="n">queen</span><span class="p">,</span>
+            <span class="n">matcher</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reps</span> <span class="o">=</span> <span class="n">reps</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_list</span> <span class="o">=</span> <span class="n">energy_lst</span></div>
+
+<div class="viewcode-block" id="energy_lst.energy"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.energy_lst.energy">[docs]</a>    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">save_history</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            Configuration</span>
+<span class="sd">        save_history: boolean</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        energy: float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rep_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reps</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">latgas_rep</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_list</span><span class="p">[</span><span class="n">rep_id</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="group"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.group">[docs]</a><span class="k">class</span> <span class="nc">group</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="group.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.group.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">relaxations</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">magnetizations</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        name: str</span>
+<span class="sd">            The name of atomic group</span>
+<span class="sd">        species: str</span>
+<span class="sd">            The atomic species belonging to the atom group</span>
+<span class="sd">        coords: numpy array</span>
+<span class="sd">            The coordinates of each atom in the atom group.</span>
+<span class="sd">        relaxations: numpy array</span>
+<span class="sd">            Whether to perform structure optimization or not</span>
+<span class="sd">        magnetization: numpy array</span>
+<span class="sd">            Magnetizations (inbalance of up/down spins)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relaxations</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">relaxations</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">relaxations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">magnetizations</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">magnetizations</span><span class="p">)</span> <span class="k">if</span> <span class="n">magnetizations</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">orientations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">orientations</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">orientations</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">natoms</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="defect_sublattice"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.defect_sublattice">[docs]</a><span class="k">class</span> <span class="nc">defect_sublattice</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="defect_sublattice.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.defect_sublattice.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">site_centers</span><span class="p">,</span> <span class="n">groups</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        site_centers: list</span>
+<span class="sd">            Center coordinates at each groups</span>
+<span class="sd">        groups: list</span>
+<span class="sd">            List of groups</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">site_centers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">groups</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups_orr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">group_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">group</span><span class="o">.</span><span class="n">orientations</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">groups_orr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">group_dict</span><span class="p">[</span><span class="n">group</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">group</span></div>
+
+<div class="viewcode-block" id="defect_sublattice.from_dict"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.defect_sublattice.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        site_centers: list</span>
+<span class="sd">            Center coordinates at each groups</span>
+<span class="sd">        groups: list</span>
+<span class="sd">            List of groups</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">site_centers</span> <span class="o">=</span> <span class="n">read_matrix</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">])</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;groups&quot;</span><span class="p">]:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;species&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">name</span><span class="p">])</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+
+            <span class="n">coords</span> <span class="o">=</span> <span class="n">read_tensor</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;coords&quot;</span><span class="p">,</span> <span class="p">[[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]]),</span> <span class="n">rank</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">m</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s1">&#39;number of atoms mismatch in group [</span><span class="si">{}</span><span class="s1">]: &quot;species&quot;=</span><span class="si">{}</span><span class="s1">, &quot;coords&quot;=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">relaxation</span> <span class="o">=</span> <span class="n">read_matrix</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;relaxation&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">))),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">relaxation</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">m</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s1">&#39;number of atoms mismatch in group [</span><span class="si">{}</span><span class="s1">]: &quot;species&quot;=</span><span class="si">{}</span><span class="s1">, &quot;relaxation&quot;=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+
+            <span class="n">mag</span> <span class="o">=</span> <span class="n">read_vector</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;magnetization&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mag</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">m</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s1">&#39;number of atoms mismatch in group [</span><span class="si">{}</span><span class="s1">]: &quot;species&quot;=</span><span class="si">{}</span><span class="s1">, &quot;magnetization&quot;=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">name</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">group</span><span class="p">(</span>
+                    <span class="n">name</span><span class="p">,</span>
+                    <span class="n">species</span><span class="p">,</span>
+                    <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
+                    <span class="n">relaxations</span><span class="o">=</span><span class="n">relaxation</span><span class="p">,</span>
+                    <span class="n">magnetizations</span><span class="o">=</span><span class="n">mag</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">site_centers</span><span class="p">,</span> <span class="n">groups</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="base_structure"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.base_structure">[docs]</a><span class="k">def</span> <span class="nf">base_structure</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">dict_str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lat: pymatgen.Lattice</span>
+<span class="sd">    dict_str: dict</span>
+<span class="sd">        Dictionary of base structure</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    st: pymatgen.Structure</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dict_str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">dict_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="n">Structure</span><span class="p">(</span>
+            <span class="n">lattice</span><span class="o">=</span><span class="n">lat</span><span class="p">,</span>
+            <span class="n">species</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">coords</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">site_properties</span><span class="o">=</span><span class="p">{</span>
+                <span class="s2">&quot;seldyn&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span>
+                <span class="s2">&quot;magnetization&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+    <span class="n">elems</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">relaxations</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">magnetizations</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tc</span> <span class="ow">in</span> <span class="n">dict_str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;type&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">tc</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span><span class="s1">&#39;&quot;type&quot; is not found in &quot;base_structure&quot;&#39;</span><span class="p">)</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">tc</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span>
+        <span class="n">crds</span> <span class="o">=</span> <span class="n">read_matrix</span><span class="p">(</span><span class="n">tc</span><span class="p">[</span><span class="s2">&quot;coords&quot;</span><span class="p">])</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">crds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;relaxation&quot;</span> <span class="ow">in</span> <span class="n">tc</span><span class="p">:</span>
+            <span class="n">relax</span> <span class="o">=</span> <span class="n">read_matrix</span><span class="p">(</span><span class="n">tc</span><span class="p">[</span><span class="s2">&quot;relaxation&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="n">relax</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s1">&#39;number of base atoms mismatch: &quot;coords&quot;=</span><span class="si">{}</span><span class="s1">, &quot;relaxation&quot;=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">n</span><span class="p">,</span> <span class="n">m</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">relax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>  <span class="c1"># all True</span>
+
+        <span class="k">if</span> <span class="s2">&quot;magnetization&quot;</span> <span class="ow">in</span> <span class="n">tc</span><span class="p">:</span>
+            <span class="n">mag</span> <span class="o">=</span> <span class="n">tc</span><span class="p">[</span><span class="s2">&quot;magnetization&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mag</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span><span class="s1">&#39;&quot;magnetization&quot; should be a list of floats&#39;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mag</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mag</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span><span class="s1">&#39;&quot;magnetization&quot; should be a list of floats&#39;</span><span class="p">)</span>
+            <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mag</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">m</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">InputError</span><span class="p">(</span>
+                    <span class="s1">&#39;number of base atoms mismatch: &quot;coords&quot;=</span><span class="si">{}</span><span class="s1">, &quot;magnetization&quot;=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                        <span class="n">n</span><span class="p">,</span> <span class="n">m</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mag</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="n">elems</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">sp</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">)</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">crds</span><span class="p">)</span>
+        <span class="n">relaxations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">relax</span><span class="p">)</span>
+        <span class="n">magnetizations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mag</span><span class="p">)</span>
+    <span class="n">elems</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">elems</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">relaxations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">relaxations</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">magnetizations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">magnetizations</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Structure</span><span class="p">(</span>
+        <span class="n">lattice</span><span class="o">=</span><span class="n">lat</span><span class="p">,</span>
+        <span class="n">species</span><span class="o">=</span><span class="n">elems</span><span class="p">,</span>
+        <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
+        <span class="n">site_properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;seldyn&quot;</span><span class="p">:</span> <span class="n">relaxations</span><span class="p">,</span> <span class="s2">&quot;magnetization&quot;</span><span class="p">:</span> <span class="n">magnetizations</span><span class="p">},</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="config"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config">[docs]</a><span class="k">class</span> <span class="nc">config</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This class defines the config with lattice gas mapping&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="config.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">base_structure</span><span class="p">,</span>
+        <span class="n">defect_sublattices</span><span class="p">,</span>
+        <span class="n">num_defects</span><span class="p">,</span>
+        <span class="n">cellsize</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+        <span class="n">perfect_structure</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        base_structure : pymatgen.Structure</span>
+<span class="sd">            Structure of base sites (unsampled sites)</span>
+<span class="sd">        defect_sublattices : defect_sublattice</span>
+<span class="sd">            Structure of defects (sampled sites)</span>
+<span class="sd">        num_defects : dict</span>
+<span class="sd">            {group name: number of defects}</span>
+<span class="sd">        cellsize : list, optional</span>
+<span class="sd">            Cell size, by default [1, 1, 1]</span>
+<span class="sd">        perfect_structure : pymatgen.Structure, optional</span>
+<span class="sd">            Strucure of all sites (union of base and defect), by default None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">num_defect_sublat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">defect_sublattices</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="n">num_defect_sublat</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">defect_sublattices</span> <span class="o">=</span> <span class="p">[</span><span class="n">defect_sublattices</span><span class="p">]</span>
+            <span class="n">num_defects</span> <span class="o">=</span> <span class="p">[</span><span class="n">num_defects</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher_base</span> <span class="o">=</span> <span class="n">StructureMatcher</span><span class="p">(</span><span class="n">primitive_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allow_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matcher_frame</span> <span class="o">=</span> <span class="n">StructureMatcher</span><span class="p">(</span>
+            <span class="n">stol</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+            <span class="n">primitive_cell</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">allow_subset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">comparator</span><span class="o">=</span><span class="n">FrameworkComparator</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">calc_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cellsize</span> <span class="o">=</span> <span class="n">cellsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span> <span class="o">=</span> <span class="n">base_structure</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">num_sites</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># we need at least one site for make_supercell</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">make_supercell</span><span class="p">([</span><span class="n">cellsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">remove_sites</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">num_sites</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">make_supercell</span><span class="p">([</span><span class="n">cellsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">2</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">perfect_structure</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perfect_structure</span> <span class="o">=</span> <span class="n">perfect_structure</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perfect_structure</span><span class="o">.</span><span class="n">make_supercell</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">cellsize</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">cellsize</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supercell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="o">.</span><span class="n">lattice</span><span class="o">.</span><span class="n">matrix</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_sublat</span> <span class="o">=</span> <span class="n">num_defect_sublat</span>
+        <span class="n">invSuper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">supercell</span><span class="p">)</span>
+
+        <span class="c1"># add supercell information to defect_sites</span>
+        <span class="n">num_sites</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ntot_defects</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">sublat_id</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">defect_sublattice</span> <span class="ow">in</span> <span class="n">defect_sublattices</span><span class="p">:</span>
+            <span class="n">site_centers</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers</span>
+            <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers_sc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">cellsize</span><span class="p">)</span> <span class="o">*</span> <span class="n">site_centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span>
+            <span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">l</span><span class="p">))</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                <span class="n">product</span><span class="p">(</span>
+                    <span class="nb">range</span><span class="p">(</span><span class="n">cellsize</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                    <span class="nb">range</span><span class="p">(</span><span class="n">cellsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="nb">range</span><span class="p">(</span><span class="n">cellsize</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="nb">range</span><span class="p">(</span><span class="n">site_centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                <span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers_sc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">site_centers</span><span class="p">[</span><span class="n">l</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">]</span>
+                <span class="p">)</span>
+                <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers_sc</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cellsize</span><span class="p">)</span>
+            <span class="n">num_sites</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers_sc</span><span class="p">)</span>
+
+            <span class="c1"># change cartesian coordinates to fractional</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">orientations</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">natoms</span><span class="p">):</span>
+                        <span class="n">group</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">],</span> <span class="n">invSuper</span><span class="p">)</span>
+
+            <span class="c1"># fill the lattice gas representation list</span>
+            <span class="n">latgas_rep</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">num_defects</span><span class="p">[</span><span class="n">sublat_id</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">latgas_rep</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                    <span class="p">[[</span><span class="n">group</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_defects</span><span class="p">[</span><span class="n">sublat_id</span><span class="p">][</span><span class="n">group</span><span class="p">])]</span>
+                <span class="p">)</span>
+                <span class="n">ntot_defects</span> <span class="o">+=</span> <span class="n">num_defects</span><span class="p">[</span><span class="n">sublat_id</span><span class="p">][</span><span class="n">group</span><span class="p">]</span>
+            <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">latgas_rep</span> <span class="o">=</span> <span class="n">latgas_rep</span>
+
+            <span class="n">sublat_id</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">defect_sublattices</span> <span class="o">=</span> <span class="n">defect_sublattices</span>
+
+        <span class="k">assert</span> <span class="n">num_sites</span> <span class="o">==</span> <span class="n">ntot_defects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_latgas</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="config.set_latgas"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config.set_latgas">[docs]</a>    <span class="k">def</span> <span class="nf">set_latgas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">defect_sublattices</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        defect_sublattices: pymatgen.Structure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">defect_sublattices</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">defect_sublattices</span> <span class="o">=</span> <span class="n">defect_sublattices</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_sublat</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">structure</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">defect_sublattice</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">:</span>
+            <span class="n">latgas_rep</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">latgas_rep</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers_sc</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">isite</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">)):</span>
+                <span class="n">grp_name</span> <span class="o">=</span> <span class="n">latgas_rep</span><span class="p">[</span><span class="n">isite</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">orr</span> <span class="o">=</span> <span class="n">latgas_rep</span><span class="p">[</span><span class="n">isite</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">group_dict</span><span class="p">[</span><span class="n">grp_name</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">natoms</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">group</span><span class="o">.</span><span class="n">species</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+                        <span class="n">group</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">orr</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">site_centers_sc</span><span class="p">[</span><span class="n">isite</span><span class="p">],</span>
+                        <span class="n">properties</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;seldyn&quot;</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">relaxations</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:],</span>
+                            <span class="s2">&quot;magnetization&quot;</span><span class="p">:</span> <span class="n">group</span><span class="o">.</span><span class="n">magnetizations</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+                        <span class="p">},</span>
+                    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="config.shuffle"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config.shuffle">[docs]</a>    <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">defect_sublattice</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">:</span>
+            <span class="n">latgas_rep</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">latgas_rep</span>
+            <span class="n">rand</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">latgas_rep</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">site</span> <span class="ow">in</span> <span class="n">latgas_rep</span><span class="p">:</span>
+                <span class="n">group</span> <span class="o">=</span> <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">group_dict</span><span class="p">[</span><span class="n">site</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                <span class="n">norr</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">orientations</span>
+                <span class="n">site</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">norr</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_latgas</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="config.count"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">group_name</span><span class="p">,</span> <span class="n">orientation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        group_name: str</span>
+<span class="sd">            The name of the group</span>
+<span class="sd">        orientation:</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num_grp</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">defect_sublattice</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">:</span>
+            <span class="n">num_grp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">defect_sublattice</span><span class="o">.</span><span class="n">latgas_rep</span><span class="o">.</span><span class="n">count</span><span class="p">([</span><span class="n">group_name</span><span class="p">,</span> <span class="n">orientation</span><span class="p">])</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">num_grp</span></div>
+
+<div class="viewcode-block" id="config.update_basestruct"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config.update_basestruct">[docs]</a>    <span class="k">def</span> <span class="nf">update_basestruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">basesites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher_base</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">basesites</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="config.defect_sublattice_structure"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config.defect_sublattice_structure">[docs]</a>    <span class="k">def</span> <span class="nf">defect_sublattice_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sublat_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sublat_id: int</span>
+<span class="sd">            index of sublattice</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        sublattice_structure: pymatgen.Structure</span>
+<span class="sd">            sublattice structure object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">sublat_id</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_sublat</span>
+        <span class="n">sublattice_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">base_sites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher_base</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_structure</span><span class="p">)</span>
+        <span class="n">sublattice_structure</span><span class="o">.</span><span class="n">remove_sites</span><span class="p">(</span><span class="n">base_sites</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sublattice_structure</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vacancy_structure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">filledsites</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher_frame</span><span class="o">.</span><span class="n">get_mapping</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perfect_structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">structure</span>
+        <span class="p">)</span>
+        <span class="n">vac_structure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perfect_structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">vac_structure</span><span class="o">.</span><span class="n">remove_sites</span><span class="p">(</span><span class="n">filledsites</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">vac_structure</span></div>
+
+
+<div class="viewcode-block" id="ObserverParams"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.ObserverParams">[docs]</a><span class="k">class</span> <span class="nc">ObserverParams</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+<div class="viewcode-block" id="ObserverParams.from_dict"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.ObserverParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            Dictionary</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        oparams: ObserverParams</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;observer&quot;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;observer&quot;</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="c1"># params.ignored_species = d[&quot;ignored_species&quot;]</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="ObserverParams.from_toml"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.ObserverParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        f: str</span>
+<span class="sd">            Name of input toml File</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        oparams : ObserverParams</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">toml</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">))</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

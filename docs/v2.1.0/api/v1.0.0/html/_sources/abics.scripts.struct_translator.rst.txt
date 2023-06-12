@@ -1,0 +1,7 @@
+abics.scripts.struct\_translator module
+=======================================
+
+.. automodule:: abics.scripts.struct_translator
+   :members:
+   :undoc-members:
+   :show-inheritance:

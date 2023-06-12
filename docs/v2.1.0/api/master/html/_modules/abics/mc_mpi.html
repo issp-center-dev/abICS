@@ -1,0 +1,662 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.mc_mpi &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../abics.html">abics package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>abics.mc_mpi</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abics.mc_mpi</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">move</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.random</span> <span class="k">as</span> <span class="nn">rand</span>
+
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">observer_base</span><span class="p">,</span> <span class="n">obs_decode</span><span class="p">,</span> <span class="n">verylargeint</span>
+<span class="kn">from</span> <span class="nn">abics.util</span> <span class="kn">import</span> <span class="n">pickle_dump</span><span class="p">,</span> <span class="n">pickle_load</span><span class="p">,</span> <span class="n">numpy_save</span><span class="p">,</span> <span class="n">numpy_load</span>
+
+
+<div class="viewcode-block" id="RXParams"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.RXParams">[docs]</a><span class="k">class</span> <span class="nc">RXParams</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Parameter set for replica exchange Monte Carlo</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nreplicas : int</span>
+<span class="sd">        The number of replicas</span>
+<span class="sd">    nprocs_per_replica : int</span>
+<span class="sd">        The number of processes which a replica uses</span>
+<span class="sd">    kTstart : float</span>
+<span class="sd">        The lower bound of temperature range</span>
+<span class="sd">    kTend : float</span>
+<span class="sd">        The upper bound of temperature range</span>
+<span class="sd">    nsteps : int</span>
+<span class="sd">        The number of MC steps</span>
+<span class="sd">    RXtrial_frequency :</span>
+<span class="sd">        The number of MC steps between replica exchange operations</span>
+<span class="sd">    sample_frequency :</span>
+<span class="sd">        The number of MC steps between measurements observables</span>
+<span class="sd">    print_frequency :</span>
+<span class="sd">        The number of MC steps between show information</span>
+<span class="sd">    reload : bool</span>
+<span class="sd">        Whether to restart simulation or not</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        The seed of the random number generator</span>
+<span class="sd">        If 0, some random number is used (e.g., system time or some random noise).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kTstart</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kTend</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RXtrial_frequency</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_frequency</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">print_frequency</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reload</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="RXParams.from_dict"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.RXParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">           Read information from dictionary</span>
+
+<span class="sd">           Parameters</span>
+<span class="sd">           ----------</span>
+<span class="sd">           d: dict</span>
+<span class="sd">               Dictionary including parameters for replica exchange Monte Carlo method</span>
+
+<span class="sd">           Returns</span>
+<span class="sd">           -------</span>
+<span class="sd">           params: DFTParams object</span>
+<span class="sd">               self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s1">&#39;replica&#39;</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;replica&#39;</span><span class="p">]</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nreplicas&quot;</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">nprocs_per_replica</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nprocs_per_replica&quot;</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">kTstart</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;kTstart&quot;</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">kTend</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;kTend&quot;</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">nsteps</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="s2">&quot;nsteps&quot;</span><span class="p">]</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">RXtrial_frequency</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;RXtrial_frequency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sample_frequency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">print_frequency</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;print_frequency&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">reload</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reload&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">seed</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;seed&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="RXParams.from_toml"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.RXParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fname</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Read information from toml file</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        f: str</span>
+<span class="sd">            The name of input toml File</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        DFTParams: DFTParams object</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">toml</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="RX_MPI_init"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.RX_MPI_init">[docs]</a><span class="k">def</span> <span class="nf">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    rxparams: RXParams</span>
+<span class="sd">        Parameters for replica exchange Monte Carlo method.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">    comm: comm world</span>
+<span class="sd">        MPI communicator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+    <span class="n">commworld</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+    <span class="n">worldrank</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+    <span class="n">worldprocs</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">rand</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span> <span class="o">+</span> <span class="n">worldrank</span> <span class="o">*</span> <span class="mi">137</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rand_seeds</span> <span class="o">=</span> <span class="p">[</span><span class="n">rand</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">worldprocs</span><span class="p">)]</span>
+        <span class="n">rand</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">rand_seeds</span><span class="p">[</span><span class="n">worldrank</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">worldprocs</span> <span class="o">&lt;</span> <span class="n">nreplicas</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">worldrank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR! Please run with at least as many MPI processes as the number of replicas&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">worldprocs</span> <span class="o">&gt;</span> <span class="n">nreplicas</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">worldrank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;Setting number of replicas smaller than MPI processes; I hope you&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; know what you&#39;re doing...&quot;</span>
+            <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">worldrank</span> <span class="o">&gt;=</span> <span class="n">nreplicas</span><span class="p">:</span>
+            <span class="c1"># belong to comm that does nothing</span>
+            <span class="n">comm</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Split</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">worldrank</span><span class="p">)</span>
+            <span class="n">comm</span><span class="o">.</span><span class="n">Free</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>  <span class="c1"># Wait for MPI_finalize</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">comm</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Split</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">worldrank</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">commworld</span>
+    <span class="k">return</span> <span class="n">comm</span></div>
+
+
+<div class="viewcode-block" id="ParallelMC"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.ParallelMC">[docs]</a><span class="k">class</span> <span class="nc">ParallelMC</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ParallelMC.__init__"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.ParallelMC.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">MCalgo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        comm: comm world</span>
+<span class="sd">            MPI communicator</span>
+<span class="sd">        MCalgo: object for MonteCarlo algorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+<span class="sd">        model: dft_latgas object</span>
+<span class="sd">            DFT lattice gas mapping model</span>
+<span class="sd">        configs: config object</span>
+<span class="sd">            Configurations</span>
+<span class="sd">        kTs: list</span>
+<span class="sd">            Temperature list</span>
+<span class="sd">        subdirs: boolean</span>
+<span class="sd">            if true,  working directory for this rank is made</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">procs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kTs</span> <span class="o">=</span> <span class="n">kTs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span> <span class="o">=</span> <span class="n">subdirs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">configs</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">procs</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">nreplicas</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;ERROR: You have to set the number of replicas equal to the&quot;</span>
+                    <span class="o">+</span> <span class="s2">&quot;number of temperatures equal to the number of processes&quot;</span>
+                <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">myconfig</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
+        <span class="n">mytemp</span> <span class="o">=</span> <span class="n">kTs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span> <span class="o">=</span> <span class="n">MCalgo</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mytemp</span><span class="p">,</span> <span class="n">myconfig</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParallelMC.run"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.ParallelMC.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nsteps</span><span class="p">,</span> <span class="n">sample_frequency</span><span class="p">,</span> <span class="n">observer</span><span class="o">=</span><span class="n">observer_base</span><span class="p">()):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nsteps: int</span>
+<span class="sd">            Number of Monte Carlo steps for running.</span>
+<span class="sd">        sample_frequency: int</span>
+<span class="sd">            Number of Monte Carlo steps for running.</span>
+<span class="sd">        observer: observer object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs_buffer: numpy array</span>
+<span class="sd">            Observables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="p">:</span>
+            <span class="c1"># make working directory for this rank</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+        <span class="n">observables</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">nsteps</span><span class="p">,</span> <span class="n">sample_frequency</span><span class="p">,</span> <span class="n">observer</span><span class="p">)</span>
+        <span class="n">pickle_dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;config.pickle&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sample_frequency</span><span class="p">:</span>
+            <span class="n">obs_buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">procs</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">observables</span><span class="p">)])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="n">observables</span><span class="p">,</span> <span class="n">obs_buffer</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">obs_buffer</span></div></div>
+
+
+<div class="viewcode-block" id="TemperatureRX_MPI"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.TemperatureRX_MPI">[docs]</a><span class="k">class</span> <span class="nc">TemperatureRX_MPI</span><span class="p">(</span><span class="n">ParallelMC</span><span class="p">):</span>
+<div class="viewcode-block" id="TemperatureRX_MPI.__init__"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.TemperatureRX_MPI.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">MCalgo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        comm: comm world</span>
+<span class="sd">            MPI communicator</span>
+<span class="sd">        MCalgo: object for MonteCarlo algorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+<span class="sd">        model: dft_latgas</span>
+<span class="sd">            DFT lattice gas mapping  model</span>
+<span class="sd">        configs: config object</span>
+<span class="sd">            Configuration</span>
+<span class="sd">        kTs: list</span>
+<span class="sd">            Temperature list</span>
+<span class="sd">        subdirs: boolean</span>
+<span class="sd">            If true, working directory for this rank is made</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TemperatureRX_MPI</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">MCalgo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">subdirs</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">betas</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">kTs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">procs</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">float_buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int_buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Trank_hist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kT_hist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lreload</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="TemperatureRX_MPI.reload"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.TemperatureRX_MPI.reload">[docs]</a>    <span class="k">def</span> <span class="nf">reload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span> <span class="o">=</span> <span class="n">pickle_load</span><span class="p">(</span><span class="s2">&quot;rank_to_T.pickle&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">kT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">pickle_load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">),</span> <span class="s2">&quot;calc.pickle&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obs_save0</span> <span class="o">=</span> <span class="n">numpy_load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">),</span> <span class="s2">&quot;obs_save.npy&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">obs_save0</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Trank_hist0</span> <span class="o">=</span> <span class="n">numpy_load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">),</span> <span class="s2">&quot;Trank_hist.npy&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kT_hist0</span> <span class="o">=</span> <span class="n">numpy_load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">),</span> <span class="s2">&quot;kT_hist.npy&quot;</span><span class="p">))</span>
+        <span class="n">rand_state</span> <span class="o">=</span> <span class="n">pickle_load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">),</span> <span class="s2">&quot;rand_state.pickle&quot;</span><span class="p">))</span>
+        <span class="n">rand</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">rand_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lreload</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="TemperatureRX_MPI.find_procrank_from_Trank"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.TemperatureRX_MPI.find_procrank_from_Trank">[docs]</a>    <span class="k">def</span> <span class="nf">find_procrank_from_Trank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Trank</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Trank: int</span>
+<span class="sd">            Temperature rank</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        procrank: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span> <span class="o">==</span> <span class="n">Trank</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Internal error in TemperatureRX_MPI.find_procrank_from_Trank&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">i</span></div>
+
+<div class="viewcode-block" id="TemperatureRX_MPI.Xtrial"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.TemperatureRX_MPI.Xtrial">[docs]</a>    <span class="k">def</span> <span class="nf">Xtrial</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">XCscheme</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        XCscheme: int</span>
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># What is my temperature rank?</span>
+        <span class="n">myTrank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">myTrank</span> <span class="o">+</span> <span class="n">XCscheme</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">myTrank</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">procs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="n">XCscheme</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">myTrank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">myTrank</span> <span class="o">+</span> <span class="n">XCscheme</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">myTrankp1</span> <span class="o">=</span> <span class="n">myTrank</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="c1"># Get the energy from the replica with higher temperature</span>
+            <span class="n">exchange_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_procrank_from_Trank</span><span class="p">(</span><span class="n">myTrankp1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Recv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">float_buffer</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">exchange_rank</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">[</span><span class="n">myTrankp1</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">betas</span><span class="p">[</span><span class="n">myTrank</span><span class="p">])</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">float_buffer</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="c1"># Exchange temperatures!</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Send</span><span class="p">(</span>
+                    <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MPI</span><span class="o">.</span><span class="n">INT</span><span class="p">],</span> <span class="n">dest</span><span class="o">=</span><span class="n">exchange_rank</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">2</span>
+                <span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="n">myTrankp1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">accept_probability</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">delta</span><span class="p">)</span>
+                <span class="c1"># print accept_probability, &quot;accept prob&quot;</span>
+                <span class="k">if</span> <span class="n">rand</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">accept_probability</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Send</span><span class="p">(</span>
+                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MPI</span><span class="o">.</span><span class="n">INT</span><span class="p">],</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="n">exchange_rank</span><span class="p">,</span>
+                        <span class="n">tag</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="n">myTrankp1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># print(&quot;RXtrial rejected&quot;)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Send</span><span class="p">(</span>
+                        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="n">exchange_rank</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MPI</span><span class="o">.</span><span class="n">INT</span><span class="p">],</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="n">exchange_rank</span><span class="p">,</span>
+                        <span class="n">tag</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">myTrankm1</span> <span class="o">=</span> <span class="n">myTrank</span> <span class="o">-</span> <span class="mi">1</span>
+            <span class="n">exchange_rank</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_procrank_from_Trank</span><span class="p">(</span><span class="n">myTrankm1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Send</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">exchange_rank</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Recv</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">int_buffer</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">MPI</span><span class="o">.</span><span class="n">INT</span><span class="p">],</span> <span class="n">source</span><span class="o">=</span><span class="n">exchange_rank</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_buffer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allgather</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">kT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]]</span>
+        <span class="k">return</span></div>
+
+<div class="viewcode-block" id="TemperatureRX_MPI.run"><a class="viewcode-back" href="../../abics.mc_mpi.html#abics.mc_mpi.TemperatureRX_MPI.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nsteps</span><span class="p">,</span>
+        <span class="n">RXtrial_frequency</span><span class="p">,</span>
+        <span class="n">sample_frequency</span><span class="o">=</span><span class="n">verylargeint</span><span class="p">,</span>
+        <span class="n">print_frequency</span><span class="o">=</span><span class="n">verylargeint</span><span class="p">,</span>
+        <span class="n">observer</span><span class="o">=</span><span class="n">observer_base</span><span class="p">(),</span>
+        <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">save_obs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nsteps: int</span>
+<span class="sd">            The number of Monte Carlo steps for running.</span>
+<span class="sd">        RXtrial_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for replica exchange.</span>
+<span class="sd">        sample_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for observation of physical quantities.</span>
+<span class="sd">        print_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for saving physical quantities.</span>
+<span class="sd">        observer: observer object</span>
+<span class="sd">        subdirs: boolean</span>
+<span class="sd">            If true, working directory for this rank is made</span>
+<span class="sd">        save_obs: boolean</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs_list: list</span>
+<span class="sd">            Observation list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accept_count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lreload</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">test_observe</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">lprint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">test_observe</span><span class="p">,</span> <span class="s2">&quot;__iter__&quot;</span><span class="p">):</span>
+            <span class="n">obs_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">test_observe</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">),</span> <span class="n">obs_len</span><span class="p">])</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">test_observe</span><span class="p">,</span> <span class="s2">&quot;__add__&quot;</span><span class="p">):</span>
+            <span class="n">observe</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">observe</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">nsample</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">XCscheme</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;obs.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsteps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">MCstep</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">RXtrial_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">Xtrial</span><span class="p">(</span><span class="n">XCscheme</span><span class="p">)</span>
+                    <span class="n">XCscheme</span> <span class="o">=</span> <span class="p">(</span><span class="n">XCscheme</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span>
+                <span class="k">if</span> <span class="n">observe</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">%</span> <span class="n">sample_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">obs_step</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">i</span> <span class="o">%</span> <span class="n">print_frequency</span> <span class="o">==</span> <span class="mi">0</span>
+                    <span class="p">)</span>
+                    <span class="n">obs</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">obs_step</span>
+                    <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_step</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">Trank_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">])</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">kT_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">kT</span><span class="p">)</span>
+                    <span class="n">nsample</span> <span class="o">+=</span> <span class="mi">1</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+
+                    <span class="c1"># save information for restart</span>
+                    <span class="n">pickle_dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="s2">&quot;calc.pickle&quot;</span><span class="p">)</span>
+                    <span class="n">rand_state</span> <span class="o">=</span> <span class="n">rand</span><span class="o">.</span><span class="n">get_state</span><span class="p">()</span>
+                    <span class="n">pickle_dump</span><span class="p">(</span><span class="n">rand_state</span><span class="p">,</span> <span class="s2">&quot;rand_state.pickle&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;obs_save0&quot;</span><span class="p">):</span>
+                            <span class="n">obs_save_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="p">)))</span>
+                            <span class="n">Trank_hist_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Trank_hist0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Trank_hist</span><span class="p">))</span>
+                            <span class="p">)</span>
+                            <span class="n">kT_hist_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">kT_hist0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kT_hist</span><span class="p">)))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">obs_save_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="p">)</span>
+                            <span class="n">Trank_hist_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Trank_hist</span><span class="p">)</span>
+                            <span class="n">kT_hist_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kT_hist</span><span class="p">)</span>
+
+                        <span class="n">numpy_save</span><span class="p">(</span><span class="n">obs_save_</span><span class="p">,</span> <span class="s2">&quot;obs_save.npy&quot;</span><span class="p">)</span>
+                        <span class="n">numpy_save</span><span class="p">(</span><span class="n">Trank_hist_</span><span class="p">,</span> <span class="s2">&quot;Trank_hist.npy&quot;</span><span class="p">)</span>
+                        <span class="n">numpy_save</span><span class="p">(</span><span class="n">kT_hist_</span><span class="p">,</span> <span class="s2">&quot;kT_hist.npy&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">pickle_dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank_to_T</span><span class="p">,</span> <span class="s2">&quot;rank_to_T.pickle&quot;</span><span class="p">)</span>
+                        <span class="n">numpy_save</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">,</span> <span class="s2">&quot;kTs.npy&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rank</span><span class="p">))</span>
+
+
+
+        <span class="k">if</span> <span class="n">subdirs</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="s2">&quot;../&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">nsample</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">obs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="n">obs_buffer</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">obs</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">obs</span> <span class="o">/=</span> <span class="n">nsample</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Allreduce</span><span class="p">(</span><span class="n">obs</span><span class="p">,</span> <span class="n">obs_buffer</span><span class="p">,</span> <span class="n">op</span><span class="o">=</span><span class="n">MPI</span><span class="o">.</span><span class="n">SUM</span><span class="p">)</span>
+            <span class="n">obs_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">args_info</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">obs_info</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mycalc</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kTs</span><span class="p">)):</span>
+                <span class="n">obs_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_decode</span><span class="p">(</span><span class="n">args_info</span><span class="p">,</span> <span class="n">obs_buffer</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">obs_list</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.latgas_abinitio_interface.vasp module &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.applications.lattice_model package" href="abics.applications.lattice_model.html" />
+    <link rel="prev" title="abics.applications.latgas_abinitio_interface.user_function_solver module" href="abics.applications.latgas_abinitio_interface.user_function_solver.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="abics.applications.html">abics.applications package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="abics.applications.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.html#module-abics.applications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.html">abics.applications package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.latgas_abinitio_interface.html">abics.applications.latgas_abinitio_interface package</a></li>
+      <li class="breadcrumb-item active">abics.applications.latgas_abinitio_interface.vasp module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.applications.latgas_abinitio_interface.vasp.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-abics.applications.latgas_abinitio_interface.vasp">
+<span id="abics-applications-latgas-abinitio-interface-vasp-module"></span><h1>abics.applications.latgas_abinitio_interface.vasp module<a class="headerlink" href="#module-abics.applications.latgas_abinitio_interface.vasp" title="Permalink to this heading"></a></h1>
+<p>To deal with VASP</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.vasp.</span></span><span class="sig-name descname"><span class="pre">VASPSolver</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverBase</span></code></a></p>
+<p>VASP solver</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.path_to_solver">
+<span class="sig-name descname"><span class="pre">path_to_solver</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.path_to_solver" title="Permalink to this definition"></a></dt>
+<dd><p>Path to the solver</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.input">
+<span class="sig-name descname"><span class="pre">input</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.input" title="Permalink to this definition"></a></dt>
+<dd><p>Input manager</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input" title="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input">VASPSolver.Input</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.output">
+<span class="sig-name descname"><span class="pre">output</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.output" title="Permalink to this definition"></a></dt>
+<dd><p>Output manager</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output" title="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output">VASPSolver.Output</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>Initialize the solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path_to_solver</strong> (<em>str</em>) – Path to the solver.</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ignore_species</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Input manager for VASP</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.base_info">
+<span class="sig-name descname"><span class="pre">base_info</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.base_info" title="Permalink to this definition"></a></dt>
+<dd><p>Common parameters</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.pos_info">
+<span class="sig-name descname"><span class="pre">pos_info</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.pos_info" title="Permalink to this definition"></a></dt>
+<dd><p>Atom positions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pymatgen.Structure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.cl_args">
+<span class="sig-name descname"><span class="pre">cl_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nprocs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nthreads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Input.cl_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.cl_args" title="Permalink to this definition"></a></dt>
+<dd><p>Generate command line argument of the solver program.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nprocs</strong> (<em>int</em>) – The number of processes.</p></li>
+<li><p><strong>nthreads</strong> (<em>int</em>) – The number of threads.</p></li>
+<li><p><strong>workdir</strong> (<em>str</em>) – Path to the working directory.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>args</strong> – Arguments of command</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.from_directory">
+<span class="sig-name descname"><span class="pre">from_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_input_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Input.from_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.from_directory" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>base_input_dir</strong> (<em>str</em>) – Path to the directory including base input files.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>base_vasp_input</strong> – vasp input object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>VaspInput (defined in pymatgen)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.update_info_by_structure">
+<span class="sig-name descname"><span class="pre">update_info_by_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">structure</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Input.update_info_by_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.update_info_by_structure" title="Permalink to this definition"></a></dt>
+<dd><p>Update information by structure file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>structure</strong> (<em>pymatgen.Structure</em>) – Atomic structure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.update_info_from_files">
+<span class="sig-name descname"><span class="pre">update_info_from_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rerun</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Input.update_info_from_files"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.update_info_from_files" title="Permalink to this definition"></a></dt>
+<dd><p>Update information from output files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>workdir</strong> (<em>str</em>) – Path to working directory.</p></li>
+<li><p><strong>rerun</strong> (<em>int</em>) – Mode for rerunning (0: not rerun, 1: rerun (base file is replaced by new one))</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.write_input">
+<span class="sig-name descname"><span class="pre">write_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Input.write_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.write_input" title="Permalink to this definition"></a></dt>
+<dd><p>Generate input files of the solver program.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>workdir</strong> (<em>str</em>) – Path to working directory.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Output</span></span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Output"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Output manager.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output.get_results">
+<span class="sig-name descname"><span class="pre">get_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workdir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.Output.get_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output.get_results" title="Permalink to this definition"></a></dt>
+<dd><p>Get energy and structure obtained by the solver program.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>workdir</strong> (<em>str</em>) – Path to the working directory.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>phys</strong> – Total energy and atomic structure.
+The energy is measured in the units of eV
+and coodinates is measured in the units of Angstrom.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>named_tuple(“energy”, “structure”)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path_to_solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>Initialize the solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path_to_solver</strong> (<em>str</em>) – Path to the solver.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.create">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">params</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.ALParams" title="abics.applications.latgas_abinitio_interface.params.ALParams"><span class="pre">ALParams</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.DFTParams" title="abics.applications.latgas_abinitio_interface.params.DFTParams"><span class="pre">DFTParams</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.create"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.create" title="Permalink to this definition"></a></dt>
+<dd><p>Create solver instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>params</strong> (<a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.ALParams" title="abics.applications.latgas_abinitio_interface.params.ALParams"><em>ALParams</em></a><em> or </em><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.DFTParams" title="abics.applications.latgas_abinitio_interface.params.DFTParams"><em>DFTParams</em></a>) – Parameters.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>solver</strong> – Solver instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase" title="abics.applications.latgas_abinitio_interface.base_solver.SolverBase">SolverBase</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.name">
+<span class="sig-name descname"><span class="pre">name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.name" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> – Name of solver.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.vasp.VASPSolver.solver_run_schemes">
+<span class="sig-name descname"><span class="pre">solver_run_schemes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/vasp.html#VASPSolver.solver_run_schemes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.solver_run_schemes" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>schemes</strong> – Implemented runner schemes.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>tuple[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.applications.latgas_abinitio_interface.user_function_solver.html" class="btn btn-neutral float-left" title="abics.applications.latgas_abinitio_interface.user_function_solver module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abics.applications.lattice_model.html" class="btn btn-neutral float-right" title="abics.applications.lattice_model package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

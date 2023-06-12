@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.sampling package &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.sampling.mc module" href="abics.sampling.mc.html" />
+    <link rel="prev" title="abics.loggers.loggers module" href="abics.loggers.loggers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.html">abics.applications package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">abics.sampling package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-abics.sampling">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+      <li class="breadcrumb-item active">abics.sampling package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.sampling.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="abics-sampling-package">
+<h1>abics.sampling package<a class="headerlink" href="#abics-sampling-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.mc.html">abics.sampling.mc module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.CanonicalMonteCarlo"><code class="docutils literal notranslate"><span class="pre">CanonicalMonteCarlo</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.CanonicalMonteCarlo.MCstep"><code class="docutils literal notranslate"><span class="pre">CanonicalMonteCarlo.MCstep()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.CanonicalMonteCarlo.__init__"><code class="docutils literal notranslate"><span class="pre">CanonicalMonteCarlo.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.CanonicalMonteCarlo.param_names"><code class="docutils literal notranslate"><span class="pre">CanonicalMonteCarlo.param_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.CanonicalMonteCarlo.parameters"><code class="docutils literal notranslate"><span class="pre">CanonicalMonteCarlo.parameters()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.MCstep"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.MCstep()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.config"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.kT"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.kT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.model"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.naccepted"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.naccepted</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.nfail"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.nfail</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.ntrials"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.ntrials</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.obs_save"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.obs_save</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.param_names"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.param_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.parameters"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.parameters()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.MCAlgorithm.run"><code class="docutils literal notranslate"><span class="pre">MCAlgorithm.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.RandomSampling"><code class="docutils literal notranslate"><span class="pre">RandomSampling</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.RandomSampling.MCstep"><code class="docutils literal notranslate"><span class="pre">RandomSampling.MCstep()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.WeightedCanonicalMonteCarlo"><code class="docutils literal notranslate"><span class="pre">WeightedCanonicalMonteCarlo</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.WeightedCanonicalMonteCarlo.MCstep"><code class="docutils literal notranslate"><span class="pre">WeightedCanonicalMonteCarlo.MCstep()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.binning"><code class="docutils literal notranslate"><span class="pre">binning()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc.html#abics.sampling.mc.write_obs_header"><code class="docutils literal notranslate"><span class="pre">write_obs_header()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.mc_mpi.html">abics.sampling.mc_mpi module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC"><code class="docutils literal notranslate"><span class="pre">ParallelMC</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.Lreload"><code class="docutils literal notranslate"><span class="pre">ParallelMC.Lreload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.__init__"><code class="docutils literal notranslate"><span class="pre">ParallelMC.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.comm"><code class="docutils literal notranslate"><span class="pre">ParallelMC.comm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.kTs"><code class="docutils literal notranslate"><span class="pre">ParallelMC.kTs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.model"><code class="docutils literal notranslate"><span class="pre">ParallelMC.model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.mycalc"><code class="docutils literal notranslate"><span class="pre">ParallelMC.mycalc</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.nreplicas"><code class="docutils literal notranslate"><span class="pre">ParallelMC.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.obs_save"><code class="docutils literal notranslate"><span class="pre">ParallelMC.obs_save</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.obs_save0"><code class="docutils literal notranslate"><span class="pre">ParallelMC.obs_save0</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.procs"><code class="docutils literal notranslate"><span class="pre">ParallelMC.procs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.rank"><code class="docutils literal notranslate"><span class="pre">ParallelMC.rank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.run"><code class="docutils literal notranslate"><span class="pre">ParallelMC.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.ParallelMC.write_node"><code class="docutils literal notranslate"><span class="pre">ParallelMC.write_node</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RX_MPI_init"><code class="docutils literal notranslate"><span class="pre">RX_MPI_init()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams"><code class="docutils literal notranslate"><span class="pre">RefParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">RefParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams.ndata"><code class="docutils literal notranslate"><span class="pre">RefParams.ndata</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams.from_dict"><code class="docutils literal notranslate"><span class="pre">RefParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams.from_toml"><code class="docutils literal notranslate"><span class="pre">RefParams.from_toml()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#id0"><code class="docutils literal notranslate"><span class="pre">RefParams.ndata</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#id1"><code class="docutils literal notranslate"><span class="pre">RefParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams.sampler"><code class="docutils literal notranslate"><span class="pre">RefParams.sampler</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.mc_mpi.html#abics.sampling.mc_mpi.RefParams.sampling"><code class="docutils literal notranslate"><span class="pre">RefParams.sampling()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.pamc.html">abics.sampling.pamc module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams"><code class="docutils literal notranslate"><span class="pre">PAMCParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">PAMCParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.nprocs_per_replica"><code class="docutils literal notranslate"><span class="pre">PAMCParams.nprocs_per_replica</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.kTs"><code class="docutils literal notranslate"><span class="pre">PAMCParams.kTs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.nsteps"><code class="docutils literal notranslate"><span class="pre">PAMCParams.nsteps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.resample_frequency"><code class="docutils literal notranslate"><span class="pre">PAMCParams.resample_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.sample_frequency"><code class="docutils literal notranslate"><span class="pre">PAMCParams.sample_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.print_frequency"><code class="docutils literal notranslate"><span class="pre">PAMCParams.print_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.reload"><code class="docutils literal notranslate"><span class="pre">PAMCParams.reload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.seed"><code class="docutils literal notranslate"><span class="pre">PAMCParams.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.from_dict"><code class="docutils literal notranslate"><span class="pre">PAMCParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PAMCParams.from_toml"><code class="docutils literal notranslate"><span class="pre">PAMCParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.Tindex"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.Tindex</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.__init__"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.acceptance_ratios"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.acceptance_ratios</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.anneal"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.anneal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.dlogz"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.dlogz</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.kT_history"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.kT_history</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.logweight"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.logweight</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.logweight_history"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.logweight_history</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.postproc"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.postproc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.reload"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.reload()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.resample"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.resample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.run"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.pamc.html#abics.sampling.pamc.PopulationAnnealing.save"><code class="docutils literal notranslate"><span class="pre">PopulationAnnealing.save()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.resampling.html">abics.sampling.resampling module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.BinarySearch"><code class="docutils literal notranslate"><span class="pre">BinarySearch</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.BinarySearch.reset"><code class="docutils literal notranslate"><span class="pre">BinarySearch.reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.BinarySearch.sample"><code class="docutils literal notranslate"><span class="pre">BinarySearch.sample()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.BinarySearch.weights_accumulated"><code class="docutils literal notranslate"><span class="pre">BinarySearch.weights_accumulated</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.BinarySearch.wmax"><code class="docutils literal notranslate"><span class="pre">BinarySearch.wmax</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.Resampler"><code class="docutils literal notranslate"><span class="pre">Resampler</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.Resampler.reset"><code class="docutils literal notranslate"><span class="pre">Resampler.reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.Resampler.sample"><code class="docutils literal notranslate"><span class="pre">Resampler.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.WalkerTable"><code class="docutils literal notranslate"><span class="pre">WalkerTable</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.WalkerTable.N"><code class="docutils literal notranslate"><span class="pre">WalkerTable.N</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.WalkerTable.itable"><code class="docutils literal notranslate"><span class="pre">WalkerTable.itable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.WalkerTable.ptable"><code class="docutils literal notranslate"><span class="pre">WalkerTable.ptable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.WalkerTable.reset"><code class="docutils literal notranslate"><span class="pre">WalkerTable.reset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.resampling.html#abics.sampling.resampling.WalkerTable.sample"><code class="docutils literal notranslate"><span class="pre">WalkerTable.sample()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.rxmc.html">abics.sampling.rxmc module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams"><code class="docutils literal notranslate"><span class="pre">RXParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">RXParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.nprocs_per_replica"><code class="docutils literal notranslate"><span class="pre">RXParams.nprocs_per_replica</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.kTs"><code class="docutils literal notranslate"><span class="pre">RXParams.kTs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.nsteps"><code class="docutils literal notranslate"><span class="pre">RXParams.nsteps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.RXtrial_frequency"><code class="docutils literal notranslate"><span class="pre">RXParams.RXtrial_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.sample_frequency"><code class="docutils literal notranslate"><span class="pre">RXParams.sample_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.print_frequency"><code class="docutils literal notranslate"><span class="pre">RXParams.print_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.reload"><code class="docutils literal notranslate"><span class="pre">RXParams.reload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.seed"><code class="docutils literal notranslate"><span class="pre">RXParams.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.from_dict"><code class="docutils literal notranslate"><span class="pre">RXParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.RXParams.from_toml"><code class="docutils literal notranslate"><span class="pre">RXParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.Xtrial"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.Xtrial()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.__init__"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.find_procrank_from_Trank"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.find_procrank_from_Trank()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.postproc"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.postproc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.reload"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.reload()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.run"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.rxmc.html#abics.sampling.rxmc.TemperatureRX_MPI.save"><code class="docutils literal notranslate"><span class="pre">TemperatureRX_MPI.save()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.sampling.simple_parallel.html">abics.sampling.simple_parallel module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.EmbarrassinglyParallelSampling"><code class="docutils literal notranslate"><span class="pre">EmbarrassinglyParallelSampling</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.EmbarrassinglyParallelSampling.__init__"><code class="docutils literal notranslate"><span class="pre">EmbarrassinglyParallelSampling.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.EmbarrassinglyParallelSampling.reload"><code class="docutils literal notranslate"><span class="pre">EmbarrassinglyParallelSampling.reload()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.EmbarrassinglyParallelSampling.run"><code class="docutils literal notranslate"><span class="pre">EmbarrassinglyParallelSampling.run()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.nprocs_per_replica"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.nprocs_per_replica</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.kTstart"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.kTstart</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.kTend"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.kTend</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.nsteps"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.nsteps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.sample_frequency"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.sample_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.print_frequency"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.print_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.reload"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.reload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.seed"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.from_dict"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelMCParams.from_toml"><code class="docutils literal notranslate"><span class="pre">ParallelMCParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.nreplicas"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.nreplicas</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.nprocs_per_replica"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.nprocs_per_replica</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.nsteps"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.nsteps</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.sample_frequency"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.sample_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.print_frequency"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.print_frequency</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.reload"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.reload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.seed"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.seed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.from_dict"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.ParallelRandomParams.from_toml"><code class="docutils literal notranslate"><span class="pre">ParallelRandomParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.RandomSampling_MPI"><code class="docutils literal notranslate"><span class="pre">RandomSampling_MPI</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.simple_parallel.html#abics.sampling.simple_parallel.RandomSampling_MPI.__init__"><code class="docutils literal notranslate"><span class="pre">RandomSampling_MPI.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-abics.sampling">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-abics.sampling" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.loggers.loggers.html" class="btn btn-neutral float-left" title="abics.loggers.loggers module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abics.sampling.mc.html" class="btn btn-neutral float-right" title="abics.sampling.mc module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

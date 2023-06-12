@@ -1,0 +1,935 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>abics.applications.latgas_abinitio_interface.run_base_mpi &mdash; abICS API  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> abICS API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../abics.html">abics package</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">abICS API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>abics.applications.latgas_abinitio_interface.run_base_mpi</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for abics.applications.latgas_abinitio_interface.run_base_mpi</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shlex</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">timeit</span> <span class="kn">import</span> <span class="n">default_timer</span> <span class="k">as</span> <span class="n">timer</span>
+
+<span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.model_setup</span> <span class="kn">import</span> <span class="n">perturb_structure</span>
+
+
+<div class="viewcode-block" id="runner"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner">[docs]</a><span class="k">class</span> <span class="nc">runner</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class of runner (manager) of external solver program</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    solver_name : str</span>
+<span class="sd">        Name of solver program</span>
+<span class="sd">    path_to_solver : str</span>
+<span class="sd">        Path to solver program</span>
+<span class="sd">    run : Any</span>
+<span class="sd">        Runner object</span>
+<span class="sd">    nprocs_per_solver : int</span>
+<span class="sd">        Number of processes which solver program uses</span>
+<span class="sd">    nthreads_per_proc : int</span>
+<span class="sd">        Number of threads which a solver process uses</span>
+<span class="sd">    comm : MPI.Comm</span>
+<span class="sd">        MPI Communicator</span>
+<span class="sd">    perturb : float</span>
+<span class="sd">        perturbation of atom position for structure optimization</span>
+<span class="sd">    base_solver_input : Solver.Input</span>
+<span class="sd">        Input manager</span>
+<span class="sd">    output : Solver.Output</span>
+<span class="sd">        Output manager</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="runner.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">base_input_dir</span><span class="p">,</span>
+        <span class="n">Solver</span><span class="p">,</span>
+        <span class="n">nprocs_per_solver</span><span class="p">,</span>
+        <span class="n">comm</span><span class="p">,</span>
+        <span class="n">perturb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">nthreads_per_proc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">solver_run_scheme</span><span class="o">=</span><span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        -----------</span>
+<span class="sd">        base_input_dir : str</span>
+<span class="sd">            Path to the directory including input file templates</span>
+<span class="sd">        Solver : SolverBase</span>
+<span class="sd">            Solver</span>
+<span class="sd">        nprocs_per_solver : int</span>
+<span class="sd">            Number of processes which one solver program uses</span>
+<span class="sd">        comm : MPI.Comm</span>
+<span class="sd">            MPI Communicator</span>
+<span class="sd">        perturb : float, default 0.0</span>
+<span class="sd">            Perturbation of atom position</span>
+<span class="sd">        nthreads_per_proc : int, default 1</span>
+<span class="sd">            Number of threads which one solver process uses</span>
+<span class="sd">        solver_run_scheme : str, default &quot;mpi_spawn_ready&quot;</span>
+<span class="sd">            Scheme how to invoke a solver program</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            Raises ValueError if unknown `solver_run_scheme` is passed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span> <span class="o">=</span> <span class="n">Solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">Solver</span><span class="o">.</span><span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_solver_input</span> <span class="o">=</span> <span class="n">Solver</span><span class="o">.</span><span class="n">input</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">base_solver_input</span><span class="o">.</span><span class="n">from_directory</span><span class="p">(</span><span class="n">base_input_dir</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs_per_solver</span> <span class="o">=</span> <span class="n">nprocs_per_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nthreads_per_proc</span> <span class="o">=</span> <span class="n">nthreads_per_proc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output</span> <span class="o">=</span> <span class="n">Solver</span><span class="o">.</span><span class="n">output</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
+        <span class="k">if</span> <span class="n">solver_run_scheme</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">Solver</span><span class="o">.</span><span class="n">solver_run_schemes</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">{scheme}</span><span class="s2"> not implemented for </span><span class="si">{solver}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">scheme</span><span class="o">=</span><span class="n">solver_run_scheme</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">Solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">solver_run_scheme</span> <span class="o">==</span> <span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">run_mpispawn_ready</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs_per_solver</span><span class="p">,</span> <span class="n">nthreads_per_proc</span><span class="p">,</span> <span class="n">comm</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">solver_run_scheme</span> <span class="o">==</span> <span class="s2">&quot;mpi_spawn&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">run_mpispawn</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs_per_solver</span><span class="p">,</span> <span class="n">nthreads_per_proc</span><span class="p">,</span> <span class="n">comm</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">solver_run_scheme</span> <span class="o">==</span> <span class="s2">&quot;mpi_spawn_wrapper&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">run_mpispawn_wrapper</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs_per_solver</span><span class="p">,</span> <span class="n">nthreads_per_proc</span><span class="p">,</span> <span class="n">comm</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">solver_run_scheme</span> <span class="o">==</span> <span class="s2">&quot;subprocess&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="n">run_subprocess</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs_per_solver</span><span class="p">,</span> <span class="n">nthreads_per_proc</span><span class="p">,</span> <span class="n">comm</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Unknown scheme: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">solver_run_scheme</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perturb</span> <span class="o">=</span> <span class="n">perturb</span></div>
+
+<div class="viewcode-block" id="runner.submit"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner.submit">[docs]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run a solver program and return results</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        structure : pymatgen.Structure</span>
+<span class="sd">            Structure of compounds</span>
+<span class="sd">        output_dir : str</span>
+<span class="sd">            Name of directory where solver program saves output files</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        energy : float</span>
+<span class="sd">            Total energy</span>
+<span class="sd">        structure : pymatgen.Structure</span>
+<span class="sd">            Structure of compounds after optimization</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturb</span><span class="p">:</span>
+            <span class="n">perturb_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturb</span><span class="p">)</span>
+        <span class="n">solverinput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">base_solver_input</span>
+        <span class="n">solverinput</span><span class="o">.</span><span class="n">update_info_by_structure</span><span class="p">(</span><span class="n">structure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">get_results</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">(</span><span class="n">results</span><span class="o">.</span><span class="n">energy</span><span class="p">),</span> <span class="n">results</span><span class="o">.</span><span class="n">structure</span></div></div>
+
+
+<div class="viewcode-block" id="runner_multistep"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_multistep">[docs]</a><span class="k">class</span> <span class="nc">runner_multistep</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sequential runner</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    runners : list[runner]</span>
+<span class="sd">        Runners</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="runner_multistep.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_multistep.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">base_input_dirs</span><span class="p">,</span>
+        <span class="n">Solver</span><span class="p">,</span>
+        <span class="n">runner</span><span class="p">,</span>
+        <span class="n">nprocs_per_solver</span><span class="p">,</span>
+        <span class="n">comm</span><span class="p">,</span>
+        <span class="n">perturb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">nthreads_per_proc</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">solver_run_scheme</span><span class="o">=</span><span class="s2">&quot;mpi_spawn_ready&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        base_input_dirs : list[str]</span>
+<span class="sd">            List of paths to directories including base input files</span>
+<span class="sd">        Solver : SolverBase</span>
+<span class="sd">            Solver</span>
+<span class="sd">        nprocs_per_solver : int</span>
+<span class="sd">            Number of processes which one solver program uses</span>
+<span class="sd">        comm : MPI.Comm</span>
+<span class="sd">            MPI Communicator</span>
+<span class="sd">        perturb : float, default 0.0</span>
+<span class="sd">            Perturbation of atom position</span>
+<span class="sd">        nthreads_per_proc : int, default 1</span>
+<span class="sd">            Number of threads which one solver process uses</span>
+<span class="sd">        solver_run_scheme : str, default &quot;mpi_spawn_ready&quot;</span>
+<span class="sd">            Scheme how to invoke a solver program</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">runners</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_input_dirs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runners</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">runner</span><span class="p">(</span>
+                <span class="n">base_input_dirs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">Solver</span><span class="p">),</span>
+                <span class="n">nprocs_per_solver</span><span class="p">,</span>
+                <span class="n">comm</span><span class="p">,</span>
+                <span class="n">perturb</span><span class="p">,</span>
+                <span class="n">nthreads_per_proc</span><span class="p">,</span>
+                <span class="n">solver_run_scheme</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_input_dirs</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runners</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">runner</span><span class="p">(</span>
+                    <span class="n">base_input_dirs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                    <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">Solver</span><span class="p">),</span>
+                    <span class="n">nprocs_per_solver</span><span class="p">,</span>
+                    <span class="n">comm</span><span class="p">,</span>
+                    <span class="n">perturb</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                    <span class="n">nthreads_per_proc</span><span class="o">=</span><span class="n">nthreads_per_proc</span><span class="p">,</span>
+                    <span class="n">solver_run_scheme</span><span class="o">=</span><span class="n">solver_run_scheme</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span></div>
+
+<div class="viewcode-block" id="runner_multistep.submit"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_multistep.submit">[docs]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">structure</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+        <span class="n">site_properties</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">site_properties</span>
+        <span class="n">energy</span><span class="p">,</span> <span class="n">newstructure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runners</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">structure</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+        <span class="n">newstructure</span> <span class="o">=</span> <span class="n">newstructure</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">site_properties</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runners</span><span class="p">)):</span>
+            <span class="n">energy</span><span class="p">,</span> <span class="n">newstructure</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">runners</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span>
+                <span class="n">newstructure</span><span class="p">,</span> <span class="n">output_dir</span>
+            <span class="p">)</span>
+            <span class="n">newstructure</span> <span class="o">=</span> <span class="n">newstructure</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">site_properties</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">energy</span><span class="p">,</span> <span class="n">newstructure</span></div></div>
+
+<div class="viewcode-block" id="run_mpispawn"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn">[docs]</a><span class="k">class</span> <span class="nc">run_mpispawn</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invoker via mpi_comm_spawn</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_to_solver : str</span>
+<span class="sd">        Path to solver program</span>
+<span class="sd">    nprocs : int</span>
+<span class="sd">        Number of process which one solver uses</span>
+<span class="sd">    nthreads : int</span>
+<span class="sd">        Number of threads which one solver process uses</span>
+<span class="sd">    comm : MPI.Comm</span>
+<span class="sd">        MPI Communicator</span>
+<span class="sd">    commsize : int</span>
+<span class="sd">        Size of comm</span>
+<span class="sd">    commrank : int</span>
+<span class="sd">        My rank in comm</span>
+<span class="sd">    worldrank : int</span>
+<span class="sd">        My rank in MPI.COMM_WORLD</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="run_mpispawn.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">            Path to solver program</span>
+<span class="sd">        nprocs : int</span>
+<span class="sd">            Number of process which one solver uses</span>
+<span class="sd">        nthreads : int</span>
+<span class="sd">            Number of threads which one solver process uses</span>
+<span class="sd">        comm : MPI.Comm</span>
+<span class="sd">            MPI Communicator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span> <span class="o">=</span> <span class="n">nprocs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span> <span class="o">=</span> <span class="n">nthreads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commsize</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commrank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="n">commworld</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="run_mpispawn.submit"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn.submit">[docs]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run solver</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            Name of solver (e.g., VASP)</span>
+<span class="sd">        solverinput : Solver.Input</span>
+<span class="sd">            Input manager</span>
+<span class="sd">        output_dir : str</span>
+<span class="sd">            Path to directory where a solver saves output</span>
+<span class="sd">        rerun : int, default = 2</span>
+<span class="sd">            How many times to restart solver on failed</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        status : int</span>
+<span class="sd">            Always returns 0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">solverinput</span><span class="o">.</span><span class="n">write_input</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="c1"># Barrier so that spawn is atomic between processes.</span>
+        <span class="c1"># This is to make sure that vasp processes are spawned one by one according to</span>
+        <span class="c1"># MPI policy (hopefully on adjacent nodes)</span>
+        <span class="c1"># (might be MPI implementation dependent...)</span>
+
+        <span class="c1"># for i in range(self.commsize):</span>
+        <span class="c1">#    self.comm.Barrier()</span>
+        <span class="c1">#    if i == self.commrank:</span>
+        <span class="n">failed_dir</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cl_argslist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">solverinput</span><span class="o">.</span><span class="n">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">),</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">solverrundirs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># checkfilename = &quot;abacus_solver_finished&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">commrank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">rundir</span> <span class="ow">in</span> <span class="n">solverrundirs</span><span class="p">:</span>
+                <span class="n">solverinput</span><span class="o">.</span><span class="n">cleanup</span><span class="p">(</span><span class="n">rundir</span><span class="p">)</span>
+
+            <span class="c1"># wrappers = [</span>
+            <span class="c1">#     &quot;rm -f {checkfile}; {solvername} {cl_args}; echo $? &gt; {checkfile}&quot;.format(</span>
+            <span class="c1">#         checkfile=shlex.quote(</span>
+            <span class="c1">#             os.path.join(rundir, checkfilename)</span>
+            <span class="c1">#         ),</span>
+            <span class="c1">#         solvername=self.path_to_solver,</span>
+            <span class="c1">#         cl_args=&quot; &quot;.join(map(shlex.quote, cl_args)),</span>
+            <span class="c1">#     )</span>
+            <span class="c1">#     for cl_args in cl_argslist</span>
+            <span class="c1"># ]</span>
+            <span class="c1">#</span>
+            <span class="c1"># start = timer()</span>
+            <span class="c1"># commspawn = [</span>
+            <span class="c1">#     MPI.COMM_SELF.Spawn(</span>
+            <span class="c1">#         os.getenv(&#39;SHELL&#39;), args=[&quot;-c&quot;, wrapper], maxprocs=self.nprocs</span>
+            <span class="c1">#     )</span>
+            <span class="c1">#     for wrapper in wrappers</span>
+            <span class="c1"># ]</span>
+
+            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="n">commspawn</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="o">.</span><span class="n">Spawn</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">cl_args</span><span class="p">,</span> <span class="n">maxprocs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">cl_args</span> <span class="ow">in</span> <span class="n">cl_argslist</span>
+            <span class="p">]</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rank &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span><span class="p">,</span> <span class="s2">&quot; took &quot;</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="s2">&quot; to spawn&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">rundir</span> <span class="ow">in</span> <span class="n">solverrundirs</span><span class="p">:</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="c1"># if os.path.exists(os.path.join(rundir, checkfilename)):</span>
+                    <span class="k">if</span> <span class="n">solverinput</span><span class="o">.</span><span class="n">check_finished</span><span class="p">(</span><span class="n">rundir</span><span class="p">):</span>
+                        <span class="k">break</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;rank &quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span><span class="p">,</span>
+                <span class="s2">&quot; took &quot;</span><span class="p">,</span>
+                <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span>
+                <span class="s2">&quot; for &quot;</span> <span class="o">+</span> <span class="n">solver_name</span> <span class="o">+</span> <span class="s2">&quot;execution&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># if len(failed_dir) != 0:</span>
+            <span class="c1">#     print(</span>
+            <span class="c1">#         solver_name + &quot; failed in directories: \n &quot; + &quot;\n&quot;.join(failed_dir)</span>
+            <span class="c1">#     )</span>
+            <span class="c1">#     sys.stdout.flush()</span>
+            <span class="c1">#     if rerun == 0:</span>
+            <span class="c1">#         MPI.COMM_WORLD.Abort()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+
+        <span class="c1"># Rerun if Solver failed</span>
+        <span class="c1"># failed_dir = self.comm.bcast(failed_dir, root=0)</span>
+        <span class="c1"># if len(failed_dir) != 0:</span>
+        <span class="c1">#     solverinput.update_info_from_files(output_dir, rerun)</span>
+        <span class="c1">#     rerun -= 1</span>
+        <span class="c1">#     self.submit(solverinput, output_dir, rerun)</span>
+
+        <span class="k">return</span> <span class="mi">0</span></div></div>
+
+
+<div class="viewcode-block" id="run_mpispawn_ready"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_ready">[docs]</a><span class="k">class</span> <span class="nc">run_mpispawn_ready</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invoker via mpi_comm_spawn for solvers which is MPI_Comm_spawn-ready</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_to_solver : str</span>
+<span class="sd">        Path to solver program</span>
+<span class="sd">    nprocs : int</span>
+<span class="sd">        Number of process which one solver uses</span>
+<span class="sd">    nthreads : int</span>
+<span class="sd">        Number of threads which one solver process uses</span>
+<span class="sd">    comm : MPI.Comm</span>
+<span class="sd">        MPI Communicator</span>
+<span class="sd">    commsize : int</span>
+<span class="sd">        Size of comm</span>
+<span class="sd">    commrank : int</span>
+<span class="sd">        My rank in comm</span>
+<span class="sd">    worldrank : int</span>
+<span class="sd">        My rank in MPI.COMM_WORLD</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="run_mpispawn_ready.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_ready.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_spawn_ready_solver</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">            Path to solver program</span>
+<span class="sd">        nprocs : int</span>
+<span class="sd">            Number of process which one solver uses</span>
+<span class="sd">        nthreads : int</span>
+<span class="sd">            Number of threads which one solver process uses</span>
+<span class="sd">        comm : MPI.Comm</span>
+<span class="sd">            MPI Communicator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_spawn_ready_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span> <span class="o">=</span> <span class="n">nprocs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span> <span class="o">=</span> <span class="n">nthreads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commsize</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commrank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="n">commworld</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="run_mpispawn_ready.submit"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_ready.submit">[docs]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run solver</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            Name of solver (e.g., VASP)</span>
+<span class="sd">        solverinput : Solver.Input</span>
+<span class="sd">            Input manager</span>
+<span class="sd">        output_dir : str</span>
+<span class="sd">            Path to directory where a solver saves output</span>
+<span class="sd">        rerun : int, default = 2</span>
+<span class="sd">            How many times to restart solver on failed</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        status : int</span>
+<span class="sd">            Always returns 0</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        If a solver failed (returned nonzero),</span>
+<span class="sd">        this calls `MPI_Abort` on `MPI_COMM_WORLD` .</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">solverinput</span><span class="o">.</span><span class="n">write_input</span><span class="p">(</span><span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="c1"># Barrier so that spawn is atomic between processes.</span>
+        <span class="c1"># This is to make sure that vasp processes are spawned one by one according to</span>
+        <span class="c1"># MPI policy (hopefully on adjacent nodes)</span>
+        <span class="c1"># (might be MPI implementation dependent...)</span>
+
+        <span class="c1"># for i in range(self.commsize):</span>
+        <span class="c1">#    self.comm.Barrier()</span>
+        <span class="c1">#    if i == self.commrank:</span>
+        <span class="n">failed_dir</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cl_argslist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">solverinput</span><span class="o">.</span><span class="n">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">),</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">solverrundirs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">commrank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="n">commspawn</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="o">.</span><span class="n">Spawn</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span>  <span class="c1"># ex. /home/issp/vasp/vasp.5.3.5/bin/vasp&quot;,</span>
+                    <span class="n">args</span><span class="o">=</span><span class="n">cl_args</span><span class="p">,</span>
+                    <span class="n">maxprocs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">cl_args</span> <span class="ow">in</span> <span class="n">cl_argslist</span>
+            <span class="p">]</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rank &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span><span class="p">,</span> <span class="s2">&quot; took &quot;</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="s2">&quot; to spawn&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="n">exitcode</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">intc</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">comm</span> <span class="ow">in</span> <span class="n">commspawn</span><span class="p">:</span>
+                <span class="n">comm</span><span class="o">.</span><span class="n">Bcast</span><span class="p">([</span><span class="n">exitcode</span><span class="p">,</span> <span class="n">MPI</span><span class="o">.</span><span class="n">INT</span><span class="p">],</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">comm</span><span class="o">.</span><span class="n">Disconnect</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">exitcode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">failed_dir</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solverrundirs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;rank &quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span><span class="p">,</span>
+                <span class="s2">&quot; took &quot;</span><span class="p">,</span>
+                <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span>
+                <span class="s2">&quot; for &quot;</span> <span class="o">+</span> <span class="n">solver_name</span> <span class="o">+</span> <span class="s2">&quot;execution&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_dir</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="n">solver_name</span> <span class="o">+</span> <span class="s2">&quot; failed in directories: </span><span class="se">\n</span><span class="s2"> &quot;</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">failed_dir</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">rerun</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Abort</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+
+        <span class="c1"># Rerun if Solver failed</span>
+        <span class="n">failed_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">bcast</span><span class="p">(</span><span class="n">failed_dir</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">failed_dir</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">solverinput</span><span class="o">.</span><span class="n">update_info_from_files</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="p">)</span>
+            <span class="n">rerun</span> <span class="o">-=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="p">)</span>
+
+        <span class="c1"># commspawn = MPI.COMM_SELF.Spawn(self.path_to_vasp, #/home/issp/vasp/vasp.5.3.5/bin/vasp&quot;,</span>
+        <span class="c1">#                                args=[output_dir],</span>
+        <span class="c1">#                                   maxprocs=self.nprocs)</span>
+
+        <span class="c1"># Spawn is too slow, can&#39;t afford to make it atomic</span>
+        <span class="c1"># commspawn = MPI.COMM_SELF.Spawn(self.path_to_vasp, #/home/issp/vasp/vasp.5.3.5/bin/vasp&quot;,</span>
+        <span class="c1">#                               args=[output_dir,],</span>
+        <span class="c1">#                               maxprocs=self.nprocs)</span>
+        <span class="c1">#        sendbuffer = create_string_buffer(output_dir.encode(&#39;utf-8&#39;),255)</span>
+        <span class="c1">#        commspawn.Bcast([sendbuffer, 255, MPI.CHAR], root=MPI.ROOT)</span>
+        <span class="c1"># commspawn.Barrier()</span>
+        <span class="c1"># commspawn.Disconnect()</span>
+        <span class="c1"># os.chdir(cwd)</span>
+        <span class="k">return</span> <span class="mi">0</span></div></div>
+
+
+
+<div class="viewcode-block" id="run_mpispawn_wrapper"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_wrapper">[docs]</a><span class="k">class</span> <span class="nc">run_mpispawn_wrapper</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invoker via mpi_comm_spawn</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_to_solver : str</span>
+<span class="sd">        Path to solver program</span>
+<span class="sd">    nprocs : int</span>
+<span class="sd">        Number of process which one solver uses</span>
+<span class="sd">    nthreads : int</span>
+<span class="sd">        Number of threads which one solver process uses</span>
+<span class="sd">    comm : MPI.Comm</span>
+<span class="sd">        MPI Communicator</span>
+<span class="sd">    commsize : int</span>
+<span class="sd">        Size of comm</span>
+<span class="sd">    commrank : int</span>
+<span class="sd">        My rank in comm</span>
+<span class="sd">    worldrank : int</span>
+<span class="sd">        My rank in MPI.COMM_WORLD</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="run_mpispawn_wrapper.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_wrapper.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">            Path to solver program</span>
+<span class="sd">        nprocs : int</span>
+<span class="sd">            Number of process which one solver uses</span>
+<span class="sd">        nthreads : int</span>
+<span class="sd">            Number of threads which one solver process uses</span>
+<span class="sd">        comm : MPI.Comm</span>
+<span class="sd">            MPI Communicator</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span> <span class="o">=</span> <span class="n">nprocs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span> <span class="o">=</span> <span class="n">nthreads</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commsize</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">commrank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+        <span class="n">commworld</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span> <span class="o">=</span> <span class="n">commworld</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="run_mpispawn_wrapper.submit"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_wrapper.submit">[docs]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run solver</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            Name of solver (e.g., VASP)</span>
+<span class="sd">        solverinput : Solver.Input</span>
+<span class="sd">            Input manager</span>
+<span class="sd">        output_dir : str</span>
+<span class="sd">            Path to directory where a solver saves output</span>
+<span class="sd">        rerun : int, default = 2</span>
+<span class="sd">            How many times to restart solver on failed</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        status : int</span>
+<span class="sd">            Always returns 0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">solverinput</span><span class="o">.</span><span class="n">write_input</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="c1"># Barrier so that spawn is atomic between processes.</span>
+        <span class="c1"># This is to make sure that vasp processes are spawned one by one according to</span>
+        <span class="c1"># MPI policy (hopefully on adjacent nodes)</span>
+        <span class="c1"># (might be MPI implementation dependent...)</span>
+
+        <span class="c1"># for i in range(self.commsize):</span>
+        <span class="c1">#    self.comm.Barrier()</span>
+        <span class="c1">#    if i == self.commrank:</span>
+        <span class="n">failed_dir</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cl_argslist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
+            <span class="n">solverinput</span><span class="o">.</span><span class="n">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">),</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span>
+        <span class="p">)</span>
+        <span class="n">solverrundirs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">checkfilename</span> <span class="o">=</span> <span class="s2">&quot;abacus_solver_finished&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">commrank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="n">wrappers</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;rm -f </span><span class="si">{checkfile}</span><span class="s2">; </span><span class="si">{solvername}</span><span class="s2"> </span><span class="si">{cl_args}</span><span class="s2">; echo $? &gt; </span><span class="si">{checkfile}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">checkfile</span><span class="o">=</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">checkfilename</span><span class="p">)</span>
+                    <span class="p">),</span>
+                    <span class="n">solvername</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">,</span>
+                    <span class="n">cl_args</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">shlex</span><span class="o">.</span><span class="n">quote</span><span class="p">,</span> <span class="n">cl_args</span><span class="p">)),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">cl_args</span> <span class="ow">in</span> <span class="n">cl_argslist</span>
+            <span class="p">]</span>
+
+            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="n">commspawn</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_SELF</span><span class="o">.</span><span class="n">Spawn</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;SHELL&#39;</span><span class="p">),</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">wrapper</span><span class="p">],</span> <span class="n">maxprocs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">wrapper</span> <span class="ow">in</span> <span class="n">wrappers</span>
+            <span class="p">]</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rank &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span><span class="p">,</span> <span class="s2">&quot; took &quot;</span><span class="p">,</span> <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="s2">&quot; to spawn&quot;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">rundir</span> <span class="ow">in</span> <span class="n">solverrundirs</span><span class="p">:</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rundir</span><span class="p">,</span> <span class="n">checkfilename</span><span class="p">)):</span>
+                        <span class="k">break</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">timer</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;rank &quot;</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">worldrank</span><span class="p">,</span>
+                <span class="s2">&quot; took &quot;</span><span class="p">,</span>
+                <span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span>
+                <span class="s2">&quot; for &quot;</span> <span class="o">+</span> <span class="n">solver_name</span> <span class="o">+</span> <span class="s2">&quot;execution&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># if len(failed_dir) != 0:</span>
+            <span class="c1">#     print(</span>
+            <span class="c1">#         solver_name + &quot; failed in directories: \n &quot; + &quot;\n&quot;.join(failed_dir)</span>
+            <span class="c1">#     )</span>
+            <span class="c1">#     sys.stdout.flush()</span>
+            <span class="c1">#     if rerun == 0:</span>
+            <span class="c1">#         MPI.COMM_WORLD.Abort()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+
+        <span class="c1"># Rerun if Solver failed</span>
+        <span class="c1"># failed_dir = self.comm.bcast(failed_dir, root=0)</span>
+        <span class="c1"># if len(failed_dir) != 0:</span>
+        <span class="c1">#     solverinput.update_info_from_files(output_dir, rerun)</span>
+        <span class="c1">#     rerun -= 1</span>
+        <span class="c1">#     self.submit(solverinput, output_dir, rerun)</span>
+
+        <span class="k">return</span> <span class="mi">0</span></div></div>
+
+
+<div class="viewcode-block" id="run_subprocess"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_subprocess">[docs]</a><span class="k">class</span> <span class="nc">run_subprocess</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Invoker via subprocess</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path_to_solver : str</span>
+<span class="sd">        Path to solver program</span>
+<span class="sd">    nprocs : int</span>
+<span class="sd">        Number of process which one solver uses</span>
+<span class="sd">    nthreads : int</span>
+<span class="sd">        Number of threads which one solver process uses</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="run_subprocess.__init__"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_subprocess.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_to_solver</span><span class="p">,</span> <span class="n">nprocs</span><span class="p">,</span> <span class="n">nthreads</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        path_to_solver : str</span>
+<span class="sd">            Path to solver program</span>
+<span class="sd">        nprocs : int</span>
+<span class="sd">            Number of process which one solver uses</span>
+<span class="sd">        nthreads : int</span>
+<span class="sd">            Number of threads which one solver process uses</span>
+<span class="sd">        comm : MPI.Comm or NoneType</span>
+<span class="sd">            Never used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span> <span class="o">=</span> <span class="n">path_to_solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span> <span class="o">=</span> <span class="n">nprocs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span> <span class="o">=</span> <span class="n">nthreads</span></div>
+
+<div class="viewcode-block" id="run_subprocess.submit"><a class="viewcode-back" href="../../../../abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_subprocess.submit">[docs]</a>    <span class="k">def</span> <span class="nf">submit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run solver</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name : str</span>
+<span class="sd">            Name of solver (e.g., VASP)</span>
+<span class="sd">        solverinput : Solver.Input</span>
+<span class="sd">            Input manager</span>
+<span class="sd">        output_dir : str</span>
+<span class="sd">            Path to directory where a solver saves output</span>
+<span class="sd">        rerun : int, default = 2</span>
+<span class="sd">            How many times to restart solver on failed</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        status : int</span>
+<span class="sd">            Always returns 0</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        RuntimeError</span>
+<span class="sd">            Raises RuntimeError when solver failed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">solverinput</span><span class="o">.</span><span class="n">write_input</span><span class="p">(</span><span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">solverinput</span><span class="o">.</span><span class="n">cl_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nprocs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nthreads</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">path_to_solver</span><span class="p">]</span>
+        <span class="n">command</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">to_rerun</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1">#print(&#39; &#39;.join(command))</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;stdout&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># subprocess.run(command, check=True, shell=True)</span>
+                <span class="c1">#subprocess.run(&#39; &#39;.join(command), check=True, shell=True)</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">fi</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">rerun</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">to_rerun</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span>
+        <span class="k">if</span> <span class="n">to_rerun</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">solverinput</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">rerun</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020-, ISSP, UTokyo
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

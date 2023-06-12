@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>5.6. [config] セクション &#8212; abICS 2.1.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/translations.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="5.7. [log] セクション" href="parameter_log.html" />
+    <link rel="prev" title="5.5. [observer] セクション" href="parameter_observer.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="config">
+<span id="config-section"></span><h1><span class="section-number">5.6. </span>[config] セクション<a class="headerlink" href="#config" title="この見出しへのパーマリンク">¶</a></h1>
+<p>多元系の原子配置やPotts 模型の格子サイズなど，配位に関するパラメータを指定します．
+以下のようなファイルフォーマットをしています．</p>
+<blockquote>
+<div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[config]
+unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
+            [0.0000000000, 8.1135997772, 0.0000000000],
+            [0.0000000000, 0.0000000000, 8.1135997772]]
+supercell = [1,1,1]
+
+[[config.base_structure]]
+type = &quot;O&quot;
+coords = [
+    [0.237399980, 0.237399980, 0.237399980],
+    [0.762599945, 0.762599945, 0.762599945],
+    ## 中略
+    [0.262599975, 0.262599975, 0.762599945],
+    ]
+relaxation = [
+  [true, true, true],
+    ## 中略
+  [false, false, false],
+  ]
+magnetization = [0.0, 0.5, ...中略..., 0.0]
+
+[[config.defect_structure]]
+coords = [
+    [0.000000000, 0.000000000, 0.000000000],
+    [0.749999940, 0.249999985, 0.499999970],
+    ## 中略
+    [0.124999993, 0.624999940, 0.124999993],
+    ]
+
+[[config.defect_structure.groups]]
+name = &#39;Al&#39;
+# species = [&#39;Al&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+# relaxation = [[true, true, true]]  # default
+# magnetization = [0.0]  # default
+num = 16
+
+[[config.defect_structure.groups]]
+name = &#39;Mg&#39;
+# species = [&#39;Mg&#39;]    # default
+# coords = [[[0,0,0]]]  # default
+# relaxation = [[true, true, true]]  # default
+# magnetization = [0.0]  # default
+num = 8
+</pre></div>
+</div>
+</div></blockquote>
+<section id="id1">
+<h2><span class="section-number">5.6.1. </span>入力形式<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">keyword</span> <span class="pre">=</span> <span class="pre">values</span></code> の形式でキーワードとその値を指定します．
+また，#をつけることでコメントを入力することができます(それ以降の文字は無視されます)．</p>
+</section>
+<section id="id2">
+<h2><span class="section-number">5.6.2. </span>キーワード<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<section id="solver-type-potts">
+<h3><code class="docutils literal notranslate"><span class="pre">solver.type</span> <span class="pre">!=</span> <span class="pre">&quot;potts&quot;</span></code> の場合<a class="headerlink" href="#solver-type-potts" title="この見出しへのパーマリンク">¶</a></h3>
+<ul>
+<li><p>格子の指定</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">unitcell</span></code></p>
+<p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+格子ベクトル <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> を,
+リスト形式で [ <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] として指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">supercell</span></code></p>
+<p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+超格子の大きさをリスト形式で [ <span class="math notranslate nohighlight">\(\bf{a}, \bf{b}, \bf{c}\)</span> ] 指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">init_structure</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+モンテカルロサンプリングの初期構造ファイル(POSCAR やCIF 形式など)を指定します.
+指定しなかった場合，ランダムに生成されます.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint_module</span></code></p>
+<p><strong>形式 :</strong> bool型</p>
+<p><strong>説明 :</strong>
+配位に対して拘束条件を課すかどうかを指定します．デフォルト値は <code class="docutils literal notranslate"><span class="pre">false</span></code> です．</p>
+<p><code class="docutils literal notranslate"><span class="pre">true</span></code> の場合，拘束条件はユーザが定義する関数で与えます．この関数は <code class="docutils literal notranslate"><span class="pre">constraint_module.py</span></code> 内に <code class="docutils literal notranslate"><span class="pre">constraint_func</span></code> という関数名で配置し，pymatgen.core.Structure 型の構造データを引数にとりbool型の値を返す関数として定義します．また， <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> を行う際に構造データからエネルギー値を計算する <code class="docutils literal notranslate"><span class="pre">constraint_energy</span></code> 関数を定義して使用することもできます．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">constraint</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+配位に対する拘束条件を与えるユーザ定義関数を指定します．指定しない場合は拘束条件を課しません．デフォルト値は指定なしです．</p>
+<p>拘束条件は，任意のモジュール内に配置された，pymatgen.core.Structure型の構造データを引数にとりbool型の値を返す関数として定義します． <code class="docutils literal notranslate"><span class="pre">constraint</span></code> パラメータには関数名を <code class="docutils literal notranslate"><span class="pre">&quot;モジュール名.関数名&quot;</span></code> の形式で指定します．
+<code class="docutils literal notranslate"><span class="pre">constraint_module</span></code> が <code class="docutils literal notranslate"><span class="pre">true</span></code> に指定されている場合は， <code class="docutils literal notranslate"><span class="pre">constraint</span></code> パラメータの指定が優先されます．</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.base_structure]]</span></code> セクション</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">type</span></code> と <code class="docutils literal notranslate"><span class="pre">coords</span></code> によりモンテカルロ計算で動かさない原子種とその座標を指定します．
+原子種が複数ある場合には，複数の [[config.base_strucure]] セクションを指定します．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>  原子種を指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
+<p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  座標を指定します.
+3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか，座標を N 行 3列に並べた文字列で指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relaxation</span></code></p>
+<p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  原子・空間次元ごとに，構造最適化を行うかどうかを指定します．
+真偽値(&quot;true&quot; or &quot;false&quot;)を表す3要素のリストをN 個（原子の数）だけ並べたリストか，真偽値を N 行 3列に並べた文字列で指定します．
+デフォルトはすべて &quot;true&quot; です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">magnetization</span></code></p>
+<p><strong>形式 :</strong> list</p>
+<p><strong>説明 :</strong>  原子ごとに磁化（up/down 電子個数差）を指定します．
+デフォルトはすべて 0.0 です．</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> セクション</p>
+<blockquote>
+<div><p>モンテカルロで更新する原子が入る座標 (coords)と入りうる原子（団） (group) を指定します．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
+<p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  原子が入る座標を指定します．
+3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストか，座標を N 行 3列に並べた文字列で指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure.groups]]</span></code> セクション</p>
+<p>モンテカルロで更新する原子グループの情報を指定します．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code></p>
+<p><strong>形式 :</strong> str型</p>
+<p><strong>説明 :</strong>
+原子グループの名前を指定します．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
+<p><strong>形式 :</strong> list型</p>
+<p><strong>説明 :</strong>
+原子グループに属する原子種を指定します. デフォルト値は <code class="docutils literal notranslate"><span class="pre">name</span></code> で指定したものがひとつだけ含まれたリストです．
+また，空のリストを用いて欠陥を表現できます．</p>
+</li>
+</ul>
+<ul id="coords-orr">
+<li><p><code class="docutils literal notranslate"><span class="pre">coords</span></code></p>
+<p><strong>形式 :</strong> listのlistのlist</p>
+<p><strong>説明 :</strong>  原子グループ中の各原子の座標を，局所回転の向きごとに指定します．
+3次元座標を表す3要素のリストをN 個（原子の数）だけ並べたリストをさらに向きごとにならべた，3重のリストとして指定します．
+たとえば原子の数が2つあり，回転の方向としてx,y,z 向きの3種類考える場合には，</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>coords = [
+[ # dir-1
+[0.0, 0.0, 0.0], [0.5, 0.0, 0.0]
+],
+[ # dir-2
+[0.0, 0.0, 0.0], [0.0, 0.5, 0.0]
+],
+[ # dir-3
+[0.0, 0.0, 0.0], [0.0, 0.0, 0.5]
+],
+]
+</pre></div>
+</div>
+<p>のように指定します．
+デフォルト値は <cite>[[[0.0, 0.0, 0.0]]]</cite> なので，原子が一つしかない場合には一般に省略可能です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">relaxation</span></code></p>
+<p><strong>形式 :</strong> listのlist もしくは 文字列</p>
+<p><strong>説明 :</strong>  原子・空間次元ごとに，構造最適化を行うかどうかを指定します．
+真偽値(&quot;true&quot; or &quot;false&quot;)を表す3要素のリストをN 個（原子の数）だけ並べたリストか，真偽値を N 行 3列に並べた文字列で指定します．
+デフォルトはすべて &quot;true&quot; です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">magnetization</span></code></p>
+<p><strong>形式 :</strong> list</p>
+<p><strong>説明 :</strong>  原子ごとに磁化（up/down 電子個数差）を指定します．
+デフォルトはすべて 0.0 です．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">num</span></code></p>
+<p><strong>形式 :</strong> int型</p>
+<p><strong>説明 :</strong>
+この原子グループの数を指定します．</p>
+</li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.chemical_potential]]</span></code> セクション</p>
+<blockquote>
+<div><p>グランドカノニカルサンプリングにおいて，原子種や原子グループに対する化学ポテンシャルを指定します．</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> str型 もしくは str型のリスト</p>
+<p><strong>説明 :</strong> 原子種または原子グループの名前を指定します．複数の原子種・原子グループにまとめて同じ値を設定する場合は，それらをリストで指定します．</p>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">mu</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> float型</p>
+<p><strong>説明 :</strong> <code class="docutils literal notranslate"><span class="pre">species</span></code> に対応する化学ポテンシャルの値を指定します．</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[[config.grandcanonical_move]]</span></code> セクション</p>
+<blockquote>
+<div><p>グランドカノニカルサンプリングにおいて，原子種または原子グループの増減や，原子種の入れ替えが起きる場合の入れ替わる原子種を指定します．指定方法は以下のとおりです．</p>
+<ul>
+<li><p>原子種または原子グループの増減</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">species</span></code></p>
+<p><strong>形式 :</strong> str型 もしくは str型のリスト</p>
+<p><strong>説明 :</strong> 原子種または原子グループの名前を指定します．複数の原子種・原子グループを同時に増減させる場合は，それらをリストで指定します．同種の原子種を複数個指定することもできます．</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>原子種の入れ替え</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code></p>
+<p><strong>形式 :</strong> str型 もしくは str型のリスト</p>
+<p><strong>説明 :</strong> 入れ替わる原子種または原子グループの名前を <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">A</span> <span class="pre">to</span> <span class="pre">B</span></code> の形で指定します． <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">B</span> <span class="pre">to</span> <span class="pre">A</span></code> の入れ替えも自動的に考慮されます． <code class="docutils literal notranslate"><span class="pre">from</span></code>, <code class="docutils literal notranslate"><span class="pre">to</span></code> で指定する原子種の数は同じで，同一の defect sublattice に配置されているとします．</p>
+</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> の指定がないときは， <code class="docutils literal notranslate"><span class="pre">chemical_potential</span></code> に記述される原子種・原子グループまたはその組が増減する指定が自動的に挿入されます．
+一方， <code class="docutils literal notranslate"><span class="pre">grandcanonical_move</span></code> の指定が一つでもあれば，その操作のみが行われます．</p>
+</div></blockquote>
+</li>
+</ul>
+</section>
+<section id="id3">
+<h3><code class="docutils literal notranslate"><span class="pre">solver.type</span> <span class="pre">=</span> <span class="pre">&quot;potts&quot;</span></code> の場合<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h3>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Q</span></code></p>
+<p><strong>形式 :</strong> 自然数</p>
+<p><strong>説明 :</strong> Potts 模型でスピンが取りうる状態の数．</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">L</span></code></p>
+<p><strong>形式 :</strong> 自然数のリスト</p>
+<p><strong>説明 :</strong> 超立方格子のサイズ．</p>
+</li>
+</ul>
+</div></blockquote>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">5. 入力ファイルフォーマット</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="parameter_sampling.html">5.1. [sampling] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_mlref.html">5.2. [mlref] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_solver.html">5.3. [sampling.solver], [mlref.solver] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_train.html">5.4. [train] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_observer.html">5.5. [observer] セクション</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.6. [config] セクション</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_log.html">5.7. [log] セクション</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html"><span class="section-number">5. </span>入力ファイルフォーマット</a><ul>
+      <li>Previous: <a href="parameter_observer.html" title="前の章へ"><span class="section-number">5.5. </span>[observer] セクション</a></li>
+      <li>Next: <a href="parameter_log.html" title="次の章へ"><span class="section-number">5.7. </span>[log] セクション</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
+      
+      |
+      <a href="../_sources/inputfiles/parameter_config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.scripts.train &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.scripts.train</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.scripts.train</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2020- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">MutableMapping</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">pymatgen.core</span> <span class="kn">import</span> <span class="n">Structure</span>
+
+<span class="kn">from</span> <span class="nn">abics</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.params</span> <span class="kn">import</span> <span class="n">DFTParams</span><span class="p">,</span> <span class="n">TrainerParams</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface</span> <span class="kn">import</span> <span class="n">aenet_trainer</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface</span> <span class="kn">import</span> <span class="n">map2perflat</span>
+<span class="kn">from</span> <span class="nn">abics.applications.latgas_abinitio_interface.defect</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">defect_config</span><span class="p">,</span>
+    <span class="n">DFTConfigParams</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">abics.loggers</span> <span class="k">as</span> <span class="nn">loggers</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="main_impl"><a class="viewcode-back" href="../../../abics.scripts.train.html#abics.scripts.train.main_impl">[docs]</a><span class="k">def</span> <span class="nf">main_impl</span><span class="p">(</span><span class="n">params_root</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;ALloop.progress&quot;</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;abics_mlref has not run yet.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ALdirs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ALloop.progress&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">fi</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;AL&quot;</span><span class="p">):</span>
+                <span class="n">ALdirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">last_li</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">last_li</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;AL&quot;</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;You shouldn&#39;t run train now.&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Either abics_sampling or abics_mlref first.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">dftparams</span> <span class="o">=</span> <span class="n">DFTParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">][</span><span class="s2">&quot;solver&quot;</span><span class="p">])</span>
+    <span class="n">ensemble</span> <span class="o">=</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">ensemble</span>
+    <span class="n">base_input_dir</span> <span class="o">=</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">base_input_dir</span>
+
+    <span class="n">trainerparams</span> <span class="o">=</span> <span class="n">TrainerParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">])</span>
+    <span class="n">ignore_species</span> <span class="o">=</span> <span class="n">trainerparams</span><span class="o">.</span><span class="n">ignore_species</span>
+    <span class="n">trainer_commands</span> <span class="o">=</span> <span class="n">trainerparams</span><span class="o">.</span><span class="n">exe_command</span>
+    <span class="n">trainer_type</span> <span class="o">=</span> <span class="n">trainerparams</span><span class="o">.</span><span class="n">solver</span>
+    <span class="n">trainer_input_dirs</span> <span class="o">=</span> <span class="n">trainerparams</span><span class="o">.</span><span class="n">base_input_dir</span>
+    <span class="n">previous_dirs</span> <span class="o">=</span> <span class="n">trainerparams</span><span class="o">.</span><span class="n">previous_dir</span>
+
+    <span class="n">configparams</span> <span class="o">=</span> <span class="n">DFTConfigParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">])</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">defect_config</span><span class="p">(</span><span class="n">configparams</span><span class="p">)</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">structure</span><span class="o">.</span><span class="n">symbol_set</span>
+    <span class="n">dummy_sts</span> <span class="o">=</span> <span class="p">{</span><span class="n">sp</span><span class="p">:</span> <span class="n">config</span><span class="o">.</span><span class="n">dummy_structure_sp</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">species</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">trainer_type</span> <span class="o">!=</span> <span class="s2">&quot;aenet&quot;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown trainer: &quot;</span><span class="p">,</span> <span class="n">trainer_type</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">rootdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+    <span class="n">structures</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">previous_dirs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Adding data in previous_dirs to data set&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">previous_dirs</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+            <span class="n">num_st</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">())</span>
+            <span class="n">st_fis</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;structure.</span><span class="si">{}</span><span class="s2">.xsf&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_st</span><span class="p">)]</span>
+            <span class="k">for</span> <span class="n">fi</span> <span class="ow">in</span> <span class="n">st_fis</span><span class="p">:</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">fi</span><span class="p">))</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fi</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">li</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">li</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">4</span><span class="p">])</span>
+                <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Done&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Mapping relaxed structures in AL* to on-lattice model...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># val_map is a list of list [[sp0, vac0], [sp1, vac1], ...]</span>
+    <span class="c1"># if vac_map:</span>
+    <span class="c1">#    vac_map = {specie: vacancy for specie, vacancy in vac_map}</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#    vac_map = {}</span>
+
+    <span class="c1"># we first group species that share sublattices together</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">defect_sublattices</span><span class="p">:</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="n">sublattice</span><span class="o">.</span><span class="n">groups</span>
+        <span class="n">sp_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="n">sp_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">group</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">sp_list</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">pair</span><span class="p">)</span>
+    <span class="n">sp_groups</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
+    <span class="n">dummy_sts_share</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Structure</span><span class="p">,</span> <span class="nb">list</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">G</span><span class="p">):</span>
+        <span class="c1"># merge dummy structures for species that share sublattices</span>
+        <span class="n">sps</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">dummy_sts</span><span class="p">[</span><span class="n">sp</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">sps</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">st_tmp</span> <span class="o">=</span> <span class="n">Structure</span><span class="p">(</span>
+            <span class="n">dummy_sts</span><span class="p">[</span><span class="n">sps</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">lattice</span><span class="p">,</span>
+            <span class="n">species</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">coords</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">st_tmp</span><span class="o">.</span><span class="n">merge_sites</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;delete&quot;</span><span class="p">)</span>
+        <span class="n">dummy_sts_share</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">st_tmp</span><span class="p">,</span> <span class="n">sps</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ALdirs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Reading previously mapped structures up to </span><span class="si">{</span><span class="n">ALdirs</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="n">ALdirs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">rpl</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rpl</span><span class="p">))):</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rpl</span><span class="p">)))</span>
+                <span class="n">energies_ref</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">step_ids</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;energy_corr.dat&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fi</span><span class="p">:</span>
+                        <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                        <span class="n">energies_ref</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                        <span class="n">step_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">step_id</span><span class="p">,</span> <span class="n">energy</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">step_ids</span><span class="p">,</span> <span class="n">energies_ref</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;structure.</span><span class="si">{</span><span class="n">step_id</span><span class="si">}</span><span class="s2">_mapped.vasp&quot;</span><span class="p">):</span>
+                        <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;structure.</span><span class="si">{</span><span class="n">step_id</span><span class="si">}</span><span class="s2">_mapped.vasp&quot;</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+                <span class="n">rpl</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Finished reading previously mapped structures&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Mapping structures in </span><span class="si">{</span><span class="n">ALdirs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">dir</span> <span class="o">=</span> <span class="n">ALdirs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">rpl</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rpl</span><span class="p">))):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">rpl</span><span class="p">)))</span>
+        <span class="n">energies_ref</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">step_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;energy_corr.dat&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fi</span><span class="p">:</span>
+                <span class="n">words</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">energies_ref</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="n">step_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">words</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">step_id</span><span class="p">,</span> <span class="n">energy</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">step_ids</span><span class="p">,</span> <span class="n">energies_ref</span><span class="p">):</span>
+            <span class="n">structure</span><span class="p">:</span> <span class="n">Structure</span> <span class="o">=</span> <span class="n">Structure</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;structure.</span><span class="si">{</span><span class="n">step_id</span><span class="si">}</span><span class="s2">.vasp&quot;</span><span class="p">)</span>
+            <span class="n">mapped_sts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">mapping_success</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">dummy_st</span><span class="p">,</span> <span class="n">specs</span> <span class="ow">in</span> <span class="n">dummy_sts_share</span><span class="p">:</span>
+                <span class="c1"># perform sublattice by sublattice mapping</span>
+                <span class="n">sp_rm</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">specs</span><span class="p">,</span> <span class="n">species</span><span class="p">))</span>
+                <span class="n">st_tmp</span> <span class="o">=</span> <span class="n">structure</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">st_tmp</span><span class="o">.</span><span class="n">remove_species</span><span class="p">(</span><span class="n">sp_rm</span><span class="p">)</span>
+                <span class="n">num_sp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">st_tmp</span><span class="p">)</span>
+                <span class="c1"># map to perfect lattice for this species</span>
+                <span class="n">st_tmp</span> <span class="o">=</span> <span class="n">map2perflat</span><span class="p">(</span><span class="n">dummy_st</span><span class="p">,</span> <span class="n">st_tmp</span><span class="p">)</span>
+                <span class="n">st_tmp</span><span class="o">.</span><span class="n">remove_species</span><span class="p">([</span><span class="s2">&quot;X&quot;</span><span class="p">])</span>
+                <span class="n">mapped_sts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">st_tmp</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">num_sp</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">st_tmp</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;--mapping failed for structure </span><span class="si">{</span><span class="n">step_id</span><span class="si">}</span><span class="s2"> in replica </span><span class="si">{</span><span class="n">rpl</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">mapping_success</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="k">for</span> <span class="n">sts</span> <span class="ow">in</span> <span class="n">mapped_sts</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sts</span><span class="p">)):</span>
+                    <span class="n">mapped_sts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">species_string</span><span class="p">,</span> <span class="n">sts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">frac_coords</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ignore_species</span><span class="p">:</span>
+                <span class="n">mapped_sts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">remove_species</span><span class="p">(</span><span class="n">ignore_species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mapping_success</span><span class="p">:</span>
+                <span class="n">structures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mapped_sts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">mapped_sts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span>
+                    <span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;structure.</span><span class="si">{</span><span class="n">step_id</span><span class="si">}</span><span class="s2">_mapped.vasp&quot;</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;POSCAR&quot;</span>
+                <span class="p">)</span>
+                <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">energy</span><span class="p">)</span>
+        <span class="n">rpl</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">rootdir</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Finished mapping&quot;</span><span class="p">)</span>
+
+    <span class="n">generate_input_dirs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">train_input_dirs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">predict_input_dirs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">dftparams</span><span class="o">.</span><span class="n">ensemble</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trainer_input_dirs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">base_input_dir</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="s2">&quot;You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP&quot;</span>
+            <span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">trainer_input_dirs</span><span class="p">:</span>
+        <span class="n">generate_input_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;generate&quot;</span><span class="p">))</span>
+        <span class="n">train_input_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;train&quot;</span><span class="p">))</span>
+        <span class="n">predict_input_dirs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">))</span>
+
+    <span class="n">generate_exe</span> <span class="o">=</span> <span class="n">trainer_commands</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">train_exe</span> <span class="o">=</span> <span class="n">trainer_commands</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">trainers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">trainer_input_dirs</span><span class="p">)):</span>
+        <span class="n">trainers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">aenet_trainer</span><span class="p">(</span>
+                <span class="n">structures</span><span class="p">,</span>
+                <span class="n">energies</span><span class="p">,</span>
+                <span class="n">generate_input_dirs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">train_input_dirs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">predict_input_dirs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+                <span class="n">generate_exe</span><span class="p">,</span>
+                <span class="n">train_exe</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">trainers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">prepare</span><span class="p">()</span>
+    <span class="c1"># We use threads to parallelize generate.x over ensemble members</span>
+    <span class="c1"># threads = []</span>
+    <span class="c1"># for i, trainer in enumerate(trainers):</span>
+    <span class="c1">#     threads.append(</span>
+    <span class="c1">#         threading.Thread(</span>
+    <span class="c1">#             target=trainer.generate(generate_dir=&quot;generate{}&quot;.format(i))</span>
+    <span class="c1">#             )</span>
+    <span class="c1">#         )</span>
+    <span class="c1">#     threads[-1].start()</span>
+    <span class="c1"># for t in threads:</span>
+    <span class="c1">#     t.join()</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trainer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trainers</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running generate run in generate</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">trainer</span><span class="o">.</span><span class="n">generate_run</span><span class="p">(</span><span class="n">generate_dir</span><span class="o">=</span><span class="s2">&quot;generate</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">trainer</span> <span class="ow">in</span> <span class="n">trainers</span><span class="p">:</span>
+        <span class="n">trainer</span><span class="o">.</span><span class="n">generate_wait</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Finished generate run(s)&quot;</span><span class="p">)</span>
+
+    <span class="c1"># We use MPI version of train.x so no need to write parallel code here</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">trainer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trainers</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Training run in train</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">trainer</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">train_dir</span><span class="o">=</span><span class="s2">&quot;train</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Training run finished in train</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Preparing NN model for abics_sampling in </span><span class="si">{</span><span class="n">base_input_dir</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">trainer</span><span class="o">.</span><span class="n">new_baseinput</span><span class="p">(</span><span class="n">base_input_dir</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Success.&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ALloop.progress&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Writing ALloop.progress&quot;</span><span class="p">)</span>
+        <span class="n">fi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;train</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">fi</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">fsync</span><span class="p">(</span><span class="n">fi</span><span class="o">.</span><span class="n">fileno</span><span class="p">())</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Let&#39;s run abics_sampling next!&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exiting normally on </span><span class="si">{</span><span class="n">now</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../abics.scripts.train.html#abics.scripts.train.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+
+    <span class="kn">import</span> <span class="nn">toml</span>
+
+    <span class="n">tomlfile</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;input.toml&quot;</span>
+    <span class="n">params_root</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">tomlfile</span><span class="p">)</span>
+
+    <span class="n">loggers</span><span class="o">.</span><span class="n">set_log_handles</span><span class="p">(</span>
+        <span class="n">app_name</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span>
+        <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span>
+        <span class="n">console</span><span class="o">=</span><span class="s2">&quot;serial&quot;</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="n">params_root</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+    <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running abics_train (abICS v</span><span class="si">{</span><span class="n">__version__</span><span class="si">}</span><span class="s2">) on </span><span class="si">{</span><span class="n">now</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Reading input from: </span><span class="si">{</span><span class="n">tomlfile</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">main_impl</span><span class="p">(</span><span class="n">params_root</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

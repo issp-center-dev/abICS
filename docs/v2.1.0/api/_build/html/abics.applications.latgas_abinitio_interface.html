@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.latgas_abinitio_interface package &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.applications.latgas_abinitio_interface.aenet module" href="abics.applications.latgas_abinitio_interface.aenet.html" />
+    <link rel="prev" title="abics.applications package" href="abics.applications.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="abics.applications.html">abics.applications package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="abics.applications.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.html#module-abics.applications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.html">abics.applications package</a></li>
+      <li class="breadcrumb-item active">abics.applications.latgas_abinitio_interface package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.applications.latgas_abinitio_interface.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="abics-applications-latgas-abinitio-interface-package">
+<h1>abics.applications.latgas_abinitio_interface package<a class="headerlink" href="#abics-applications-latgas-abinitio-interface-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html">abics.applications.latgas_abinitio_interface.aenet module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver"><code class="docutils literal notranslate"><span class="pre">AenetSolver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.update_info_from_files"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Input.update_info_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Input.write_input"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Output"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.Output.get_results"><code class="docutils literal notranslate"><span class="pre">AenetSolver.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.__init__"><code class="docutils literal notranslate"><span class="pre">AenetSolver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.create"><code class="docutils literal notranslate"><span class="pre">AenetSolver.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.name"><code class="docutils literal notranslate"><span class="pre">AenetSolver.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.AenetSolver.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">AenetSolver.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.from_XSF"><code class="docutils literal notranslate"><span class="pre">from_XSF()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet.html#abics.applications.latgas_abinitio_interface.aenet.to_XSF"><code class="docutils literal notranslate"><span class="pre">to_XSF()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html">abics.applications.latgas_abinitio_interface.aenet_pylammps module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.path_to_solver"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.input"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.input</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.output"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input.st"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.st</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#id0"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.st</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input.update_info_from_files"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.update_info_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Input.write_input"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Output"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.Output.get_results"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.__init__"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.calculate_energy"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.calculate_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.create"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.name"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.AenetPyLammpsSolver.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">AenetPyLammpsSolver.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_pylammps.html#abics.applications.latgas_abinitio_interface.aenet_pylammps.unit_vec"><code class="docutils literal notranslate"><span class="pre">unit_vec()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html">abics.applications.latgas_abinitio_interface.aenet_trainer module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html#abics.applications.latgas_abinitio_interface.aenet_trainer.aenet_trainer"><code class="docutils literal notranslate"><span class="pre">aenet_trainer</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html#abics.applications.latgas_abinitio_interface.aenet_trainer.aenet_trainer.generate_run"><code class="docutils literal notranslate"><span class="pre">aenet_trainer.generate_run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html#abics.applications.latgas_abinitio_interface.aenet_trainer.aenet_trainer.generate_wait"><code class="docutils literal notranslate"><span class="pre">aenet_trainer.generate_wait()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html#abics.applications.latgas_abinitio_interface.aenet_trainer.aenet_trainer.new_baseinput"><code class="docutils literal notranslate"><span class="pre">aenet_trainer.new_baseinput()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html#abics.applications.latgas_abinitio_interface.aenet_trainer.aenet_trainer.prepare"><code class="docutils literal notranslate"><span class="pre">aenet_trainer.prepare()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.aenet_trainer.html#abics.applications.latgas_abinitio_interface.aenet_trainer.aenet_trainer.train"><code class="docutils literal notranslate"><span class="pre">aenet_trainer.train()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html">abics.applications.latgas_abinitio_interface.base_solver module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase"><code class="docutils literal notranslate"><span class="pre">SolverBase</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.path_to_solver"><code class="docutils literal notranslate"><span class="pre">SolverBase.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.input"><code class="docutils literal notranslate"><span class="pre">SolverBase.input</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.output"><code class="docutils literal notranslate"><span class="pre">SolverBase.output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.base_info"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.base_info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.pos_info"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.pos_info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.update_info_from_files"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.update_info_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Input.write_input"><code class="docutils literal notranslate"><span class="pre">SolverBase.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Output"><code class="docutils literal notranslate"><span class="pre">SolverBase.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.Output.get_results"><code class="docutils literal notranslate"><span class="pre">SolverBase.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.__init__"><code class="docutils literal notranslate"><span class="pre">SolverBase.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.create"><code class="docutils literal notranslate"><span class="pre">SolverBase.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.name"><code class="docutils literal notranslate"><span class="pre">SolverBase.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.SolverBase.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">SolverBase.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.create_solver"><code class="docutils literal notranslate"><span class="pre">create_solver()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.base_solver.html#abics.applications.latgas_abinitio_interface.base_solver.register_solver"><code class="docutils literal notranslate"><span class="pre">register_solver()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html">abics.applications.latgas_abinitio_interface.default_observer module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver"><code class="docutils literal notranslate"><span class="pre">DefaultObserver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.minE"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.minE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.__init__"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.calculators"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.calculators</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.logfunc"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.logfunc()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.reference_species"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.reference_species</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.references"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.references</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.DefaultObserver.writefile"><code class="docutils literal notranslate"><span class="pre">DefaultObserver.writefile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleErrorObserver"><code class="docutils literal notranslate"><span class="pre">EnsembleErrorObserver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleErrorObserver.__init__"><code class="docutils literal notranslate"><span class="pre">EnsembleErrorObserver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleErrorObserver.logfunc"><code class="docutils literal notranslate"><span class="pre">EnsembleErrorObserver.logfunc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleParams"><code class="docutils literal notranslate"><span class="pre">EnsembleParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleParams.from_dict"><code class="docutils literal notranslate"><span class="pre">EnsembleParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.EnsembleParams.from_toml"><code class="docutils literal notranslate"><span class="pre">EnsembleParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.default_observer"><code class="docutils literal notranslate"><span class="pre">default_observer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.ensemble_error_observer"><code class="docutils literal notranslate"><span class="pre">ensemble_error_observer</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.default_observer.html#abics.applications.latgas_abinitio_interface.default_observer.similarity"><code class="docutils literal notranslate"><span class="pre">similarity()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html">abics.applications.latgas_abinitio_interface.defect module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.__init__"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.base_structure"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.base_structure</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.defect_sublattices"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.defect_sublattices</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.from_dict"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.from_toml"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.from_toml()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.lat"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.lat</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.num_defects"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.num_defects</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.DFTConfigParams.supercell"><code class="docutils literal notranslate"><span class="pre">DFTConfigParams.supercell</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.defect.html#abics.applications.latgas_abinitio_interface.defect.defect_config"><code class="docutils literal notranslate"><span class="pre">defect_config()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.map2perflat.html">abics.applications.latgas_abinitio_interface.map2perflat module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.map2perflat.html#abics.applications.latgas_abinitio_interface.map2perflat.map2perflat"><code class="docutils literal notranslate"><span class="pre">map2perflat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html">abics.applications.latgas_abinitio_interface.model_setup module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config"><code class="docutils literal notranslate"><span class="pre">Config</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.__init__"><code class="docutils literal notranslate"><span class="pre">Config.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.count"><code class="docutils literal notranslate"><span class="pre">Config.count()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.defect_sublattice_structure"><code class="docutils literal notranslate"><span class="pre">Config.defect_sublattice_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure"><code class="docutils literal notranslate"><span class="pre">Config.dummy_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure_from_sublattice"><code class="docutils literal notranslate"><span class="pre">Config.dummy_structure_from_sublattice()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure_sp"><code class="docutils literal notranslate"><span class="pre">Config.dummy_structure_sp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.reset_from_structure"><code class="docutils literal notranslate"><span class="pre">Config.reset_from_structure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.set_latgas"><code class="docutils literal notranslate"><span class="pre">Config.set_latgas()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.shuffle"><code class="docutils literal notranslate"><span class="pre">Config.shuffle()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.update_basestruct"><code class="docutils literal notranslate"><span class="pre">Config.update_basestruct()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Config.vacancy_structure"><code class="docutils literal notranslate"><span class="pre">Config.vacancy_structure</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.__init__"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.energy"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas.energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.internal_energy"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas.internal_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.model_name"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas.model_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.newconfig"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas.newconfig()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.trialstep"><code class="docutils literal notranslate"><span class="pre">DFTLatticeGas.trialstep()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice"><code class="docutils literal notranslate"><span class="pre">DefectSublattice</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice.__init__"><code class="docutils literal notranslate"><span class="pre">DefectSublattice.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice.from_dict"><code class="docutils literal notranslate"><span class="pre">DefectSublattice.from_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.EnergyList"><code class="docutils literal notranslate"><span class="pre">EnergyList</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.EnergyList.__init__"><code class="docutils literal notranslate"><span class="pre">EnergyList.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.EnergyList.energy"><code class="docutils literal notranslate"><span class="pre">EnergyList.energy()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Group"><code class="docutils literal notranslate"><span class="pre">Group</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.Group.__init__"><code class="docutils literal notranslate"><span class="pre">Group.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.base_structure"><code class="docutils literal notranslate"><span class="pre">base_structure()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.config"><code class="docutils literal notranslate"><span class="pre">config</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.defect_sublattice"><code class="docutils literal notranslate"><span class="pre">defect_sublattice</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas"><code class="docutils literal notranslate"><span class="pre">dft_latgas</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.energy_lst"><code class="docutils literal notranslate"><span class="pre">energy_lst</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.gauss"><code class="docutils literal notranslate"><span class="pre">gauss()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.group"><code class="docutils literal notranslate"><span class="pre">group</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.match_id"><code class="docutils literal notranslate"><span class="pre">match_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.match_latgas_group"><code class="docutils literal notranslate"><span class="pre">match_latgas_group()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.nomatch_id"><code class="docutils literal notranslate"><span class="pre">nomatch_id()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.model_setup.html#abics.applications.latgas_abinitio_interface.model_setup.perturb_structure"><code class="docutils literal notranslate"><span class="pre">perturb_structure()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.naive_matcher.html">abics.applications.latgas_abinitio_interface.naive_matcher module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.naive_matcher.html#abics.applications.latgas_abinitio_interface.naive_matcher.naive_mapping"><code class="docutils literal notranslate"><span class="pre">naive_mapping()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html">abics.applications.latgas_abinitio_interface.openmx module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXInputFile"><code class="docutils literal notranslate"><span class="pre">OpenMXInputFile</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXInputFile.vec_list"><code class="docutils literal notranslate"><span class="pre">OpenMXInputFile.vec_list</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXInputFile.__init__"><code class="docutils literal notranslate"><span class="pre">OpenMXInputFile.__init__()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.cleanup"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Input.cleanup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Input.write_input"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Output"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.Output.get_results"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.__init__"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.create"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.name"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.openmx.html#abics.applications.latgas_abinitio_interface.openmx.OpenMXSolver.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">OpenMXSolver.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html">abics.applications.latgas_abinitio_interface.params module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.ALParams"><code class="docutils literal notranslate"><span class="pre">ALParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.ALParams.from_dict"><code class="docutils literal notranslate"><span class="pre">ALParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.ALParams.from_toml"><code class="docutils literal notranslate"><span class="pre">ALParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.DFTParams"><code class="docutils literal notranslate"><span class="pre">DFTParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.DFTParams.from_dict"><code class="docutils literal notranslate"><span class="pre">DFTParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.DFTParams.from_toml"><code class="docutils literal notranslate"><span class="pre">DFTParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.TrainerParams"><code class="docutils literal notranslate"><span class="pre">TrainerParams</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.TrainerParams.from_dict"><code class="docutils literal notranslate"><span class="pre">TrainerParams.from_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.params.html#abics.applications.latgas_abinitio_interface.params.TrainerParams.from_toml"><code class="docutils literal notranslate"><span class="pre">TrainerParams.from_toml()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html">abics.applications.latgas_abinitio_interface.qe module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver"><code class="docutils literal notranslate"><span class="pre">QESolver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input"><code class="docutils literal notranslate"><span class="pre">QESolver.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.pwi"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.pwi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.datadir"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.datadir</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.filetocheck"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.filetocheck</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.parallel_level"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.parallel_level</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.check_finished"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.check_finished()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.cleanup"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.cleanup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.file_for_check_finished"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.file_for_check_finished()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.update_info_from_files"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.update_info_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Input.write_input"><code class="docutils literal notranslate"><span class="pre">QESolver.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Output"><code class="docutils literal notranslate"><span class="pre">QESolver.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.Output.get_results"><code class="docutils literal notranslate"><span class="pre">QESolver.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.__init__"><code class="docutils literal notranslate"><span class="pre">QESolver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.create"><code class="docutils literal notranslate"><span class="pre">QESolver.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.name"><code class="docutils literal notranslate"><span class="pre">QESolver.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.qe.html#abics.applications.latgas_abinitio_interface.qe.QESolver.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">QESolver.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html">abics.applications.latgas_abinitio_interface.run_base_mpi module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Run"><code class="docutils literal notranslate"><span class="pre">Run</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Run.submit"><code class="docutils literal notranslate"><span class="pre">Run.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction"><code class="docutils literal notranslate"><span class="pre">RunFunction</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.path_to_solver"><code class="docutils literal notranslate"><span class="pre">RunFunction.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.__init__"><code class="docutils literal notranslate"><span class="pre">RunFunction.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunFunction.submit"><code class="docutils literal notranslate"><span class="pre">RunFunction.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn"><code class="docutils literal notranslate"><span class="pre">RunMpispawn</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.path_to_solver"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.nprocs"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.nprocs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.nthreads"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.nthreads</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.comm"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.comm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.commsize"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.commsize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.commrank"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.commrank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.worldrank"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.worldrank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.__init__"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawn.submit"><code class="docutils literal notranslate"><span class="pre">RunMpispawn.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.path_to_solver"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.nprocs"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.nprocs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.nthreads"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.nthreads</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.comm"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.comm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.commsize"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.commsize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.commrank"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.commrank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.worldrank"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.worldrank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.__init__"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnReady.submit"><code class="docutils literal notranslate"><span class="pre">RunMpispawnReady.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.path_to_solver"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.nprocs"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.nprocs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.nthreads"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.nthreads</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.comm"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.comm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.commsize"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.commsize</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.commrank"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.commrank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.worldrank"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.worldrank</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.__init__"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunMpispawnWrapper.submit"><code class="docutils literal notranslate"><span class="pre">RunMpispawnWrapper.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess"><code class="docutils literal notranslate"><span class="pre">RunSubprocess</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.path_to_solver"><code class="docutils literal notranslate"><span class="pre">RunSubprocess.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.nprocs"><code class="docutils literal notranslate"><span class="pre">RunSubprocess.nprocs</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.nthreads"><code class="docutils literal notranslate"><span class="pre">RunSubprocess.nthreads</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.__init__"><code class="docutils literal notranslate"><span class="pre">RunSubprocess.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunSubprocess.submit"><code class="docutils literal notranslate"><span class="pre">RunSubprocess.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner"><code class="docutils literal notranslate"><span class="pre">Runner</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.solver_name"><code class="docutils literal notranslate"><span class="pre">Runner.solver_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.path_to_solver"><code class="docutils literal notranslate"><span class="pre">Runner.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.run"><code class="docutils literal notranslate"><span class="pre">Runner.run</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.nprocs_per_solver"><code class="docutils literal notranslate"><span class="pre">Runner.nprocs_per_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.nthreads_per_proc"><code class="docutils literal notranslate"><span class="pre">Runner.nthreads_per_proc</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.comm"><code class="docutils literal notranslate"><span class="pre">Runner.comm</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.perturb"><code class="docutils literal notranslate"><span class="pre">Runner.perturb</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.base_solver_input"><code class="docutils literal notranslate"><span class="pre">Runner.base_solver_input</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.output"><code class="docutils literal notranslate"><span class="pre">Runner.output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.__init__"><code class="docutils literal notranslate"><span class="pre">Runner.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#id0"><code class="docutils literal notranslate"><span class="pre">Runner.run</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.Runner.submit"><code class="docutils literal notranslate"><span class="pre">Runner.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble"><code class="docutils literal notranslate"><span class="pre">RunnerEnsemble</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.runners"><code class="docutils literal notranslate"><span class="pre">RunnerEnsemble.runners</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.__init__"><code class="docutils literal notranslate"><span class="pre">RunnerEnsemble.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerEnsemble.submit"><code class="docutils literal notranslate"><span class="pre">RunnerEnsemble.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep"><code class="docutils literal notranslate"><span class="pre">RunnerMultistep</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.runners"><code class="docutils literal notranslate"><span class="pre">RunnerMultistep.runners</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.__init__"><code class="docutils literal notranslate"><span class="pre">RunnerMultistep.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.RunnerMultistep.submit"><code class="docutils literal notranslate"><span class="pre">RunnerMultistep.submit()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_function"><code class="docutils literal notranslate"><span class="pre">run_function</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn"><code class="docutils literal notranslate"><span class="pre">run_mpispawn</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_ready"><code class="docutils literal notranslate"><span class="pre">run_mpispawn_ready</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_mpispawn_wrapper"><code class="docutils literal notranslate"><span class="pre">run_mpispawn_wrapper</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.run_subprocess"><code class="docutils literal notranslate"><span class="pre">run_subprocess</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner"><code class="docutils literal notranslate"><span class="pre">runner</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_ensemble"><code class="docutils literal notranslate"><span class="pre">runner_ensemble</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.run_base_mpi.html#abics.applications.latgas_abinitio_interface.run_base_mpi.runner_multistep"><code class="docutils literal notranslate"><span class="pre">runner_multistep</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html">abics.applications.latgas_abinitio_interface.user_function_solver module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.path_to_solver"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.input"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.input</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.output"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input.st"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.st</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#id0"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.st</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input.update_info_from_files"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.update_info_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Input.write_input"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Output"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.Output.get_results"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.__init__"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.create"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.name"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.set_function"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.set_function()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.user_function_solver.html#abics.applications.latgas_abinitio_interface.user_function_solver.UserFunctionSolver.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">UserFunctionSolver.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html">abics.applications.latgas_abinitio_interface.vasp module</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver"><code class="docutils literal notranslate"><span class="pre">VASPSolver</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.path_to_solver"><code class="docutils literal notranslate"><span class="pre">VASPSolver.path_to_solver</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.input"><code class="docutils literal notranslate"><span class="pre">VASPSolver.input</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.output"><code class="docutils literal notranslate"><span class="pre">VASPSolver.output</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.base_info"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.base_info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.pos_info"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.pos_info</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.cl_args"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.cl_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.from_directory"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.from_directory()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.update_info_by_structure"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.update_info_by_structure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.update_info_from_files"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.update_info_from_files()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Input.write_input"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Input.write_input()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Output</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.Output.get_results"><code class="docutils literal notranslate"><span class="pre">VASPSolver.Output.get_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.__init__"><code class="docutils literal notranslate"><span class="pre">VASPSolver.__init__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.create"><code class="docutils literal notranslate"><span class="pre">VASPSolver.create()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.name"><code class="docutils literal notranslate"><span class="pre">VASPSolver.name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.applications.latgas_abinitio_interface.vasp.html#abics.applications.latgas_abinitio_interface.vasp.VASPSolver.solver_run_schemes"><code class="docutils literal notranslate"><span class="pre">VASPSolver.solver_run_schemes()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="module-abics.applications.latgas_abinitio_interface">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-abics.applications.latgas_abinitio_interface" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.applications.html" class="btn btn-neutral float-left" title="abics.applications package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abics.applications.latgas_abinitio_interface.aenet.html" class="btn btn-neutral float-right" title="abics.applications.latgas_abinitio_interface.aenet module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

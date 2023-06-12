@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.scripts.main_potts &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.scripts.main_potts</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.scripts.main_potts</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">import</span> <span class="nn">typing</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">MutableMapping</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">abics</span> <span class="kn">import</span> <span class="n">__version__</span>
+<span class="kn">from</span> <span class="nn">abics.mc</span> <span class="kn">import</span> <span class="n">CanonicalMonteCarlo</span><span class="p">,</span> <span class="n">RandomSampling</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.mc_mpi</span> <span class="kn">import</span> <span class="n">RX_MPI_init</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.rxmc</span> <span class="kn">import</span> <span class="n">TemperatureRX_MPI</span><span class="p">,</span> <span class="n">RXParams</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.pamc</span> <span class="kn">import</span> <span class="n">PopulationAnnealing</span><span class="p">,</span> <span class="n">PAMCParams</span>
+<span class="kn">from</span> <span class="nn">abics.sampling.simple_parallel</span> <span class="kn">import</span> <span class="n">EmbarrassinglyParallelSampling</span><span class="p">,</span> <span class="n">ParallelRandomParams</span>
+
+<span class="kn">from</span> <span class="nn">abics.applications.lattice_model.potts</span> <span class="kn">import</span> <span class="n">Potts</span><span class="p">,</span> <span class="n">Configuration</span><span class="p">,</span> <span class="n">Observer</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="main_potts"><a class="viewcode-back" href="../../../abics.scripts.main_potts.html#abics.scripts.main_potts.main_potts">[docs]</a><span class="k">def</span> <span class="nf">main_potts</span><span class="p">(</span><span class="n">params_root</span><span class="p">:</span> <span class="n">MutableMapping</span><span class="p">):</span>
+    <span class="n">param_config</span> <span class="o">=</span> <span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;config&quot;</span><span class="p">]</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">param_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Q&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">Ls</span> <span class="o">=</span> <span class="n">param_config</span><span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">]</span>
+    <span class="n">nspins</span> <span class="o">=</span> <span class="n">typing</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">Ls</span><span class="p">))</span>
+    <span class="n">write_node</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Potts</span><span class="p">()</span>
+    <span class="n">sampler_type</span> <span class="o">=</span> <span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sampler&quot;</span><span class="p">,</span> <span class="s2">&quot;RXMC&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;RXMC&quot;</span><span class="p">:</span>
+        <span class="n">rxparams</span> <span class="o">=</span> <span class="n">RXParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">])</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Configuration</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">Ls</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nreplicas</span><span class="p">)]</span>
+
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="c1"># RXMC parameters</span>
+        <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+        <span class="n">kTstart</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kTend</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">kTs</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTs</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">observer</span> <span class="o">=</span> <span class="n">Observer</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">RXtrial_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">RXtrial_frequency</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running RXMC calculation with </span><span class="si">{</span><span class="n">nreplicas</span><span class="si">}</span><span class="s2"> replicas&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Temperature varies from </span><span class="si">{</span><span class="n">kTstart</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">kTend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">RXcalc</span> <span class="o">=</span> <span class="n">TemperatureRX_MPI</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">CanonicalMonteCarlo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Reloading from previous calculation&quot;</span><span class="p">)</span>
+            <span class="n">RXcalc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">RXcalc</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Starting RXMC calculation&quot;</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">RXcalc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">RXtrial_frequency</span><span class="o">=</span><span class="n">RXtrial_frequency</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">nsubsteps_in_step</span><span class="o">=</span><span class="n">nspins</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;PAMC&quot;</span><span class="p">:</span>
+        <span class="n">pamcparams</span> <span class="o">=</span> <span class="n">PAMCParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">])</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Configuration</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">Ls</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nreplicas</span><span class="p">)]</span>
+
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">pamcparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="c1"># RXMC parameters</span>
+        <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+        <span class="n">kTstart</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">kTend</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">kTs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">kTstart</span> <span class="o">&lt;</span> <span class="n">kTend</span><span class="p">:</span>
+            <span class="n">kTstart</span><span class="p">,</span> <span class="n">kTend</span> <span class="o">=</span> <span class="n">kTend</span><span class="p">,</span> <span class="n">kTstart</span>
+        <span class="n">kTs</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">kTs</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">observer</span> <span class="o">=</span> <span class="n">Observer</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">resample_frequency</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">resample_frequency</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">pamcparams</span><span class="o">.</span><span class="n">print_frequency</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running PAMC calculation with </span><span class="si">{</span><span class="n">nreplicas</span><span class="si">}</span><span class="s2"> replicas&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--Anneal from </span><span class="si">{</span><span class="n">kTstart</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">kTend</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">PopulationAnnealing</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">CanonicalMonteCarlo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Reloading from previous calculation&quot;</span><span class="p">)</span>
+            <span class="n">calc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">calc</span><span class="o">.</span><span class="n">mycalc</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;-Starting PAMC calculation&quot;</span><span class="p">)</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">resample_frequency</span><span class="o">=</span><span class="n">resample_frequency</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">nsubsteps_in_step</span><span class="o">=</span><span class="n">nspins</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;parallelRand&quot;</span><span class="p">:</span>
+        <span class="n">rxparams</span> <span class="o">=</span> <span class="n">ParallelRandomParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">])</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">observer</span> <span class="o">=</span> <span class="n">Observer</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running parallel random sampling&quot;</span><span class="p">)</span>
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">EmbarrassinglyParallelSampling</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">RandomSampling</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">calc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">nsubsteps_in_step</span><span class="o">=</span><span class="n">nspins</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s2">&quot;parallelMC&quot;</span><span class="p">:</span>
+        <span class="n">rxparams</span> <span class="o">=</span> <span class="n">RXParams</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">params_root</span><span class="p">[</span><span class="s2">&quot;sampling&quot;</span><span class="p">])</span>
+        <span class="n">nreplicas</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span>
+
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">RX_MPI_init</span><span class="p">(</span><span class="n">rxparams</span><span class="o">.</span><span class="n">nreplicas</span><span class="p">,</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="c1"># RXMC parameters</span>
+        <span class="c1"># specify temperatures for each replica, number of steps, etc.</span>
+        <span class="n">kTstart</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTstart</span>
+        <span class="n">kTend</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">kTend</span>
+        <span class="n">kTs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">kTstart</span><span class="p">,</span> <span class="n">kTend</span><span class="p">,</span> <span class="n">nreplicas</span><span class="p">)</span>
+
+        <span class="c1"># Set Lreload to True when restarting</span>
+        <span class="n">Lreload</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">reload</span>
+
+        <span class="n">observer</span> <span class="o">=</span> <span class="n">Observer</span><span class="p">(</span><span class="n">comm</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">,</span> <span class="p">{})</span>
+
+        <span class="n">nsteps</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">nsteps</span>
+        <span class="n">sample_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">sample_frequency</span>
+        <span class="n">print_frequency</span> <span class="o">=</span> <span class="n">rxparams</span><span class="o">.</span><span class="n">print_frequency</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;-Running parallel MC sampling&quot;</span><span class="p">)</span>
+        <span class="n">calc</span> <span class="o">=</span> <span class="n">EmbarrassinglyParallelSampling</span><span class="p">(</span>
+            <span class="n">comm</span><span class="p">,</span> <span class="n">CanonicalMonteCarlo</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">configs</span><span class="p">,</span> <span class="n">kTs</span><span class="p">,</span> <span class="n">write_node</span><span class="o">=</span><span class="n">write_node</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Lreload</span><span class="p">:</span>
+            <span class="n">calc</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+        <span class="n">obs</span> <span class="o">=</span> <span class="n">calc</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">nsteps</span><span class="p">,</span>
+            <span class="n">sample_frequency</span><span class="o">=</span><span class="n">sample_frequency</span><span class="p">,</span>
+            <span class="n">print_frequency</span><span class="o">=</span><span class="n">print_frequency</span><span class="p">,</span>
+            <span class="n">nsubsteps_in_step</span><span class="o">=</span><span class="n">nspins</span><span class="p">,</span>
+            <span class="n">observer</span><span class="o">=</span><span class="n">observer</span><span class="p">,</span>
+            <span class="n">subdirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Unknown sampler. Exiting...&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;--Sampling completed sucessfully.&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Exiting normally on </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

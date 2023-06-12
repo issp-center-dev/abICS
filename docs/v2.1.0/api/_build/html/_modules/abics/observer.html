@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.observer &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">abics.observer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.observer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="kn">import</span> <span class="n">MPI</span>
+
+<span class="kn">from</span> <span class="nn">abics</span> <span class="kn">import</span> <span class="n">__version__</span>
+
+
+<div class="viewcode-block" id="ObsInfo"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObsInfo">[docs]</a><span class="k">class</span> <span class="nc">ObsInfo</span><span class="p">:</span>
+    <span class="n">nargs</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">lengths</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ObsInfo.__init__"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObsInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        args: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="c1"># Inelegant way to make everything a 1D array</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arg</span><span class="p">])</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ObsInfo.decode"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObsInfo.decode">[docs]</a>    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_array</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obs_array: numpy array</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs: list</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nargs</span><span class="p">):</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">obs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_array</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_array</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">length</span><span class="p">])</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="n">length</span>
+        <span class="k">return</span> <span class="n">obs</span></div></div>
+
+
+<span class="c1"># @profile</span>
+<div class="viewcode-block" id="obs_encode"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.obs_encode">[docs]</a><span class="k">def</span> <span class="nf">obs_encode</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;make pure 1D data</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args: list</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    obs_array: numpy array</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># nargs = np.array([len(args)])</span>
+    <span class="c1"># args_length_list = []</span>
+    <span class="n">obs_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="c1"># Inelegant way to make everything a 1D array</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arg</span><span class="p">])</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">obs_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">obs_array</span><span class="p">,</span> <span class="n">arg</span><span class="p">))</span>
+        <span class="c1"># args_length_list.append(len(arg))</span>
+    <span class="c1"># args_length_array = np.array(args_length_list)</span>
+    <span class="c1"># args_info = np.concatenate((nargs, args_length_array))</span>
+    <span class="k">return</span> <span class="n">obs_array</span></div>
+
+
+<div class="viewcode-block" id="ObserverBase"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase">[docs]</a><span class="k">class</span> <span class="nc">ObserverBase</span><span class="p">:</span>
+    <span class="n">comm</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="o">|</span><span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">)</span>
+    <span class="n">Lreload</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="n">lprintcount</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comm</span><span class="p">:</span> <span class="p">(</span><span class="kc">None</span><span class="o">|</span><span class="n">MPI</span><span class="o">.</span><span class="n">Comm</span><span class="p">)</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">Lreload</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Lreload</span> <span class="o">=</span> <span class="n">Lreload</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ObserverBase.obs_info"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase.obs_info">[docs]</a>    <span class="k">def</span> <span class="nf">obs_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObsInfo</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        args_info: numpy array</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logfunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_log</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">obs_log</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_log</span><span class="p">,)</span>
+        <span class="n">obs_ND</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">obs_save</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savefunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_save</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_save</span><span class="p">:</span>
+                    <span class="n">obs_ND</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obs_ND</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ObsInfo</span><span class="p">(</span><span class="o">*</span><span class="n">obs_log</span><span class="p">,</span> <span class="o">*</span><span class="n">obs_ND</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ObserverBase.logfunc"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase.logfunc">[docs]</a>    <span class="k">def</span> <span class="nf">logfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;returns values of observables</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        calc_state.energy: tuple</span>
+<span class="sd">            (Energy)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">energy</span><span class="p">,)</span></div>
+
+<div class="viewcode-block" id="ObserverBase.savefunc"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase.savefunc">[docs]</a>    <span class="k">def</span> <span class="nf">savefunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;returns values of observables, which will be not printed in observe method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">()</span></div>
+
+<div class="viewcode-block" id="ObserverBase.writefile"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase.writefile">[docs]</a>    <span class="k">def</span> <span class="nf">writefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ObserverBase.observe"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase.observe">[docs]</a>    <span class="k">def</span> <span class="nf">observe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">,</span> <span class="n">outputfi</span><span class="p">:</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">lprint</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+<span class="sd">        outputfi: _io.TextIOWrapper</span>
+<span class="sd">            TextIOWrapper for output</span>
+<span class="sd">        lprint: boolean</span>
+<span class="sd">            if true, log info is outputted to TextIOWrapper</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs_log: numpy array</span>
+<span class="sd">            log information about observation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logfunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">lprint</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span><span class="si">}</span><span class="se">\t</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="se">\t</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obs_log</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\t</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">outputfi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">outputfi</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writefile</span><span class="p">(</span><span class="n">calc_state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">obs_save</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">savefunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">obs_save</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span>
+            <span class="n">obs_save</span> <span class="o">=</span> <span class="n">obs_save</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">obs_log</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">obs_save</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">obs_log</span><span class="p">,</span> <span class="n">obs_save</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obs_log</span></div>
+
+<div class="viewcode-block" id="ObserverBase.obs_names"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverBase.obs_names">[docs]</a>    <span class="k">def</span> <span class="nf">obs_names</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        names: list</span>
+<span class="sd">            names of observables</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">names</span></div></div>
+
+
+<div class="viewcode-block" id="ObserverParams"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverParams">[docs]</a><span class="k">class</span> <span class="nc">ObserverParams</span><span class="p">:</span>
+    <span class="nb">type</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">observer_class</span><span class="p">:</span> <span class="p">(</span><span class="nb">type</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="nb">dict</span><span class="p">:</span> <span class="nb">dict</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">observer_class</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="ObserverParams.from_dict"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverParams.from_dict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">d</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        d: dict</span>
+<span class="sd">            Dictionary</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        oparams: ObserverParams</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="s2">&quot;default&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">params</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s2">&quot;import&quot;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="kn">from</span> <span class="nn">observer_module</span> <span class="kn">import</span> <span class="n">Observer</span>
+
+            <span class="n">params</span><span class="o">.</span><span class="n">observer_class</span> <span class="o">=</span> <span class="n">Observer</span>
+
+        <span class="n">params</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">d</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">&quot;type&quot;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="n">params</span></div>
+
+<div class="viewcode-block" id="ObserverParams.from_toml"><a class="viewcode-back" href="../../abics.observer.html#abics.observer.ObserverParams.from_toml">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_toml</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">f</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        f: str</span>
+<span class="sd">            Name of input toml File</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        oparams : ObserverParams</span>
+<span class="sd">            self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">toml</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">toml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">&quot;observer&quot;</span><span class="p">])</span></div></div>
+
+
+<span class="c1"># For backward compatibility</span>
+<span class="k">if</span> <span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+    <span class="n">observer_base</span> <span class="o">=</span> <span class="n">ObserverBase</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

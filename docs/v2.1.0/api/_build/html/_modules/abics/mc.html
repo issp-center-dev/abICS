@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.mc &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../index.html" class="icon icon-home"> abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../abics.html">abics package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      <li>abics.mc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for abics.mc</h1><div class="highlight"><pre>
+<span></span><span class="c1"># ab-Initio Configuration Sampling tool kit (abICS)</span>
+<span class="c1"># Copyright (C) 2019- The University of Tokyo</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program. If not, see http://www.gnu.org/licenses/.</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">numpy.typing</span> <span class="kn">import</span> <span class="n">NDArray</span>
+
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">exp</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+
+<span class="c1"># import SFMT_cython.sfmt_random as sfmt_random</span>
+<span class="c1"># from multiprocessing import Process, Queue, Pool, TimeoutError</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.random</span> <span class="k">as</span> <span class="nn">rand</span>
+
+<span class="kn">from</span> <span class="nn">abics</span> <span class="kn">import</span> <span class="n">__version__</span>
+
+<span class="n">verylargeint</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxsize</span>
+
+
+<span class="sd">&quot;&quot;&quot;Defines base classes for Monte Carlo simulations&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class defines a model whose energy equals 0 no matter the configuration, and the configuration</span>
+<span class="sd">    never changes.</span>
+<span class="sd">    This is a base template for building useful models.&quot;&quot;&quot;</span>
+
+    <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="c1"># def __init__(self):</span>
+
+<div class="viewcode-block" id="Model.energy"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.Model.energy">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate energy of configuration: input: config</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            configuration</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        energy: float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="Model.trialstep"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.Model.trialstep">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">trialstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Define a trial step on config</span>
+
+<span class="sd">        Returns dconfig, which can contain the minimal information for</span>
+<span class="sd">        constructing the trial configuration from config to be used in newconfig().</span>
+<span class="sd">        Make sure that config is unchanged.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            current configuration</span>
+
+<span class="sd">        energy: float</span>
+<span class="sd">            current energy</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dconfig: config object</span>
+<span class="sd">            The minimal information for constructing the trial configuration</span>
+<span class="sd">            from config to be used in newconfig()</span>
+<span class="sd">        dE: float</span>
+<span class="sd">            Energy difference</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Return only change in configuration dconfig so that</span>
+        <span class="c1"># you don&#39;t have to copy entire configurations,</span>
+        <span class="c1"># which can sometimes be costly</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="Model.newconfig"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.Model.newconfig">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update config by using the trial step, dconfig</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            Original configuration</span>
+<span class="sd">            This may be mutated through this function</span>
+<span class="sd">        dconfig: config object</span>
+<span class="sd">            Difference of configuration</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            updated configuration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">config</span></div></div>
+
+
+<div class="viewcode-block" id="Grid1D"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.Grid1D">[docs]</a><span class="k">class</span> <span class="nc">Grid1D</span><span class="p">:</span>
+<div class="viewcode-block" id="Grid1D.__init__"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.Grid1D.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dx</span><span class="p">,</span> <span class="n">minx</span><span class="p">,</span> <span class="n">maxx</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dx: float</span>
+<span class="sd">            interval</span>
+<span class="sd">        minx: float</span>
+<span class="sd">            minimum value of x</span>
+<span class="sd">        maxx: float</span>
+<span class="sd">            maximum value of x</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dx</span> <span class="o">=</span> <span class="n">dx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">minx</span><span class="p">,</span> <span class="n">maxx</span><span class="p">,</span> <span class="n">dx</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="binning"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.binning">[docs]</a><span class="k">def</span> <span class="nf">binning</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">nlevels</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x: list</span>
+<span class="sd">        Coordinates</span>
+<span class="sd">    nlevels: int</span>
+<span class="sd">        Number to determine the number of measurements</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    error_estimate: list</span>
+<span class="sd">        error estimation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">error_estimate</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="c1"># assert 2**nlevels*10 &lt; len(x)</span>
+    <span class="n">throwout</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">nlevels</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">throwout</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># The number of measurements must be divisible by 2**nlevels</span>
+        <span class="c1"># If not, throw out initial measurements</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">throwout</span><span class="p">:]</span>
+    <span class="n">error_estimate</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+    <span class="k">for</span> <span class="n">lvl</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nlevels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">x_tmp</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">x_tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="n">error_estimate</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">error_estimate</span></div>
+
+
+<div class="viewcode-block" id="ObsInfo"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObsInfo">[docs]</a><span class="k">class</span> <span class="nc">ObsInfo</span><span class="p">:</span>
+    <span class="n">nargs</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">lengths</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ObsInfo.__init__"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObsInfo.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        args: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nargs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="c1"># Inelegant way to make everything a 1D array</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arg</span><span class="p">])</span>
+            <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ObsInfo.decode"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObsInfo.decode">[docs]</a>    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obs_array</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obs_array: numpy array</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs: list</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">obs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nargs</span><span class="p">):</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lengths</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">length</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">obs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_array</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_array</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">length</span><span class="p">])</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="n">length</span>
+        <span class="k">return</span> <span class="n">obs</span></div></div>
+
+
+<span class="c1"># @profile</span>
+<div class="viewcode-block" id="obs_encode"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.obs_encode">[docs]</a><span class="k">def</span> <span class="nf">obs_encode</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;make pure 1D data</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    args: list</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    obs_array: numpy array</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># nargs = np.array([len(args)])</span>
+    <span class="c1"># args_length_list = []</span>
+    <span class="n">obs_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+    <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="c1"># Inelegant way to make everything a 1D array</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">arg</span><span class="p">])</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">obs_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">obs_array</span><span class="p">,</span> <span class="n">arg</span><span class="p">))</span>
+        <span class="c1"># args_length_list.append(len(arg))</span>
+    <span class="c1"># args_length_array = np.array(args_length_list)</span>
+    <span class="c1"># args_info = np.concatenate((nargs, args_length_array))</span>
+    <span class="k">return</span> <span class="n">obs_array</span></div>
+
+
+<div class="viewcode-block" id="ObserverBase"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObserverBase">[docs]</a><span class="k">class</span> <span class="nc">ObserverBase</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span> <span class="o">=</span> <span class="mi">0</span>
+
+<div class="viewcode-block" id="ObserverBase.obs_info"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObserverBase.obs_info">[docs]</a>    <span class="k">def</span> <span class="nf">obs_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObsInfo</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        args_info: numpy array</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">logfunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_log</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+            <span class="n">obs_log</span> <span class="o">=</span> <span class="p">(</span><span class="n">obs_log</span><span class="p">,)</span>
+        <span class="n">obs_ND</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">obs_save</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">savefunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obs_save</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">obs</span> <span class="ow">in</span> <span class="n">obs_save</span><span class="p">:</span>
+                    <span class="n">obs_ND</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obs_ND</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ObsInfo</span><span class="p">(</span><span class="o">*</span><span class="n">obs_log</span><span class="p">,</span> <span class="o">*</span><span class="n">obs_ND</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ObserverBase.logfunc"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObserverBase.logfunc">[docs]</a>    <span class="k">def</span> <span class="nf">logfunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;returns values of observables</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        calc_state.energy: tuple</span>
+<span class="sd">            (Energy)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">calc_state</span><span class="o">.</span><span class="n">energy</span><span class="p">,)</span></div>
+
+<div class="viewcode-block" id="ObserverBase.savefunc"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObserverBase.savefunc">[docs]</a>    <span class="k">def</span> <span class="nf">savefunc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[()]]:</span>
+        <span class="sd">&quot;&quot;&quot;returns values of observables, which will be not printed in observe method.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">()</span></div>
+
+<div class="viewcode-block" id="ObserverBase.writefile"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObserverBase.writefile">[docs]</a>    <span class="k">def</span> <span class="nf">writefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="ObserverBase.observe"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.ObserverBase.observe">[docs]</a>    <span class="k">def</span> <span class="nf">observe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">calc_state</span><span class="p">:</span> <span class="s2">&quot;MCAlgorithm&quot;</span><span class="p">,</span> <span class="n">outputfi</span><span class="p">:</span> <span class="n">TextIO</span><span class="p">,</span> <span class="n">lprint</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        calc_state: MCAlgorithm</span>
+<span class="sd">            MonteCarlo algorithm</span>
+<span class="sd">        outputfi: _io.TextIOWrapper</span>
+<span class="sd">            TextIOWrapper for output</span>
+<span class="sd">        lprint: boolean</span>
+<span class="sd">            if true, log info is outputted to TextIOWrapper</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        obs_log: numpy array</span>
+<span class="sd">            log information about observation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obs_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">logfunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">lprint</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span><span class="si">}</span><span class="se">\t</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">calc_state</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">p</span><span class="si">}</span><span class="se">\t</span><span class="s2">&quot;</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">obs_log</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\t</span><span class="s2">&quot;</span>
+            <span class="n">line</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">outputfi</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="n">outputfi</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">writefile</span><span class="p">(</span><span class="n">calc_state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lprintcount</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">obs_save</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">savefunc</span><span class="p">(</span><span class="n">calc_state</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">obs_save</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">obs_save</span><span class="p">)</span>
+            <span class="n">obs_save</span> <span class="o">=</span> <span class="n">obs_save</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">obs_log</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">obs_save</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">obs_log</span><span class="p">,</span> <span class="n">obs_save</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">obs_log</span></div></div>
+
+
+<div class="viewcode-block" id="MCAlgorithm"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.MCAlgorithm">[docs]</a><span class="k">class</span> <span class="nc">MCAlgorithm</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+
+    <span class="n">model</span><span class="p">:</span> <span class="n">Model</span>
+    <span class="n">config</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">obs_save</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">NDArray</span><span class="p">]</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="o">...</span>
+
+<div class="viewcode-block" id="MCAlgorithm.MCstep"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.MCAlgorithm.MCstep">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">MCstep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;perform one MC step&quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="MCAlgorithm.parameters"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.MCAlgorithm.parameters">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;returns parameters (e.g., temperature)&quot;&quot;&quot;</span>
+        <span class="o">...</span></div>
+
+<div class="viewcode-block" id="MCAlgorithm.run"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.MCAlgorithm.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">nsteps</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">sample_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">verylargeint</span><span class="p">,</span>
+        <span class="n">print_frequency</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">verylargeint</span><span class="p">,</span>
+        <span class="n">observer</span><span class="p">:</span> <span class="n">ObserverBase</span> <span class="o">=</span> <span class="n">ObserverBase</span><span class="p">(),</span>
+        <span class="n">save_obs</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        nsteps: int</span>
+<span class="sd">            The number of Monte Carlo steps for running.</span>
+<span class="sd">        sample_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for observation of physical quantities.</span>
+<span class="sd">        print_frequency: int</span>
+<span class="sd">            The number of Monte Carlo steps for saving physical quantities.</span>
+<span class="sd">        observer: observer object</span>
+<span class="sd">        save_obs: boolean</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        observables: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">observables</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">nsample</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;obs.dat&quot;</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">observer</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="s2">&quot;__add__&quot;</span><span class="p">):</span>
+                <span class="n">observe</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">observe</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nsteps</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">MCstep</span><span class="p">()</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">observe</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">%</span> <span class="n">sample_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">obs_step</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">observe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">i</span> <span class="o">%</span> <span class="n">print_frequency</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">observables</span> <span class="o">+=</span> <span class="n">obs_step</span>
+                <span class="n">nsample</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obs_step</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">save_obs</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s2">&quot;obs_save.npy&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">nsample</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">observables</span> <span class="o">/=</span> <span class="n">nsample</span>
+            <span class="n">obs_info</span> <span class="o">=</span> <span class="n">observer</span><span class="o">.</span><span class="n">obs_info</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">obs_info</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">observables</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span></div></div>
+
+
+<div class="viewcode-block" id="CanonicalMonteCarlo"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.CanonicalMonteCarlo">[docs]</a><span class="k">class</span> <span class="nc">CanonicalMonteCarlo</span><span class="p">(</span><span class="n">MCAlgorithm</span><span class="p">):</span>
+<div class="viewcode-block" id="CanonicalMonteCarlo.__init__"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.CanonicalMonteCarlo.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">kT</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model: Model</span>
+<span class="sd">        kT: float</span>
+<span class="sd">            Temperature</span>
+<span class="sd">        config: config object</span>
+<span class="sd">            Configuration</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kT</span> <span class="o">=</span> <span class="n">kT</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obs_save</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+    <span class="c1"># @profile</span>
+<div class="viewcode-block" id="CanonicalMonteCarlo.MCstep"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.CanonicalMonteCarlo.MCstep">[docs]</a>    <span class="k">def</span> <span class="nf">MCstep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">dconfig</span><span class="p">,</span> <span class="n">dE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">trialstep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">)</span>
+        <span class="c1"># if self.energy == float(&quot;inf&quot;):</span>
+        <span class="c1">#    self.config = self.model.newconfig(self.config, dconfig)</span>
+        <span class="c1">#    self.energy = dE</span>
+        <span class="k">if</span> <span class="n">dE</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">dE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">accept_probability</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">dE</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">kT</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rand</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">accept_probability</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">+=</span> <span class="n">dE</span></div>
+
+<div class="viewcode-block" id="CanonicalMonteCarlo.parameters"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.CanonicalMonteCarlo.parameters">[docs]</a>    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">kT</span><span class="p">]</span></div></div>
+
+
+<div class="viewcode-block" id="RandomSampling"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.RandomSampling">[docs]</a><span class="k">class</span> <span class="nc">RandomSampling</span><span class="p">(</span><span class="n">CanonicalMonteCarlo</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomSampling.MCstep"><a class="viewcode-back" href="../../abics.mc.html#abics.mc.RandomSampling.MCstep">[docs]</a>    <span class="k">def</span> <span class="nf">MCstep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># For backward compatibility</span>
+<span class="k">if</span> <span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span>
+    <span class="n">grid_1D</span> <span class="o">=</span> <span class="n">Grid1D</span>
+    <span class="n">observer_base</span> <span class="o">=</span> <span class="n">ObserverBase</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

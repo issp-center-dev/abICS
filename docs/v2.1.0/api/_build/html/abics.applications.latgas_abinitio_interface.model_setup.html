@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>abics.applications.latgas_abinitio_interface.model_setup module &mdash; abICS API  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="abics.applications.latgas_abinitio_interface.naive_matcher module" href="abics.applications.latgas_abinitio_interface.naive_matcher.html" />
+    <link rel="prev" title="abics.applications.latgas_abinitio_interface.map2perflat module" href="abics.applications.latgas_abinitio_interface.map2perflat.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            abICS API
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="abics.html">abics package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="abics.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="abics.applications.html">abics.applications package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="abics.applications.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="abics.applications.html#module-abics.applications">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="abics.loggers.html">abics.loggers package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.sampling.html">abics.sampling package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="abics.scripts.html">abics.scripts package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="abics.html#module-abics">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">abICS API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="abics.html">abics package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.html">abics.applications package</a></li>
+          <li class="breadcrumb-item"><a href="abics.applications.latgas_abinitio_interface.html">abics.applications.latgas_abinitio_interface package</a></li>
+      <li class="breadcrumb-item active">abics.applications.latgas_abinitio_interface.model_setup module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/abics.applications.latgas_abinitio_interface.model_setup.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-abics.applications.latgas_abinitio_interface.model_setup">
+<span id="abics-applications-latgas-abinitio-interface-model-setup-module"></span><h1>abics.applications.latgas_abinitio_interface.model_setup module<a class="headerlink" href="#module-abics.applications.latgas_abinitio_interface.model_setup" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">Config</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">base_structure:</span> <span class="pre">~pymatgen.core.structure.Structure,</span> <span class="pre">defect_sublattices,</span> <span class="pre">num_defects,</span> <span class="pre">cellsize=[1,</span> <span class="pre">1,</span> <span class="pre">1],</span> <span class="pre">constraint_func=&lt;class</span> <span class="pre">'bool'&gt;,</span> <span class="pre">constraint_energy=None,</span> <span class="pre">perfect_structure=None,</span> <span class="pre">chemical_potential=None,</span> <span class="pre">gc_move=None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class defines the config with lattice gas mapping</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_structure</strong> (<em>pymatgen.Structure</em>) – Structure of base sites (unsampled sites)</p></li>
+<li><p><strong>defect_sublattices</strong> (<em>defect_sublattice</em>) – Structure of defects (sampled sites)</p></li>
+<li><p><strong>num_defects</strong> (<em>dict</em>) – {group name: number of defects}</p></li>
+<li><p><strong>cellsize</strong> (<em>list</em><em>, </em><em>optional</em>) – Cell size, by default [1, 1, 1]</p></li>
+<li><p><strong>constraint_func</strong> (<em>function</em><em>, </em><em>optional</em>) – function that takes pymatgen.Structure as argument and returns True
+when constraints are satisfied, by default bool</p></li>
+<li><p><strong>perfect_structure</strong> (<em>pymatgen.Structure</em><em>, </em><em>optional</em>) – Strucure of all sites (union of base and defect), by default None</p></li>
+<li><p><strong>chemical_potential</strong> (<em>dict</em>) – { tuple of species names: chemical potential }</p></li>
+<li><p><strong>gc_move</strong> (<em>list</em>) – grandcanonical moves: { species from, species to, reversible }</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">base_structure:</span> <span class="pre">~pymatgen.core.structure.Structure,</span> <span class="pre">defect_sublattices,</span> <span class="pre">num_defects,</span> <span class="pre">cellsize=[1,</span> <span class="pre">1,</span> <span class="pre">1],</span> <span class="pre">constraint_func=&lt;class</span> <span class="pre">'bool'&gt;,</span> <span class="pre">constraint_energy=None,</span> <span class="pre">perfect_structure=None,</span> <span class="pre">chemical_potential=None,</span> <span class="pre">gc_move=None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_structure</strong> (<em>pymatgen.Structure</em>) – Structure of base sites (unsampled sites)</p></li>
+<li><p><strong>defect_sublattices</strong> (<em>defect_sublattice</em>) – Structure of defects (sampled sites)</p></li>
+<li><p><strong>num_defects</strong> (<em>dict</em>) – {group name: number of defects}</p></li>
+<li><p><strong>cellsize</strong> (<em>list</em><em>, </em><em>optional</em>) – Cell size, by default [1, 1, 1]</p></li>
+<li><p><strong>constraint_func</strong> (<em>function</em><em>, </em><em>optional</em>) – function that takes pymatgen.Structure as argument and returns True
+when constraints are satisfied, by default bool</p></li>
+<li><p><strong>perfect_structure</strong> (<em>pymatgen.Structure</em><em>, </em><em>optional</em>) – Strucure of all sites (union of base and defect), by default None</p></li>
+<li><p><strong>chemical_potential</strong> (<em>dict</em>) – { tuple of species names: chemical potential }</p></li>
+<li><p><strong>gc_move</strong> (<em>list</em>) – grandcanonical moves: { species from, species to, reversible }</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.count">
+<span class="sig-name descname"><span class="pre">count</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">group_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.count"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.count" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>group_name</strong> (<em>str</em>) – The name of the group</p></li>
+<li><p><strong>orientation</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.defect_sublattice_structure">
+<span class="sig-name descname"><span class="pre">defect_sublattice_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sublat_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.defect_sublattice_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.defect_sublattice_structure" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sublat_id</strong> (<em>int</em>) – index of sublattice</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>sublattice_structure</strong> – sublattice structure object</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pymatgen.Structure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure">
+<span class="sig-name descname"><span class="pre">dummy_structure</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.dummy_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Structure where all atoms and vacancies are replaced by dummy atoms</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure_from_sublattice">
+<span class="sig-name descname"><span class="pre">dummy_structure_from_sublattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defect_sublattice</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.dummy_structure_from_sublattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure_from_sublattice" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(</strong><strong>str</strong><strong>)</strong> (<em>defect_sublattice</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Structure where all atoms and vacancies are replaced by dummy atoms</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure_sp">
+<span class="sig-name descname"><span class="pre">dummy_structure_sp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.dummy_structure_sp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.dummy_structure_sp" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>(</strong><strong>str</strong><strong>)</strong> (<em>species</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Structure where all atoms and vacancies are replaced by dummy atoms</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.reset_from_structure">
+<span class="sig-name descname"><span class="pre">reset_from_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">st_in</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.reset_from_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.reset_from_structure" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.set_latgas">
+<span class="sig-name descname"><span class="pre">set_latgas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">defect_sublattices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.set_latgas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.set_latgas" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>defect_sublattices</strong> (<em>pymatgen.Structure</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if resulting structure satisifies constraints, False if not</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.shuffle">
+<span class="sig-name descname"><span class="pre">shuffle</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.shuffle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.shuffle" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.update_basestruct">
+<span class="sig-name descname"><span class="pre">update_basestruct</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Config.update_basestruct"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.update_basestruct" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Config.vacancy_structure">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">vacancy_structure</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Config.vacancy_structure" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">DFTLatticeGas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abinitio_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_update_basestruct</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_ion_move</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_move_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_grandcanonical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gc_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DFTLatticeGas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="abics.model.html#abics.model.Model" title="abics.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a></p>
+<p>This class defines the DFT lattice gas mapping model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>abinitio_run</strong> (<em>runner object</em>) – Runner (manager) of external solver program</p></li>
+<li><p><strong>save_history</strong> (<em>boolean</em>) – </p></li>
+<li><p><strong>l_update_basestruct</strong> (<em>boolean</em>) – </p></li>
+<li><p><strong>check_ion_move</strong> (<em>boolean</em>) – </p></li>
+<li><p><strong>ion_move_tol</strong> (<em>float</em>) – </p></li>
+<li><p><strong>enable_grandcanonical</strong> (<em>boolean</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">abinitio_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_update_basestruct</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_ion_move</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ion_move_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enable_grandcanonical</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gc_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DFTLatticeGas.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>abinitio_run</strong> (<em>runner object</em>) – Runner (manager) of external solver program</p></li>
+<li><p><strong>save_history</strong> (<em>boolean</em>) – </p></li>
+<li><p><strong>l_update_basestruct</strong> (<em>boolean</em>) – </p></li>
+<li><p><strong>check_ion_move</strong> (<em>boolean</em>) – </p></li>
+<li><p><strong>ion_move_tol</strong> (<em>float</em>) – </p></li>
+<li><p><strong>enable_grandcanonical</strong> (<em>boolean</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.energy">
+<span class="sig-name descname"><span class="pre">energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DFTLatticeGas.energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.energy" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate energy of configuration: input: config</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>config object</em>) – configuration</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>energy</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.internal_energy">
+<span class="sig-name descname"><span class="pre">internal_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DFTLatticeGas.internal_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.internal_energy" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.model_name">
+<span class="sig-name descname"><span class="pre">model_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DFTLatticeGas'</span></em><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.model_name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.newconfig">
+<span class="sig-name descname"><span class="pre">newconfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dconfig</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DFTLatticeGas.newconfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.newconfig" title="Permalink to this definition"></a></dt>
+<dd><p>Update config by the trial step, dconfig</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>config object</em>) – Configuration</p></li>
+<li><p><strong>dconfig</strong> (<em>config object</em>) – Difference of configuration</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>config</strong> – New configuration</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>config object</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.trialstep">
+<span class="sig-name descname"><span class="pre">trialstep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_now</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DFTLatticeGas.trialstep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas.trialstep" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>config object</em>) – Configurations</p></li>
+<li><p><strong>energy_now</strong> (<em>float</em>) – Present energy</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>dconfig</strong> (<em>float</em>) – Difference of configurations</p></li>
+<li><p><strong>dE</strong> (<em>float</em>) – Difference of energies</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">DefectSublattice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">site_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DefectSublattice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>site_centers</strong> (<em>list</em>) – Center coordinates at each groups</p></li>
+<li><p><strong>groups</strong> (<em>list</em>) – List of groups</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">site_centers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DefectSublattice.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>site_centers</strong> (<em>list</em>) – Center coordinates at each groups</p></li>
+<li><p><strong>groups</strong> (<em>list</em>) – List of groups</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice.from_dict">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice" title="abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice"><span class="pre">DefectSublattice</span></a></span></span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#DefectSublattice.from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice.from_dict" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>d</strong> (<em>dict</em>) – </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>site_centers</strong> (<em>list</em>) – Center coordinates at each groups</p></li>
+<li><p><strong>groups</strong> (<em>list</em>) – List of groups</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.EnergyList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">EnergyList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calcode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vasp_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_vaspinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matcher_base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matcher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#EnergyList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.EnergyList" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas" title="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas"><code class="xref py py-class docutils literal notranslate"><span class="pre">DFTLatticeGas</span></code></a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calcode</strong> – </p></li>
+<li><p><strong>vasp_run</strong> (<em>runner object</em>) – Runner (manager) of external solver program</p></li>
+<li><p><strong>base_vaspinput</strong> – </p></li>
+<li><p><strong>matcher_base</strong> – </p></li>
+<li><p><strong>queen</strong> – </p></li>
+<li><p><strong>reps</strong> – </p></li>
+<li><p><strong>energy_lst</strong> (<em>list</em>) – Energy list</p></li>
+<li><p><strong>matcher</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.EnergyList.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">calcode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vasp_run</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_vaspinput</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matcher_base</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">queen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reps</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matcher</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#EnergyList.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.EnergyList.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>calcode</strong> – </p></li>
+<li><p><strong>vasp_run</strong> (<em>runner object</em>) – Runner (manager) of external solver program</p></li>
+<li><p><strong>base_vaspinput</strong> – </p></li>
+<li><p><strong>matcher_base</strong> – </p></li>
+<li><p><strong>queen</strong> – </p></li>
+<li><p><strong>reps</strong> – </p></li>
+<li><p><strong>energy_lst</strong> (<em>list</em>) – Energy list</p></li>
+<li><p><strong>matcher</strong> – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.EnergyList.energy">
+<span class="sig-name descname"><span class="pre">energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_history</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#EnergyList.energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.EnergyList.energy" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>config</strong> (<em>config object</em>) – Configuration</p></li>
+<li><p><strong>save_history</strong> (<em>boolean</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>energy</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Group">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">Group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relaxations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetizations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Group" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of atomic group</p></li>
+<li><p><strong>species</strong> (<em>list</em><em> of </em><em>str</em>) – The atomic species belonging to the atom group</p></li>
+<li><p><strong>coords</strong> (<em>numpy array</em>) – The coordinates of each atom in the atom group.</p></li>
+<li><p><strong>relaxations</strong> (<em>numpy array</em>) – Whether to perform structure optimization or not</p></li>
+<li><p><strong>magnetization</strong> (<em>numpy array</em>) – Magnetizations (inbalance of up/down spins)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.Group.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relaxations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">magnetizations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#Group.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.Group.__init__" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of atomic group</p></li>
+<li><p><strong>species</strong> (<em>list</em><em> of </em><em>str</em>) – The atomic species belonging to the atom group</p></li>
+<li><p><strong>coords</strong> (<em>numpy array</em>) – The coordinates of each atom in the atom group.</p></li>
+<li><p><strong>relaxations</strong> (<em>numpy array</em>) – Whether to perform structure optimization or not</p></li>
+<li><p><strong>magnetization</strong> (<em>numpy array</em>) – Magnetizations (inbalance of up/down spins)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.base_structure">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">base_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dict_str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Structure</span></span></span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#base_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.base_structure" title="Permalink to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>pymatgen.Lattice</em>) – </p></li>
+<li><p><strong>dict_str</strong> (<em>dict</em>) – Dictionary of base structure</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>st</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pymatgen.Structure</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.config">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">config</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.config" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.Config" title="abics.applications.latgas_abinitio_interface.model_setup.Config"><code class="xref py py-class docutils literal notranslate"><span class="pre">Config</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.defect_sublattice">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">defect_sublattice</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.defect_sublattice" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice" title="abics.applications.latgas_abinitio_interface.model_setup.DefectSublattice"><code class="xref py py-class docutils literal notranslate"><span class="pre">DefectSublattice</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.dft_latgas">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">dft_latgas</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.dft_latgas" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas" title="abics.applications.latgas_abinitio_interface.model_setup.DFTLatticeGas"><code class="xref py py-class docutils literal notranslate"><span class="pre">DFTLatticeGas</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.energy_lst">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">energy_lst</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.energy_lst" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.EnergyList" title="abics.applications.latgas_abinitio_interface.model_setup.EnergyList"><code class="xref py py-class docutils literal notranslate"><span class="pre">EnergyList</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.gauss">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">gauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#gauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.gauss" title="Permalink to this definition"></a></dt>
+<dd><p>Gaussian function</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>float</em>) – The position</p></li>
+<li><p><strong>x0</strong> (<em>float</em>) – The position of the center of the peak</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – The standard deviation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>value</strong></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.group">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">group</span></span><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.group" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="#abics.applications.latgas_abinitio_interface.model_setup.Group" title="abics.applications.latgas_abinitio_interface.model_setup.Group"><code class="xref py py-class docutils literal notranslate"><span class="pre">Group</span></code></a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.match_id">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">match_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#match_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.match_id" title="Permalink to this definition"></a></dt>
+<dd><p>Return the index list of lst which matches obj.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lst</strong> (<em>list</em>) – </p></li>
+<li><p><strong>obj</strong> (<em>object</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>The index list of lst which matches obj.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.match_latgas_group">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">match_latgas_group</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">latgas_rep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">group</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#match_latgas_group"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.match_latgas_group" title="Permalink to this definition"></a></dt>
+<dd><p>Return the index list of latgas_rep which matches group.name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>latgas_rep</strong> (<em>list</em>) – </p></li>
+<li><p><strong>group</strong> (<em>object</em>) – Notes: the group must have name</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>The index list of latgas_rep which matches group.name.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.nomatch_id">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">nomatch_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lst</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#nomatch_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.nomatch_id" title="Permalink to this definition"></a></dt>
+<dd><p>Return the index list of lst which does not match obj.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lst</strong> (<em>list</em>) – </p></li>
+<li><p><strong>obj</strong> (<em>object</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>The index list of lst which does not match obj.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="abics.applications.latgas_abinitio_interface.model_setup.perturb_structure">
+<span class="sig-prename descclassname"><span class="pre">abics.applications.latgas_abinitio_interface.model_setup.</span></span><span class="sig-name descname"><span class="pre">perturb_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">st</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Structure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/abics/applications/latgas_abinitio_interface/model_setup.html#perturb_structure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.applications.latgas_abinitio_interface.model_setup.perturb_structure" title="Permalink to this definition"></a></dt>
+<dd><p>Perform random perturbation of the atomic coordinates.
+All atoms will be moved at the same distance.</p>
+<p>Which components will be perturbed is specified by a boolean array stored as st.site_properties[“seldyn”].
+If not stored, all the components will be perturbed.
+Argument st will be mutated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>st</strong> (<em>Structure</em>) – </p></li>
+<li><p><strong>distance</strong> (<em>float</em>) – strength of perturb</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="abics.applications.latgas_abinitio_interface.map2perflat.html" class="btn btn-neutral float-left" title="abics.applications.latgas_abinitio_interface.map2perflat module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="abics.applications.latgas_abinitio_interface.naive_matcher.html" class="btn btn-neutral float-right" title="abics.applications.latgas_abinitio_interface.naive_matcher module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2020-, ISSP, UTokyo.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
