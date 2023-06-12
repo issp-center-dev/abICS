@@ -20,13 +20,13 @@ import numpy as np
 import numpy.random as random
 
 
-from abics.mc import model, CanonicalMonteCarlo
+from abics.mc import Model, CanonicalMonteCarlo
 
 random.seed(12345)
 
 
 class TestMC(unittest.TestCase):
-    class model(model):
+    class MyModel(Model):
         def energy(self, config):
             return config[0] * config[1]
 
@@ -41,13 +41,13 @@ class TestMC(unittest.TestCase):
             return dconfig, dE
 
     def test_mc(self):
-        self.mc = CanonicalMonteCarlo(TestMC.model(), 1.0, [1.0,1.0])
+        self.mc = CanonicalMonteCarlo(TestMC.MyModel(), 1.0, [1.0,1.0])
         # self.mc = CanonicalMonteCarlo(TestMC.dmodel, 1.0, 1)
         N = 100
         S = 0.0
         S2 =0.0
         for i in range(N):
-            E = self.mc.run(100, 1)[0]
+            E = self.mc.run(100, sample_frequency=1)[0]
             S += E
             S2 += E*E
         m = S/N

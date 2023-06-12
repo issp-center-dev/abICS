@@ -10,6 +10,8 @@
 #   ln -s `which gcc-11` ./gcc
 #   PATH=`pwd`:$PATH sh ./install_aenet.sh
 
+set -ue
+
 VERSION=2.0.4
 
 URL=https://github.com/atomisticnet/aenet/archive/refs/tags/v${VERSION}.tar.gz

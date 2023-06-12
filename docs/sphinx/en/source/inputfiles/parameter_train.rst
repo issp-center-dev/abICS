@@ -3,10 +3,12 @@
 [train] section
 -------------------------------
 
-We create neural network potentials by learning the results of ab initio calculations made by abics\_train using aenet.
-The input information for abics_train is described in the ``[trainer]`` section. The description of each parameter is as follows.
+``abics_train`` creates and trains a regression model from configurations to energies.
+Indeed, ``abics_train`` uses an external program to train the model.
+In the current version, only ``aenet`` is supported as an external program.
+For software-specific notes (such as input file names), see :ref:`trainer_specific_notes`.
 
-This section specifies the type of physical quantity to be acquired.
+The input information for ``abics_train`` is described in the ``[trainer]`` section. The description of each parameter is as follows.
 An example is shown as follows:
 
   ::

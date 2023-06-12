@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [3.7, 3.9]
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         testname: [Unit, Sampling, ActiveLearn]
       fail-fast: false
 
@@ -36,7 +36,12 @@ jobs:
         case "${{ matrix.testname }}" in
         Unit ) python -m unittest ;;
         Sampling ) cd tests/integration/mock
-                   sh ./run.sh ;;
+                   sh ./run.sh
+                   cd ../potts
+                   sh ./run.sh
+                   cd ../potts_pamc
+                   sh ./run.sh
+                   ;;
         ActiveLearn ) cd tests/integration/active_learn
                       sh ./install_aenet.sh
                       sh ./run.sh ;;

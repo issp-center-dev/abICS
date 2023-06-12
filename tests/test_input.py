@@ -18,12 +18,13 @@ import os
 import unittest
 
 import numpy as np
+from numpy.testing import assert_array_equal
 from numpy.linalg import inv
 
 from pymatgen.core import Structure
 
 from abics.mc_mpi import RXParams
-from abics.applications.latgas_abinitio_interface.model_setup import group, perturb_structure
+from abics.applications.latgas_abinitio_interface.model_setup import Group, perturb_structure
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -44,8 +45,7 @@ class TestInput(unittest.TestCase):
         rxparams = RXParams.from_toml(tomlfile)
         self.assertEqual(rxparams.nreplicas, 2)
         self.assertEqual(rxparams.nprocs_per_replica, 1)
-        self.assertEqual(rxparams.kTstart, 1000.0)
-        self.assertEqual(rxparams.kTend, 1200.0)
+        self.assertEqual(list(rxparams.kTs), [1000.0, 1200.0])
         self.assertEqual(rxparams.nsteps, 2)
         self.assertEqual(rxparams.RXtrial_frequency, 3)
         self.assertEqual(rxparams.sample_frequency, 4)
@@ -99,8 +99,8 @@ class TestInput(unittest.TestCase):
         self.assertEqual(spinel_config.base_structure.sites[0].coords[2], 0.0)
 
         gs = [
-            group("Al", ["Al"], coords=[[[0.0, 0.0, 0.0]]]),
-            group("OH", ["O", "H"], coords=[[[0.0, 0.0, 0.0], [0.1, 0.1, 0.1]]]),
+            Group("Al", ["Al"], coords=[[[0.0, 0.0, 0.0]]]),
+            Group("OH", ["O", "H"], coords=[[[0.0, 0.0, 0.0], [0.1, 0.1, 0.1]]]),
         ]
 
         for i in range(2):

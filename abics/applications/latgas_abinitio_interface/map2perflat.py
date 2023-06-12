@@ -1,12 +1,16 @@
-# from mpi4py import MPI
+from __future__ import annotations
+
 import numpy as np
-from typing import Dict
 from pymatgen.core import Structure
+# pymatgen 2019.12.22 does not have SpeciesLike
+# from pymatgen.util.typing import SpeciesLike
+
 from abics.applications.latgas_abinitio_interface.naive_matcher import naive_mapping
 
 
 def map2perflat(
-    perf_st: Structure, st: Structure, vac_spaceholder: Dict[str, str] = {}
+    perf_st: Structure, st: Structure,
+    vac_spaceholder = {} #: dict[SpeciesLike, SpeciesLike] = {}
 ) -> Structure:
     """
 
@@ -26,7 +30,7 @@ def map2perflat(
     perf_st = perf_st.copy()
     N = perf_st.num_sites
     seldyn = np.array(
-        perf_st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float
+        perf_st.site_properties.get("seldyn", np.ones((N, 3))), dtype=np.float64
     )
     perf_st.replace_species(vac_spaceholder)
     mapping = naive_mapping(st, perf_st)

@@ -22,7 +22,7 @@ import numpy as np
 
 from pymatgen.core import Structure
 
-from abics.applications.latgas_abinitio_interface.aenet import aenetSolver
+from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
 
 
 class TestAENET(unittest.TestCase):
@@ -35,7 +35,7 @@ class TestAENET(unittest.TestCase):
         os.makedirs(workdir)
 
     def setUp(self):
-        self.solver = aenetSolver(".")
+        self.solver = AenetSolver(".")
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "aenet")
         self.workdir = os.path.join(self.rootdir, "res", "aenet")

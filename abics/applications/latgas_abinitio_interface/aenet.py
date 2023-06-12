@@ -14,22 +14,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-from .base_solver import SolverBase
-from collections import namedtuple
-import numpy as np
-from pymatgen.core import Structure
-import os
-import sys, shutil, io
-
-
 """
 Adapted from pymatgen.io.xcrysden distributed under the MIT License
 # Copyright (c) Pymatgen Development Team.
 # Distributed under the terms of the MIT License.
 """
 
+from __future__ import annotations
 
-def to_XSF(structure, write_force_zero=False):
+import os
+import sys, shutil, io
+from collections import namedtuple
+import numpy as np
+from pymatgen.core import Structure
+
+from .base_solver import SolverBase, register_solver
+from .params import ALParams, DFTParams
+
+
+def to_XSF(structure: Structure, write_force_zero=False):
     """
     Returns a string with the structure in XSF format
     See http://www.xcrysden.org/doc/XSF.html
@@ -50,10 +53,10 @@ def to_XSF(structure, write_force_zero=False):
     app(" %d 1" % len(cart_coords))
     species = structure.species
     site_properties = structure.site_properties
-    if 'forces' not in site_properties.keys():
+    if "forces" not in site_properties.keys():
         write_force_zero = True
     else:
-        forces = site_properties['forces']
+        forces = site_properties["forces"]
 
     if write_force_zero:
         for a in range(len(cart_coords)):
@@ -64,7 +67,8 @@ def to_XSF(structure, write_force_zero=False):
             )
     else:
         for a in range(len(cart_coords)):
-            app(str(species[a]) 
+            app(
+                str(species[a])
                 + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
                 + " %20.14f %20.14f %20.14f" % tuple(forces[a])
             )
@@ -72,7 +76,7 @@ def to_XSF(structure, write_force_zero=False):
     return "\n".join(lines)
 
 
-def from_XSF(input_string):
+def from_XSF(input_string: str):
     """
     Initialize a `Structure` object from a string with data in XSF format.
 
@@ -124,12 +128,12 @@ def from_XSF(input_string):
     return s
 
 
-class aenetSolver(SolverBase):
+class AenetSolver(SolverBase):
     """
     This class defines the aenet solver.
     """
 
-    def __init__(self, path_to_solver, ignore_species=None, run_scheme="subprocess"):
+    def __init__(self, path_to_solver: os.PathLike, ignore_species=None, run_scheme="subprocess"):
         """
         Initialize the solver.
 
@@ -138,22 +142,22 @@ class aenetSolver(SolverBase):
         path_to_solver : str
                       Path to the solver.
         """
-        super(aenetSolver, self).__init__(path_to_solver)
+        super(AenetSolver, self).__init__(path_to_solver)
         self.path_to_solver = path_to_solver
-        self.input = aenetSolver.Input(ignore_species, run_scheme)
-        self.output = aenetSolver.Output()
+        self.input = AenetSolver.Input(ignore_species, run_scheme)
+        self.output = AenetSolver.Output()
 
     def name(self):
         return "aenet"
 
     class Input(object):
-        def __init__(self, ignore_species, run_scheme="subprocess"):
+        def __init__(self, ignore_species : str | None, run_scheme="subprocess"):
             self.base_info = None
             self.pos_info = None
             self.ignore_species = ignore_species
             self.run_scheme = run_scheme
 
-        def from_directory(self, base_input_dir):
+        def from_directory(self, base_input_dir: os.PathLike):
             """
             Initialize information from files in base_input_dir.
 
@@ -167,7 +171,7 @@ class aenetSolver(SolverBase):
             self.base_info = os.path.abspath(base_input_dir)
             # self.pos_info = open('{}/structure.xsf'.format(base_input_dir), 'r').read()
 
-        def update_info_by_structure(self, structure):
+        def update_info_by_structure(self, structure: Structure):
             """
             Update information by atomic structure.
 
@@ -188,13 +192,13 @@ class aenetSolver(SolverBase):
             print("rerun not implemented. Something has gone wrong")
             sys.exit(1)
 
-        def write_input(self, output_dir):
+        def write_input(self, output_dir: os.PathLike):
             """
             Generate input files of the solver program.
 
             Parameters
             ----------
-            output_dir : str
+            output_dir : os.PathLike
                 Path to working directory.
             """
             # Write input files
@@ -256,7 +260,7 @@ class aenetSolver(SolverBase):
 
             """
             # Read results from files in output_dir and calculate values
-            Phys = namedtuple("PhysVaules", ("energy", "structure"))
+            Phys = namedtuple("PhysValues", ("energy", "structure"))
             with open(os.path.join(output_dir, "structure.xsf")) as f:
                 structure = from_XSF(f.read())
             with open(os.path.join(output_dir, "stdout")) as f:
@@ -280,3 +284,12 @@ class aenetSolver(SolverBase):
 
     def solver_run_schemes(self):
         return ("subprocess", "mpi_spawn_ready")
+
+    @classmethod
+    def create(cls, params: ALParams | DFTParams):
+        path = params.path
+        ignore_species = params.ignore_species
+        run_scheme = params.solver_run_scheme
+        return cls(path, ignore_species, run_scheme)
+
+register_solver("aenet", AenetSolver)

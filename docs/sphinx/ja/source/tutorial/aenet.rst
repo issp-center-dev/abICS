@@ -231,7 +231,7 @@ generate
 aenetでは、訓練用の原子配置とエネルギーのデータを、原子環境記述子とエネルギーの関係に変換した中間バイナリフォーマットにまとめてから訓練を行います。
 この変換を行う ``generate.x`` 用の入力ファイルを ``generate`` ディレクトリに設置します。
 
-まず、元素種ごとの記述子設定ファイルを用意します。ファイル名は任意ですが、チュートリアルでは
+まず、原子種ごとの記述子設定ファイルを用意します。ファイル名は任意ですが、チュートリアルでは
 ``Al.fingerprint.stp`` , ``Mg.fingerprint.stp`` という名前にしています。
 例として ``Al.fingerprint.stp`` の内容を示します：
 
@@ -244,7 +244,7 @@ aenetでは、訓練用の原子配置とエネルギーのデータを、原子
 
   ATOM Al # 元素を指定
 
-  ENV 2 # ATOMで指定した元素と相互作用する元素種の数と元素名を指定
+  ENV 2 # ATOMで指定した元素と相互作用する原子種の数と元素名を指定
   Al
   Mg
 
@@ -273,9 +273,9 @@ aenetでは、訓練用の原子配置とエネルギーのデータを、原子
 
 
 ``OUTPUT`` には必ず ``aenet.train`` を指定してください。
-``TYPES`` 以下には訓練データ中の元素種とその数を指定します。
-元素種ごとにエネルギーの基準を指定することもできますが、基本的には0に設定しておくのが無難です。
-``SETUPS`` 以下には元素種ごとの記述子設定ファイルを指定します。
+``TYPES`` 以下には訓練データ中の原子種とその数を指定します。
+原子種ごとにエネルギーの基準を指定することもできますが、基本的には0に設定しておくのが無難です。
+``SETUPS`` 以下には原子種ごとの記述子設定ファイルを指定します。
 ファイルの末尾には必ず改行が入っていることを確認してください。
 abICSは ``generate.in.head`` の末尾に座標ファイルのリストを追加して ``generate.in`` を生成し、
 ``generate.x`` を実行します。
@@ -309,7 +309,7 @@ train
       Mg       Mg.15t-15t.nn    2      15:tanh 15:tanh
 
 基本的には、 ``NETWORKS`` セクション以外は変更の必要はありません。
-``NETWORKS`` セクションでは、生成する元素種ごとのポテンシャル
+``NETWORKS`` セクションでは、生成する原子種ごとのポテンシャル
 ファイル名と、ニューラルネットワーク構造、および活性化関数を指定します。
 
 predict
@@ -332,15 +332,10 @@ predict
 
     VERBOSITY low
 
-``TYPES`` セクションには元素種の数と元素名を、 ``NETWORKS``
-セクションには元素種ごとのポテンシャルファイル名（ ``train.in`` で
-設定したもの）を入力してください。
+``TYPES`` セクションには原子種の数と元素名を、
+``NETWORKS`` セクションには原子種ごとのポテンシャルファイル名（ ``train.in`` で設定したもの）を入力してください。
 
 また、 ``VERBOSITY`` は必ず ``low`` に設定してください。
-
-
-
-
 
 * ``[sampling.solver]`` セクションの ``path`` を実行環境における aenet の ``predict.x`` のパスに設定する。
 * ``[sampling.solver]`` と ``[train]`` セクションで ``ignore_species = ["O"]`` を指定する。
@@ -543,3 +538,71 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 また、反転度の計算を完全に収束させるためには、例題のモンテカルロステップ数では不十分であることにご注意ください。
 能動学習のサイクルとは別にモンテカルロステップ数を増やした計算を行って、熱力学平均を計算することをおすすめ
 します。
+
+
+.. _tutorial_aenet_lammps:
+
+LAMMPS インターフェースを利用したサンプリング
+----------------------------------------------
+
+モンテカルロサンプリングにおいては、 LAMMPSインターフェースをもちいた ``aenet`` ライブラリ呼び出しにも対応しています(``aenetPyLammps`` ソルバー)。
+ファイル入出力などを行わないため、 ``aenet`` をプロセスとして呼び出すよりも高速に動作します。
+入力ファイル例としては ``examples/active_learning_qe_lammps`` を参考にしてください。
+
+aenet-lammps のインストール
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``aenetPyLammps`` の利用には、 ``aenet-lammps`` を組み込んだ LAMMPS のインストールが必要です。
+
+- URL : https://github.com/HidekiMori-CIT/aenet-lammps
+
+- `コミット 5d0f4bc <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ で動作確認済。
+
+  - ``git checkout 5d0f4bc``
+
+- 上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。
+
+  - ``aenet``
+
+    - ``makefiles/Makefile.*`` 中の ``FCFLAGS`` オプションに ``-fPIC`` を追加してください。
+  - ``lammps``
+
+    - ``src/Makefile`` 中に ``LMP_INC = -DLAMMPS_EXCEPTIONS`` を追加してください。
+    - make 時にオプションで ``mode=shared`` をつけるようにしてください。
+
+  - 上記のインストール終了後、 ``make install-python`` を実行してください。
+
+    - ``python`` コマンドで起動するPython 環境に ``lammps`` パッケージがインストールされます。
+
+
+モデル学習
+~~~~~~~~~~~
+
+モデル学習のやりかたは前述の ``aenet`` によるものと同様です。
+
+サンプリング
+~~~~~~~~~~~~~
+
+predict 用入力ファイル
+**************************
+
+``predict.x`` でつかわれていた入力ファイル ``predict.in`` のかわりに、以下のような入力ファイル ``in.lammps`` を ``predict`` ディレクトリに設置してください::
+
+    pair_style      aenet
+    pair_coeff      * * v00 Al Mg 15t-15t.nn Al Mg
+    neighbor        0.1 bin
+
+入力ファイルフォーマットの詳細は ``aenet-lammps`` リポジトリの README を参照してください。
+
+サンプリング
+******************
+
+``[sanmping.solver]`` セクションの ``type`` を ``'aenetPyLammps'`` に、 ``run_scheme`` を ``'function'`` に設定すると、 LAMMPS インターフェースを利用したサンプリングを実行できます。
+
+.. code-block:: toml
+
+    [sampling.solver]
+    type = 'aenetPyLammps'
+    base_input_dir = ['./baseinput']
+    perturb = 0.0
+    run_scheme = 'function'
