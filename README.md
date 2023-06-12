@@ -65,7 +65,7 @@ https://www.pasums.issp.u-tokyo.ac.jp/abics
 
 ## Author
 
-Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi
+Shusuke Kasamatsu, Yuichi Motoyama, Tatsumi Aoyama, Kazuyoshi Yoshimi
 
 ## Manual
 
