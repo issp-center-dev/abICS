@@ -538,3 +538,71 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 また、反転度の計算を完全に収束させるためには、例題のモンテカルロステップ数では不十分であることにご注意ください。
 能動学習のサイクルとは別にモンテカルロステップ数を増やした計算を行って、熱力学平均を計算することをおすすめ
 します。
+
+
+.. _tutorial_aenet_lammps:
+
+LAMMPS インターフェースを利用したサンプリング
+----------------------------------------------
+
+モンテカルロサンプリングにおいては、 LAMMPSインターフェースをもちいた ``aenet`` ライブラリ呼び出しにも対応しています(``aenetPyLammps`` ソルバー)。
+ファイル入出力などを行わないため、 ``aenet`` をプロセスとして呼び出すよりも高速に動作します。
+入力ファイル例としては ``examples/active_learning_qe_lammps`` を参考にしてください。
+
+aenet-lammps のインストール
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``aenetPyLammps`` の利用には、 ``aenet-lammps`` を組み込んだ LAMMPS のインストールが必要です。
+
+- URL : https://github.com/HidekiMori-CIT/aenet-lammps
+
+- `コミット 5d0f4bc <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ で動作確認済。
+
+  - ``git checkout 5d0f4bc``
+
+- 上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。
+
+  - ``aenet``
+
+    - ``makefiles/Makefile.*`` 中の ``FCFLAGS`` オプションに ``-fPIC`` を追加してください。
+  - ``lammps``
+
+    - ``src/Makefile`` 中に ``LMP_INC = -DLAMMPS_EXCEPTIONS`` を追加してください。
+    - make 時にオプションで ``mode=shared`` をつけるようにしてください。
+
+  - 上記のインストール終了後、 ``make install-python`` を実行してください。
+
+    - ``python`` コマンドで起動するPython 環境に ``lammps`` パッケージがインストールされます。
+
+
+モデル学習
+~~~~~~~~~~~
+
+モデル学習のやりかたは前述の ``aenet`` によるものと同様です。
+
+サンプリング
+~~~~~~~~~~~~~
+
+predict 用入力ファイル
+**************************
+
+``predict.x`` でつかわれていた入力ファイル ``predict.in`` のかわりに、以下のような入力ファイル ``in.lammps`` を ``predict`` ディレクトリに設置してください::
+
+    pair_style      aenet
+    pair_coeff      * * v00 Al Mg 15t-15t.nn Al Mg
+    neighbor        0.1 bin
+
+入力ファイルフォーマットの詳細は ``aenet-lammps`` リポジトリの README を参照してください。
+
+サンプリング
+******************
+
+``[sanmping.solver]`` セクションの ``type`` を ``'aenetPyLammps'`` に、 ``run_scheme`` を ``'function'`` に設定すると、 LAMMPS インターフェースを利用したサンプリングを実行できます。
+
+.. code-block:: toml
+
+    [sampling.solver]
+    type = 'aenetPyLammps'
+    base_input_dir = ['./baseinput']
+    perturb = 0.0
+    run_scheme = 'function'

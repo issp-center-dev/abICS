@@ -341,51 +341,10 @@ and abICS will take care of generating the coordinates section at each sampling 
 (The number of MPI processes must be larger than the number of replicas.)
 Running the program will create directories named by the replica numbers under the current directory,
 and each replica runs the solver in it.</p>
-<p>By using <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>, you can perform high-speed sampling using <code class="docutils literal notranslate"><span class="pre">aenet</span></code> which is libraryized by using <code class="docutils literal notranslate"><span class="pre">lammps</span></code>.
-To use <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>, you need to install <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> and <code class="docutils literal notranslate"><span class="pre">lammps</span></code>. See below for details.</p>
-<ul>
-<li><p>URL : <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps">https://github.com/HidekiMori-CIT/aenet-lammps</a></p></li>
-<li><p>Use <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a">the commit 5d0f4bca</a> .</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">5d0f4bca</span></code></p></li>
-</ul>
-</li>
-<li><p>Please install <code class="docutils literal notranslate"><span class="pre">aenet-lammps`</span></code> according to the procedure specified in the above URL. Below are notes on installation.</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">aenet</span></code></p>
-<ul>
-<li><p>Make sure to add <code class="docutils literal notranslate"><span class="pre">-fPIC</span></code> to <code class="docutils literal notranslate"><span class="pre">FCFLAGS</span></code> in <code class="docutils literal notranslate"><span class="pre">makefiles/Makefile.*</span></code>.</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lammps</span></code></p>
-<ul>
-<li><p>Make sure to add <code class="docutils literal notranslate"><span class="pre">LMP_INC</span> <span class="pre">=</span> <span class="pre">-DLAMMPS_EXCEPTIONS</span></code> in <code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code>.</p></li>
-<li><p>Make sure to add <code class="docutils literal notranslate"><span class="pre">mode=shared</span></code> to the make command option as <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">mode=shared</span> <span class="pre">mpi</span></code> (when GCC, for example).</p></li>
-</ul>
-</li>
-<li><p>After completing the above installation, run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install-python</span></code>.</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">lammps</span></code> python package will be installed to the Python environment which is invoked by <code class="docutils literal notranslate"><span class="pre">python</span></code> command.</p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>Reference file rules</p>
-<ul class="simple">
-<li><p>Place the input file <code class="docutils literal notranslate"><span class="pre">in.lammps</span></code> for <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> in the <code class="docutils literal notranslate"><span class="pre">predict</span></code> directory to evaluate the energy for the input coordinates using the trained potential model.
-The format of <code class="docutils literal notranslate"><span class="pre">in.lammmps</span></code> is written in the README of <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> repository.</p></li>
-</ul>
-</li>
-<li><p>abICS control file</p>
-<ul class="simple">
-<li><p><cite>In the ``[sampling.solver]`</cite> section, set <code class="docutils literal notranslate"><span class="pre">type</span></code> to <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> to <code class="docutils literal notranslate"><span class="pre">function</span></code>.</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>“aenetPyLammps”
-<span class="nv">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>‘function’
-</pre></div>
-</div>
-</li>
-</ul>
+<p>abICS can call the <code class="docutils literal notranslate"><span class="pre">aenet</span></code> library via the LAMMPS interface (<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>).
+This is faster than calling <code class="docutils literal notranslate"><span class="pre">aenet</span></code> directly because it does not need file I/O.
+To use <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>, you need to install <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> and <code class="docutils literal notranslate"><span class="pre">lammps</span></code>.
+For details, please refer to the <a class="reference internal" href="../tutorial/aenet.html#tutorial-aenet-lammps"><span class="std std-ref">Predict energy of annet model via LAMMPS interface</span></a>.</p>
 </section>
 </section>
 

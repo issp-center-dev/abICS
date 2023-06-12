@@ -292,7 +292,7 @@ K_POINTS gamma
 </section>
 <section id="id5">
 <h2><span class="section-number">3.4. </span>機械学習モデル訓練および評価用参照ファイルの準備<a class="headerlink" href="#id5" title="この見出しへのパーマリンク">¶</a></h2>
-<p>使用する機械学習モデルソルバー（現在はaenet, aenetPyLammpsのみに対応）の入力形式に従った入力ファイルを用意します。
+<p>使用する機械学習モデルソルバー（現在はaenetのみに対応）の入力形式に従った入力ファイルを用意します。
 参照ファイルのパスはabICSの入力ファイルにある <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定します。
 座標情報については、abICSの入力ファイルを参照するため、記載する必要はありません。</p>
 <section id="trainer-specific-notes">
@@ -342,51 +342,10 @@ K_POINTS gamma
 <h2><span class="section-number">3.7. </span>モンテカルロサンプリングの実行<a class="headerlink" href="#id9" title="この見出しへのパーマリンク">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> を用いてモンテカルロサンプリングを行います(MPI 実行時に指定するプロセス数はレプリカ数以上である必要があります)。
 実行すると、カレントディレクトリ以下にレプリカ番号を名前にもつディレクトリが作られ、各レプリカはその中でソルバーを実行します。
-なお、<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> を利用すると、 <code class="docutils literal notranslate"><span class="pre">lammps</span></code> を利用することでライブラリ化された <code class="docutils literal notranslate"><span class="pre">aenet</span></code> を用いた高速サンプリングが可能です。
-<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> の利用には、 <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> および <code class="docutils literal notranslate"><span class="pre">lammps</span></code> のインストールが必要です。詳細は以下をご覧ください。</p>
-<ul>
-<li><p>URL : <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps">https://github.com/HidekiMori-CIT/aenet-lammps</a></p></li>
-<li><p><a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a">コミット 5d0f4bc</a> で動作確認済。</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">5d0f4bc</span></code></p></li>
-</ul>
-</li>
-<li><p>上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">aenet</span></code></p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">makefiles/Makefile.*</span></code> 中の <code class="docutils literal notranslate"><span class="pre">FCFLAGS</span></code> オプションに <code class="docutils literal notranslate"><span class="pre">-fPIC</span></code> を追加してください。</p></li>
-</ul>
-</li>
-<li><p><code class="docutils literal notranslate"><span class="pre">lammps</span></code></p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code> 中に <code class="docutils literal notranslate"><span class="pre">LMP_INC</span> <span class="pre">=</span> <span class="pre">-DLAMMPS_EXCEPTIONS</span></code> を追加してください。</p></li>
-<li><p>make 時にオプションで <code class="docutils literal notranslate"><span class="pre">mode=shared</span></code> をつけるようにしてください。</p></li>
-</ul>
-</li>
-<li><p>上記のインストール終了後、 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install-python</span></code> を実行してください。</p>
-<ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">python</span></code> コマンドで起動するPython 環境に <code class="docutils literal notranslate"><span class="pre">lammps</span></code> パッケージがインストールされます。</p></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> 用の入力ファイル <code class="docutils literal notranslate"><span class="pre">in.lammps</span></code> を <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で設定したディレクトリ内の  <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。
-<code class="docutils literal notranslate"><span class="pre">in.lammmps</span></code> のフォーマットは、 <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> のGitHubリポジトリにあるREADMEを参照してください。</p></li>
-</ul>
-</li>
-<li><p>abICS 入力ファイル</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> セクションで <code class="docutils literal notranslate"><span class="pre">type</span></code> に <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> 、  <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> に <code class="docutils literal notranslate"><span class="pre">function</span></code> を設定してください。</p></li>
-</ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>“aenetPyLammps”
-<span class="nv">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>‘function’
-</pre></div>
-</div>
-</li>
-</ul>
+なお、 LAMMPSインターフェースをもちいた <code class="docutils literal notranslate"><span class="pre">aenet</span></code> ライブラリ呼び込みにも対応しています(<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>)。
+ファイル入出力やプロセスフォークなどを行わないため、 <code class="docutils literal notranslate"><span class="pre">aenet</span></code> を直接呼び出すよりも高速に動作します。
+<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> の利用には、 <a class="reference external" href="https://github.com/HidekiMori-CIT/">aenet-lammps</a> および <a class="reference external" href="https://www.lammps.org/">LAMMPS</a> のインストールが必要です。
+インストールや使い方の詳細は <a class="reference internal" href="../tutorial/aenet.html#tutorial-aenet-lammps"><span class="std std-ref">LAMMPS インターフェースを利用したサンプリング</span></a> を参照してください。</p>
 </section>
 </section>
 

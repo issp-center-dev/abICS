@@ -505,6 +505,72 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 能動学習のサイクルとは別にモンテカルロステップ数を増やした計算を行って、熱力学平均を計算することをおすすめ
 します。</p>
 </section>
+<section id="lammps">
+<span id="tutorial-aenet-lammps"></span><h2><span class="section-number">4.2.3. </span>LAMMPS インターフェースを利用したサンプリング<a class="headerlink" href="#lammps" title="この見出しへのパーマリンク">¶</a></h2>
+<p>モンテカルロサンプリングにおいては、 LAMMPSインターフェースをもちいた <code class="docutils literal notranslate"><span class="pre">aenet</span></code> ライブラリ呼び出しにも対応しています(<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> ソルバー)。
+ファイル入出力などを行わないため、 <code class="docutils literal notranslate"><span class="pre">aenet</span></code> をプロセスとして呼び出すよりも高速に動作します。
+入力ファイル例としては <code class="docutils literal notranslate"><span class="pre">examples/active_learning_qe_lammps</span></code> を参考にしてください。</p>
+<section id="aenet-lammps">
+<h3>aenet-lammps のインストール<a class="headerlink" href="#aenet-lammps" title="この見出しへのパーマリンク">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> の利用には、 <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> を組み込んだ LAMMPS のインストールが必要です。</p>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps">https://github.com/HidekiMori-CIT/aenet-lammps</a></p></li>
+<li><p><a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a">コミット 5d0f4bc</a> で動作確認済。</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">5d0f4bc</span></code></p></li>
+</ul>
+</li>
+<li><p>上記URLで指定された手順に従ってインストールしてください。以下、インストール時の注意事項です。</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">aenet</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">makefiles/Makefile.*</span></code> 中の <code class="docutils literal notranslate"><span class="pre">FCFLAGS</span></code> オプションに <code class="docutils literal notranslate"><span class="pre">-fPIC</span></code> を追加してください。</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lammps</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code> 中に <code class="docutils literal notranslate"><span class="pre">LMP_INC</span> <span class="pre">=</span> <span class="pre">-DLAMMPS_EXCEPTIONS</span></code> を追加してください。</p></li>
+<li><p>make 時にオプションで <code class="docutils literal notranslate"><span class="pre">mode=shared</span></code> をつけるようにしてください。</p></li>
+</ul>
+</li>
+<li><p>上記のインストール終了後、 <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install-python</span></code> を実行してください。</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">python</span></code> コマンドで起動するPython 環境に <code class="docutils literal notranslate"><span class="pre">lammps</span></code> パッケージがインストールされます。</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="id12">
+<h3>モデル学習<a class="headerlink" href="#id12" title="この見出しへのパーマリンク">¶</a></h3>
+<p>モデル学習のやりかたは前述の <code class="docutils literal notranslate"><span class="pre">aenet</span></code> によるものと同様です。</p>
+</section>
+<section id="id13">
+<h3>サンプリング<a class="headerlink" href="#id13" title="この見出しへのパーマリンク">¶</a></h3>
+<section id="id14">
+<h4>predict 用入力ファイル<a class="headerlink" href="#id14" title="この見出しへのパーマリンク">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">predict.x</span></code> でつかわれていた入力ファイル <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> のかわりに、以下のような入力ファイル <code class="docutils literal notranslate"><span class="pre">in.lammps</span></code> を <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pair_style</span>      <span class="n">aenet</span>
+<span class="n">pair_coeff</span>      <span class="o">*</span> <span class="o">*</span> <span class="n">v00</span> <span class="n">Al</span> <span class="n">Mg</span> <span class="mi">15</span><span class="n">t</span><span class="o">-</span><span class="mi">15</span><span class="n">t</span><span class="o">.</span><span class="n">nn</span> <span class="n">Al</span> <span class="n">Mg</span>
+<span class="n">neighbor</span>        <span class="mf">0.1</span> <span class="nb">bin</span>
+</pre></div>
+</div>
+<p>入力ファイルフォーマットの詳細は <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> リポジトリの README を参照してください。</p>
+</section>
+<section id="id15">
+<h4>サンプリング<a class="headerlink" href="#id15" title="この見出しへのパーマリンク">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">[sanmping.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">type</span></code> を <code class="docutils literal notranslate"><span class="pre">'aenetPyLammps'</span></code> に、 <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> を <code class="docutils literal notranslate"><span class="pre">'function'</span></code> に設定すると、 LAMMPS インターフェースを利用したサンプリングを実行できます。</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenetPyLammps&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;./baseinput&#39;</span><span class="p">]</span>
+<span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;function&#39;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
 </section>
 
 

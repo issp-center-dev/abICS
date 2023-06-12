@@ -477,6 +477,73 @@ fully converging the degree of inversion. It is recommended to perform a separat
 RXMC calculation using the obtained neural network model
 with a larger number of sampling steps to calculate thermodynamic averages.</p>
 </section>
+<section id="predict-energy-of-annet-model-via-lammps-interface">
+<span id="tutorial-aenet-lammps"></span><h2><span class="section-number">4.2.3. </span>Predict energy of annet model via LAMMPS interface<a class="headerlink" href="#predict-energy-of-annet-model-via-lammps-interface" title="Permalink to this heading">¶</a></h2>
+<p>abICS can call the <code class="docutils literal notranslate"><span class="pre">aenet</span></code> library via the LAMMPS interface (<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>).
+This is faster than calling <code class="docutils literal notranslate"><span class="pre">aenet</span></code> directly because it does not need file I/O.
+The set of input files used in this tutorial can be found in <code class="docutils literal notranslate"><span class="pre">examples/active_learning_qe</span></code>.</p>
+<section id="install-aenetpylammps">
+<h3>Install aenetPyLammps<a class="headerlink" href="#install-aenetpylammps" title="Permalink to this heading">¶</a></h3>
+<p>To use <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>, you need to install <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> and <code class="docutils literal notranslate"><span class="pre">lammps</span></code>.</p>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps">https://github.com/HidekiMori-CIT/aenet-lammps</a></p></li>
+<li><p>Use <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a">the commit 5d0f4bca</a> .</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">5d0f4bca</span></code></p></li>
+</ul>
+</li>
+<li><p>Please install <code class="docutils literal notranslate"><span class="pre">aenet-lammps`</span></code> according to the procedure specified in the above URL. Below are notes on installation.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">aenet</span></code></p>
+<ul>
+<li><p>Make sure to add <code class="docutils literal notranslate"><span class="pre">-fPIC</span></code> to <code class="docutils literal notranslate"><span class="pre">FCFLAGS</span></code> in <code class="docutils literal notranslate"><span class="pre">makefiles/Makefile.*</span></code>.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lammps</span></code></p>
+<ul>
+<li><p>Make sure to add <code class="docutils literal notranslate"><span class="pre">LMP_INC</span> <span class="pre">=</span> <span class="pre">-DLAMMPS_EXCEPTIONS</span></code> in <code class="docutils literal notranslate"><span class="pre">src/Makefile</span></code>.</p></li>
+<li><p>Make sure to add <code class="docutils literal notranslate"><span class="pre">mode=shared</span></code> to the make command option as <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">mode=shared</span> <span class="pre">mpi</span></code> (when GCC, for example).</p></li>
+</ul>
+</li>
+<li><p>After completing the above installation, run <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install-python</span></code>.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">lammps</span></code> python package will be installed to the Python environment which is invoked by <code class="docutils literal notranslate"><span class="pre">python</span></code> command.</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="training">
+<h3>Training<a class="headerlink" href="#training" title="Permalink to this heading">¶</a></h3>
+<p>The training procedure is the same as the previous section.</p>
+</section>
+<section id="sampling">
+<h3>Sampling<a class="headerlink" href="#sampling" title="Permalink to this heading">¶</a></h3>
+<section id="input-file-for-prediction">
+<h4>Input file for prediction<a class="headerlink" href="#input-file-for-prediction" title="Permalink to this heading">¶</a></h4>
+<p>Instead of the input file <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> for <code class="docutils literal notranslate"><span class="pre">predict.x</span></code>,
+place the input file <code class="docutils literal notranslate"><span class="pre">in.lammps</span></code> under the <code class="docutils literal notranslate"><span class="pre">predict</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pair_style</span>      <span class="n">aenet</span>
+<span class="n">pair_coeff</span>      <span class="o">*</span> <span class="o">*</span> <span class="n">v00</span> <span class="n">Al</span> <span class="n">Mg</span> <span class="mi">15</span><span class="n">t</span><span class="o">-</span><span class="mi">15</span><span class="n">t</span><span class="o">.</span><span class="n">nn</span> <span class="n">Al</span> <span class="n">Mg</span>
+<span class="n">neighbor</span>        <span class="mf">0.1</span> <span class="nb">bin</span>
+</pre></div>
+</div>
+<p>The detailed format of <code class="docutils literal notranslate"><span class="pre">in.lammmps</span></code> is written in the README of <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> repository.</p>
+</section>
+<section id="input-for-sampling">
+<h4>Input for Sampling<a class="headerlink" href="#input-for-sampling" title="Permalink to this heading">¶</a></h4>
+<p>Change the <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> in the <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> section of the input file to <code class="docutils literal notranslate"><span class="pre">'aenetPyLammps'</span></code> and <code class="docutils literal notranslate"><span class="pre">'function'</span></code>, respectively.</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenetPyLammps&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;./baseinput&#39;</span><span class="p">]</span>
+<span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;function&#39;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
 </section>
 
 
