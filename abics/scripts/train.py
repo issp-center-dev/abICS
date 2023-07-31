@@ -89,12 +89,15 @@ def main_impl(params_root: MutableMapping):
             num_st = len(os.listdir())
             st_fis = ["structure.{}.xsf".format(i) for i in range(num_st)]
             for fi in st_fis:
-                structures.append(Structure.from_file(fi))
+                st_tmp = Structure.from_file(fi)
+                st_tmp.remove_species(ignore_species)
+                structures.append(st_tmp)
                 with open(fi) as f:
                     li = f.readline()
                     e = float(li.split()[4])
                 energies.append(e)
-        os.chdir(rootdir)
+            os.chdir(rootdir)
+        
         logger.info("--Done")
 
 
