@@ -35,6 +35,7 @@ st2abics = "abics.scripts.st2abics_config:main"
 abicsRXsepT = "abics.scripts.abicsRXsepT:main"
 abics_mlref = "abics.scripts.activelearn:main"
 abics_train = "abics.scripts.train:main"
+abics_postproc = "abics.scripts.postproc:main"
 
 [tool.mypy]
 files = "abics"

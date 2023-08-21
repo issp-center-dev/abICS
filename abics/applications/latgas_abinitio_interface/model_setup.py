@@ -1317,7 +1317,7 @@ class Config:
         st = map2perflat(st, st_in)
         st.remove_species(["X"])
 
-        for defect_sublattice in self.defect_sublattices:    
+        for defect_sublattice in self.defect_sublattices:
             # Extract group information for this sublattice
             d_sp2grp = {}
             sp = set()
@@ -1359,6 +1359,7 @@ class Config:
             raise InputError(
                 "initial structure violates constraints specified by constraint_func"
                 )
+        self.structure_norel = copy.deepcopy(self.structure)
 
     def dummy_structure(self):
         """
