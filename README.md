@@ -59,6 +59,21 @@ If you want to install abICS from source, see [wiki page](https://github.com/iss
 
 The distribution of the program package and the source codes follow GNU General Public License version 3 ([GPL v3](http://www.gnu.org/licenses/gpl-3.0.en.html)). 
 
+We hope that you cite the following article when you publish the results using abICS.
+
+Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, arXiv:2309.04769.
+
+Bibtex:
+
+@misc{kasamatsu2023configuration,
+title={Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)},
+author={Shusuke Kasamatsu and Yuichi Motoyama and Kazuyoshi Yoshimi and Tatsumi Aoyama},
+year={2023},
+eprint={2309.04769},
+archivePrefix={arXiv},
+primaryClass={cond-mat.mtrl-sci}
+}
+
 ## Official page
 
 https://www.pasums.issp.u-tokyo.ac.jp/abics
