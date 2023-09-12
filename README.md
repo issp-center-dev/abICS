@@ -61,7 +61,7 @@ The distribution of the program package and the source codes follow GNU General 
 
 We hope that you cite the following article when you publish the results using abICS.
 
-Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, arXiv:2309.04769.
+Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, [arXiv:2309.04769](https://arxiv.org/abs/2309.04769).
 
 Bibtex:
 
