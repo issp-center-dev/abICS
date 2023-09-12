@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="ja">
+<html lang="ja" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>8. アルゴリズム &#8212; abICS 2.1.0 ドキュメント</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/translations.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=e6880748" />
+    <script src="../_static/documentation_options.js?v=b9788144"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=4dbe4bdc"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
@@ -35,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="id1">
-<h1><span class="section-number">8. </span>アルゴリズム<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h1>
+<h1><span class="section-number">8. </span>アルゴリズム<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
 <p>abICSは、拡張アンサンブル法と任意のエネルギー計算ソフトウェアを組み合わせるために設計されています。現在は、
 レプリカ交換モンテカルロ法およびポピュレーションアニーリングモンテカルロ法が実装されています。</p>
 <ul class="simple">
@@ -47,7 +46,7 @@
 </li>
 </ul>
 <section id="id2">
-<h2><span class="section-number">8.1. </span>レプリカ交換モンテカルロ法<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">8.1. </span>レプリカ交換モンテカルロ法<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <p>広く使用されているメトロポリスモンテカルロ法は、局所安定配置に捕まりやすく、そこでサンプリングが行き詰まる傾向があります。
 レプリカ交換法は、計算対象の系のコピー（レプリカ）を使って、この問題を克服することを目的としています。
 レプリカ交換法は、大まかに次のように説明できます（より正確な説明については、下記の文献を参照してください）。
@@ -75,7 +74,7 @@
 </ul>
 </section>
 <section id="id3">
-<h2><span class="section-number">8.2. </span>ポピュレーションアニーリングモンテカルロ法<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">8.2. </span>ポピュレーションアニーリングモンテカルロ法<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
 <p>基底状態を得るためのモンテカルロ法として、シミュレーテッドアニーリング (SA) 法が知られています。
 これは、温度一定のもとモンテカルロサンプリングを行い、一定のモンテカルロステップ数を実行した後に温度を強制的に下げていく手法です。
 はじめは高温での大域的な探索が行われ、シミュレーションが進むごとに低温化での局所安定配置の探索が行われます。
@@ -99,7 +98,7 @@ AIS では計算が進むごとに NJ重みのばらつきが大きくなり、�
 </ul>
 </section>
 <section id="id4">
-<h2><span class="section-number">8.3. </span>配置と更新<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">8.3. </span>配置と更新<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
 <p>ここでは、 <a class="reference internal" href="#alg-sampling"><span class="std std-numref">図 8.1</span></a> を例にabICSでの格子配置の定義とモンテカルロ法での更新の概要を説明します。
 (a)-(c)は <code class="docutils literal notranslate"><span class="pre">unitcell</span></code> 、 <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> 、 <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> の概念図で、青丸、緑丸、黒丸はそれぞれ <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> で定義される原子種、星印は <code class="docutils literal notranslate"><span class="pre">defect_structure</span></code> で定義される欠陥が入る位置を表します。
 (d)は  <code class="docutils literal notranslate"><span class="pre">base_structure</span></code> で原子種を指定する場合の概念図です。
@@ -118,7 +117,7 @@ orange は2種の原子種から構成される4原子で構成されるグル�
 <figure class="align-default" id="alg-sampling">
 <a class="reference internal image-reference" href="../_images/alg_sampling.png"><img alt="../_images/alg_sampling.png" src="../_images/alg_sampling.png" style="width: 513.4499999999999px; height: 1162.6499999999999px;" /></a>
 <figcaption>
-<p><span class="caption-number">図 8.1 </span><span class="caption-text">(a)-(e)abICSでの格子の定義と(f)モンテカルロ法の概要。詳細は本文に記載。</span><a class="headerlink" href="#alg-sampling" title="この画像へのパーマリンク">¶</a></p>
+<p><span class="caption-number">図 8.1 </span><span class="caption-text">(a)-(e)abICSでの格子の定義と(f)モンテカルロ法の概要。詳細は本文に記載。</span><a class="headerlink" href="#alg-sampling" title="Link to this image">¶</a></p>
 </figcaption>
 </figure>
 </section>
@@ -194,7 +193,7 @@ orange は2種の原子種から構成される4原子で構成されるグル�
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

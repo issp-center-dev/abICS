@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>3. Basic Usage &#8212; abICS 2.1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=e6880748" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -34,9 +33,9 @@
           <div class="body" role="main">
             
   <section id="basic-usage">
-<span id="sec-basic-usage"></span><h1><span class="section-number">3. </span>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this heading">¶</a></h1>
+<span id="sec-basic-usage"></span><h1><span class="section-number">3. </span>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h1>
 <section id="active-learning">
-<h2><span class="section-number">3.1. </span>Active learning<a class="headerlink" href="#active-learning" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.1. </span>Active learning<a class="headerlink" href="#active-learning" title="Link to this heading">¶</a></h2>
 <p>abICS was originally developed for directly combining first-principles calculations with replica-exchange Monte Carlo methods to perform configurational sampling,
 but the scale of the models and the number of steps that can be calculated are limited by the large computational cost of first-principles calculations.
 In contrast, Ver. 2 implements an active learning method to construct a neural network model that can rapidly predict the energy after structural optimization,
@@ -53,7 +52,7 @@ dramatically improving the sampling speed <a class="reference external" href="ht
 <p>Schematic of the active learning procedure using abICS</p>
 </section>
 <section id="preparing-an-abics-control-file">
-<span id="subsec-basic-reference"></span><h2><span class="section-number">3.2. </span>Preparing an abICS control file<a class="headerlink" href="#preparing-an-abics-control-file" title="Permalink to this heading">¶</a></h2>
+<span id="subsec-basic-reference"></span><h2><span class="section-number">3.2. </span>Preparing an abICS control file<a class="headerlink" href="#preparing-an-abics-control-file" title="Link to this heading">¶</a></h2>
 <p>First, we have to prepare an input file that controls the entire abICS framework.
 The input file of abICS is comprised of the following five sections:</p>
 <ol class="arabic simple">
@@ -191,7 +190,7 @@ ignored_species = [&quot;Al&quot;, &quot;O&quot;]
 </div>
 </section>
 <section id="preparing-a-reference-file-for-first-principles-solvers">
-<h2><span class="section-number">3.3. </span>Preparing a reference file for first-principles solvers<a class="headerlink" href="#preparing-a-reference-file-for-first-principles-solvers" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.3. </span>Preparing a reference file for first-principles solvers<a class="headerlink" href="#preparing-a-reference-file-for-first-principles-solvers" title="Link to this heading">¶</a></h2>
 <p>The user must prepare reference input file(s) for first-principles solvers that are used for
 generating the training data according to the input format of the solver.
 The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> section in the abICS input file (see below).
@@ -228,7 +227,7 @@ K_POINTS gamma
 </pre></div>
 </div>
 <section id="specific-notes-for-first-principles-solvers">
-<span id="solver-specific-notes"></span><h3><span class="section-number">3.3.1. </span>Specific notes for first-principles solvers<a class="headerlink" href="#specific-notes-for-first-principles-solvers" title="Permalink to this heading">¶</a></h3>
+<span id="solver-specific-notes"></span><h3><span class="section-number">3.3.1. </span>Specific notes for first-principles solvers<a class="headerlink" href="#specific-notes-for-first-principles-solvers" title="Link to this heading">¶</a></h3>
 <p>Every setting other than those pertaining to the atomic coordinates should be set in the solver
 reference input file.
 However, the specification of atoms to be relaxed can be controlled by abICS.
@@ -236,7 +235,7 @@ To enable the structural optimization option, please set the option to do struct
 Furthermore, to interoperate with abICS, there are a few rules regarding the file name and contents
 of the reference file for each solver. We’ll explain them below.</p>
 <section id="vasp">
-<h4>VASP<a class="headerlink" href="#vasp" title="Permalink to this heading">¶</a></h4>
+<h4>VASP<a class="headerlink" href="#vasp" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="https://www.vasp.at">https://www.vasp.at</a></p></li>
 <li><p>Reference file rules</p>
@@ -253,7 +252,7 @@ In that case, please prepare a suitable file.</p></li>
 </ul>
 </section>
 <section id="quantum-espresso">
-<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="Permalink to this heading">¶</a></h4>
+<h4>Quantum Espresso<a class="headerlink" href="#quantum-espresso" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="https://www.quantum-espresso.org">https://www.quantum-espresso.org</a></p></li>
 <li><p>Available version: 6.2 or higher</p>
@@ -271,7 +270,7 @@ In that case, please prepare a suitable file.</p></li>
 </ul>
 </section>
 <section id="openmx">
-<h4>OpenMX<a class="headerlink" href="#openmx" title="Permalink to this heading">¶</a></h4>
+<h4>OpenMX<a class="headerlink" href="#openmx" title="Link to this heading">¶</a></h4>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="http://www.openmx-square.org">http://www.openmx-square.org</a></p></li>
 <li><p>Available version: 3.9</p></li>
@@ -285,7 +284,7 @@ In that case, please prepare a suitable file.</p></li>
 </section>
 </section>
 <section id="preparing-a-reference-file-for-training-and-evaluating-the-machine-learning-model">
-<h2><span class="section-number">3.4. </span>Preparing a reference file for training and evaluating the machine learning model<a class="headerlink" href="#preparing-a-reference-file-for-training-and-evaluating-the-machine-learning-model" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.4. </span>Preparing a reference file for training and evaluating the machine learning model<a class="headerlink" href="#preparing-a-reference-file-for-training-and-evaluating-the-machine-learning-model" title="Link to this heading">¶</a></h2>
 <p>The user must prepare a reference file according to the input format of the
 machine learning model trainer and calculator to be used (only aenet is supported at the moment).
 The path of the reference file is specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section in the abICS input file (see below).
@@ -293,9 +292,9 @@ The coordinate information should not be written here because it will obviously 
 The lattice sites are specified in a separate abICS input file (see below),
 and abICS will take care of generating the coordinates section at each sampling step.</p>
 <section id="machine-learning-trainer-calculator-specific-notes">
-<span id="trainer-specific-notes"></span><h3><span class="section-number">3.4.1. </span>Machine learning trainer/calculator-specific notes<a class="headerlink" href="#machine-learning-trainer-calculator-specific-notes" title="Permalink to this heading">¶</a></h3>
+<span id="trainer-specific-notes"></span><h3><span class="section-number">3.4.1. </span>Machine learning trainer/calculator-specific notes<a class="headerlink" href="#machine-learning-trainer-calculator-specific-notes" title="Link to this heading">¶</a></h3>
 <section id="aenet">
-<h4>aenet<a class="headerlink" href="#aenet" title="Permalink to this heading">¶</a></h4>
+<h4>aenet<a class="headerlink" href="#aenet" title="Link to this heading">¶</a></h4>
 <ul>
 <li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
 <li><p>Checked with version 2.0.4.</p></li>
@@ -322,21 +321,21 @@ and abICS will take care of generating the coordinates section at each sampling 
 </section>
 </section>
 <section id="creating-a-set-of-training-data">
-<h2><span class="section-number">3.5. </span>Creating a set of training data<a class="headerlink" href="#creating-a-set-of-training-data" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.5. </span>Creating a set of training data<a class="headerlink" href="#creating-a-set-of-training-data" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Generate a set of input files for the first-principle calculation using <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code>.</p></li>
 <li><p>Perform the first-principle calculation with these inputs. (In the tutorial GNU parallel is used for the high-throughput calculation.)</p></li>
 </ol>
 </section>
 <section id="creating-a-neural-network">
-<h2><span class="section-number">3.6. </span>Creating a neural network<a class="headerlink" href="#creating-a-neural-network" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.6. </span>Creating a neural network<a class="headerlink" href="#creating-a-neural-network" title="Link to this heading">¶</a></h2>
 <ol class="arabic simple">
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">abics_mlref</span></code> again to convert the results of the first-principle calculation into a common format that <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> will read.</p></li>
 <li><p>Execute <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> to create a neural network. When the calculation is completed successfully, the trained neural network is output in <code class="docutils literal notranslate"><span class="pre">baseinput</span></code> directory.</p></li>
 </ol>
 </section>
 <section id="monte-carlo-sampling">
-<h2><span class="section-number">3.7. </span>Monte Carlo sampling<a class="headerlink" href="#monte-carlo-sampling" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">3.7. </span>Monte Carlo sampling<a class="headerlink" href="#monte-carlo-sampling" title="Link to this heading">¶</a></h2>
 <p>By using <code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code>, Monte Carlo sampling can be performed by using the trained neural network.
 (The number of MPI processes must be larger than the number of replicas.)
 Running the program will create directories named by the replica numbers under the current directory,
@@ -423,7 +422,7 @@ For details, please refer to the <a class="reference internal" href="../tutorial
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

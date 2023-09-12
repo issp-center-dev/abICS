@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 
-<html lang="ja">
+<html lang="ja" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>4.1. ニューラルネットワークの構築 &#8212; abICS 2.1.0 ドキュメント</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/translations.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=e6880748" />
+    <script src="../_static/documentation_options.js?v=b9788144"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=4dbe4bdc"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
     <link rel="next" title="5. 入力ファイルフォーマット" href="../inputfiles/index.html" />
@@ -34,7 +33,7 @@
           <div class="body" role="main">
             
   <section id="sec-tutorial">
-<span id="id1"></span><h1><span class="section-number">4.1. </span>ニューラルネットワークの構築<a class="headerlink" href="#sec-tutorial" title="この見出しへのパーマリンク">¶</a></h1>
+<span id="id1"></span><h1><span class="section-number">4.1. </span>ニューラルネットワークの構築<a class="headerlink" href="#sec-tutorial" title="Link to this heading">¶</a></h1>
 <p>ここでは、aenet を用いてニューラルネットワークモデルの構築を行う方法について記載します。
 第一原理ソルバーには Quantum ESPRESSO (QE) を使います。
 例題としてMgAl2O4スピネルのMg/Al反転度の温度依存性を計算します。
@@ -44,9 +43,9 @@
 以下では aenet および GNU parallel のインストールについても簡単に説明していますが、システムに既にインストールされている場合はそちらを使ってください。
 なお、計算の実行環境は物性研究所スーパーコンピュータシステムBのohtakaを利用しています。</p>
 <section id="id2">
-<h2><span class="section-number">4.1.1. </span>事前準備<a class="headerlink" href="#id2" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">4.1.1. </span>事前準備<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h2>
 <section id="aenet">
-<h3>aenetのインストール<a class="headerlink" href="#aenet" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>aenetのインストール<a class="headerlink" href="#aenet" title="Link to this heading">¶</a></h3>
 <p>abICSでは、ニューラルネットワークモデルの構築のためにaenetを利用します。
 aenetは <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a> からダウンロードできます。
 Documentation の Installation に従ってインストールしてください。
@@ -55,7 +54,7 @@ Documentation の Installation に従ってインストールしてください�
 そのため、makefilesの下にあるserial版もインストールするようにしてください。</p>
 </section>
 <section id="gnu-parallel">
-<h3>GNU parallelのインストール<a class="headerlink" href="#gnu-parallel" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>GNU parallelのインストール<a class="headerlink" href="#gnu-parallel" title="Link to this heading">¶</a></h3>
 <p>チュートリアルでは、GNU parallelを用いて Quantum Espresso による第一原理計算を並列実行します。
 GNU parallelは <a class="reference external" href="https://www.gnu.org/software/parallel/">https://www.gnu.org/software/parallel/</a> からダウンロードできます (Macの場合はhomebrewにより直接インストールすることも可能です)。
 インストールは基本的には、ダウンロードして解凍したディレクトリ に移動した後、</p>
@@ -66,7 +65,7 @@ GNU parallelは <a class="reference external" href="https://www.gnu.org/software
 </section>
 </section>
 <section id="id3">
-<h2><span class="section-number">4.1.2. </span>学習データ生成用入力ファイルの準備<a class="headerlink" href="#id3" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">4.1.2. </span>学習データ生成用入力ファイルの準備<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
 <p>ニューラルネットワークの作成にあたり、
 原子配置を入力、エネルギーを出力とした学習データを、
 第一原理計算により作成する必要があります。
@@ -77,7 +76,7 @@ GNU parallelは <a class="reference external" href="https://www.gnu.org/software
 </ul>
 <p>に関する入力ファイルを準備する必要があります。</p>
 <section id="abics-input-toml">
-<h3>abICS制御ファイル (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#abics-input-toml" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>abICS制御ファイル (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#abics-input-toml" title="Link to this heading">¶</a></h3>
 <p>計算対象とする格子構造の定義と、abICSによる能動学習のループ全体の制御、およびレプリカ交換モンテカルロ法に関するパラメータを設定します。
 <code class="docutils literal notranslate"><span class="pre">st2abics</span></code> ツールを使うことで、結晶構造ファイルから <code class="docutils literal notranslate"><span class="pre">input.toml</span></code> のひな形を自動で生成することができます。</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd [example_dir]
@@ -86,7 +85,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 </div>
 <p>以下では <code class="docutils literal notranslate"><span class="pre">input.toml</span></code> の中で第一原理計算によ る学習データに関連するセクションの設定内容をもう少し詳しく解説します。</p>
 <section id="i-mlref">
-<h4>(i)  <code class="docutils literal notranslate"><span class="pre">[mlref]</span></code> セクション<a class="headerlink" href="#i-mlref" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>(i)  <code class="docutils literal notranslate"><span class="pre">[mlref]</span></code> セクション<a class="headerlink" href="#i-mlref" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mlref]</span>
 <span class="n">nreplicas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span>
 <span class="n">ndata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
@@ -98,7 +97,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 何個のデータを機械学習用に取り出すかを指定します。従って、RXMC計算で出力される配置の数以下の値に設定してください。</p>
 </section>
 <section id="ii-mlref-solver">
-<h4>(ii)  <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクション<a class="headerlink" href="#ii-mlref-solver" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>(ii)  <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクション<a class="headerlink" href="#ii-mlref-solver" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">mlref</span><span class="p">.</span><span class="n">solver</span><span class="p">]</span><span class="w"> </span><span class="c1"># 参照第一原理ソルバーの設定</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;qe&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">]</span><span class="w"> </span><span class="c1">#, &#39;./baseinput_ref&#39;]</span>
@@ -121,7 +120,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 モデルを使って訓練データを生成する場合は、無視する元素を指定します。</p>
 </section>
 <section id="iii-config">
-<h4>(iii)  <code class="docutils literal notranslate"><span class="pre">[config]</span></code> セクション<a class="headerlink" href="#iii-config" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>(iii)  <code class="docutils literal notranslate"><span class="pre">[config]</span></code> セクション<a class="headerlink" href="#iii-config" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">config</span><span class="p">]</span><span class="w"> </span><span class="c1"># 以下、結晶格子の情報と、格子上に配置される原子や空孔の情報が続く</span>
 <span class="n">unitcell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mf">8.1135997772</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000</span><span class="p">],</span>
 <span class="w">            </span><span class="p">[</span><span class="mf">0.0000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">8.1135997772</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000</span><span class="p">],</span>
@@ -147,7 +146,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 </section>
 </section>
 <section id="qe">
-<h3>QE参照ファイルの準備<a class="headerlink" href="#qe" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>QE参照ファイルの準備<a class="headerlink" href="#qe" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">baseinput_ref</span></code> にQEのscf計算で参照する入力ファイルを配置します。
 以下、サンプルディレクトリにある <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> ファイルを記載します。</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&amp;</span><span class="n">CONTROL</span>
@@ -194,7 +193,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 </section>
 </section>
 <section id="id4">
-<h2><span class="section-number">4.1.3. </span>ニューラルネットワーク生成用入力ファイルの準備<a class="headerlink" href="#id4" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">4.1.3. </span>ニューラルネットワーク生成用入力ファイルの準備<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
 <p>本チュートリアルではaenetを用いニューラルネットワークを作成します。
 ニューラルネットワークの作成には、</p>
 <ul class="simple">
@@ -203,9 +202,9 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 </ul>
 <p>に関する入力ファイルを準備・設定する必要があります。</p>
 <section id="id5">
-<h3>abICS制御ファイル (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id5" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>abICS制御ファイル (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <section id="i-train">
-<h4>(i)  <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクション<a class="headerlink" href="#i-train" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>(i)  <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクション<a class="headerlink" href="#i-train" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./aenet_train_input&#39;</span>
@@ -229,12 +228,12 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 </section>
 </section>
 <section id="id6">
-<h3>aenet用の入力ファイル<a class="headerlink" href="#id6" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>aenet用の入力ファイル<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <p>aenet用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で
 設定したディレクトリ内の <code class="docutils literal notranslate"><span class="pre">generate</span></code> 、 <code class="docutils literal notranslate"><span class="pre">train</span></code> 、および <code class="docutils literal notranslate"><span class="pre">predict</span></code>
 ディレクトリに設置します。</p>
 <section id="generate">
-<h4>generate<a class="headerlink" href="#generate" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>generate<a class="headerlink" href="#generate" title="Link to this heading">¶</a></h4>
 <p>aenetでは、訓練用の原子配置とエネルギーのデータを、原子環境記述子とエネルギーの関係に変換した中間バイナリフォーマットにまとめてから訓練を行います。
 この変換を行う <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> 用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">generate</span></code> ディレクトリに設置します。</p>
 <p>まず、原子種ごとの記述子設定ファイルを用意します。ファイル名は任意ですが、チュートリアルでは
@@ -281,7 +280,7 @@ abICSは <code class="docutils literal notranslate"><span class="pre">generate.i
 <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> を実行します。</p>
 </section>
 <section id="train">
-<h4>train<a class="headerlink" href="#train" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>train<a class="headerlink" href="#train" title="Link to this heading">¶</a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">generate</span></code> で生成された訓練データを読み込み、訓練を行う
 <code class="docutils literal notranslate"><span class="pre">train.x</span></code> 用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">train</span></code> ディレクトリに設置します。
 ファイル名は <code class="docutils literal notranslate"><span class="pre">train.in</span></code> としてください：</p>
@@ -310,7 +309,7 @@ NETWORKS
 ファイル名と、ニューラルネットワーク構造、および活性化関数を指定します。</p>
 </section>
 <section id="predict">
-<h4>predict<a class="headerlink" href="#predict" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>predict<a class="headerlink" href="#predict" title="Link to this heading">¶</a></h4>
 <p>訓練したポテンシャルモデルを使って入力座標に対してエネルギーを
 評価するための <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> 用の入力ファイル <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> を、 <code class="docutils literal notranslate"><span class="pre">predict</span></code>
 ディレクトリに設置します：</p>
@@ -336,7 +335,7 @@ NETWORKS
 </section>
 </section>
 <section id="id7">
-<h3>計算実行<a class="headerlink" href="#id7" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>計算実行<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <p>入力ファイルの準備・設定が完了後、実際に計算する方法について説明します。
 サンプルスクリプトには、計算手順を簡略化するためのスクリプト  <code class="docutils literal notranslate"><span class="pre">AL.sh</span></code> が準備されています。
 <code class="docutils literal notranslate"><span class="pre">run_pw.sh</span></code> はQEの計算を実行するためのスクリプトで、後述する <code class="docutils literal notranslate"><span class="pre">parallel_run.sh</span></code> 内部で呼び出されます。
@@ -407,16 +406,16 @@ abics_train<span class="w"> </span>input.toml<span class="w"> </span>&gt;&gt;<sp
 </section>
 </section>
 <section id="id8">
-<h1><span class="section-number">4.2. </span>モンテカルロサンプリング<a class="headerlink" href="#id8" title="この見出しへのパーマリンク">¶</a></h1>
+<h1><span class="section-number">4.2. </span>モンテカルロサンプリング<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h1>
 <p>次に、学習したニューラルネットワークポテンシャルを用い、abICSによりモンテカルロサンプリングをします。</p>
 <section id="id9">
-<h2><span class="section-number">4.2.1. </span>入力ファイルの準備<a class="headerlink" href="#id9" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">4.2.1. </span>入力ファイルの準備<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h2>
 <p>abICS でモンテカルロサンプリングを行うにはabICS制御ファイルでパラメータの設定をする必要があります。</p>
 <section id="id10">
-<h3>abICS制御ファイル (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id10" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>abICS制御ファイル (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
 <p>レプリカ交換モンテカルロ法に関連するセクション <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> で計算パラメータを設定します。</p>
 <section id="i-sampling">
-<h4>(i)  <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> セクション<a class="headerlink" href="#i-sampling" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>(i)  <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> セクション<a class="headerlink" href="#i-sampling" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling]</span>
 <span class="n">nreplicas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span>
 <span class="n">nprocs_per_replica</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
@@ -436,7 +435,7 @@ abics_train<span class="w"> </span>input.toml<span class="w"> </span>&gt;&gt;<sp
 基本的に、 <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> は <code class="docutils literal notranslate"><span class="pre">[mlref]</span></code> セクションと同じ値にしてください。</p>
 </section>
 <section id="ii-sampling-solver">
-<h4>(ii)  <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> セクション<a class="headerlink" href="#ii-sampling-solver" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>(ii)  <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> セクション<a class="headerlink" href="#ii-sampling-solver" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">sampling</span><span class="p">.</span><span class="n">solver</span><span class="p">]</span><span class="w"> </span><span class="c1"># RXMC計算に使うソルバーの設定</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
 <span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s">&#39;predict.x-2.0.4-ifort_serial&#39;</span>
@@ -459,7 +458,7 @@ abics_train<span class="w"> </span>input.toml<span class="w"> </span>&gt;&gt;<sp
 </section>
 </section>
 <section id="id11">
-<h2><span class="section-number">4.2.2. </span>計算実行<a class="headerlink" href="#id11" title="この見出しへのパーマリンク">¶</a></h2>
+<h2><span class="section-number">4.2.2. </span>計算実行<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h2>
 <p>サンプルスクリプトには、計算手順を簡略化するためのスクリプト  <code class="docutils literal notranslate"><span class="pre">MC.sh</span></code> が準備されています。
 <code class="docutils literal notranslate"><span class="pre">MC.sh</span></code> スクリプトの中身は以下の通りです。</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/bin/sh</span>
@@ -506,12 +505,12 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 します。</p>
 </section>
 <section id="lammps">
-<span id="tutorial-aenet-lammps"></span><h2><span class="section-number">4.2.3. </span>LAMMPS インターフェースを利用したサンプリング<a class="headerlink" href="#lammps" title="この見出しへのパーマリンク">¶</a></h2>
+<span id="tutorial-aenet-lammps"></span><h2><span class="section-number">4.2.3. </span>LAMMPS インターフェースを利用したサンプリング<a class="headerlink" href="#lammps" title="Link to this heading">¶</a></h2>
 <p>モンテカルロサンプリングにおいては、 LAMMPSインターフェースをもちいた <code class="docutils literal notranslate"><span class="pre">aenet</span></code> ライブラリ呼び出しにも対応しています(<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> ソルバー)。
 ファイル入出力などを行わないため、 <code class="docutils literal notranslate"><span class="pre">aenet</span></code> をプロセスとして呼び出すよりも高速に動作します。
 入力ファイル例としては <code class="docutils literal notranslate"><span class="pre">examples/active_learning_qe_lammps</span></code> を参考にしてください。</p>
 <section id="aenet-lammps">
-<h3>aenet-lammps のインストール<a class="headerlink" href="#aenet-lammps" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>aenet-lammps のインストール<a class="headerlink" href="#aenet-lammps" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> の利用には、 <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> を組み込んだ LAMMPS のインストールが必要です。</p>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps">https://github.com/HidekiMori-CIT/aenet-lammps</a></p></li>
@@ -543,13 +542,13 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 </ul>
 </section>
 <section id="id12">
-<h3>モデル学習<a class="headerlink" href="#id12" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>モデル学習<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
 <p>モデル学習のやりかたは前述の <code class="docutils literal notranslate"><span class="pre">aenet</span></code> によるものと同様です。</p>
 </section>
 <section id="id13">
-<h3>サンプリング<a class="headerlink" href="#id13" title="この見出しへのパーマリンク">¶</a></h3>
+<h3>サンプリング<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
 <section id="id14">
-<h4>predict 用入力ファイル<a class="headerlink" href="#id14" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>predict 用入力ファイル<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">predict.x</span></code> でつかわれていた入力ファイル <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> のかわりに、以下のような入力ファイル <code class="docutils literal notranslate"><span class="pre">in.lammps</span></code> を <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pair_style</span>      <span class="n">aenet</span>
 <span class="n">pair_coeff</span>      <span class="o">*</span> <span class="o">*</span> <span class="n">v00</span> <span class="n">Al</span> <span class="n">Mg</span> <span class="mi">15</span><span class="n">t</span><span class="o">-</span><span class="mi">15</span><span class="n">t</span><span class="o">.</span><span class="n">nn</span> <span class="n">Al</span> <span class="n">Mg</span>
@@ -559,7 +558,7 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 <p>入力ファイルフォーマットの詳細は <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> リポジトリの README を参照してください。</p>
 </section>
 <section id="id15">
-<h4>サンプリング<a class="headerlink" href="#id15" title="この見出しへのパーマリンク">¶</a></h4>
+<h4>サンプリング<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">[sanmping.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">type</span></code> を <code class="docutils literal notranslate"><span class="pre">'aenetPyLammps'</span></code> に、 <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> を <code class="docutils literal notranslate"><span class="pre">'function'</span></code> に設定すると、 LAMMPS インターフェースを利用したサンプリングを実行できます。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenetPyLammps&#39;</span>
@@ -644,7 +643,7 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |

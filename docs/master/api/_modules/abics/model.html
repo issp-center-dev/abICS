@@ -10,11 +10,11 @@
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -98,7 +98,9 @@
 <span class="sd">&quot;&quot;&quot;Defines base classes for Monte Carlo simulations&quot;&quot;&quot;</span>
 
 
-<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../abics.model.html#abics.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+<div class="viewcode-block" id="Model">
+<a class="viewcode-back" href="../../abics.model.html#abics.model.Model">[docs]</a>
+<span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This class defines a model whose energy equals 0 no matter the configuration, and the configuration</span>
 <span class="sd">    never changes.</span>
 <span class="sd">    This is a base template for building useful models.&quot;&quot;&quot;</span>
@@ -107,7 +109,9 @@
 
     <span class="c1"># def __init__(self):</span>
 
-<div class="viewcode-block" id="Model.energy"><a class="viewcode-back" href="../../abics.model.html#abics.model.Model.energy">[docs]</a>    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="Model.energy">
+<a class="viewcode-back" href="../../abics.model.html#abics.model.Model.energy">[docs]</a>
+    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate energy of configuration: input: config</span>
@@ -124,7 +128,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 
-<div class="viewcode-block" id="Model.trialstep"><a class="viewcode-back" href="../../abics.model.html#abics.model.Model.trialstep">[docs]</a>    <span class="nd">@abstractmethod</span>
+
+<div class="viewcode-block" id="Model.trialstep">
+<a class="viewcode-back" href="../../abics.model.html#abics.model.Model.trialstep">[docs]</a>
+    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">trialstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Define a trial step on config</span>
 
@@ -154,7 +161,10 @@
         <span class="c1"># which can sometimes be costly</span>
         <span class="o">...</span></div>
 
-<div class="viewcode-block" id="Model.newconfig"><a class="viewcode-back" href="../../abics.model.html#abics.model.Model.newconfig">[docs]</a>    <span class="nd">@abstractmethod</span>
+
+<div class="viewcode-block" id="Model.newconfig">
+<a class="viewcode-back" href="../../abics.model.html#abics.model.Model.newconfig">[docs]</a>
+    <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Update config by using the trial step, dconfig</span>
@@ -172,7 +182,9 @@
 <span class="sd">        config: config object</span>
 <span class="sd">            updated configuration</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">config</span></div></div>
+        <span class="k">return</span> <span class="n">config</span></div>
+</div>
+
 
 <span class="c1"># For backward compatibility</span>
 <span class="k">if</span> <span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>

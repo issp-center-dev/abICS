@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Example by using QuantumESPRESSO &#8212; abICS 2.1.0 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=e6880748" />
+    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
    
@@ -31,9 +30,9 @@
           <div class="body" role="main">
             
   <section id="example-by-using-quantumespresso">
-<h1>Example by using QuantumESPRESSO<a class="headerlink" href="#example-by-using-quantumespresso" title="Permalink to this heading">¶</a></h1>
+<h1>Example by using QuantumESPRESSO<a class="headerlink" href="#example-by-using-quantumespresso" title="Link to this heading">¶</a></h1>
 <section id="preparing-the-input-files-for-abics">
-<h2>Preparing the input files for abICS<a class="headerlink" href="#preparing-the-input-files-for-abics" title="Permalink to this heading">¶</a></h2>
+<h2>Preparing the input files for abICS<a class="headerlink" href="#preparing-the-input-files-for-abics" title="Link to this heading">¶</a></h2>
 <p>The input file of abICS is <code class="docutils literal notranslate"><span class="pre">input_qe.toml</span></code> .</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
 nreplicas = 2
@@ -160,7 +159,7 @@ num = 8
 In this example, abICS will sample the possible configurations of 16 <code class="docutils literal notranslate"><span class="pre">Al</span></code> and 8 <code class="docutils literal notranslate"><span class="pre">Mg</span></code> atoms on the lattice specified by <code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code>.</p>
 </section>
 <section id="preparing-the-input-file-of-qe">
-<h2>Preparing the input file of QE<a class="headerlink" href="#preparing-the-input-file-of-qe" title="Permalink to this heading">¶</a></h2>
+<h2>Preparing the input file of QE<a class="headerlink" href="#preparing-the-input-file-of-qe" title="Link to this heading">¶</a></h2>
 <p>abICS generates the input files of the solver from the internally-held structure information, but information other than the structure such as pseudopotential information must be supplied by the user.
 In the case of QE, such information is specified by <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> in the directory specified by <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> in the format of the input file of <code class="docutils literal notranslate"><span class="pre">pw.x</span></code>.
 Based on this file, an input file with unit cells and atomic structure is automatically generated.</p>
@@ -175,7 +174,7 @@ Based on this file, an input file with unit cells and atomic structure is automa
 </ul>
 </section>
 <section id="execution-and-analysis">
-<h2>Execution and analysis<a class="headerlink" href="#execution-and-analysis" title="Permalink to this heading">¶</a></h2>
+<h2>Execution and analysis<a class="headerlink" href="#execution-and-analysis" title="Link to this heading">¶</a></h2>
 <p>Please refer to <a class="reference internal" href="../how_to_use/index.html#sec-basic-usage"><span class="std std-ref">Basic Usage</span></a> section for information on setting the number of processes and options for running MPI.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 abics_sampling input_qe.toml
 </pre></div>
@@ -268,7 +267,7 @@ For example, if you perform this calculation with 17 replicas, 1000 steps, and <
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
