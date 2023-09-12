@@ -51,6 +51,20 @@ License
 
 This package is distributed under GNU General Public License version 3 (GPL v3) or later.
 
+We hope that you cite the following article when you publish the results using abICS.
+
+Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, `arXiv:2309.04769 <https://arxiv.org/abs/2309.04769>`_.
+
+Bibtex:
+
+@misc{kasamatsu2023configuration,
+title={Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)},
+author={Shusuke Kasamatsu and Yuichi Motoyama and Kazuyoshi Yoshimi and Tatsumi Aoyama},
+year={2023},
+eprint={2309.04769},
+archivePrefix={arXiv},
+primaryClass={cond-mat.mtrl-sci}
+}
 
 Copyright
 --------------
@@ -58,4 +72,3 @@ Copyright
 *(c) 2019- The University of Tokyo. All rights reserved.*
 
 This software was developed with the support of \"*Project for advancement of software usability in materials science*\" of The Institute for Solid State Physics, The University of Tokyo. 
-     

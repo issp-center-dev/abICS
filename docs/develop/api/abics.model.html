@@ -11,11 +11,11 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -92,17 +92,17 @@
            <div itemprop="articleBody">
              
   <section id="module-abics.model">
-<span id="abics-model-module"></span><h1>abics.model module<a class="headerlink" href="#module-abics.model" title="Permalink to this heading"></a></h1>
+<span id="abics-model-module"></span><h1>abics.model module<a class="headerlink" href="#module-abics.model" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="abics.model.Model">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/abics/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">abics.model.</span></span><span class="sig-name descname"><span class="pre">Model</span></span><a class="reference internal" href="_modules/abics/model.html#Model"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This class defines a model whose energy equals 0 no matter the configuration, and the configuration
 never changes.
 This is a base template for building useful models.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="abics.model.Model.energy">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abics/model.html#Model.energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model.energy" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="_modules/abics/model.html#Model.energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model.energy" title="Link to this definition"></a></dt>
 <dd><p>Calculate energy of configuration: input: config</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -119,12 +119,12 @@ This is a base template for building useful models.</p>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abics.model.Model.model_name">
-<span class="sig-name descname"><span class="pre">model_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#abics.model.Model.model_name" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">model_name</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></em><a class="headerlink" href="#abics.model.Model.model_name" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="abics.model.Model.newconfig">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">newconfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dconfig</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/model.html#Model.newconfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model.newconfig" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">newconfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dconfig</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/abics/model.html#Model.newconfig"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model.newconfig" title="Link to this definition"></a></dt>
 <dd><p>Update config by using the trial step, dconfig</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -145,7 +145,7 @@ This may be mutated through this function</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="abics.model.Model.trialstep">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">trialstep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abics/model.html#Model.trialstep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model.trialstep" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">trialstep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/abics/model.html#Model.trialstep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#abics.model.Model.trialstep" title="Link to this definition"></a></dt>
 <dd><p>Define a trial step on config</p>
 <p>Returns dconfig, which can contain the minimal information for
 constructing the trial configuration from config to be used in newconfig().
@@ -172,7 +172,7 @@ from config to be used in newconfig()</p></li>
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="abics.model.model">
-<span class="sig-prename descclassname"><span class="pre">abics.model.</span></span><span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#abics.model.model" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">abics.model.</span></span><span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#abics.model.model" title="Link to this definition"></a></dt>
 <dd><p>alias of <a class="reference internal" href="#abics.model.Model" title="abics.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a></p>
 </dd></dl>
 

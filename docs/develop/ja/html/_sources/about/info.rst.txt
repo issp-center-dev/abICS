@@ -51,6 +51,21 @@ abICSは以下のメンバーで開発しています.
 --------------
 本ソフトウェアのプログラムパッケージおよびソースコード一式はGNU General Public License version 3 (GPL v3) に準じて配布されています。
 
+abICSを引用する際は, 以下の文献を引用してください。
+
+Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, `arXiv:2309.04769 <https://arxiv.org/abs/2309.04769>`_.
+
+Bibtex:
+
+@misc{kasamatsu2023configuration,
+title={Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)},
+author={Shusuke Kasamatsu and Yuichi Motoyama and Kazuyoshi Yoshimi and Tatsumi Aoyama},
+year={2023},
+eprint={2309.04769},
+archivePrefix={arXiv},
+primaryClass={cond-mat.mtrl-sci}
+}
+
 コピーライト
 ------------------
 

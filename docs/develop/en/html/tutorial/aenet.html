@@ -1,17 +1,16 @@
-
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>4.1. Constructing a neural network model &#8212; abICS 2.1-dev documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=e6880748" />
+    <script src="../_static/documentation_options.js?v=6fddfc0f"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="5. Input Files Format" href="../inputfiles/index.html" />
@@ -33,7 +32,7 @@
           <div class="body" role="main">
             
   <section id="constructing-a-neural-network-model">
-<span id="sec-tutorial"></span><h1><span class="section-number">4.1. </span>Constructing a neural network model<a class="headerlink" href="#constructing-a-neural-network-model" title="Permalink to this heading">¶</a></h1>
+<span id="sec-tutorial"></span><h1><span class="section-number">4.1. </span>Constructing a neural network model<a class="headerlink" href="#constructing-a-neural-network-model" title="Link to this heading">¶</a></h1>
 <p>This section contains instructions on how to construct a neural network using <code class="docutils literal notranslate"><span class="pre">aenet</span></code>
 to reproduce first-principles energies from Quantum ESPRESSO (QE).
 Here, we will consider the temperature-dependent degree of Mg/Al inversion in
@@ -44,9 +43,9 @@ The set of input files used in this tutorial can be found in <code class="docuti
 In the following, we briefly describe the installation of aenet and GNU parallel, but you may skip the section if they are preinstalled in your system.
 We will also use ohtaka, the supercomputer system B of the Institute for Solid State Physics, as the environment for running the calculations.</p>
 <section id="preparation">
-<h2><span class="section-number">4.1.1. </span>Preparation<a class="headerlink" href="#preparation" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">4.1.1. </span>Preparation<a class="headerlink" href="#preparation" title="Link to this heading">¶</a></h2>
 <section id="installation-of-aenet">
-<h3>Installation of aenet<a class="headerlink" href="#installation-of-aenet" title="Permalink to this heading">¶</a></h3>
+<h3>Installation of aenet<a class="headerlink" href="#installation-of-aenet" title="Link to this heading">¶</a></h3>
 <p>In abICS, we use aenet to build neural network models.
 You can download aenet from <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a>.
 Follow the Installation instructions in the Documentation to install it.
@@ -55,7 +54,7 @@ For <code class="docutils literal notranslate"><span class="pre">train.x</span><
 For this reason, you should also install the serial version under makefiles.</p>
 </section>
 <section id="installation-of-gnu-parallel">
-<h3>Installation of GNU parallel<a class="headerlink" href="#installation-of-gnu-parallel" title="Permalink to this heading">¶</a></h3>
+<h3>Installation of GNU parallel<a class="headerlink" href="#installation-of-gnu-parallel" title="Link to this heading">¶</a></h3>
 <p>In this tutorial, we will use GNU parallel to run first-principles calculations with Quantum Espresso in parallel.
 Therefore, you need to install GNU parallel first.
 GNU parallel can be downloaded from <a class="reference external" href="https://www.gnu.org/software/parallel/">https://www.gnu.org/software/parallel/</a> (on a Mac, it can also be installed directly by homebrew).
@@ -68,12 +67,12 @@ $ make &amp;&amp; make install
 </section>
 </section>
 <section id="preparation-of-input-files-for-training-data-set-generation">
-<h2><span class="section-number">4.1.2. </span>Preparation of input files for training data set generation<a class="headerlink" href="#preparation-of-input-files-for-training-data-set-generation" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">4.1.2. </span>Preparation of input files for training data set generation<a class="headerlink" href="#preparation-of-input-files-for-training-data-set-generation" title="Link to this heading">¶</a></h2>
 <p>A set of training data is required for creating a neural network
 that relate the configurations of atoms as input and the energy as output by the first-principle calculations.
 To generate the data set, the input files need to be prepared for both abICS and the first-principle solver.</p>
 <section id="preparation-of-the-abics-control-file-input-toml">
-<h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#preparation-of-the-abics-control-file-input-toml" title="Permalink to this heading">¶</a></h3>
+<h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#preparation-of-the-abics-control-file-input-toml" title="Link to this heading">¶</a></h3>
 <p>This file contains the definition of the lattice structure to be calculated, the control of the entire active learning cycles by abICS, and the parameters for the replica exchange Monte Carlo method.
 By using the st2abics tool, you can automatically generate the input.toml template from the crystal structure file.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd [example_dir].
@@ -82,7 +81,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 </div>
 <p>In this section, we will explain the settings for each section of <code class="docutils literal notranslate"><span class="pre">input.toml</span></code> in more detail.</p>
 <section id="i-mlref-section">
-<h4>(i) <code class="docutils literal notranslate"><span class="pre">[mlref]</span></code> section<a class="headerlink" href="#i-mlref-section" title="Permalink to this heading">¶</a></h4>
+<h4>(i) <code class="docutils literal notranslate"><span class="pre">[mlref]</span></code> section<a class="headerlink" href="#i-mlref-section" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mlref]</span>
 <span class="n">nreplicas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span>
 <span class="n">ndata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span>
@@ -94,7 +93,7 @@ Basically, <code class="docutils literal notranslate"><span class="pre">nreplica
 Therefore, it should be set to a value less than or equal to the number of configurations generated by the RXMC calculation, <code class="docutils literal notranslate"><span class="pre">nsteps/sample_frequency</span></code> in <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> section.</p>
 </section>
 <section id="ii-mlref-solver-section">
-<h4>(ii) <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> section<a class="headerlink" href="#ii-mlref-solver-section" title="Permalink to this heading">¶</a></h4>
+<h4>(ii) <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> section<a class="headerlink" href="#ii-mlref-solver-section" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">mlref</span><span class="p">.</span><span class="n">solver</span><span class="p">]</span><span class="w"> </span><span class="c1"># Set up a reference ab initio solver.</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;qe&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">]</span><span class="w"> </span><span class="c1">#, &#39;./baseinput_ref&#39;]</span>
@@ -116,7 +115,7 @@ In this case, the first calculation starts from the structure in which all atoms
 When a model is employed for the data generation in which some atomic species are ignored, they are specified in <code class="docutils literal notranslate"><span class="pre">ignore-species</span></code>.</p>
 </section>
 <section id="iii-config-section">
-<h4>(iii) <code class="docutils literal notranslate"><span class="pre">[config]</span></code> section<a class="headerlink" href="#iii-config-section" title="Permalink to this heading">¶</a></h4>
+<h4>(iii) <code class="docutils literal notranslate"><span class="pre">[config]</span></code> section<a class="headerlink" href="#iii-config-section" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">config</span><span class="p">]</span><span class="w"> </span><span class="c1"># Set up information about the crystal lattice and the atoms and vacancies on the lattice.</span>
 <span class="n">unitcell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mf">8.1135997772</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">],</span>
 <span class="w">            </span><span class="p">[</span><span class="mf">0.0000000000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">8.1135997772</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">],</span>
@@ -139,7 +138,7 @@ If <code class="docutils literal notranslate"><span class="pre">abics_sampling</
 based on this information, and the input files for the first-principle calculation are produced.
 Once <code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> is executed, the input files will be generated from the atomic positions obtained from the Monte Carlo sampling.</p>
 <section id="preparation-of-the-qe-reference-file">
-<h5>Preparation of the QE reference file<a class="headerlink" href="#preparation-of-the-qe-reference-file" title="Permalink to this heading">¶</a></h5>
+<h5>Preparation of the QE reference file<a class="headerlink" href="#preparation-of-the-qe-reference-file" title="Link to this heading">¶</a></h5>
 <p>Place the input file to be referenced in the QE scf calculation in <code class="docutils literal notranslate"><span class="pre">baseinput_ref</span></code>.
 The following is a description of the <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> file in the sample directory.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&amp;</span><span class="n">CONTROL</span>
@@ -186,13 +185,13 @@ The pseudopotentials used in this sample can be downloaded from the following li
 </section>
 </section>
 <section id="preparation-of-input-files-for-training-the-neural-network">
-<h2><span class="section-number">4.1.3. </span>Preparation of input files for training the neural network<a class="headerlink" href="#preparation-of-input-files-for-training-the-neural-network" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">4.1.3. </span>Preparation of input files for training the neural network<a class="headerlink" href="#preparation-of-input-files-for-training-the-neural-network" title="Link to this heading">¶</a></h2>
 <p>In this tutorial we use <code class="docutils literal notranslate"><span class="pre">aenet</span></code> to train the neural netowrk. We need to prepare the input files for
 <code class="docutils literal notranslate"><span class="pre">abICS</span></code> and <code class="docutils literal notranslate"><span class="pre">aenet</span></code>.</p>
 <section id="id1">
-<h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
+<h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <section id="i-train-section">
-<h4>(i) <code class="docutils literal notranslate"><span class="pre">[train]</span></code> section<a class="headerlink" href="#i-train-section" title="Permalink to this heading">¶</a></h4>
+<h4>(i) <code class="docutils literal notranslate"><span class="pre">[train]</span></code> section<a class="headerlink" href="#i-train-section" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># Configure the model trainer.</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;. /aenet_train_input&#39;</span>
@@ -211,11 +210,11 @@ When a model is employed for the data generation in which some atomic species ar
 </section>
 </section>
 <section id="preparation-of-input-files-for-aenet">
-<h3>Preparation of input files for aenet<a class="headerlink" href="#preparation-of-input-files-for-aenet" title="Permalink to this heading">¶</a></h3>
+<h3>Preparation of input files for aenet<a class="headerlink" href="#preparation-of-input-files-for-aenet" title="Link to this heading">¶</a></h3>
 <p>Place the input files for aenet in the <code class="docutils literal notranslate"><span class="pre">generate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, and <code class="docutils literal notranslate"><span class="pre">predict</span></code> directories
 in the directory set in the <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[train]</span></code> section.</p>
 <section id="generate">
-<h4>generate<a class="headerlink" href="#generate" title="Permalink to this heading">¶</a></h4>
+<h4>generate<a class="headerlink" href="#generate" title="Link to this heading">¶</a></h4>
 <p>aenet compiles the atomic configuration and energy data for training into an intermediate binary format
 that is converted into atomic environment descriptor-energy relationships before training.
 Input files for <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> that perform this conversion are placed in the <code class="docutils literal notranslate"><span class="pre">generate</span></code> directory.</p>
@@ -263,7 +262,7 @@ abICS will add a list of coordinate files to the end of <code class="docutils li
 generate <code class="docutils literal notranslate"><span class="pre">generate.in</span></code>, and run <code class="docutils literal notranslate"><span class="pre">generate.x</span></code>.</p>
 </section>
 <section id="train">
-<h4>train<a class="headerlink" href="#train" title="Permalink to this heading">¶</a></h4>
+<h4>train<a class="headerlink" href="#train" title="Link to this heading">¶</a></h4>
 <p>Place the input file for <code class="docutils literal notranslate"><span class="pre">train.x</span></code>,
 which reads the training data generated by <code class="docutils literal notranslate"><span class="pre">generate</span></code> and trains,
 in the <code class="docutils literal notranslate"><span class="pre">train</span></code> directory.
@@ -293,7 +292,7 @@ The <code class="docutils literal notranslate"><span class="pre">NETWORKS</span>
 the neural network structure, and the activation function.</p>
 </section>
 <section id="predict">
-<h4>predict<a class="headerlink" href="#predict" title="Permalink to this heading">¶</a></h4>
+<h4>predict<a class="headerlink" href="#predict" title="Link to this heading">¶</a></h4>
 <p>Place the input file <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> for <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">predict</span></code> directory
 to evaluate the energy for the input coordinates using the trained potential model.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TYPES</span>
@@ -315,7 +314,7 @@ for each elemental species in the <code class="docutils literal notranslate"><sp
 </section>
 </section>
 <section id="running-the-calculation">
-<h3>Running the calculation<a class="headerlink" href="#running-the-calculation" title="Permalink to this heading">¶</a></h3>
+<h3>Running the calculation<a class="headerlink" href="#running-the-calculation" title="Link to this heading">¶</a></h3>
 <p>Now the input files have been prepared, we proceed to describe how to run the calculation.
 A sample script <code class="docutils literal notranslate"><span class="pre">AL.sh</span></code> is prepared to simplify the calculation procedure.
 <code class="docutils literal notranslate"><span class="pre">run_pw.sh</span></code> is used to run QE calculations; it is called inside <code class="docutils literal notranslate"><span class="pre">parallel_run.sh</span></code>, which will be described later.
@@ -385,16 +384,16 @@ abics_train<span class="w"> </span>input.toml<span class="w"> </span>&gt;&gt;<sp
 </section>
 </section>
 <section id="monte-carlo-sampling">
-<h1><span class="section-number">4.2. </span>Monte Carlo sampling<a class="headerlink" href="#monte-carlo-sampling" title="Permalink to this heading">¶</a></h1>
+<h1><span class="section-number">4.2. </span>Monte Carlo sampling<a class="headerlink" href="#monte-carlo-sampling" title="Link to this heading">¶</a></h1>
 <p>Next, we use the trained neural network potential for Monte Carlo samplings by abICS.</p>
 <section id="preparation-of-input-files">
-<h2><span class="section-number">4.2.1. </span>Preparation of input files<a class="headerlink" href="#preparation-of-input-files" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">4.2.1. </span>Preparation of input files<a class="headerlink" href="#preparation-of-input-files" title="Link to this heading">¶</a></h2>
 <p>Several parameters need to be set in the abICS control file to perform the sampling as follows.</p>
 <section id="id2">
-<h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h3>
+<h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <p>The calculation parameters are specified in <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> section concerning the Replica Exchange Monte carlo method.</p>
 <section id="i-sampling-section">
-<h4>(i) <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> section<a class="headerlink" href="#i-sampling-section" title="Permalink to this heading">¶</a></h4>
+<h4>(i) <code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> section<a class="headerlink" href="#i-sampling-section" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling]</span>
 <span class="n">nreplicas</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">8</span>
 <span class="n">nprocs_per_replica</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
@@ -411,7 +410,7 @@ abics_train<span class="w"> </span>input.toml<span class="w"> </span>&gt;&gt;<sp
 This time, we will use anet’s <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> as the energy solver for RXMC calculations. Currently, the mpi version of <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> is not supported, so nprocs_per_replica should be 1.</p>
 </section>
 <section id="ii-sampling-solver-section">
-<h4>(ii) <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> section<a class="headerlink" href="#ii-sampling-solver-section" title="Permalink to this heading">¶</a></h4>
+<h4>(ii) <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> section<a class="headerlink" href="#ii-sampling-solver-section" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">sampling</span><span class="p">.</span><span class="n">solver</span><span class="p">]</span><span class="w"> </span><span class="c1"># Configure the solver used for RXMC calculations</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
 <span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s">&#39;predict.x-2.0.4-ifort_serial&#39;</span>
@@ -433,7 +432,7 @@ In this case, it is more computationally efficient to ignore the existence when 
 </section>
 </section>
 <section id="id3">
-<h2><span class="section-number">4.2.2. </span>Running the calculation<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h2>
+<h2><span class="section-number">4.2.2. </span>Running the calculation<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
 <p>The sample script <code class="docutils literal notranslate"><span class="pre">MC.sh</span></code> is provided to simplify the calculation procedure. The content of the script is as follows.</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="ch">#! /bin/sh</span>
 <span class="c1">#SBATCH -p i8cpu</span>
@@ -478,12 +477,12 @@ RXMC calculation using the obtained neural network model
 with a larger number of sampling steps to calculate thermodynamic averages.</p>
 </section>
 <section id="predict-energy-of-annet-model-via-lammps-interface">
-<span id="tutorial-aenet-lammps"></span><h2><span class="section-number">4.2.3. </span>Predict energy of annet model via LAMMPS interface<a class="headerlink" href="#predict-energy-of-annet-model-via-lammps-interface" title="Permalink to this heading">¶</a></h2>
+<span id="tutorial-aenet-lammps"></span><h2><span class="section-number">4.2.3. </span>Predict energy of annet model via LAMMPS interface<a class="headerlink" href="#predict-energy-of-annet-model-via-lammps-interface" title="Link to this heading">¶</a></h2>
 <p>abICS can call the <code class="docutils literal notranslate"><span class="pre">aenet</span></code> library via the LAMMPS interface (<code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>).
 This is faster than calling <code class="docutils literal notranslate"><span class="pre">aenet</span></code> directly because it does not need file I/O.
 The set of input files used in this tutorial can be found in <code class="docutils literal notranslate"><span class="pre">examples/active_learning_qe</span></code>.</p>
 <section id="install-aenetpylammps">
-<h3>Install aenetPyLammps<a class="headerlink" href="#install-aenetpylammps" title="Permalink to this heading">¶</a></h3>
+<h3>Install aenetPyLammps<a class="headerlink" href="#install-aenetpylammps" title="Link to this heading">¶</a></h3>
 <p>To use <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>, you need to install <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> and <code class="docutils literal notranslate"><span class="pre">lammps</span></code>.</p>
 <ul class="simple">
 <li><p>URL : <a class="reference external" href="https://github.com/HidekiMori-CIT/aenet-lammps">https://github.com/HidekiMori-CIT/aenet-lammps</a></p></li>
@@ -515,13 +514,13 @@ The set of input files used in this tutorial can be found in <code class="docuti
 </ul>
 </section>
 <section id="training">
-<h3>Training<a class="headerlink" href="#training" title="Permalink to this heading">¶</a></h3>
+<h3>Training<a class="headerlink" href="#training" title="Link to this heading">¶</a></h3>
 <p>The training procedure is the same as the previous section.</p>
 </section>
 <section id="sampling">
-<h3>Sampling<a class="headerlink" href="#sampling" title="Permalink to this heading">¶</a></h3>
+<h3>Sampling<a class="headerlink" href="#sampling" title="Link to this heading">¶</a></h3>
 <section id="input-file-for-prediction">
-<h4>Input file for prediction<a class="headerlink" href="#input-file-for-prediction" title="Permalink to this heading">¶</a></h4>
+<h4>Input file for prediction<a class="headerlink" href="#input-file-for-prediction" title="Link to this heading">¶</a></h4>
 <p>Instead of the input file <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> for <code class="docutils literal notranslate"><span class="pre">predict.x</span></code>,
 place the input file <code class="docutils literal notranslate"><span class="pre">in.lammps</span></code> under the <code class="docutils literal notranslate"><span class="pre">predict</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pair_style</span>      <span class="n">aenet</span>
@@ -532,7 +531,7 @@ place the input file <code class="docutils literal notranslate"><span class="pre
 <p>The detailed format of <code class="docutils literal notranslate"><span class="pre">in.lammmps</span></code> is written in the README of <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> repository.</p>
 </section>
 <section id="input-for-sampling">
-<h4>Input for Sampling<a class="headerlink" href="#input-for-sampling" title="Permalink to this heading">¶</a></h4>
+<h4>Input for Sampling<a class="headerlink" href="#input-for-sampling" title="Link to this heading">¶</a></h4>
 <p>Change the <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> in the <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> section of the input file to <code class="docutils literal notranslate"><span class="pre">'aenetPyLammps'</span></code> and <code class="docutils literal notranslate"><span class="pre">'function'</span></code>, respectively.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenetPyLammps&#39;</span>
@@ -618,7 +617,7 @@ place the input file <code class="docutils literal notranslate"><span class="pre
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.2.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
