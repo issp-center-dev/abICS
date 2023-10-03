@@ -472,7 +472,7 @@ def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
     X2_jk = jackknife(X2)
     F = X2.mean(axis=0) - X.mean(axis=0) ** 2  # F stands for Fluctuation
     F_jk = X2_jk - X_jk**2
-    F_mean = F - F_jk.mean(axis=0) * (nsamples - 1)
+    F_mean = nsamples * F - F_jk.mean(axis=0) * (nsamples - 1)
     F_err = np.sqrt((nsamples - 1) * F_jk.var(axis=0, ddof=0))
 
     # estimate free energy
@@ -490,7 +490,7 @@ def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
         Exp = np.exp(-dbeta * (energies - emin))
         Exp_jk = jackknife(Exp)
         Logz_jk = np.log(Exp_jk)
-        Logz_mean = np.log(Exp.mean()) - Logz_jk.mean() * (nsamples - 1) - dbeta * emin
+        Logz_mean = nsamples * np.log(Exp.mean()) - Logz_jk.mean() * (nsamples - 1) - dbeta * emin
         Logz_err = np.sqrt((nsamples - 1) * Logz_jk.var(ddof=0))
     else:
         Logz_mean = 0.0
