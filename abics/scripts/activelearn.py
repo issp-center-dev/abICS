@@ -215,7 +215,8 @@ def main_impl(params_root: MutableMapping):
             solver_input = solver.input
             solver_input.from_directory(alparams.base_input_dir[0])
             for i in range(ndata):
-                config.shuffle() # randomize config
+                constraint_fullfilled, msg = config.shuffle() # randomize config
+                print(msg)
                 config.structure.sort(key=lambda site: site.species_string)
                 structure0 = config.structure.copy()  
                 perturb_structure(config.structure, perturb)

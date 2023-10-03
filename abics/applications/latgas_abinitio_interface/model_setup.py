@@ -1482,7 +1482,7 @@ class Config:
         return dummy_structure
 
     def shuffle(self):
-        max_trial = 1000
+        max_trial = 10000
         num_trial = 0
         while num_trial < max_trial:
             for defect_sublattice in self.defect_sublattices:
