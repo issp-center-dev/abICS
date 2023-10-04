@@ -275,6 +275,7 @@ class TemperatureRX_MPI(ParallelMC):
         observer: ObserverBase = ObserverBase(),
         subdirs: bool = True,
         save_obs: bool = True,
+        continue_run: bool = False,
     ):
         """
 
@@ -325,7 +326,8 @@ class TemperatureRX_MPI(ParallelMC):
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
-            write_obs_header(output, self.mycalc, observer)
+            if self.write_node and not continue_run:
+                write_obs_header(output, self.mycalc, observer)
             ntrials = self.mycalc.ntrials
             naccepted = self.mycalc.naccepted
             for i in range(1, nsteps + 1):
@@ -347,12 +349,13 @@ class TemperatureRX_MPI(ParallelMC):
                         self.obs_save.append(obs_step)
                         self.Trank_hist.append(self.rank_to_T[self.rank])
                         self.kT_hist.append(self.mycalc.kT)
-                    if self.write_node:
-                        self.save(
-                            save_obs=save_obs,
-                            subdirs=subdirs,
-                        )
+                    
                     nsample += 1
+            if self.write_node:
+                self.save(
+                    save_obs=save_obs,
+                    subdirs=subdirs,
+                )
             iT = self.rank_to_T[self.rank]
             self.ntrials[iT] += self.mycalc.ntrials - ntrials
             self.naccepted[iT] += self.mycalc.naccepted - naccepted
