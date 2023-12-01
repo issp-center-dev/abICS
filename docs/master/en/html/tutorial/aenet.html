@@ -3,7 +3,7 @@
 <html lang="en" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>4.1. Constructing a neural network model &#8212; abICS 2.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
@@ -94,9 +94,9 @@ Therefore, it should be set to a value less than or equal to the number of confi
 </section>
 <section id="ii-mlref-solver-section">
 <h4>(ii) <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> section<a class="headerlink" href="#ii-mlref-solver-section" title="Link to this heading">¶</a></h4>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">mlref</span><span class="p">.</span><span class="n">solver</span><span class="p">]</span><span class="w"> </span><span class="c1"># Set up a reference ab initio solver.</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;qe&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s">&#39;./baseinput_ref&#39;</span><span class="p">]</span><span class="w"> </span><span class="c1">#, &#39;./baseinput_ref&#39;]</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mlref.solver]</span><span class="w"> </span><span class="c1"># Set up a reference ab initio solver.</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;qe&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;./baseinput_ref&#39;</span><span class="p">]</span><span class="w"> </span><span class="c1">#, &#39;./baseinput_ref&#39;]</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.05</span>
 </pre></div>
 </div>
@@ -116,20 +116,20 @@ When a model is employed for the data generation in which some atomic species ar
 </section>
 <section id="iii-config-section">
 <h4>(iii) <code class="docutils literal notranslate"><span class="pre">[config]</span></code> section<a class="headerlink" href="#iii-config-section" title="Link to this heading">¶</a></h4>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">config</span><span class="p">]</span><span class="w"> </span><span class="c1"># Set up information about the crystal lattice and the atoms and vacancies on the lattice.</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[config]</span><span class="w"> </span><span class="c1"># Set up information about the crystal lattice and the atoms and vacancies on the lattice.</span>
 <span class="n">unitcell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[[</span><span class="mf">8.1135997772</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">],</span>
 <span class="w">            </span><span class="p">[</span><span class="mf">0.0000000000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">8.1135997772</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">],</span>
-<span class="w">            </span><span class="k">[0.0000000000000000, 0.0000000000000000, 8.1135997772]]</span>
+<span class="w">            </span><span class="p">[</span><span class="mf">0.0000000000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0000000000000000</span><span class="p">,</span><span class="w"> </span><span class="mf">8.1135997772</span><span class="p">]]</span>
 <span class="n">supercell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
 
 <span class="k">[[config.base_structure]]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;O&quot;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;O&quot;</span>
 <span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">[</span><span class="mf">0.237399980</span><span class="p">,</span><span class="w"> </span><span class="mf">0.237399980</span><span class="p">,</span><span class="w"> </span><span class="mf">0.237399980</span><span class="p">],</span>
 <span class="w">    </span><span class="p">[</span><span class="mf">0.762599945</span><span class="p">,</span><span class="w"> </span><span class="mf">0.762599945</span><span class="p">,</span><span class="w"> </span><span class="mf">0.762599945</span><span class="p">],</span>
 <span class="w">    </span><span class="p">[</span><span class="mf">0.512599945</span><span class="p">,</span><span class="w"> </span><span class="mf">0.012600004</span><span class="p">,</span><span class="w"> </span><span class="mf">0.737399936</span><span class="p">],</span>
 <span class="w">    </span><span class="p">[</span><span class="mf">0.487399966</span><span class="p">,</span><span class="w"> </span><span class="mf">0.987399936</span><span class="p">,</span><span class="w"> </span><span class="mf">0.262599975</span><span class="p">],</span>
-<span class="w">    </span><span class="p">...</span>
+<span class="w">    </span><span class="err">...</span>
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">[config]</span></code> section specifies atomic positions to be used in the Monte Carlo sampling.
@@ -192,12 +192,12 @@ The pseudopotentials used in this sample can be downloaded from the following li
 <h3>Preparation of the abICS control file (<code class="docutils literal notranslate"><span class="pre">input.toml</span></code>)<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <section id="i-train-section">
 <h4>(i) <code class="docutils literal notranslate"><span class="pre">[train]</span></code> section<a class="headerlink" href="#i-train-section" title="Link to this heading">¶</a></h4>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># Configure the model trainer.</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;. /aenet_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
-<span class="w">              </span><span class="s">&#39;srun train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;O&quot;</span><span class="p">]</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[train]</span><span class="w"> </span><span class="c1"># Configure the model trainer.</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenet&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;. /aenet_train_input&#39;</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
+<span class="w">              </span><span class="s1">&#39;srun train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Set up a trainer to train a configuration energy prediction model from training data.
@@ -411,13 +411,13 @@ This time, we will use anet’s <code class="docutils literal notranslate"><span
 </section>
 <section id="ii-sampling-solver-section">
 <h4>(ii) <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> section<a class="headerlink" href="#ii-sampling-solver-section" title="Link to this heading">¶</a></h4>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">sampling</span><span class="p">.</span><span class="n">solver</span><span class="p">]</span><span class="w"> </span><span class="c1"># Configure the solver used for RXMC calculations</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
-<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s">&#39;predict.x-2.0.4-ifort_serial&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;. /baseinput&#39;</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span><span class="w"> </span><span class="c1"># Configure the solver used for RXMC calculations</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenet&#39;</span>
+<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;predict.x-2.0.4-ifort_serial&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;. /baseinput&#39;</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;subprocess&#39;</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;subprocess&#39;</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>In this section, you can configure the energy calculator (solver) to be used for RXMC calculations.
@@ -534,10 +534,10 @@ place the input file <code class="docutils literal notranslate"><span class="pre
 <h4>Input for Sampling<a class="headerlink" href="#input-for-sampling" title="Link to this heading">¶</a></h4>
 <p>Change the <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> in the <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> section of the input file to <code class="docutils literal notranslate"><span class="pre">'aenetPyLammps'</span></code> and <code class="docutils literal notranslate"><span class="pre">'function'</span></code>, respectively.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenetPyLammps&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;./baseinput&#39;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenetPyLammps&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;./baseinput&#39;</span><span class="p">]</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;function&#39;</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;function&#39;</span>
 </pre></div>
 </div>
 </section>
@@ -617,7 +617,7 @@ place the input file <code class="docutils literal notranslate"><span class="pre
       &copy;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.5</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 7.2.6</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.13</a>
       
       |
