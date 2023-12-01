@@ -55,20 +55,20 @@ We hope that you cite the following article when you publish the results using a
 
 Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, `accepted in STAM: Methods <https://doi.org/10.1080/27660400.2023.2284128>`_ (`arXiv:2309.04769 <https://arxiv.org/abs/2309.04769>`_).
 
-Bibtex:
+Bibtex::
 
-@article{kasamatsu2023configuration,
-author = {Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi and Tatsumi Aoyama},
-title = {Configuration sampling in multi-component multi-sublattice systems enabled by ab initio Configuration sampling toolkit ({abICS})},
-journal = {Science and Technology of Advanced Materials: Methods},
-volume = {0},
-number = {ja},
-pages = {2284128},
-year = {2023},
-publisher = {Taylor & Francis},
-doi = {10.1080/27660400.2023.2284128},
-URL = {https://doi.org/10.1080/27660400.2023.2284128},
-eprint = {https://doi.org/10.1080/27660400.2023.2284128}
+   @article{kasamatsu2023configuration,
+   author = {Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi and Tatsumi Aoyama},
+   title = {Configuration sampling in multi-component multi-sublattice systems enabled by ab initio Configuration sampling toolkit ({abICS})},
+   journal = {Science and Technology of Advanced Materials: Methods},
+   volume = {0},
+   number = {ja},
+   pages = {2284128},
+   year = {2023},
+   publisher = {Taylor & Francis},
+   doi = {10.1080/27660400.2023.2284128},
+   URL = {https://doi.org/10.1080/27660400.2023.2284128},
+   eprint = {https://doi.org/10.1080/27660400.2023.2284128}
 
 Copyright
 --------------
