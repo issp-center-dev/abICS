@@ -53,18 +53,22 @@ abICSは以下のメンバーで開発しています.
 
 abICSを引用する際は, 以下の文献を引用してください。
 
-Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, `arXiv:2309.04769 <https://arxiv.org/abs/2309.04769>`_.
+Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi, Tatsumi Aoyama, “Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)”, `accepted in STAM: Methods <https://doi.org/10.1080/27660400.2023.2284128>`_ (`arXiv:2309.04769 <https://arxiv.org/abs/2309.04769>`_).
 
 Bibtex:
 
-@misc{kasamatsu2023configuration,
-title={Configuration sampling in multi-component multi-sublattice systems enabled by ab Initio Configuration Sampling Toolkit (abICS)},
-author={Shusuke Kasamatsu and Yuichi Motoyama and Kazuyoshi Yoshimi and Tatsumi Aoyama},
-year={2023},
-eprint={2309.04769},
-archivePrefix={arXiv},
-primaryClass={cond-mat.mtrl-sci}
-}
+@article{kasamatsu2023configuration,
+author = {Shusuke Kasamatsu, Yuichi Motoyama, Kazuyoshi Yoshimi and Tatsumi Aoyama},
+title = {Configuration sampling in multi-component multi-sublattice systems enabled by ab initio Configuration sampling toolkit ({abICS})},
+journal = {Science and Technology of Advanced Materials: Methods},
+volume = {0},
+number = {ja},
+pages = {2284128},
+year = {2023},
+publisher = {Taylor & Francis},
+doi = {10.1080/27660400.2023.2284128},
+URL = {https://doi.org/10.1080/27660400.2023.2284128},
+eprint = {https://doi.org/10.1080/27660400.2023.2284128}
 
 コピーライト
 ------------------

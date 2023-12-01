@@ -3,7 +3,7 @@
 <html lang="ja" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>5.4. [train] セクション &#8212; abICS 2.1-dev ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
@@ -39,12 +39,12 @@
 現在はaenetのみに対応しています。
 ソフトウェア固有の注意事項（入力ファイル名など）は <a class="reference internal" href="../how_to_use/index.html#trainer-specific-notes"><span class="std std-ref">機械学習モデルソルバー利用時の注意点</span></a> を参照してください.</p>
 <p>本セクションは以下のようなファイルフォーマットをしています.</p>
-<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">train</span><span class="p">]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;aenet&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&#39;./aenet_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
-<span class="w">              </span><span class="s">&#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;O&quot;</span><span class="p">]</span>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[train]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenet&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./aenet_train_input&#39;</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
+<span class="w">              </span><span class="s1">&#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
 </pre></div>
 </div>
 <section id="id1">
