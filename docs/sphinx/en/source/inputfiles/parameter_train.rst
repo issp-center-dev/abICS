@@ -33,7 +33,7 @@ Key words
 
   **Format :** str
 
-  **Description :** The trainer to generate the neural network potential (currently only 'aenet').
+  **Description :** The trainer to generate the neural network potential (currently 'aenet', 'nequip', 'allegro', and 'mlip_3').
   
 - ``base_input_dir``
 
