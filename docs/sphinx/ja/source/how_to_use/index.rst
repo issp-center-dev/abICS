@@ -50,7 +50,7 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 
 4. [observer] セクション
 
-   取得する物理量の種類などを指定します.
+   計算する物理量を指定します.
 
 5. [config] セクション
 
@@ -191,3 +191,8 @@ aenet
 ``aenetPyLammps`` の利用には、 `aenet-lammps <https://github.com/HidekiMori-CIT/>`_ および `LAMMPS <https://www.lammps.org/>`_ のインストールが必要です。
 インストールや使い方の詳細は :ref:`tutorial_aenet_lammps` を参照してください。
 
+期待値計算
+-------------
+
+``abics_sampling`` は最後に物理量の期待値を温度ごとに計算・出力します。
+また、 ``abics_sampling`` でサンプリングした結果を用いて（新たにサンプリングせずに）別の物理量を計算するためには、 ``abics_postproc`` を利用できます。

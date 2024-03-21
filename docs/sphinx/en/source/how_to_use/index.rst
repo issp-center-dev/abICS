@@ -190,3 +190,10 @@ abICS can call the ``aenet`` library via the LAMMPS interface (``aenetPyLammps``
 This is faster than calling ``aenet`` directly because it does not need file I/O.
 To use ``aenetPyLammps``, you need to install ``aenet-lammps`` and ``lammps``.
 For details, please refer to the :ref:`tutorial_aenet_lammps`.
+
+
+Post-processing
+------------------
+
+``abics_sampling`` outputs the expectation values of physical quantities for each temperature.
+To calculate other physical quantities using the configurations sampled by ``abics_sampling`` (without resampling), use ``abics_postproc``.
