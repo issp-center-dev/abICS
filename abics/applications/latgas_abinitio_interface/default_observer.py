@@ -81,7 +81,7 @@ class DefaultObserver(ObserverBase):
     reference_species: list[str]
     calculators: list
 
-    def __init__(self, comm, Lreload=False, params={}):
+    def __init__(self, comm, Lreload=False, params={}, with_energy=True):
         """
 
         Parameters
@@ -100,7 +100,11 @@ class DefaultObserver(ObserverBase):
             with open(os.path.join(str(myrank), "obs.dat"), "r") as f:
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
-        self.names = ["energy_internal", "energy"]
+        self.with_energy = with_energy
+        if with_energy:
+            self.names = ["energy_internal", "energy"]
+        else:
+            self.names = []
 
         params_solvers = params.get("solver", [])
         self.calculators = []
@@ -162,16 +166,17 @@ class DefaultObserver(ObserverBase):
         assert calc_state.config is not None
         structure: Structure = calc_state.config.structure_norel
 
-        energy_internal = calc_state.model.internal_energy(calc_state.config)
-        energy = calc_state.model.energy(calc_state.config)
-
-        result = [energy_internal, energy]
-
-        if self.minE is None or energy < self.minE:
-            self.minE = energy
-            with open("minEfi.dat", "a") as f:
-                f.write(str(self.minE) + "\n")
-            structure.to(fmt="POSCAR", filename="minE.vasp")
+        if self.with_energy:
+            energy_internal = calc_state.model.internal_energy(calc_state.config)
+            energy = calc_state.model.energy(calc_state.config)
+            result = [energy_internal, energy]
+            if self.minE is None or energy < self.minE:
+                self.minE = energy
+                with open("minEfi.dat", "a") as f:
+                    f.write(str(self.minE) + "\n")
+                structure.to(fmt="POSCAR", filename="minE.vasp")
+        else:
+            result = []
 
         for calculator in self.calculators:
             name = calculator["name"]

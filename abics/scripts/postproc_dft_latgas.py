@@ -24,9 +24,15 @@ import datetime
 import numpy as np
 import scipy.constants as constants
 
+from pymatgen.core import Structure
+
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, RandomSampling
 from abics.observer import ObserverParams
+
+import abics.sampling.simple_parallel as simple_parallel
+import abics.sampling.rxmc as rxmc
+import abics.sampling.pamc as pamc
 
 from abics.sampling.mc_mpi import RX_MPI_init
 from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
@@ -66,7 +72,7 @@ import logging
 logger = logging.getLogger("main")
 
 
-def main_dft_latgas(params_root: MutableMapping):
+def postproc_dft_latgas(params_root: MutableMapping):
     params_sampling = params_root.get("sampling", None)
     if not params_sampling:
         logger.error("sampling section is missing in parameters")
@@ -273,26 +279,27 @@ def main_dft_latgas(params_root: MutableMapping):
 
     # NNP ensemble error estimation
     if "ensemble" in params_root:
-        ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-        solver = create_solver(ensembleparams.solver, ensembleparams)
-
-        energy_calculators = [
-            Runner(
-                base_input_dir=base_input_dir,
-                Solver=copy.deepcopy(solver),
-                nprocs_per_solver=nprocs_per_replica,
-                comm=MPI.COMM_SELF,
-                perturb=ensembleparams.perturb,
-                solver_run_scheme=ensembleparams.solver_run_scheme,
-                use_tmpdir=dftparams.use_tmpdir,
-            )
-            for base_input_dir in ensembleparams.base_input_dirs
-        ]
-        observer: DefaultObserver = EnsembleErrorObserver(
-            commEnsemble, energy_calculators, Lreload
-        )
+        raise NotImplementedError("Ensemble error estimation is not implemented yet")
+        # ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
+        # solver = create_solver(ensembleparams.solver, ensembleparams)
+        #
+        # energy_calculators = [
+        #     Runner(
+        #         base_input_dir=base_input_dir,
+        #         Solver=copy.deepcopy(solver),
+        #         nprocs_per_solver=nprocs_per_replica,
+        #         comm=MPI.COMM_SELF,
+        #         perturb=ensembleparams.perturb,
+        #         solver_run_scheme=ensembleparams.solver_run_scheme,
+        #         use_tmpdir=dftparams.use_tmpdir,
+        #     )
+        #     for base_input_dir in ensembleparams.base_input_dirs
+        # ]
+        # observer: DefaultObserver = EnsembleErrorObserver(
+        #     commEnsemble, energy_calculators, Lreload
+        # )
     else:
-        observer = DefaultObserver(comm, Lreload, params_observer)
+        observer = DefaultObserver(comm, Lreload, params_observer, with_energy=False)
 
     ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 
@@ -347,83 +354,82 @@ def main_dft_latgas(params_root: MutableMapping):
         write_node = True
     else:
         write_node = False
-    if sampler_type == "RXMC":
-        # RXMC calculation
-        RXcalc = TemperatureRX_MPI(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+
+    rankdir = str(comm.Get_rank())
+    kT_hist = np.load(os.path.join(rankdir, "kT_hist.npy"))
+    obs_save_e = np.load(os.path.join(rankdir, "obs_save.npy"))[:, 0:2]
+    nsamples = obs_save_e.shape[0]
+    nobs = len(observer.names)
+    obs_save = np.zeros((nsamples, 2 + nobs))
+    structure = Structure.from_file(os.path.join(rankdir, "structure.0.vasp"))
+    config = defect_config(configparams)
+    config.reset_from_structure(structure)
+    calc_state = mc_class(model, kT_hist[0], config)
+    for isamples, kT in enumerate(kT_hist):
+        structure = Structure.from_file(
+            os.path.join(rankdir, f"structure.{isamples}.vasp")
         )
-        if Lreload:
-            logger.info("-Reloading from previous calculation")
-            RXcalc.reload()
-
-        logger.info("-Starting RXMC calculation")
-
-        obs = RXcalc.run(
-            nsteps,
-            RXtrial_frequency,
-            sample_frequency=sample_frequency,
-            print_frequency=print_frequency,
-            observer=observer,
-            subdirs=True,
-            throw_out=rxparams.throw_out,
+        config.reset_from_structure(structure)
+        calc_state.config = config
+        obs = observer.logfunc(calc_state)
+        obs_save[isamples, 0:2] = obs_save_e[isamples, :]
+        obs_save[isamples, 2:] = obs
+    obsnames = ["energy_internal", "energy"]
+    obsnames.extend(observer.names)
+    if sampler_type == "RXMC":
+        Trank_hist = np.load(os.path.join(rankdir, "Trank_hist.npy"))
+        throw_out = rxparams.throw_out
+        rxmc.postproc(
+            obs_save=obs_save,
+            Trank_hist=Trank_hist,
+            kT_hist=kT_hist,
+            kTs=kTs,
+            comm=comm,
+            obsnames=obsnames,
+            throw_out=throw_out,
         )
 
     elif sampler_type == "PAMC":
-        # PAMC calculation
-        PAcalc = PopulationAnnealing(
-            comm, mc_class, model, configs, kTs, write_node=write_node
-        )
-        if Lreload:
-            logger.info("-Reloading from previous calculation")
-            PAcalc.reload()
+        isamples_offsets = np.zeros(len(kTs) + 1, dtype=int)
+        kT_old = kT_hist[0]
+        ikT = 1
+        for kT in kT_hist:
+            if kT != kT_old:
+                kT_old = kT
+                ikT += 1
+                isamples_offsets[ikT] = isamples_offsets[ikT - 1]
+            isamples_offsets[ikT] += 1
 
-        logger.info("-Starting PAMC calculation")
-
-        obs = PAcalc.run(
-            nsteps,
-            resample_frequency,
-            sample_frequency=sample_frequency,
-            print_frequency=print_frequency,
-            observer=observer,
-            subdirs=True,
+        logweight_history = np.load(os.path.join(rankdir, "logweight_hist.npy"))
+        dlogz = np.load(os.path.join(rankdir, "dlogz.npy"))
+        pamc.postproc(
+            kTs=kTs,
+            obs_save=obs_save,
+            dlogz=dlogz,
+            logweight_history=logweight_history,
+            obsnames=obsnames,
+            isamples_offsets=isamples_offsets,
+            comm=comm,
         )
 
     elif sampler_type == "parallelRand":
-        calc = EmbarrassinglyParallelSampling(
-            comm, RandomSampling, model, configs, prparams.kT, write_node=write_node
-        )
-        if Lreload:
-            calc.reload()
-        obs = calc.run(
-            nsteps,
-            sample_frequency=sample_frequency,
-            print_frequency=print_frequency,
-            observer=observer,
-            subdirs=True,
+        throw_out = prparams.throw_out
+        simple_parallel.postproc(
+            obs_save=obs_save,
+            kTs=prparams.kT,
+            comm=comm,
+            obsnames=obsnames,
+            throw_out=throw_out,
         )
 
     elif sampler_type == "parallelMC":
-        calc = EmbarrassinglyParallelSampling(
-            comm, mc_class, model, configs, kTs, write_node=write_node
-        )
-        if Lreload:
-            calc.reload()
-        obs = calc.run(
-            nsteps,
-            sample_frequency=sample_frequency,
-            print_frequency=print_frequency,
-            observer=observer,
-            subdirs=True,
-            throw_out=rxparams.throw_out,
+        throw_out = rxparams.throw_out
+        simple_parallel.postproc(
+            obs_save=obs_save,
+            kTs=kTs,
+            comm=comm,
+            obsnames=obsnames,
+            throw_out=throw_out,
         )
     logger.info("--Sampling completed sucessfully.")
-
-    if ALrun:
-        os.chdir(rootdir)
-        if comm.Get_rank() == 0 and write_node:
-            logger.info("-Writing ALloop.progress")
-            with open("ALloop.progress", "a") as fi:
-                fi.write("MC{}\n".format(MCid))
-                fi.flush()
-                os.fsync(fi.fileno())
     logger.info("Exiting normally on {}\n".format(datetime.datetime.now()))

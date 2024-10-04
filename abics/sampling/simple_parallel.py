@@ -28,6 +28,7 @@ from abics.model import Model
 from abics.observer import ObserverBase
 from abics.sampling.mc import MCAlgorithm, verylargeint, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
+from abics.sampling.rxmc import jackknife
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 
@@ -61,6 +62,8 @@ class ParallelRandomParams:
         self.print_frequency = 1
         self.reload = False
         self.seed = 0
+        self.throw_out = 0.5
+        self.kT = 0.0
 
     @classmethod
     def from_dict(cls, d):
@@ -87,6 +90,8 @@ class ParallelRandomParams:
         params.print_frequency = d.get("print_frequency", 1)
         params.reload = d.get("reload", False)
         params.seed = d.get("seed", 0)
+        params.throw_out = d.get("throw_out", 0.5)
+        params.kT = d.get("kT", 0.0)
         return params
 
     @classmethod
@@ -145,6 +150,7 @@ class ParallelMCParams:
         self.print_frequency = 1
         self.reload = False
         self.seed = 0
+        self.throw_out = 0.5
 
     @classmethod
     def from_dict(cls, d):
@@ -173,6 +179,7 @@ class ParallelMCParams:
         params.print_frequency = d.get("print_frequency", 1)
         params.reload = d.get("reload", False)
         params.seed = d.get("seed", 0)
+        params.throw_out = d.get("throw_out", 0.5)
         return params
 
     @classmethod
@@ -225,6 +232,8 @@ class EmbarrassinglyParallelSampling:
         self.procs = self.comm.Get_size()
         if kTs is None:
             kTs = [0] * self.procs
+        if isinstance(kTs, (int, float)):
+            kTs = [kTs] * self.procs
         self.kTs = kTs
         self.model = model
         self.nreplicas = len(configs)
@@ -261,6 +270,7 @@ class EmbarrassinglyParallelSampling:
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
         nsubsteps_in_step: int = 1,
+        throw_out: int | float = 0.5,
         observer: ObserverBase = ObserverBase(),
         subdirs: bool = True,
         save_obs: bool = True,
@@ -293,6 +303,8 @@ class EmbarrassinglyParallelSampling:
             except FileExistsError:
                 pass
             os.chdir(str(self.rank))
+
+        self.obsnames = observer.names
         self.accept_count = 0
         if not self.Lreload:
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
@@ -353,6 +365,9 @@ class EmbarrassinglyParallelSampling:
         if subdirs:
             os.chdir("../")
 
+        if save_obs:
+            self.postproc(throw_out)
+
         if nsample != 0:
             obs = np.array(obs)
             obs_buffer = np.empty(obs.shape)
@@ -364,6 +379,9 @@ class EmbarrassinglyParallelSampling:
                 obs_list.append(obs_info.decode(obs_buffer[i]))
             return obs_list
 
+
+    def postproc(self, throw_out):
+        postproc(obs_save=np.array(self.obs_save), kTs=self.kTs, comm=self.comm, obsnames=self.obsnames, throw_out=throw_out)
 
 class RandomSampling_MPI(ParallelMC):
     def __init__(
@@ -394,3 +412,52 @@ class RandomSampling_MPI(ParallelMC):
         self.Trank_hist = []
         self.kT_hist = []
         self.write_node = write_node
+
+
+def postproc(obs_save, kTs, comm,
+             obsnames, throw_out: int | float):
+    assert throw_out >= 0
+    rank = comm.Get_rank()
+    nT = comm.Get_size()
+    nsteps, nobs = obs_save.shape
+    # nT = rank_to_T.size
+    if isinstance(throw_out, float):
+        throw_out = int(nsteps * throw_out)
+
+    X = obs_save[throw_out:, :]
+    nsamples = X.shape[0]
+
+    # jackknife method
+    X2 = X**2
+    X_mean = X.mean(axis=0)
+    X_err = np.sqrt(X.var(axis=0, ddof=1) / (nsamples - 1))
+    X_jk = jackknife(X)
+    X2_mean = X2.mean(axis=0)
+    X2_err = np.sqrt(X2.var(axis=0, ddof=1) / (nsamples - 1))
+    X2_jk = jackknife(X2)
+    F = X2.mean(axis=0) - X.mean(axis=0) ** 2  # F stands for Fluctuation
+    F_jk = X2_jk - X_jk**2
+    F_mean = F - F_jk.mean(axis=0) * (nsamples - 1)
+    F_err = np.sqrt((nsamples - 1) * F_jk.var(axis=0, ddof=0))
+
+    obs = np.array([X_mean, X_err, X2_mean, X2_err, F_mean, F_err])
+    obs_all = np.zeros([comm.size, *obs.shape])  # nT X ntype X nobs
+    comm.Allgather(obs, obs_all)
+
+    if rank == 0:
+        ntype = obs.shape[0]
+        for iobs, oname in enumerate(obsnames):
+            with open(f"{oname}.dat", "w") as f:
+                f.write("# $1: temperature\n")
+                f.write(f"# $2: <{oname}>\n")
+                f.write(f"# $3: ERROR of <{oname}>\n")
+                f.write(f"# $4: <{oname}^2>\n")
+                f.write(f"# $5: ERROR of <{oname}^2>\n")
+                f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
+                f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
+                for iT in range(nT):
+                    f.write(f"{kTs[iT]}")
+                    for itype in range(ntype):
+                        f.write(f" {obs_all[iT, itype, iobs]}")
+                    f.write("\n")
+    comm.Barrier()
