@@ -68,7 +68,7 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 <p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います. <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> のみで使用されます.</p>
 </li>
 <li><p>[observer] セクション</p>
-<p>取得する物理量の種類などを指定します.</p>
+<p>計算する物理量を指定します.</p>
 </li>
 <li><p>[config] セクション</p>
 <p>合金の配位などを指定します.</p>
@@ -347,6 +347,11 @@ K_POINTS gamma
 <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code> の利用には、 <a class="reference external" href="https://github.com/HidekiMori-CIT/">aenet-lammps</a> および <a class="reference external" href="https://www.lammps.org/">LAMMPS</a> のインストールが必要です。
 インストールや使い方の詳細は <a class="reference internal" href="../tutorial/aenet.html#tutorial-aenet-lammps"><span class="std std-ref">LAMMPS インターフェースを利用したサンプリング</span></a> を参照してください。</p>
 </section>
+<section id="id10">
+<h2><span class="section-number">3.8. </span>期待値計算<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> は最後に物理量の期待値を温度ごとに計算・出力します。
+また、 <code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> でサンプリングした結果を用いて（新たにサンプリングせずに）別の物理量を計算するためには、 <code class="docutils literal notranslate"><span class="pre">abics_postproc</span></code> を利用できます。</p>
+</section>
 </section>
 
 
@@ -377,6 +382,7 @@ K_POINTS gamma
 <li class="toctree-l2"><a class="reference internal" href="#id7">3.5. 学習データの作成</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id8">3.6. 機械学習モデルの作成</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id9">3.7. モンテカルロサンプリングの実行</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">3.8. 期待値計算</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>

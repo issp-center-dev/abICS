@@ -346,6 +346,11 @@ This is faster than calling <code class="docutils literal notranslate"><span cla
 To use <code class="docutils literal notranslate"><span class="pre">aenetPyLammps</span></code>, you need to install <code class="docutils literal notranslate"><span class="pre">aenet-lammps</span></code> and <code class="docutils literal notranslate"><span class="pre">lammps</span></code>.
 For details, please refer to the <a class="reference internal" href="../tutorial/aenet.html#tutorial-aenet-lammps"><span class="std std-ref">Predict energy of annet model via LAMMPS interface</span></a>.</p>
 </section>
+<section id="post-processing">
+<h2><span class="section-number">3.8. </span>Post-processing<a class="headerlink" href="#post-processing" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> outputs the expectation values of physical quantities for each temperature.
+To calculate other physical quantities using the configurations sampled by <code class="docutils literal notranslate"><span class="pre">abics_sampling</span></code> (without resampling), use <code class="docutils literal notranslate"><span class="pre">abics_postproc</span></code>.</p>
+</section>
 </section>
 
 
@@ -377,6 +382,7 @@ For details, please refer to the <a class="reference internal" href="../tutorial
 <li class="toctree-l2"><a class="reference internal" href="#creating-a-set-of-training-data">3.5. Creating a set of training data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-a-neural-network">3.6. Creating a neural network</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#monte-carlo-sampling">3.7. Monte Carlo sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#post-processing">3.8. Post-processing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. Tutorial</a></li>
