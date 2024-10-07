@@ -53,7 +53,7 @@ Keywords
    **Format :** str
 
    **Description :**
-   The solver type (``OpenMX, QE, VASP, aenet, aenetPyLammps, potts``).
+   The solver type (``OpenMX, QE, VASP, aenet, aenetPyLammps, nequip, allegro, mlip_3, potts``).
    When ``potts``, the following parameters are not used.
 
 -  ``path``

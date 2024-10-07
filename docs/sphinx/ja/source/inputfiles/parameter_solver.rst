@@ -77,6 +77,18 @@
 
       - LAMMPS を経由してaenetを利用します.
 
+   -  ``nequip``
+
+      - NequIPを利用します.
+
+   -  ``allegro``
+
+      - Allegroを利用します.
+
+   -  ``mlip_3``
+
+      - MLIP-3を利用します.
+
    -  ``user``
    
       - ユーザー定義のソルバーを利用します.

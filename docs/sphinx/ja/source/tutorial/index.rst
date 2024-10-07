@@ -9,3 +9,4 @@
    :maxdepth: 2
 
    aenet
+   other_models

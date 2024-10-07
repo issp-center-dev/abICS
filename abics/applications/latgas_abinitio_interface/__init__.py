@@ -17,10 +17,14 @@
 # from .default_observer import *
 from .map2perflat import *
 from .aenet_trainer import *
+from .nequip_trainer import *
+from .mlip_3_trainer import *
 
 from .vasp import VASPSolver
 from .qe import QESolver
 from .aenet import AenetSolver
 from .aenet_pylammps import AenetPyLammpsSolver
+from .nequip import NequipSolver
+from .mlip_3 import MLIP_3_Solver
 from .openmx import OpenMXSolver
 from .user_function_solver import UserFunctionSolver
