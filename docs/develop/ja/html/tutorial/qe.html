@@ -194,14 +194,16 @@ QE の場合は、この情報は <code class="docutils literal notranslate"><sp
 </pre></div>
 </div>
 <p>結果が <code class="docutils literal notranslate"><span class="pre">Tseparate/DOI_T.dat</span></code> に出力されます。</p>
-<a class="reference internal image-reference" href="../_images/doi_2.png"><img alt="../_images/doi_2.png" class="align-center" src="../_images/doi_2.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="../_images/doi_2.png"><img alt="../_images/doi_2.png" class="align-center" src="../_images/doi_2.png" style="width: 400px;" />
+</a>
 <p>レプリカ数を増やすと様々な温度で計算ができます。
 また、ステップ数を増やすことでよりきれいな結果を得られます。
 モンテカルロ平均で最初に捨てるサンプル数は <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトにある <code class="docutils literal notranslate"><span class="pre">throwout</span></code> の値で指定できます。
 実際の計算ではさらに、DFT 計算の前に構造最適化をする必要があります。
 QE の場合には <code class="docutils literal notranslate"><span class="pre">baseinput/scf.in</span></code> の <code class="docutils literal notranslate"><span class="pre">CALCULATION</span></code> パラメータを <code class="docutils literal notranslate"><span class="pre">relax</span></code> にしてください。
 例えば、17 レプリカ、1000 ステップで、 <code class="docutils literal notranslate"><span class="pre">perturb</span> <span class="pre">=</span> <span class="pre">0.1</span></code> のもとで計算をすると</p>
-<a class="reference internal image-reference" href="../_images/doi_qe.png"><img alt="../_images/doi_qe.png" class="align-center" src="../_images/doi_qe.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="../_images/doi_qe.png"><img alt="../_images/doi_qe.png" class="align-center" src="../_images/doi_qe.png" style="width: 400px;" />
+</a>
 <p>といった結果が得られます。
 温度を上げるほど反転度が上がっていくのがわかります。</p>
 </section>
