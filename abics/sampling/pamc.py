@@ -433,6 +433,7 @@ def postproc(
     obsnames,
     isamples_offsets,
     comm,
+    E2T:float=1.0,
 ):
     procs = comm.Get_size()
     rank = comm.Get_rank()
@@ -505,7 +506,7 @@ def postproc(
                 f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
 
                 for iT in range(nT):
-                    f.write(f"{kTs[iT]}")
+                    f.write(f"{E2T*kTs[iT]}")
                     for j in range(3):
                         f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
                     f.write("\n")
@@ -523,5 +524,5 @@ def postproc(
             for i, (dlz, dlz_e) in enumerate(zip(dlogZ, dlogZ_err)):
                 F += dlz
                 dF += dlz_e
-                f.write(f"{kTs[i]} {F} {dF} {dlz} {dlz_e}\n")
+                f.write(f"{E2T*kTs[i]} {F} {dF} {dlz} {dlz_e}\n")
     comm.Barrier()

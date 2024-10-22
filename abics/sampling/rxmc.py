@@ -427,7 +427,9 @@ def jackknife(X: np.ndarray) -> np.ndarray:
 
 
 def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
-             obsnames, throw_out: int | float):
+             obsnames, throw_out: int | float,
+             E2T: float = 1.0,
+             ):
     assert throw_out >= 0
     rank = comm.Get_rank()
     nT = comm.Get_size()
@@ -527,17 +529,17 @@ def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
             F = 0.0
             dF = 0.0
             if kTs[0] <= kTs[-1]:
-                f.write(f"{kTs[-1]} {F} {dF} {0.0} {0.0}\n")
+                f.write(f"{E2T*kTs[-1]} {F} {dF} {0.0} {0.0}\n")
                 for iT in np.arange(1, nT)[::-1]:
                     dlz, dlz_e = dlogz[iT]
                     F += dlz
                     dF += dlz_e
-                    f.write(f"{kTs[iT-1]} {F} {dF} {dlz} {dlz_e}\n")
+                    f.write(f"{E2T*kTs[iT-1]} {F} {dF} {dlz} {dlz_e}\n")
             else:
-                f.write(f"{kTs[0]} {F} {dF} {0.0} {0.0}\n")
+                f.write(f"{E2T*kTs[0]} {F} {dF} {0.0} {0.0}\n")
                 for iT in np.arange(0, nT - 1):
                     dlz, dlz_e = dlogz[iT]
                     F += dlz
                     dF += dlz_e
-                    f.write(f"{kTs[iT+1]} {F} {dF} {dlz} {dlz_e}\n")
+                    f.write(f"{E2T*kTs[iT+1]} {F} {dF} {dlz} {dlz_e}\n")
     comm.Barrier()

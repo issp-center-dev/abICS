@@ -387,6 +387,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             comm=comm,
             obsnames=obsnames,
             throw_out=throw_out,
+            E2T=1.0/kB,
         )
 
     elif sampler_type == "PAMC":
@@ -410,6 +411,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             obsnames=obsnames,
             isamples_offsets=isamples_offsets,
             comm=comm,
+            E2T=1.0/kB,
         )
 
     elif sampler_type == "parallelRand":
@@ -420,6 +422,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             comm=comm,
             obsnames=obsnames,
             throw_out=throw_out,
+            E2T=1.0/kB,
         )
 
     elif sampler_type == "parallelMC":
@@ -430,6 +433,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             comm=comm,
             obsnames=obsnames,
             throw_out=throw_out,
+            E2T=1.0/kB,
         )
     logger.info("--Sampling completed sucessfully.")
     logger.info("Exiting normally on {}\n".format(datetime.datetime.now()))

@@ -415,7 +415,9 @@ class RandomSampling_MPI(ParallelMC):
 
 
 def postproc(obs_save, kTs, comm,
-             obsnames, throw_out: int | float):
+             obsnames, throw_out: int | float,
+             E2T: float = 1.0,
+             ):
     assert throw_out >= 0
     rank = comm.Get_rank()
     nT = comm.Get_size()
@@ -456,7 +458,7 @@ def postproc(obs_save, kTs, comm,
                 f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
                 f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
                 for iT in range(nT):
-                    f.write(f"{kTs[iT]}")
+                    f.write(f"{E2T*kTs[iT]}")
                     for itype in range(ntype):
                         f.write(f" {obs_all[iT, itype, iobs]}")
                     f.write("\n")
