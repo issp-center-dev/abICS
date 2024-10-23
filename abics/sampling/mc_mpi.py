@@ -210,6 +210,10 @@ class ParallelMC(object):
     "MPI size"
     kTs: list[float]
     "Temperatures"
+    T2E: float
+    "Temperature to energy conversion factor"
+    E2T: float
+    "Energy to temperature conversion factor"
     nreplicas: int
     "The number of replicas"
     model: Model
@@ -230,6 +234,7 @@ class ParallelMC(object):
         configs,
         kTs,
         write_node=True,
+        T2E=1.0,
     ):
         """
 
@@ -245,14 +250,18 @@ class ParallelMC(object):
             Configurations
         kTs: list
             Temperature list
+        T2E: float
+            Temperature to energy conversion factor
         """
         self.comm = comm
         self.rank = self.comm.Get_rank()
         self.procs = self.comm.Get_size()
-        self.kTs = kTs
         self.model = model
         self.nreplicas = len(configs)
         self.write_node = write_node
+        self.T2E = T2E
+        self.E2T = 1.0 / T2E
+        self.kTs = [T2E * T for T in kTs]
 
         ## mycalc.kT and mycalc.config should be set later
         myconfig = configs[0]
