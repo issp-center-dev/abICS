@@ -135,7 +135,8 @@ class TemperatureRX_MPI(ParallelMC):
         model: Model,
         configs,
         kTs: list[float],
-        write_node=True,
+        write_node: bool=True,
+        T2E: float=1.0,
     ):
         """
 
@@ -154,10 +155,10 @@ class TemperatureRX_MPI(ParallelMC):
         subdirs: boolean
             If true, working directory for this rank is made
         """
-        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
-        self.mycalc.kT = kTs[self.rank]
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node, T2E=T2E)
+        self.mycalc.kT = self.kTs[self.rank]
         self.mycalc.config = configs[self.rank]
-        self.betas = 1.0 / np.array(kTs)
+        self.betas = 1.0 / np.array(self.kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
         self.float_buffer = np.array(0.0, dtype=np.float64)
         self.int_buffer = np.array(0, dtype=np.int64)
@@ -360,9 +361,9 @@ class TemperatureRX_MPI(ParallelMC):
         with open("acceptance_ratio.dat", "w") as f:
             for T, acc, trial in zip(self.kTs, self.naccepted, self.ntrials):
                 if trial > 0:
-                    f.write(f"{T} {acc/trial}\n")
+                    f.write(f"{self.E2T*T} {acc/trial}\n")
                 else:
-                    f.write(f"{T} {acc}/{trial}\n")
+                    f.write(f"{self.E2T*T} {acc}/{trial}\n")
 
         if nsample != 0:
             obs_buffer = np.empty(obs.shape)
@@ -406,7 +407,7 @@ class TemperatureRX_MPI(ParallelMC):
         kTs = self.kTs
         comm = self.comm
         obsnames = self.obsnames
-        postproc(obs_save, Trank_hist, kT_hist, kTs, comm, obsnames, throw_out)
+        postproc(obs_save, Trank_hist, kT_hist, kTs, comm, obsnames, throw_out, E2T=self.E2T)
 
     def __merge_obs(self):
         if hasattr(self, "obs_save0"):
@@ -515,7 +516,7 @@ def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
                 f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
                 f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
                 for iT in range(nT):
-                    f.write(f"{kTs[iT]}")
+                    f.write(f"{E2T*kTs[iT]}")
                     for itype in range(ntype):
                         f.write(f" {obs_all[iT, itype, iobs]}")
                     f.write("\n")
