@@ -98,7 +98,7 @@ class PAMCParams:
             kTstart = d["kTstart"]
             kTend = d["kTend"]
             kTnum = d["kTnum"]
-            if d.get("kT_linspace_as_inverse_temperature", False):
+            if d.get("linspace_in_beta", False):
                 params.kTs = 1.0 / np.linspace(1.0 / kTstart, 1.0 / kTend, kTnum)
             else:
                 params.kTs = np.linspace(kTstart, kTend, kTnum)

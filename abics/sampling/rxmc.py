@@ -96,7 +96,7 @@ class RXParams:
         else:
             kTstart = d["kTstart"]
             kTend = d["kTend"]
-            if d.get("kT_linspace_as_inverse_temperature", False):
+            if d.get("linspace_in_beta", False):
                 params.kTs = 1.0 / np.linspace(1.0 / kTstart, 1.0 / kTend, params.nreplicas)
             else:
                 params.kTs = np.linspace(kTstart, kTend, params.nreplicas)

@@ -73,7 +73,7 @@
        ``sampler = "PAMC"`` のときに使用.
        ``sampler = "RXMC"`` のときは、 レプリカ数 ``nreplicas`` が温度点の数になります.
 
-    - ``kT_linspace_as_inverse_temperature``
+    - ``linspace_in_beta``
 
        **形式 :** true or false
 

@@ -71,7 +71,7 @@ Keywords
        The number of temperature points.
        When ``sampler = "RXMC"``, the number of temperature points will equal to ``nreplicas``.
 
-    - ``kT_linspace_as_inverse_temperature``
+    - ``linspace_in_beta``
 
        **Format :** true or false
 
