@@ -261,7 +261,7 @@ class ParallelMC(object):
         self.write_node = write_node
         self.T2E = T2E
         self.E2T = 1.0 / T2E
-        self.kTs = [T2E * T for T in kTs]
+        self.kTs = np.array([T2E * T for T in kTs])
 
         ## mycalc.kT and mycalc.config should be set later
         myconfig = configs[0]

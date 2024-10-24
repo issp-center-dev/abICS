@@ -237,7 +237,7 @@ class EmbarrassinglyParallelSampling:
             kTs = [kTs] * self.procs
         self.T2E = T2E
         self.E2T = 1.0 / T2E
-        self.kTs = [T2E * T for T in kTs]
+        self.kTs = np.array([T2E * T for T in kTs])
         self.model = model
         self.nreplicas = len(configs)
         self.write_node = write_node
