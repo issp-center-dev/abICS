@@ -96,7 +96,10 @@ class RXParams:
         else:
             kTstart = d["kTstart"]
             kTend = d["kTend"]
-            params.kTs = np.linspace(kTstart, kTend, params.nreplicas)
+            if d.get("linspace_in_beta", False):
+                params.kTs = 1.0 / np.linspace(1.0 / kTstart, 1.0 / kTend, params.nreplicas)
+            else:
+                params.kTs = np.linspace(kTstart, kTend, params.nreplicas)
         params.nsteps = d["nsteps"]
         params.RXtrial_frequency = d.get("RXtrial_frequency", 1)
         params.sample_frequency = d.get("sample_frequency", 1)
