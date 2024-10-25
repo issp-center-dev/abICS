@@ -77,6 +77,7 @@ print_frequency = 1
 <div><ul>
 <li><p>温度点は <code class="docutils literal notranslate"><span class="pre">kTs</span></code> を用いて陽に指定するか、 <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> と <code class="docutils literal notranslate"><span class="pre">kTend</span></code> とを用いて等間隔に自動生成するかのどちらかで指定します。
 両方指定した場合、 <code class="docutils literal notranslate"><span class="pre">kTs</span></code> が優先されます.</p></li>
+<li><p>温度はケルビンを単位とした絶対温度で指定します.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTs</span></code></p>
 <p><strong>形式 :</strong> list of float (&gt;0)</p>
 <p><strong>説明 :</strong>
@@ -98,7 +99,16 @@ print_frequency = 1
 <p><strong>説明 :</strong>
 温度点の数.
 <code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;PAMC&quot;</span></code> のときに使用.
-<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code> のときは、 レプリカ数 <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> と同じ値になります.</p>
+<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code> のときは、 レプリカ数 <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> が温度点の数になります.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">linspace_in_beta</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> true or false</p>
+<p><strong>説明 :</strong>
+true の場合、温度点を生成する時に、逆温度空間で等間隔に生成します.
+false の場合、温度空間で等間隔に生成します.
+デフォルト値 = false.</p>
+</div></blockquote>
 </li>
 </ul>
 </div></blockquote>

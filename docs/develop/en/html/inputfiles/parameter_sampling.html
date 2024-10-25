@@ -75,6 +75,7 @@ Relica exchange MC method (“RXMC”) or population annealing MC method (“PAM
 <div><ul>
 <li><p>Specify temperature points by using <code class="docutils literal notranslate"><span class="pre">kTs</span></code> or <code class="docutils literal notranslate"><span class="pre">kTstart</span></code>, <code class="docutils literal notranslate"><span class="pre">kTend</span></code>, and <code class="docutils literal notranslate"><span class="pre">kTnum</span></code> (lineary spaced).
 If <code class="docutils literal notranslate"><span class="pre">kTs</span></code> is specified, the others will be ignored.</p></li>
+<li><p>Temperatures should be given in the unit of Kelvin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTs</span></code></p>
 <blockquote>
 <div><p><strong>Format :</strong> list of float (&gt;0)</p>
@@ -106,6 +107,19 @@ When <code class="docutils literal notranslate"><span class="pre">sampler</span>
 </div></blockquote>
 </li>
 </ul>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">linspace_in_beta</span></code></p>
+<blockquote>
+<div><p><strong>Format :</strong> true or false</p>
+<p><strong>Description :</strong>
+If true, temperature points are generated in the inverse temperature space with equal intervals.
+If false, temperature points are generated in the temperature space with equal intervals.
+Default value = false.</p>
+</div></blockquote>
+</li>
+</ul>
+</div></blockquote>
 </div></blockquote>
 </li>
 <li><p>About replica</p>
