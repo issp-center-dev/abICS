@@ -24,7 +24,6 @@ import datetime
 import numpy as np
 import scipy.constants as constants
 
-from abics import __version__
 from abics.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, RandomSampling
 from abics.observer import ObserverParams
 

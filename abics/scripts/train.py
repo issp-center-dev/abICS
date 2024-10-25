@@ -28,9 +28,8 @@ import numpy as np
 from pymatgen.core import Structure
 
 from .. import __version__, loggers
-from ..applications.latgas_abinitio_interface import (
-    aenet_trainer, map2perflat, nequip_trainer, mlip_3_trainer
-)
+from ..applications.latgas_abinitio_interface import map2perflat
+from ..applications.latgas_abinitio_interface.base_trainer import get_trainer_class
 from ..applications.latgas_abinitio_interface.defect import (
     DFTConfigParams, defect_config
 )
@@ -221,47 +220,20 @@ def main_impl(params_root: MutableMapping):
     generate_exe = trainer_commands[0]
     train_exe = trainer_commands[1]
 
+    trainer_class = get_trainer_class(trainer_type)
     trainers = []
-    if trainer_type == "aenet":
-        for i in range(len(trainer_input_dirs)):
-            trainers.append(
-                aenet_trainer(
-                    structures,
-                    energies,
-                    generate_input_dirs[i],
-                    train_input_dirs[i],
-                    predict_input_dirs[i],
-                    generate_exe,
-                    train_exe,
-                )
+    for i in range(len(trainer_input_dirs)):
+        trainers.append(
+            trainer_class(
+                structures,
+                energies,
+                generate_input_dirs[i],
+                train_input_dirs[i],
+                predict_input_dirs[i],
+                generate_exe,
+                train_exe,
             )
-    elif trainer_type == "allegro" or trainer_type == "nequip":
-        for i in range(len(trainer_input_dirs)):
-            trainers.append(
-                nequip_trainer(
-                    structures,
-                    energies,
-                    generate_input_dirs[i],
-                    train_input_dirs[i],
-                    predict_input_dirs[i],
-                    generate_exe,
-                    train_exe,
-                    trainer_type,
-                )
-            )
-    elif trainer_type == "mlip_3":
-        for i in range(len(trainer_input_dirs)):
-            trainers.append(
-                mlip_3_trainer(
-                    structures,
-                    energies,
-                    generate_input_dirs[i],
-                    train_input_dirs[i],
-                    predict_input_dirs[i],
-                    generate_exe,
-                    train_exe,
-                )
-            )
+        )
 
     trainers[0].prepare()
     # We use threads to parallelize generate.x over ensemble members
@@ -286,14 +258,12 @@ def main_impl(params_root: MutableMapping):
 
     # We use MPI version of train.x so no need to write parallel code here
     for i, trainer in enumerate(trainers):
-        logger.info(f"-Training run in train{i}")
-        trainer.train(train_dir="train{}".format(i))
-        logger.info(f"--Training run finished in train{i}")
+        train_dir = f"train{i}"
+        logger.info(f"-Training run in {train_dir}")
+        trainer.train(train_dir=train_dir)
+        logger.info(f"--Training run finished in {train_dir}")
         logger.info(f"-Preparing NN model for abics_sampling in {base_input_dir[i]}")
-        if trainer_type == "aenet":
-            trainer.new_baseinput(base_input_dir[i])
-        if trainer_type in ["allegro","nequip","mlip_3"]:
-            trainer.new_baseinput(base_input_dir[i], train_dir=f"train{i}")
+        trainer.new_baseinput(base_input_dir[i], train_dir=train_dir)
         logger.info("--Success.")
 
     with open("ALloop.progress", "a") as fi:

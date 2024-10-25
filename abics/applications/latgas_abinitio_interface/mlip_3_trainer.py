@@ -1,3 +1,22 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# abICS wrapper of MLIP-3 solver
+# Masashi Noda, Yusuke Konishi (Academeia Co., Ltd.) 2024
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
 from __future__ import annotations
 
 import os
@@ -15,51 +34,11 @@ from pymatgen.core import Structure
 
 from ...util import expand_cmd_path
 from . import mlip_3
+from .base_trainer import TrainerBase
+from .util import structure_to_XSF
 
-def to_XSF(structure: Structure, write_force_zero=False):
-    """
-    Returns a string with the structure in XSF format
-    See http://www.xcrysden.org/doc/XSF.html
-    """
-    lines = []
-    app = lines.append
 
-    app("CRYSTAL")
-    app("# Primitive lattice vectors in Angstrom")
-    app("PRIMVEC")
-    cell = structure.lattice.matrix
-    for i in range(3):
-        app(" %.14f %.14f %.14f" % tuple(cell[i]))
-
-    cart_coords = structure.cart_coords
-    app("# Cartesian coordinates in Angstrom.")
-    app("PRIMCOORD")
-    app(" %d 1" % len(cart_coords))
-    species = structure.species
-    site_properties = structure.site_properties
-    if "forces" not in site_properties.keys():
-        write_force_zero = True
-    else:
-        forces = site_properties["forces"]
-
-    if write_force_zero:
-        for a in range(len(cart_coords)):
-            app(
-                str(species[a])
-                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
-                + " 0.0 0.0 0.0"
-            )
-    else:
-        for a in range(len(cart_coords)):
-            app(
-                str(species[a])
-                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
-                + " %20.14f %20.14f %20.14f" % tuple(forces[a])
-            )
-
-    return "\n".join(lines)
-
-class mlip_3_trainer:
+class Mlip_3_trainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],
@@ -96,14 +75,14 @@ class mlip_3_trainer:
         xsfdir = os.getcwd()
         if latgas_mode:
             for i, st in enumerate(self.structures):
-                xsf_string = to_XSF(st, write_force_zero=False)
+                xsf_string = structure_to_XSF(st, write_force_zero=False)
                 xsf_string =\
                     f"# total energy = {self.energies[i]} eV\n\n{xsf_string}"
                 with open(f"structure.{i}.xsf", "w") as fi:
                     fi.write(xsf_string)
         else:
             for i, st in enumerate(self.structures):
-                xsf_string = to_XSF(st, write_force_zero=False)
+                xsf_string = structure_to_XSF(st, write_force_zero=False)
                 xsf_string =\
                     f"# total energy = {self.energies[i]} eV\n\n{xsf_string}"
                 with open(f"structure.{i}.xsf", "w") as fi:
@@ -184,4 +163,3 @@ class mlip_3_trainer:
         os.makedirs(baseinput, exist_ok=True)
         shutil.copy(os.path.join(train_dir, "input.cfg"), baseinput)
         shutil.copy(os.path.join(train_dir, "pot.almtp"), baseinput)
-

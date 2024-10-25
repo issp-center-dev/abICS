@@ -25,7 +25,7 @@ from collections import namedtuple
 import numpy as np
 from pymatgen.core import Structure
 
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase, register_solver_lazy
 from .params import ALParams, DFTParams
 
 
@@ -229,4 +229,5 @@ class AenetPyLammpsSolver(SolverBase):
         return cls(ignore_species)
 
 
-register_solver("aenetpylammps", AenetPyLammpsSolver)
+# register_solver("aenetpylammps", AenetPyLammpsSolver)
+register_solver_lazy("aenetpylammps", "AenetPyLammpsSolver", "abics.applications.latgas_abinitio_interface.aenet_pylammps")

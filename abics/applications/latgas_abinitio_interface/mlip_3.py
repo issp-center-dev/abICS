@@ -1,7 +1,7 @@
 # ab-Initio Configuration Sampling tool kit (abICS)
 # Copyright (C) 2019- The University of Tokyo
 #
-# MLIP-3 solver
+# abICS wrapper of MLIP-3 solver
 # Masashi Noda, Yusuke Konishi (Academeia Co., Ltd.) 2024
 #
 # This program is free software: you can redistribute it and/or modify
@@ -34,7 +34,7 @@ from collections import namedtuple
 import numpy as np
 from pymatgen.core import Structure
 
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase
 from .params import ALParams, DFTParams
 
 def map_species_to_sequential_numbers(original_list):
@@ -379,6 +379,3 @@ class MLIP_3_Solver(SolverBase):
         ignore_species = params.ignore_species
         run_scheme = params.solver_run_scheme
         return cls(path, ignore_species, run_scheme)
-
-
-register_solver("mlip_3", MLIP_3_Solver)

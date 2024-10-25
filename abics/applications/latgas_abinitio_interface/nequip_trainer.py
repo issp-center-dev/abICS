@@ -1,3 +1,22 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# abICS wrapper of NequIP solver
+# Munehiro Kobayashi, Yusuke Konishi (Academeia Co., Ltd.) 2024
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
 from __future__ import annotations
 from typing import Sequence
 
@@ -8,55 +27,14 @@ import time
 from pymatgen.core import Structure
 
 from abics.util import expand_cmd_path
-from abics.applications.latgas_abinitio_interface import nequip
+from abics.applications.latgas_abinitio_interface.base_trainer import TrainerBase
+from abics.applications.latgas_abinitio_interface.util import structure_to_XSF
 
 import ase
 from ase import io
 from ase.calculators.singlepoint import SinglePointCalculator
 from nequip.utils import Config
 
-def to_XSF(structure: Structure, write_force_zero=False):
-    """
-    Returns a string with the structure in XSF format
-    See http://www.xcrysden.org/doc/XSF.html
-    """
-    lines = []
-    app = lines.append
-
-    app("CRYSTAL")
-    app("# Primitive lattice vectors in Angstrom")
-    app("PRIMVEC")
-    cell = structure.lattice.matrix
-    for i in range(3):
-        app(" %.14f %.14f %.14f" % tuple(cell[i]))
-
-    cart_coords = structure.cart_coords
-    app("# Cartesian coordinates in Angstrom.")
-    app("PRIMCOORD")
-    app(" %d 1" % len(cart_coords))
-    species = structure.species
-    site_properties = structure.site_properties
-    if "forces" not in site_properties.keys():
-        write_force_zero = True
-    else:
-        forces = site_properties["forces"]
-
-    if write_force_zero:
-        for a in range(len(cart_coords)):
-            app(
-                str(species[a])
-                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
-                + " 0.0 0.0 0.0"
-            )
-    else:
-        for a in range(len(cart_coords)):
-            app(
-                str(species[a])
-                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
-                + " %20.14f %20.14f %20.14f" % tuple(forces[a])
-            )
-
-    return "\n".join(lines)
 
 def xsf_to_ase(xsf):
     ase_xsf = ase.io.read(xsf)
@@ -67,7 +45,7 @@ def xsf_to_ase(xsf):
     ase_xsf.calc = SinglePointCalculator(energy=tot_energy, atoms=ase_xsf)
     return ase_xsf
 
-class nequip_trainer:
+class Nequip_trainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],
@@ -77,7 +55,7 @@ class nequip_trainer:
         predict_inputdir: os.PathLike,
         generate_exe: str,
         train_exe: str,
-        trainer_type: str,
+        # trainer_type: str,
     ):
         self.structures = structures
         self.energies = energies
@@ -95,7 +73,7 @@ class nequip_trainer:
         self.is_prepared = False
         self.is_trained = False
         self.generate_outputdir = None
-        self.trainer_type = trainer_type
+        # self.trainer_type = trainer_type
 
     def prepare(self, latgas_mode = True, st_dir = "nequipXSF"):
         rootdir = os.getcwd()
@@ -107,7 +85,7 @@ class nequip_trainer:
         xsfdir = os.getcwd()
         if latgas_mode:
             for i, st in enumerate(self.structures):
-                xsf_string = nequip.to_XSF(st, write_force_zero=False)
+                xsf_string = structure_to_XSF(st, write_force_zero=False)
                 xsf_string = (
                     "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
                 )
@@ -115,7 +93,7 @@ class nequip_trainer:
                     fi.write(xsf_string)
         else:
             for i, st in enumerate(self.structures):
-                xsf_string = nequip.to_XSF(st, write_force_zero=False)
+                xsf_string = structure_to_XSF(st, write_force_zero=False)
                 xsf_string = (
                     "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
                 )
@@ -159,14 +137,14 @@ class nequip_trainer:
         shutil.copytree(self.train_inputdir, train_dir)
         os.chdir(train_dir)
 
-        yaml_dic = Config.from_file("input.yaml")
-        is_allegro = "allegro.model.Allegro" in yaml_dic["model_builders"]
-        if self.trainer_type == "nequip":
-            if is_allegro:
-                print("Warning: trainer_type=='nequip', but Allegro model is in input.yaml.")
-        else:
-            if not is_allegro:
-                print("Warning: trainer_type=='allegro', but Allegro model is not in input.yaml.")
+        # yaml_dic = Config.from_file("input.yaml")
+        # is_allegro = "allegro.model.Allegro" in yaml_dic["model_builders"]
+        # if self.trainer_type == "nequip":
+        #     if is_allegro:
+        #         print("Warning: trainer_type=='nequip', but Allegro model is in input.yaml.")
+        # else:
+        #     if not is_allegro:
+        #         print("Warning: trainer_type=='allegro', but Allegro model is not in input.yaml.")
 
         os.rename(
             os.path.join(self.generate_outputdir, "structure.xyz"),

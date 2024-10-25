@@ -14,17 +14,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
-# from .default_observer import *
+from .default_observer import *
 from .map2perflat import *
-from .aenet_trainer import *
-from .nequip_trainer import *
-from .mlip_3_trainer import *
+# from .aenet_trainer import *
+# from .nequip_trainer import *
+# from .mlip_3_trainer import *
 
-from .vasp import VASPSolver
-from .qe import QESolver
-from .aenet import AenetSolver
-from .aenet_pylammps import AenetPyLammpsSolver
-from .nequip import NequipSolver
-from .mlip_3 import MLIP_3_Solver
-from .openmx import OpenMXSolver
-from .user_function_solver import UserFunctionSolver
+from .base_solver import register_solver
+from .base_trainer import register_trainer
+
+register_solver("vasp", "VASPSolver", "abics.applications.latgas_abinitio_interface.vasp")
+register_solver("qe", "QESolver", "abics.applications.latgas_abinitio_interface.qe")
+register_solver("openmx", "OpenMXSolver", "abics.applications.latgas_abinitio_interface.openmx")
+register_solver("aenet", "AenetSolver", "abics.applications.latgas_abinitio_interface.aenet")
+register_solver("nequip", "NequipSolver", "abics.applications.latgas_abinitio_interface.nequip")
+# register_solver("allegro", "NequipSolver", "abics.applications.latgas_abinitio_interface.nequip")
+register_solver("mlip_3", "MLIP_3_Solver", "abics.applications.latgas_abinitio_interface.mlip_3")
+register_solver("User", "UserFunctionSolver", "abics.applications.latgas_abinitio_interface.user_function_solver")
+
+register_trainer("aenet", "Aenet_trainer", "abics.applications.latgas_abinitio_interface.aenet_trainer")
+register_trainer("nequip", "Nequip_trainer", "abics.applications.latgas_abinitio_interface.nequip_trainer")
+register_trainer("mlip_3", "MLIP_3_Trainer", "abics.applications.latgas_abinitio_interface.mlip_3_trainer")

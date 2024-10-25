@@ -27,7 +27,7 @@ import importlib
 
 from pymatgen.core import Structure
 
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase
 from .params import ALParams, DFTParams
 
 
@@ -194,6 +194,3 @@ class UserFunctionSolver(SolverBase):
             except ImportError:
                 raise ImportError(f"Cannot import module {modname}")
         return cls(fn)
-
-
-register_solver("User", UserFunctionSolver)

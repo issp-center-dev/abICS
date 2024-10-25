@@ -1,7 +1,7 @@
 # ab-Initio Configuration Sampling tool kit (abICS)
 # Copyright (C) 2019- The University of Tokyo
 #
-# NequIP solver
+# abICS wrapper of NequIP solver
 # Munehiro Kobayashi, Yusuke Konishi (Academeia Co., Ltd.) 2024
 #
 # This program is free software: you can redistribute it and/or modify
@@ -35,48 +35,6 @@ from nequip.utils import Config
 from .base_solver import SolverBase, register_solver
 from .params import ALParams, DFTParams
 
-def to_XSF(structure: Structure, write_force_zero=False):
-    """
-    Returns a string with the structure in XSF format
-    See http://www.xcrysden.org/doc/XSF.html
-    """
-    lines = []
-    app = lines.append
-
-    app("CRYSTAL")
-    app("# Primitive lattice vectors in Angstrom")
-    app("PRIMVEC")
-    cell = structure.lattice.matrix
-    for i in range(3):
-        app(" %.14f %.14f %.14f" % tuple(cell[i]))
-
-    cart_coords = structure.cart_coords
-    app("# Cartesian coordinates in Angstrom.")
-    app("PRIMCOORD")
-    app(" %d 1" % len(cart_coords))
-    species = structure.species
-    site_properties = structure.site_properties
-    if "forces" not in site_properties.keys():
-        write_force_zero = True
-    else:
-        forces = site_properties["forces"]
-
-    if write_force_zero:
-        for a in range(len(cart_coords)):
-            app(
-                str(species[a])
-                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
-                + " 0.0 0.0 0.0"
-            )
-    else:
-        for a in range(len(cart_coords)):
-            app(
-                str(species[a])
-                + " %20.14f %20.14f %20.14f" % tuple(cart_coords[a])
-                + " %20.14f %20.14f %20.14f" % tuple(forces[a])
-            )
-
-    return "\n".join(lines)
 
 class NequipSolver(SolverBase):
     """
@@ -251,7 +209,3 @@ class NequipSolver(SolverBase):
     def create(cls, params: ALParams | DFTParams):
         ignore_species = params.ignore_species
         return cls(ignore_species)
-
-
-register_solver("nequip", NequipSolver)
-register_solver("allegro", NequipSolver)
