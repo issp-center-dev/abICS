@@ -1,0 +1,60 @@
+root: results/spinel
+run_name: run
+seed: 123
+dataset_seed: 456
+
+# network
+num_basis: 8
+BesselBasis_trainable: true
+PolynomialCutoff_p: 6
+l_max: 1
+r_max: 8.0
+parity: o3_full
+num_layers: 2
+# num_features: 16
+
+env_embed_multiplicity: 16
+embed_initial_edge: true
+two_body_latent_mlp_latent_dimensions: [32, 64]
+two_body_latent_mlp_nonlinearity: silu
+latent_mlp_latent_dimensions: [64, 64]
+latent_mlp_nonlinearity: silu
+latent_mlp_initialization: uniform
+latent_resnet: true
+env_embed_mlp_latent_dimensions: []
+env_embed_mlp_nonlinearity: null
+env_embed_mlp_initialization: uniform
+edge_eng_mlp_latent_dimensions: [16]
+edge_eng_mlp_nonlinearity: null
+edge_eng_mlp_initialization: uniform
+
+model_builders:
+ - allegro.model.Allegro
+ - PerSpeciesRescale
+ - RescaleEnergyEtc
+
+
+dataset: ase
+dataset_file_name: structure.xyz
+chemical_symbols:
+  - Mg
+  - Al
+
+# logging
+wandb: false
+# verbose: debug
+
+# training
+n_train: 80%
+n_val: 20%
+batch_size: 5
+train_val_split: random
+#shuffle: true
+metrics_key: validation_loss
+use_ema: true
+ema_decay: 0.99
+ema_use_num_updates: true
+max_epochs: 100
+learning_rate: 0.01
+# loss function
+loss_coeffs: total_energy

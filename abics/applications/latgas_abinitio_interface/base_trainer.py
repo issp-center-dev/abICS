@@ -37,15 +37,29 @@ class TrainerBase(object):
         ...
 
     def generate_run(self, xsfdir="", generate_dir="generate"):
+        """ generate training dataset for specific trainer
+
+        Args:
+            xsfdir (str, optional): _description_. Defaults to "".
+            generate_dir (str, optional): . Defaults to "generate".
+        """
         ...
 
     def generate_wait(self):
+        """ wait for generate_run to finish
+        """
         ...
 
     def train(self, train_dir = "train"):
         ...
 
     def new_baseinput(self, baseinput_dir, train_dir = "train"):
+        """generate new baseinput directory/files for prediction
+
+        Args:
+            baseinput_dir (str): new baseinput directory
+            train_dir (str, optional): directory including training result. Defaults to "train".
+        """
         ...
 
 

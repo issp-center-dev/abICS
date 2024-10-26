@@ -34,6 +34,7 @@ import ase
 from ase import io
 from ase.calculators.singlepoint import SinglePointCalculator
 from nequip.utils import Config
+from nequip.scripts import deploy as nequip_deploy
 
 
 def xsf_to_ase(xsf):
@@ -107,7 +108,8 @@ class Nequip_trainer(TrainerBase):
         xsfdir = str(pathlib.Path(xsfdir).resolve())
         if os.path.exists(generate_dir):
             shutil.rmtree(generate_dir)
-        shutil.copytree(self.generate_inputdir, generate_dir)
+        # shutil.copytree(self.generate_inputdir, generate_dir)
+        os.makedirs(generate_dir, exist_ok=True)
         self.generate_dir = generate_dir
         os.chdir(generate_dir)
         xsf_paths = [
@@ -137,23 +139,10 @@ class Nequip_trainer(TrainerBase):
         shutil.copytree(self.train_inputdir, train_dir)
         os.chdir(train_dir)
 
-        # yaml_dic = Config.from_file("input.yaml")
-        # is_allegro = "allegro.model.Allegro" in yaml_dic["model_builders"]
-        # if self.trainer_type == "nequip":
-        #     if is_allegro:
-        #         print("Warning: trainer_type=='nequip', but Allegro model is in input.yaml.")
-        # else:
-        #     if not is_allegro:
-        #         print("Warning: trainer_type=='allegro', but Allegro model is not in input.yaml.")
-
         os.rename(
             os.path.join(self.generate_outputdir, "structure.xyz"),
             os.path.join(os.getcwd(), "structure.xyz"),
         )
-        # command = self.train_exe + " train.in"
-        # print(os.getcwd())
-        # print(command)
-        # print(os.path.exists("train.in"))
 
         with open(os.path.join(os.getcwd(), "stdout"), "w") as fi:
             subprocess.run(
@@ -175,9 +164,6 @@ class Nequip_trainer(TrainerBase):
         yaml_dic = Config.from_file("input.yaml")
         root = yaml_dic["root"]
         runname = yaml_dic["run_name"]
-        nequip_deploy = ["nequip-deploy","build","--train-dir",os.path.join(root,runname),os.path.join(baseinput,"deployed.pth")]
-        with open("nequip-deploy.out", "w") as fi:
-            subprocess.run(
-                nequip_deploy, stdout=fi, stderr=subprocess.STDOUT, check=True
-            )
+        nequip_deploy_args = ["build","--train-dir",os.path.join(root,runname),os.path.join(baseinput,"deployed.pth")]
+        nequip_deploy.main(nequip_deploy_args)
         os.chdir(pathlib.Path(os.getcwd()).parent)

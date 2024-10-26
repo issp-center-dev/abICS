@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
-        testname: [Unit, Sampling, ActiveLearn]
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip]
       fail-fast: false
 
     steps:
@@ -42,8 +42,11 @@ jobs:
                    cd ../potts_pamc
                    sh ./run.sh
                    ;;
-        ActiveLearn ) cd tests/integration/active_learn
-                      sh ./install_aenet.sh
-                      sh ./run.sh ;;
+        ActiveLearnAenet ) cd tests/integration/active_learn_aenet
+                            sh ./install_aenet.sh
+                            sh ./run.sh ;;
+        ActiveLearnNequip ) cd tests/integration/active_learn_nequip
+                             sh ./install_nequip.sh
+                             sh ./run.sh ;;
         * ) echo "Unknown testname";;
         esac
