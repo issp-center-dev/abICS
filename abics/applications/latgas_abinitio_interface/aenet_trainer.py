@@ -27,7 +27,7 @@ from abics.util import expand_cmd_path
 from abics.applications.latgas_abinitio_interface.base_trainer import TrainerBase
 from abics.applications.latgas_abinitio_interface.util import structure_to_XSF
 
-class Aenet_trainer(TrainerBase):
+class AenetTrainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],

@@ -29,9 +29,9 @@ register_solver("openmx", "OpenMXSolver", "abics.applications.latgas_abinitio_in
 register_solver("aenet", "AenetSolver", "abics.applications.latgas_abinitio_interface.aenet")
 register_solver("nequip", "NequipSolver", "abics.applications.latgas_abinitio_interface.nequip")
 # register_solver("allegro", "NequipSolver", "abics.applications.latgas_abinitio_interface.nequip")
-register_solver("mlip_3", "MLIP_3_Solver", "abics.applications.latgas_abinitio_interface.mlip_3")
+register_solver("mlip_3", "MLIP3Solver", "abics.applications.latgas_abinitio_interface.mlip_3")
 register_solver("User", "UserFunctionSolver", "abics.applications.latgas_abinitio_interface.user_function_solver")
 
-register_trainer("aenet", "Aenet_trainer", "abics.applications.latgas_abinitio_interface.aenet_trainer")
-register_trainer("nequip", "Nequip_trainer", "abics.applications.latgas_abinitio_interface.nequip_trainer")
-register_trainer("mlip_3", "MLIP_3_Trainer", "abics.applications.latgas_abinitio_interface.mlip_3_trainer")
+register_trainer("aenet", "AenetTrainer", "abics.applications.latgas_abinitio_interface.aenet_trainer")
+register_trainer("nequip", "NequipTrainer", "abics.applications.latgas_abinitio_interface.nequip_trainer")
+register_trainer("mlip_3", "MLIP3Trainer", "abics.applications.latgas_abinitio_interface.mlip_3_trainer")

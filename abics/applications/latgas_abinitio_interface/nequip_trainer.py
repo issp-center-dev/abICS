@@ -46,7 +46,7 @@ def xsf_to_ase(xsf):
     ase_xsf.calc = SinglePointCalculator(energy=tot_energy, atoms=ase_xsf)
     return ase_xsf
 
-class Nequip_trainer(TrainerBase):
+class NequipTrainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],

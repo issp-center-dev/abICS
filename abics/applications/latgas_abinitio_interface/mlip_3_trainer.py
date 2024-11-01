@@ -38,7 +38,7 @@ from .base_trainer import TrainerBase
 from .util import structure_to_XSF
 
 
-class Mlip_3_trainer(TrainerBase):
+class Mlip_3Trainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],

@@ -192,7 +192,7 @@ def from_CFG(input_string: str, species):
     return s
 
 # Need to mod for MLIP-3
-class MLIP_3_Solver(SolverBase):
+class MLIP3Solver(SolverBase):
     """
     This class defines the MLIP-3 solver.
     """
