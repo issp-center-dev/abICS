@@ -217,9 +217,6 @@ def main_impl(params_root: MutableMapping):
         train_input_dirs.append(os.path.join(d, "train"))
         predict_input_dirs.append(os.path.join(d, "predict"))
 
-    generate_exe = trainer_commands[0]
-    train_exe = trainer_commands[1]
-
     trainer_class = get_trainer_class(trainer_type)
     trainers = []
     for i in range(len(trainer_input_dirs)):
@@ -230,8 +227,7 @@ def main_impl(params_root: MutableMapping):
                 generate_input_dirs[i],
                 train_input_dirs[i],
                 predict_input_dirs[i],
-                generate_exe,
-                train_exe,
+                trainer_commands,
             )
         )
 

@@ -15,7 +15,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from __future__ import annotations
-from typing import Sequence
+from typing import Sequence, Dict
 
 import numpy as np
 import os, pathlib, shutil, subprocess, shlex
@@ -35,20 +35,19 @@ class AenetTrainer(TrainerBase):
         generate_inputdir: os.PathLike,
         train_inputdir: os.PathLike,
         predict_inputdir: os.PathLike,
-        generate_exe: str,
-        train_exe: str,
+        execute_commands: Dict,
     ):
         self.structures = structures
         self.energies = energies
         self.generate_inputdir = generate_inputdir
         self.train_inputdir = train_inputdir
         self.predict_inputdir = predict_inputdir
+        generate_exe = execute_commands["generate"]
         self.generate_exe = [expand_cmd_path(e) for e in shlex.split(generate_exe)]
         self.generate_exe.append("generate.in")
+        train_exe = execute_commands["train"]
         self.train_exe = [expand_cmd_path(e) for e in shlex.split(train_exe)]
         self.train_exe.append("train.in")
-        # self.generate_exe = generate_exe
-        # self.train_exe = train_exe
         assert len(self.structures) == len(self.energies)
         self.numdata = len(self.structures)
         self.is_prepared = False

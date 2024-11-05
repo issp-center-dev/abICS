@@ -31,10 +31,7 @@ perturb = 0.05
 [train]
 type = 'mlip_3'
 base_input_dir = './mlip-3_train_input'
-exe_command = [
-'./mlip-3/bin/mlp',
-'./mlip-3/bin/mlp',
-]
+exe_command = { train = './mlip-3/bin/mlp' }
 ignore_species = ["O"]
 vac_map = []
 restart = false

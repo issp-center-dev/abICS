@@ -210,9 +210,18 @@ class TrainerParams:
         )
         params.solver = d["type"]
         exe_command = d["exe_command"]
+        params.exe_command = {}
         if isinstance(exe_command, str):
-            exe_command = [exe_command]
-        params.exe_command = exe_command
+            params.exe_command = {"train": exe_command}
+        elif isinstance(exe_command, list):
+            # For backward compatibility
+            for i, cmd in enumerate(exe_command):
+                if i == 0:
+                    params.exe_command["generate"] = cmd
+                elif i == 1:
+                    params.exe_command["train"] = cmd
+        elif isinstance(exe_command, dict):
+            params.exe_command = exe_command
         params.solver_run_scheme = d.get("run_scheme", "subprocess")
         params.ignore_species = d.get("ignore_species", None)
         params.vac_map = d.get("vac_map", [])

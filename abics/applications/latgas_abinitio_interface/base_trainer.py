@@ -16,7 +16,7 @@
 
 from __future__ import annotations
 
-from typing import Sequence, Type
+from typing import Sequence, Type, Dict
 import os
 
 class TrainerBase(object):
@@ -28,8 +28,7 @@ class TrainerBase(object):
         generate_inputdir: os.PathLike,
         train_inputdir: os.PathLike,
         predict_inputdir: os.PathLike,
-        generate_exe: str,
-        train_exe: str,
+        execute_commands: Dict[str, str]
         ):
         ...
         

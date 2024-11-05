@@ -25,7 +25,7 @@ import shlex
 import shutil
 import subprocess
 import time
-from typing import Sequence
+from typing import Sequence, Dict
 
 from pymatgen.core import Structure
 
@@ -43,14 +43,14 @@ class MLIP3Trainer(TrainerBase):
         generate_inputdir: os.PathLike,
         train_inputdir: os.PathLike,
         predict_inputdir: os.PathLike,
-        generate_exe: str,
-        train_exe: str,
+        execute_command: Dict,
     ):
         self.structures = structures
         self.energies = energies
         self.generate_inputdir = generate_inputdir
         self.train_inputdir = train_inputdir
         self.predict_inputdir = predict_inputdir
+        train_exe = execute_command["train"]
         self.train_exe = [
             expand_cmd_path(e) for e in shlex.split(train_exe)
         ]
