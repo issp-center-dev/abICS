@@ -27,9 +27,6 @@ import subprocess
 import time
 from typing import Sequence
 
-import ase
-from ase.calculators.singlepoint import SinglePointCalculator
-from nequip.utils import Config
 from pymatgen.core import Structure
 
 from ...util import expand_cmd_path
