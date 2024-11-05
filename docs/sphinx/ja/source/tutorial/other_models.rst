@@ -5,7 +5,7 @@
 *************************************
 
 abICSでは、機械学習モデルとして、aenet以外にも、
-NequIP, Allegro, MLIP-3を利用したサンプリングが可能となっています。
+NequIP, MLIP-3を利用したサンプリングが可能となっています。
 本項では、それぞれのモデルの学習およびサンプリングの方法について説明します。
 
 NequIPを利用したサンプリング
@@ -20,15 +20,15 @@ NequIP のインストール
 
 .. code-block:: bash
 
-    $ pip3 install wandb
-    $ pip3 install nequip
+    $ python3 -m pip install wandb
+    $ python3 -m pip install nequip
 
 また、abICSインストール時に[nequip]オプションを指定すれば、NequIPもインストールされます。
 
 .. code-block:: bash
 
     $ cd /path/to/abics
-    $ pip3 install .abics[nequip]
+    $ python3 -m pip install '.abics[nequip]'
 
 インプットファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,13 +42,12 @@ NequIP のインストール
    type = 'nequip'
    base_input_dir = './baseinput_nequip'
    perturb = 0.0
-   #run_scheme = 'subprocess' #'mpi_spawn_ready'
    ignore_species = ["O"]
 
    [train]
    type = 'nequip'
    base_input_dir = './nequip_train_input'
-   exe_command = ['', 'nequip-train']
+   exe_command = { train = 'nequip-train'}
    ignore_species = ["O"]
    vac_map = []
    restart = false
@@ -100,8 +99,8 @@ NequIP のインストール
    # verbose: debug
 
    # training
-   n_train: 70
-   n_val: 10
+   n_train: 80%
+   n_val: 20%
    batch_size: 5
    train_val_split: random
    #shuffle: true
@@ -120,10 +119,10 @@ NequIP のインストール
 Allegroを利用したサンプリング
 ----------------------------------------------
 
+NequIPの拡張として実装されたモデルも、拡張パッケージをインストールし、NequIPの入力ファイルを適切に設定することで、そのまま利用可能です。Allegroは拡張パッケージの一つです。
+
 Allegro のインストール
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-``allegro`` の利用には、Allegroのインストールが必要です。
 
 下記コマンドにてインストールします。
 
@@ -131,7 +130,7 @@ Allegro のインストール
 
     $ git clone --depth 1 https://github.com/mir-group/allegro.git
     $ cd allegro
-    $ pip3 install .
+    $ python3 -m pip install .
 
 
 インプットファイルの準備
@@ -146,18 +145,17 @@ Allegro のインストール
    type = 'allegro'
    base_input_dir = './baseinput_allegro'
    perturb = 0.0
-   #run_scheme = 'subprocess' #'mpi_spawn_ready'
    ignore_species = ["O"]
 
    [train]
    type = 'allegro'
    base_input_dir = './allegro_train_input'
-   exe_command = ['', 'nequip-train']
+   exe_command = { train =  'nequip-train' }
    ignore_species = ["O"]
    vac_map = []
    restart = false
 
-また、Allegroのインプットファイルinput.yamlをallegro_train_input/trainディレクトリに作成します。
+また、Allegroのインプットファイル ``input.yaml`` を ``allegro_train_input/train`` ディレクトリに作成します。
 
 .. code-block:: yaml
 
@@ -174,7 +172,7 @@ Allegro のインストール
    r_max: 8.0
    parity: o3_full
    num_layers: 2
-   num_features: 16
+   # num_features: 16
 
    env_embed_multiplicity: 16
    embed_initial_edge: true
@@ -208,8 +206,8 @@ Allegro のインストール
    # verbose: debug
 
    # training
-   n_train: 70
-   n_val: 10
+   n_train: 80%
+   n_val: 20%
    batch_size: 5
    train_val_split: random
    #shuffle: true
@@ -253,24 +251,24 @@ MLIP-3 のインストール
     
    [sampling.solver]
    type = 'mlip_3'
-   path= '~/github/mlip-3/bin/mlp'
+   path= '~/git/mlip-3/bin/mlp'
    base_input_dir = './baseinput'
    perturb = 0.0
-   run_scheme = 'subprocess' #'mpi_spawn_ready'
+   run_scheme = 'subprocess'
    ignore_species = ["O"]
 
    [train]
    type = 'mlip_3'
    base_input_dir = './mlip_3_train_input'
-   exe_command = ['~/github/mlip-3/bin/mlp','~/github/mlip-3/bin/mlp']
+   exe_command = { train = '~/git/mlip-3/bin/mlp'}
    ignore_species = ["O"]
    vac_map = []
    restart = false
 
-上記の内、[sampling.solver]のpathと[train]のexe_commandのリストでは
-MLIP-3の実行ファイルmlpのパスを指定します。お使いの環境に合わせて変更してください。
+上記の内、 ``[sampling.solver]`` の ``path`` と ``[train]`` の ``exe_command`` では
+MLIP-3の実行ファイル ``mlp`` のパスを指定します。お使いの環境に合わせて変更してください。
 
-また、MLIP-3のインプットファイルinput.almtpをmlip_3_train_input/trainディレクトリに作成します。
+また、MLIP-3のインプットファイル ``input.almtp`` を ``mlip_3_train_input/train`` ディレクトリに作成します。
 
 .. code-block:: none
 

@@ -133,12 +133,21 @@ and abICS will take care of generating the coordinates section at each sampling 
 Machine learning trainer/calculator-specific notes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+- abICS control file
+
+  -  In the ``[solver]`` section, set ``perturb`` be 0.0.
+
+  .. code-block:: bash
+
+     type = "aenet"
+     perturb = 0.0
+
 aenet
 *****
 
 - URL : http://ann.atomistic.net
 
-- Checked with version 2.0.4.
+- Checked with aenet 2.0.4.
 
 - Reference file rules
 
@@ -151,17 +160,30 @@ aenet
   - Place the input file ``predict.in`` for ``predict.x`` in the ``predict`` directory to evaluate the energy for the input coordinates using the trained potential model.
 
 
-- abICS control file
+NequIP
+******
 
-  -  In the ``[solver]`` section, for ``type`` , ``perturb`` , and ``run_scheme``, set the following if using an active learning scheme.
+- URL : https://github.com/mir-group/nequip
 
-  .. code-block:: bash
+- Checked with nequip 0.6.1.
 
-     type = “aenet”
-     perturb = 0.0
-     run_scheme = ‘subprocess’
+- Reference file(For specific examples of reference files, see the tutorial)
+
+  - Place the input file for NequIP ``input.yaml`` in the ``train`` directory in the directory set in the ``base_input_dir`` of the ``[trainer]`` section.
+
+  - Set the RATIO of training data and validation data in ``n_train`` and ``n_val``. For example, if you set ``n_train = 80%`` and ``n_val = 20%``, the ratio of training data and validation data will be 80% and 20%, respectively.
 
 
+MLIP-3
+******
+
+- URL : https://gitlab.com/ashapeev/mlip-3
+
+- Checked with commit hash 5f6970e3966c5941a4b42b27a3e9170f162532a0 (2023-06-06T21:27:11).
+
+- Reference file(For specific examples of reference files, see the tutorial)
+
+  - Place the input file for MLIP-3 ``input.almtp`` in the ``train`` directory in the directory set in the ``base_input_dir`` of the ``[trainer]`` section.
 
 Creating a set of training data
 --------------------------------

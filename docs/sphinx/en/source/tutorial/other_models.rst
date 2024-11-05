@@ -20,15 +20,15 @@ Install it with the following command.
 
 .. code-block:: bash
 
-    $ pip3 install wandb
-    $ pip3 install nequip
+    $ python3 -m pip install wandb
+    $ python3 -m pip install nequip
 
 Also, when installing abICS, you can install NequIP by specifying the [nequip] option.
 
 .. code-block:: bash
 
     $ cd /path/to/abics
-    $ pip3 install .[nequip]
+    $ python3 -m pip install '.[nequip]'
 
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,18 +42,17 @@ Below, we extract [sampling.solver] and [train] with changes from the aenet inpu
    type = 'nequip'
    base_input_dir = './baseinput_nequip'
    perturb = 0.0
-   #run_scheme = 'subprocess' #'mpi_spawn_ready'
    ignore_species = ["O"]
 
    [train]
    type = 'nequip'
    base_input_dir = './nequip_train_input'
-   exe_command = ['', 'nequip-train']
+   exe_command = { train = 'nequip-train' }
    ignore_species = ["O"]
    vac_map = []
    restart = false
 
-Also, create the NequIP input file input.yaml in the nequip_train_input/train directory.
+Also, create the NequIP input file ``input.yaml`` in the ``nequip_train_input/train`` directory.
 
 .. code-block:: yaml
 
@@ -100,8 +99,8 @@ Also, create the NequIP input file input.yaml in the nequip_train_input/train di
    # verbose: debug
 
    # training
-   n_train: 70
-   n_val: 10
+   n_train: 80%
+   n_val: 20%
    batch_size: 5
    train_val_split: random
    #shuffle: true
@@ -120,25 +119,25 @@ The procedure of model learning and sampling is the same as aenet.
 Sampling with Allegro
 ----------------------------------------------
 
+Models implemented as extensions of NequIP can be used as is by installing the extension package and setting the input file of NequIP appropriately. Allegro is one of the extension packages.
+
 Installation of Allegro
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To use ``allegro``, you need to install Allegro.
-
-Install it with the following command.
+Install Allegro with the following command.
 
 .. code-block:: bash
 
     $ git clone --depth 1 https://github.com/mir-group/allegro.git
     $ cd allegro
-    $ pip3 install .
+    $ python3 -m pip install .
 
 
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First, prepare input_allegro.toml and set the parameters required to run Allegro.   
-Below, we extract [sampling.solver] and [train] with changes from the aenet input.
+Below, we extract ``[sampling.solver]`` and ``[train]`` with changes from the aenet input.
 
 .. code-block:: toml
     
@@ -146,18 +145,17 @@ Below, we extract [sampling.solver] and [train] with changes from the aenet inpu
    type = 'allegro'
    base_input_dir = './baseinput_allegro'
    perturb = 0.0
-   #run_scheme = 'subprocess' #'mpi_spawn_ready'
    ignore_species = ["O"]
 
    [train]
    type = 'allegro'
    base_input_dir = './allegro_train_input'
-   exe_command = ['', 'nequip-train']
+   exe_command = {train = 'nequip-train'}
    ignore_species = ["O"]
    vac_map = []
    restart = false
 
-Also, create the Allegro input file input.yaml in the allegro_train_input/train directory.
+Also, create the Allegro input file ``input.yaml`` in the ``allegro_train_input/train`` directory.
 
 .. code-block:: yaml
 
@@ -174,7 +172,6 @@ Also, create the Allegro input file input.yaml in the allegro_train_input/train 
    r_max: 8.0
    parity: o3_full
    num_layers: 2
-   num_features: 16
 
    env_embed_multiplicity: 16
    embed_initial_edge: true
@@ -208,8 +205,8 @@ Also, create the Allegro input file input.yaml in the allegro_train_input/train 
    # verbose: debug
 
    # training
-   n_train: 70
-   n_val: 10
+   n_train: 80%
+   n_val: 20%
    batch_size: 5
    train_val_split: random
    #shuffle: true
@@ -246,8 +243,8 @@ Install it with the following command.
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, prepare input_mlip3.toml and set the parameters required to run MLIP-3.
-Below, we extract [sampling.solver] and [train] with changes from the aenet input.
+First, prepare ``input_mlip3.toml`` and set the parameters required to run MLIP-3.
+Below, we extract ``[sampling.solver]`` and ``[train]`` with changes from the aenet input.
 
 .. code-block:: toml
     
@@ -256,22 +253,22 @@ Below, we extract [sampling.solver] and [train] with changes from the aenet inpu
    path= '~/github/mlip-3/bin/mlp'
    base_input_dir = './baseinput'
    perturb = 0.0
-   run_scheme = 'subprocess' #'mpi_spawn_ready'
+   run_scheme = 'subprocess'
    ignore_species = ["O"]
 
    [train]
    type = 'mlip_3'
    base_input_dir = './mlip_3_train_input'
-   exe_command = ['~/github/mlip-3/bin/mlp','~/github/mlip-3/bin/mlp']
+   exe_command = { train = '~/github/mlip-3/bin/mlp'}
    ignore_species = ["O"]
    vac_map = []
    restart = false
 
-In the above, the path in [sampling.solver] and the exe_command list in [train] 
-specify the path to the MLIP-3 executable file mlp. 
+In the above, the ``path`` in ``[sampling.solver]`` and the ``exe_command`` in ``[train]``
+specify the path to the MLIP-3 executable file ``mlp`` .
 Please change them according to your environment.
 
-Also, create the MLIP-3 input file input.almtp in the mlip_3_train_input/train directory.
+Also, create the MLIP-3 input file ``input.almtp`` in the ``mlip_3_train_input/train`` directory.
 
 .. code-block:: none
 

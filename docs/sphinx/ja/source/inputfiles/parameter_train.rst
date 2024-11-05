@@ -6,7 +6,7 @@
 訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います。
 
 予測モデルの作成・学習には外部のプログラムを利用します。
-現在はaenet, nequip, MLIP-3に対応しています。
+現在はaenet, NequIP, MLIP-3に対応しています。
 ソフトウェア固有の注意事項（入力ファイル名など）は :ref:`trainer_specific_notes` を参照してください.
 
 本セクションは以下のようなファイルフォーマットをしています.
@@ -16,9 +16,10 @@
     [train] # モデル学習器の設定
     type = 'aenet'
     base_input_dir = './aenet_train_input'
-    exe_command = ['~/git/aenet/bin/generate.x-2.0.4-ifort_serial', 
-                  'srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi']
     ignore_species = ["O"]
+    [train.exe_command]
+    generate = '~/git/aenet/bin/generate.x-2.0.4-ifort_serial'
+    train = 'srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi'
 
     
 入力形式
@@ -48,20 +49,39 @@
 
  -  ``exe_command``
 
-    **形式 :** strのlist型 
+    **形式 :** 辞書型
     
     **説明 :**
-    学習器で使う実行ファイルへのパスを指定します.
+    学習器で使う実行コマンドを指定します.
+    コマンドライン引数も指定できますが, それぞれの学習機の入力ファイル (``input.yaml`` など)は含めないようにしてください.
     
     - ``type = 'aenet'``
 
-      - ``generate.x`` と ``train.x`` へのパスをそれぞれ指定します.
-        aenetの ``generate.x`` と ``train.x`` へのパスを指定します. 特に、 ``train.x`` についてはMPI並列版が利用可能です. その場合、上の例で示すように、MPI実行するためのコマンド（ ``srun`` 、 ``mpirun`` など）を合わせて設定してください。
+      - ``generate`` と ``train`` の2つのキーを持ちます.
+      - ``generate``
 
-    - ``type = 'aenet'``
+         - aenetの ``generate.x`` へのパスを指定します.
 
-      - ``generate.x`` と ``train.x`` へのパスをそれぞれ指定します.
-        aenetの ``generate.x`` と ``train.x`` へのパスを指定します. 特に、 ``train.x`` についてはMPI並列版が利用可能です. その場合、上の例で示すように、MPI実行するためのコマンド（ ``srun`` 、 ``mpirun`` など）を合わせて設定してください。
+      - ``train``
+
+         - aenetの ``train.x`` へのパスを指定します.
+         - MPI並列版が利用可能です. その場合、上の例で示すように、MPI実行するためのコマンド（ ``srun`` 、 ``mpirun`` など）を合わせて設定してください。
+      
+      - abICS 2.0 以前との互換性のために、配列形式もサポートしています.
+        最初の要素が ``generate``, 2番目の要素が ``train`` です.
+
+    - ``type = 'nequip'``
+
+      - ``train`` 
+
+         - ``nequip-train`` へのパスを指定します.
+
+    - ``type = 'mlip_3'``
+
+      - ``train``
+
+         - ``mlp`` へのパスを指定します.
+
 
  -  ``ignore_species``
    
