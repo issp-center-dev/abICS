@@ -52,7 +52,7 @@ jobs:
                              sh ./install_nequip.sh
                              sh ./run.sh ;;
         ActiveLearnMLIP-3 ) cd tests/integration/active_learn_mlip3
-                             sh ./install_nequip.sh
+                             sh ./install_mlip3.sh
                              sh ./run.sh ;;
         * ) echo "Unknown testname";;
         esac
