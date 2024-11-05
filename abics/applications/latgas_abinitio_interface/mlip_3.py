@@ -212,8 +212,8 @@ class MLIP3Solver(SolverBase):
         super().__init__(path_to_solver)
         self.path_to_solver = path_to_solver
         self.species = None
-        self.input = MLIP_3_Solver.Input(self, ignore_species, run_scheme)
-        self.output = MLIP_3_Solver.Output(self)
+        self.input = MLIP3Solver.Input(self, ignore_species, run_scheme)
+        self.output = MLIP3Solver.Output(self)
 
     def name(self):
         return "mlip_3"

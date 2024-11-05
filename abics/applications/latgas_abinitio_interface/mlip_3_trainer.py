@@ -38,7 +38,7 @@ from .base_trainer import TrainerBase
 from .util import structure_to_XSF
 
 
-class Mlip_3Trainer(TrainerBase):
+class MLIP3Trainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],
@@ -65,7 +65,7 @@ class Mlip_3Trainer(TrainerBase):
         self.generate_outputdir = None
         self.latgas_mode = True
 
-    def prepare(self, latgas_mode=True, st_dir="mlip_3_XSF"):
+    def prepare(self, latgas_mode=True, st_dir="mlip-3_XSF"):
         rootdir = os.getcwd()
         xsfdir = os.path.join(rootdir, st_dir)
 
@@ -91,7 +91,7 @@ class Mlip_3Trainer(TrainerBase):
         self.latgas_mode = latgas_mode
         os.chdir(rootdir)
 
-    def generate_run(self, xsfdir="mlip_3_XSF", generate_dir="generate"):
+    def generate_run(self, xsfdir="mlip-3_XSF", generate_dir="generate"):
         # prepare generate
         cfgdir = str(pathlib.Path(xsfdir).resolve())
         if os.path.exists(generate_dir):

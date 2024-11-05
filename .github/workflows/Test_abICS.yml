@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
-        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip]
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3]
         exclude:
           - python-version: 3.7
             testname: ActiveLearnNequip
@@ -49,6 +49,9 @@ jobs:
                             sh ./install_aenet.sh
                             sh ./run.sh ;;
         ActiveLearnNequip ) cd tests/integration/active_learn_nequip
+                             sh ./install_nequip.sh
+                             sh ./run.sh ;;
+        ActiveLearnMLIP-3 ) cd tests/integration/active_learn_mlip3
                              sh ./install_nequip.sh
                              sh ./run.sh ;;
         * ) echo "Unknown testname";;
