@@ -13,14 +13,13 @@ packages = [
   ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 numpy = "^1.20"
 toml = ">=0.10"
 scipy = "^1"
 mpi4py = "^3"
 pymatgen = ">=2019.12.3 <2023.5.8"
 qe_tools = "^1.1"
-"ruamel.yaml" = { version = "<0.18.0", python = "<3.8" }
 
 [tool.poetry.extras]
 
