@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "abics"
-version = "2.2.0"
+version = "2.3-dev"
 description = "ab-Initio Configuration Sampling tool kit"
 authors = ["abICS developers <abics-dev@issp.u-tokyo.ac.jp>"]
 license = "GPL-3.0-or-later"
