@@ -31,13 +31,13 @@ perturb = 0.05
 [train]
 type = 'aenet'
 base_input_dir = './aenet_train_input'
-exe_command = [
-'~/opt/aenet/bin/generate.x_serial',
-'mpiexec -np 2 --oversubscribe ~/opt/aenet/bin/train.x_mpi'
-]
 ignore_species = ["O"]
 vac_map = []
 restart = false
+
+[train.exe_command]
+generate = '~/opt/aenet/bin/generate.x_serial'
+train = 'mpiexec -np 2 --oversubscribe ~/opt/aenet/bin/train.x_mpi'
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],

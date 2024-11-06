@@ -200,7 +200,7 @@ class SolverBase(object):
 
 __solver_table = {}
 
-def register_solver(solver_name: str, solver_class) -> None:
+def register_solver(solver_name: str, solver_class: str, solver_module: str) -> None:
     """
     Register solver class.
 
@@ -208,13 +208,13 @@ def register_solver(solver_name: str, solver_class) -> None:
     ----------
     solver_name : str
         Solver name (case insensible).
-    solver_class : SolverBase
+    solver_class : str
         Solver class, which should be a subclass of SolverBase.
+    solver_module : str
+        Module name including the solver class.
     """
 
-    if SolverBase not in solver_class.mro():
-        raise TypeError("solver_class must be a subclass of SolverBase")
-    __solver_table[solver_name.lower()] = solver_class
+    __solver_table[solver_name.lower()] = (solver_class, solver_module)
 
 
 def create_solver(solver_name, params: ALParams | DFTParams) -> SolverBase:
@@ -236,5 +236,11 @@ def create_solver(solver_name, params: ALParams | DFTParams) -> SolverBase:
     sn = solver_name.lower()
     if sn not in __solver_table:
         raise ValueError(f"Unknown solver: {solver_name}")
-    solver_class = __solver_table[sn]
+
+    import importlib
+    solver_class_name, solver_module = __solver_table[sn]
+    mod = importlib.import_module(solver_module)
+    solver_class = getattr(mod, solver_class_name)
+    if SolverBase not in solver_class.mro():
+        raise TypeError("solver_class must be a subclass of SolverBase")
     return solver_class.create(params)

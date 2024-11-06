@@ -98,7 +98,11 @@ class PAMCParams:
             kTstart = d["kTstart"]
             kTend = d["kTend"]
             kTnum = d["kTnum"]
-            params.kTs = np.linspace(kTstart, kTend, kTnum)
+            if d.get("linspace_in_beta", False):
+                params.kTs = 1.0 / np.linspace(1.0 / kTstart, 1.0 / kTend, kTnum)
+            else:
+                params.kTs = np.linspace(kTstart, kTend, kTnum)
+
         if "nsteps_between_anneal" in d:
             params.nsteps = d["nsteps_between_anneal"] * kTnum
             if "nsteps" in d:
@@ -157,7 +161,8 @@ class PopulationAnnealing(ParallelMC):
         model: Model,
         configs,
         kTs: np.ndarray,
-        write_node=True,
+        write_node: bool=True,
+        T2E: float=1.0,
     ):
         """
 
@@ -179,8 +184,8 @@ class PopulationAnnealing(ParallelMC):
         if kTs[0] < kTs[-1]:
             logger.warning("Warning: kTs[0] < kTs[-1]. abICS reverses kTs.")
             kTs = kTs[::-1]
-        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
-        self.mycalc.kT = kTs[0]
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node, T2E=T2E)
+        self.mycalc.kT = self.kTs[0]
         self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
         self.obs_save = []
@@ -360,7 +365,8 @@ class PopulationAnnealing(ParallelMC):
                 self.anneal(self.mycalc.energy)
                 logger.info(
                     "--Anneal from T={} to {}".format(
-                        self.kTs[self.Tindex - 1], self.kTs[self.Tindex]
+                        self.E2T*self.kTs[self.Tindex - 1],
+                        self.E2T*self.kTs[self.Tindex]
                     )
                 )
                 if self.Tindex % resample_frequency == 0:
@@ -389,7 +395,7 @@ class PopulationAnnealing(ParallelMC):
             self.acceptance_ratios.append(naccepted / ntrials)
             with open("acceptance_ratio.dat", "w") as f:
                 for T, ar in zip(self.kTs, self.acceptance_ratios):
-                    f.write(f"{T} {ar}\n")
+                    f.write(f"{self.E2T*T} {ar}\n")
             self.Tindex += 1
             self.isamples_offsets[self.Tindex] = nsample
         output.close()
@@ -421,7 +427,7 @@ class PopulationAnnealing(ParallelMC):
         isamples_offsets = self.isamples_offsets
         comm = self.comm
         postproc(
-            kTs, obs_save, dlogz, logweight_history, obsnames, isamples_offsets, comm
+            kTs, obs_save, dlogz, logweight_history, obsnames, isamples_offsets, comm, E2T=self.E2T
         )
 
 
@@ -433,6 +439,7 @@ def postproc(
     obsnames,
     isamples_offsets,
     comm,
+    E2T:float=1.0,
 ):
     procs = comm.Get_size()
     rank = comm.Get_rank()
@@ -505,7 +512,7 @@ def postproc(
                 f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
 
                 for iT in range(nT):
-                    f.write(f"{kTs[iT]}")
+                    f.write(f"{E2T*kTs[iT]}")
                     for j in range(3):
                         f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
                     f.write("\n")
@@ -523,5 +530,5 @@ def postproc(
             for i, (dlz, dlz_e) in enumerate(zip(dlogZ, dlogZ_err)):
                 F += dlz
                 dF += dlz_e
-                f.write(f"{kTs[i]} {F} {dF} {dlz} {dlz_e}\n")
+                f.write(f"{E2T*kTs[i]} {F} {dF} {dlz} {dlz_e}\n")
     comm.Barrier()
