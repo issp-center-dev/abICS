@@ -24,14 +24,16 @@ import datetime
 import numpy as np
 import scipy.constants as constants
 
-from abics import __version__
 from abics.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, RandomSampling
 from abics.observer import ObserverParams
 
 from abics.sampling.mc_mpi import RX_MPI_init
 from abics.sampling.rxmc import TemperatureRX_MPI, RXParams
 from abics.sampling.pamc import PopulationAnnealing, PAMCParams
-from abics.sampling.simple_parallel import EmbarrassinglyParallelSampling, ParallelRandomParams
+from abics.sampling.simple_parallel import (
+    EmbarrassinglyParallelSampling,
+    ParallelRandomParams,
+)
 
 from abics.applications.latgas_abinitio_interface.default_observer import (
     DefaultObserver,
@@ -50,13 +52,18 @@ from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     RunnerEnsemble,
     RunnerMultistep,
 )
-from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
+from abics.applications.latgas_abinitio_interface.base_solver import (
+    SolverBase,
+    create_solver,
+)
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 
 from abics.util import exists_on_all_nodes
 
 import logging
+
 logger = logging.getLogger("main")
+
 
 def main_dft_latgas(params_root: MutableMapping):
     params_sampling = params_root.get("sampling", None)
@@ -75,11 +82,13 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(
+            rxparams.nreplicas, rxparams.seed, nensemble
+        )
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTs = kB * rxparams.kTs
+        kTs = rxparams.kTs
         kTstart = rxparams.kTs[0]
         kTend = rxparams.kTs[-1]
 
@@ -102,7 +111,9 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(pamcparams.nreplicas, pamcparams.seed, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(
+            pamcparams.nreplicas, pamcparams.seed, nensemble
+        )
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
@@ -110,7 +121,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kTend = pamcparams.kTs[-1]
         if kTstart < kTend:
             kTstart, kTend = kTend, kTstart
-        kTs = kB * pamcparams.kTs
+        kTs = pamcparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = pamcparams.reload
@@ -124,18 +135,20 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.info(f"--Anneal from {kTstart} K to {kTend} K")
 
     elif sampler_type == "parallelRand":
-        rxparams = ParallelRandomParams.from_dict(params_sampling)
-        nreplicas = rxparams.nreplicas
-        nprocs_per_replica = rxparams.nprocs_per_replica
+        prparams = ParallelRandomParams.from_dict(params_sampling)
+        nreplicas = prparams.nreplicas
+        nprocs_per_replica = prparams.nprocs_per_replica
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(
+            prparams.nreplicas, prparams.seed, nensemble
+        )
 
         # Set Lreload to True when restarting
-        Lreload = rxparams.reload
+        Lreload = prparams.reload
 
-        nsteps = rxparams.nsteps
-        sample_frequency = rxparams.sample_frequency
-        print_frequency = rxparams.print_frequency
+        nsteps = prparams.nsteps
+        sample_frequency = prparams.sample_frequency
+        print_frequency = prparams.print_frequency
         logger.info(f"-Running parallel random sampling")
 
     elif sampler_type == "parallelMC":
@@ -146,13 +159,15 @@ def main_dft_latgas(params_root: MutableMapping):
         kB = constants.value("Boltzmann constant in eV/K")
 
         nensemble = len(dftparams.base_input_dir)
-        comm, commEnsemble, commAll = RX_MPI_init(rxparams.nreplicas, rxparams.seed, nensemble)
+        comm, commEnsemble, commAll = RX_MPI_init(
+            rxparams.nreplicas, rxparams.seed, nensemble
+        )
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
         kTstart = rxparams.kTs[0]
         kTend = rxparams.kTs[-1]
-        kTs = kB * rxparams.kTs
+        kTs = rxparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -166,14 +181,15 @@ def main_dft_latgas(params_root: MutableMapping):
         logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
 
-
     solvers = []
     for i in range(len(dftparams.base_input_dir)):
         solver: SolverBase = create_solver(dftparams.solver, dftparams)
         solvers.append(solver)
-    
+
     logger.info(f"-Setting up {dftparams.solver} solver for configuration energies")
-    logger.info("--Base input is taken from {}".format(",".join(dftparams.base_input_dir)))
+    logger.info(
+        "--Base input is taken from {}".format(",".join(dftparams.base_input_dir))
+    )
 
     # model setup
     # we first choose a "model" defining how to perform energy calculations and trial steps
@@ -181,7 +197,9 @@ def main_dft_latgas(params_root: MutableMapping):
     energy_calculator: Union[Runner, RunnerEnsemble, RunnerMultistep]
     if dftparams.ensemble:
         if len(dftparams.base_input_dir) == 1:
-            logger.error("You must specify more than one base_input_dir for ensemble calculator")
+            logger.error(
+                "You must specify more than one base_input_dir for ensemble calculator"
+            )
             sys.exit(1)
         energy_calculator = RunnerEnsemble(
             base_input_dirs=dftparams.base_input_dir,
@@ -216,18 +234,19 @@ def main_dft_latgas(params_root: MutableMapping):
                 use_tmpdir=dftparams.use_tmpdir,
             )
 
-    gc_flag  = params_sampling.get("enable_grandcanonical", False)
+    gc_flag = params_sampling.get("enable_grandcanonical", False)
     gc_ratio = params_sampling.get("gc_ratio", 0.3)
 
-    model = DFTLatticeGas(energy_calculator,
-                          save_history=False,
-                          enable_grandcanonical=gc_flag,
-                          gc_ratio=gc_ratio,
+    model = DFTLatticeGas(
+        energy_calculator,
+        save_history=False,
+        enable_grandcanonical=gc_flag,
+        gc_ratio=gc_ratio,
     )
 
     logger.info("--Success.")
     logger.info("-Setting up the on-lattice model.")
-    
+
     configparams = DFTConfigParams.from_dict(params_root["config"])
 
     spinel_config = defect_config(configparams)
@@ -268,7 +287,9 @@ def main_dft_latgas(params_root: MutableMapping):
             )
             for base_input_dir in ensembleparams.base_input_dirs
         ]
-        observer: DefaultObserver = EnsembleErrorObserver(commEnsemble, energy_calculators, Lreload)
+        observer: DefaultObserver = EnsembleErrorObserver(
+            commEnsemble, energy_calculators, Lreload
+        )
     else:
         observer = DefaultObserver(comm, Lreload, params_observer)
 
@@ -299,7 +320,9 @@ def main_dft_latgas(params_root: MutableMapping):
                     logger.info(f"--MC sampling will be run in MC{i}")
                     os.mkdir("MC{}".format(i))
                     if dftparams.use_tmpdir:
-                        logger.info(f"---Will use local tmpdir for {dftparams.solver} run")
+                        logger.info(
+                            f"---Will use local tmpdir for {dftparams.solver} run"
+                        )
                         # backup baseinput for this AL step
                         for j, d in enumerate(dftparams.base_input_dir):
                             shutil.copytree(d, "MC{}/baseinput{}".format(i, j))
@@ -326,14 +349,14 @@ def main_dft_latgas(params_root: MutableMapping):
     if sampler_type == "RXMC":
         # RXMC calculation
         RXcalc = TemperatureRX_MPI(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node, T2E=kB,
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
             RXcalc.reload()
 
         logger.info("-Starting RXMC calculation")
-            
+
         obs = RXcalc.run(
             nsteps,
             RXtrial_frequency,
@@ -341,19 +364,20 @@ def main_dft_latgas(params_root: MutableMapping):
             print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
+            throw_out=rxparams.throw_out,
         )
 
     elif sampler_type == "PAMC":
         # PAMC calculation
         PAcalc = PopulationAnnealing(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node, T2E=kB,
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
             PAcalc.reload()
 
         logger.info("-Starting PAMC calculation")
-            
+
         obs = PAcalc.run(
             nsteps,
             resample_frequency,
@@ -365,7 +389,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     elif sampler_type == "parallelRand":
         calc = EmbarrassinglyParallelSampling(
-            comm, RandomSampling, model, configs, write_node=write_node
+            comm, RandomSampling, model, configs, prparams.kT, write_node=write_node
         )
         if Lreload:
             calc.reload()
@@ -379,7 +403,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     elif sampler_type == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node, T2E=kB
         )
         if Lreload:
             calc.reload()
@@ -389,6 +413,7 @@ def main_dft_latgas(params_root: MutableMapping):
             print_frequency=print_frequency,
             observer=observer,
             subdirs=True,
+            throw_out=rxparams.throw_out,
         )
     logger.info("--Sampling completed sucessfully.")
 

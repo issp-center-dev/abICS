@@ -50,7 +50,7 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 
 4. [observer] セクション
 
-   取得する物理量の種類などを指定します.
+   計算する物理量を指定します.
 
 5. [config] セクション
 
@@ -142,7 +142,7 @@ aenet
 
 - URL : http://ann.atomistic.net
 
-- バージョン2.0.4 で動作確認済。
+- aenet 2.0.4 で動作確認済。
 
 - 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
 
@@ -155,16 +155,31 @@ aenet
   - 訓練したポテンシャルモデルを使って入力座標に対してエネルギーを 評価するための ``predict.x`` 用の入力ファイル ``predict.in`` を、 ``predict`` ディレクトリに設置してください。
 
 
-- abICS 入力ファイル
+NequIP
+******
 
-  - ``[solver]`` セクションで ``type`` , ``perturb`` , ``run_scheme`` に関しては、能動学習スキームを用いる場合は以下に設定してください。
+- URL : https://github.com/mir-group/nequip
 
-  .. code-block:: bash
+- NequIP 0.6.1 で動作確認済。
 
-     type = “aenet”
-     perturb = 0.0
-     run_scheme = ‘subprocess’
-		     
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+
+  - NequIP用の入力ファイル ``input.yaml`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``train`` ディレクトリに設置してください。
+
+  - ``n_train`` と ``n_val`` には、訓練データと検証データの「割合」を指定してください. 例えば、 ``n_train = 80%`` 、 ``n_val = 20%`` と指定すると、訓練データと検証データの割合がそれぞれ80%、20%になります。
+
+
+MLIP-3
+******
+
+- URL : https://gitlab.com/ashapeev/mlip-3
+
+- コミットハッシュ 5f6970e3966c5941a4b42b27a3e9170f162532a0 (2023-06-06T21:27:11) で動作確認済。
+
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+
+  - MLIP-3用の入力ファイル ``input.almtp`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``train`` ディレクトリに設置してください。
+
 
 学習データの作成
 -------------------
@@ -191,3 +206,8 @@ aenet
 ``aenetPyLammps`` の利用には、 `aenet-lammps <https://github.com/HidekiMori-CIT/>`_ および `LAMMPS <https://www.lammps.org/>`_ のインストールが必要です。
 インストールや使い方の詳細は :ref:`tutorial_aenet_lammps` を参照してください。
 
+期待値計算
+-------------
+
+``abics_sampling`` は最後に物理量の期待値を温度ごとに計算・出力します。
+また、 ``abics_sampling`` でサンプリングした結果を用いて（新たにサンプリングせずに）別の物理量を計算するためには、 ``abics_postproc`` を利用できます。

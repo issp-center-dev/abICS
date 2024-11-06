@@ -25,7 +25,7 @@ import scipy.constants as spc
 
 from pymatgen.core import Structure
 
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase
 from .params import ALParams, DFTParams
 
 hartree2eV = spc.value("Hartree energy in eV")
@@ -406,5 +406,3 @@ class OpenMXSolver(SolverBase):
     def create(cls, params: ALParams | DFTParams):
         path = params.path
         return cls(path)
-
-register_solver("openmx", OpenMXSolver)

@@ -3,22 +3,25 @@
 
 name: Test for abICS
 
-on: [push]
+on:
+  push:
+  schedule:
+    - cron: '0 0 1,15 * *' # JST 9:00 on 1st and 15th every month
 
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
-        testname: [Unit, Sampling, ActiveLearn]
+        python-version: ['3.9', '3.12']
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3]
       fail-fast: false
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
@@ -42,8 +45,14 @@ jobs:
                    cd ../potts_pamc
                    sh ./run.sh
                    ;;
-        ActiveLearn ) cd tests/integration/active_learn
-                      sh ./install_aenet.sh
-                      sh ./run.sh ;;
+        ActiveLearnAenet ) cd tests/integration/active_learn_aenet
+                            sh ./install_aenet.sh
+                            sh ./run.sh ;;
+        ActiveLearnNequip ) cd tests/integration/active_learn_nequip
+                             sh ./install_nequip.sh
+                             sh ./run.sh ;;
+        ActiveLearnMLIP-3 ) cd tests/integration/active_learn_mlip3
+                             sh ./install_mlip3.sh
+                             sh ./run.sh ;;
         * ) echo "Unknown testname";;
         esac

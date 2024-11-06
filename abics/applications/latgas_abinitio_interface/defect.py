@@ -62,6 +62,7 @@ class DFTConfigParams:
             raise InputError('"config.constraint_module" should be true or false')
         self.constraint_energy = None
         if constraint_module:
+            logger.info("Using constraint_module.py to impose constraints")
             sys.path.append(os.getcwd())
             import constraint_module
             self.constraint_func = constraint_module.constraint_func
@@ -73,6 +74,7 @@ class DFTConfigParams:
         # alternative: provide module and function name as a parameter value
         constraint_package = dconfig.get("constraint", None)
         if constraint_package:
+            logger.info(f"Using {constraint_package} to impose constraints")
             import importlib
             _cpkg = constraint_package.split('.')
             _cpkg_mod_name = '.'.join(_cpkg[0:-1])

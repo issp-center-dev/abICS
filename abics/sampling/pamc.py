@@ -35,6 +35,7 @@ from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
 logger = logging.getLogger("main")
 
+
 class PAMCParams:
     """Parameter set for population annealing Monte Carlo
 
@@ -97,7 +98,11 @@ class PAMCParams:
             kTstart = d["kTstart"]
             kTend = d["kTend"]
             kTnum = d["kTnum"]
-            params.kTs = np.linspace(kTstart, kTend, kTnum)
+            if d.get("linspace_in_beta", False):
+                params.kTs = 1.0 / np.linspace(1.0 / kTstart, 1.0 / kTend, kTnum)
+            else:
+                params.kTs = np.linspace(kTstart, kTend, kTnum)
+
         if "nsteps_between_anneal" in d:
             params.nsteps = d["nsteps_between_anneal"] * kTnum
             if "nsteps" in d:
@@ -156,7 +161,8 @@ class PopulationAnnealing(ParallelMC):
         model: Model,
         configs,
         kTs: np.ndarray,
-        write_node=True,
+        write_node: bool=True,
+        T2E: float=1.0,
     ):
         """
 
@@ -178,8 +184,8 @@ class PopulationAnnealing(ParallelMC):
         if kTs[0] < kTs[-1]:
             logger.warning("Warning: kTs[0] < kTs[-1]. abICS reverses kTs.")
             kTs = kTs[::-1]
-        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
-        self.mycalc.kT = kTs[0]
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node, T2E=T2E)
+        self.mycalc.kT = self.kTs[0]
         self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
         self.obs_save = []
@@ -193,7 +199,7 @@ class PopulationAnnealing(ParallelMC):
         self.use_resample_old = False
 
     def reload(self):
-        # not supported yet 
+        # not supported yet
         pass
         # self.mycalc.config = pickle_load(os.path.join(str(self.rank), "calc.pickle"))
         # self.obs_save0 = numpy_load(os.path.join(str(self.rank), "obs_save.npy"))
@@ -220,6 +226,7 @@ class PopulationAnnealing(ParallelMC):
                 obs_save_ = np.array(self.obs_save)
             numpy_save(obs_save_, "obs_save.npy")
             numpy_save(self.logweight_history, "logweight_hist.npy")
+            numpy_save(self.dlogz, "dlogz.npy")
             numpy_save(self.kT_history, "kT_hist.npy")
 
     def anneal(self, energy: float):
@@ -330,9 +337,9 @@ class PopulationAnnealing(ParallelMC):
         kTnum = len(self.kTs)
         nba = nsteps // kTnum
         self.nsteps_between_anneal = nba * np.ones(kTnum, dtype=int)
-        if nsteps - nba*kTnum > 0:
-            self.nsteps_between_anneal[-(nsteps - nba*kTnum):] += 1
-        self.isamples_offsets = np.zeros(kTnum+1, dtype=int)
+        if nsteps - nba * kTnum > 0:
+            self.nsteps_between_anneal[-(nsteps - nba * kTnum) :] += 1
+        self.isamples_offsets = np.zeros(kTnum + 1, dtype=int)
 
         if subdirs:
             try:
@@ -341,7 +348,7 @@ class PopulationAnnealing(ParallelMC):
                 pass
             os.chdir(str(self.rank))
         if not self.Lreload:
-            #self.mycalc.config.shuffle()
+            # self.mycalc.config.shuffle()
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
             self.Tindex = 0
             self.anneal(self.mycalc.energy)
@@ -356,7 +363,12 @@ class PopulationAnnealing(ParallelMC):
         while self.Tindex < numT:
             if self.Tindex > 0:
                 self.anneal(self.mycalc.energy)
-                logger.info("--Anneal from T={} to {}".format(self.kTs[self.Tindex - 1], self.kTs[self.Tindex]))
+                logger.info(
+                    "--Anneal from T={} to {}".format(
+                        self.E2T*self.kTs[self.Tindex - 1],
+                        self.E2T*self.kTs[self.Tindex]
+                    )
+                )
                 if self.Tindex % resample_frequency == 0:
                     self.resample()
                     logger.info("--Resampling finishes")
@@ -383,7 +395,7 @@ class PopulationAnnealing(ParallelMC):
             self.acceptance_ratios.append(naccepted / ntrials)
             with open("acceptance_ratio.dat", "w") as f:
                 for T, ar in zip(self.kTs, self.acceptance_ratios):
-                    f.write(f"{T} {ar}\n")
+                    f.write(f"{self.E2T*T} {ar}\n")
             self.Tindex += 1
             self.isamples_offsets[self.Tindex] = nsample
         output.close()
@@ -407,93 +419,116 @@ class PopulationAnnealing(ParallelMC):
             os.chdir("../")
 
     def postproc(self):
-        nT = len(self.kTs)
-        obs_arr = np.array(self.obs_save)
-        nobs = obs_arr.shape[1]
-
-        obs1 = np.zeros((nT, nobs))
-        obs2 = np.zeros((nT, nobs))
-        logweights = np.zeros(nT)
-        dlogz = np.array(self.dlogz)
-
-        for i, (offset, offset2) in enumerate(zip(self.isamples_offsets[:-1],
-                                                  self.isamples_offsets[1:])):
-            logweights[i] = self.logweight_history[offset]
-            o_a = obs_arr[offset:offset2, :]
-            obs1[i, :] += o_a.mean(axis=0)
-            obs2[i, :] += (o_a*o_a).mean(axis=0)
-
-        obs = np.zeros((nT, 2 * nobs), dtype=np.float64)
-        for iobs in range(nobs):
-            obs[:, 2 * iobs] = obs1[:, iobs]
-            obs[:, 2 * iobs + 1] = obs2[:, iobs]
-
-        nreplicas = self.procs
-        buffer_all = np.zeros((nreplicas, nT, 2 + 2 * nobs), dtype=np.float64)
-        self.comm.Allgather(
-            np.concatenate(
-                [logweights.reshape(-1, 1), dlogz.reshape(-1, 1), obs], axis=1
-            ),
-            buffer_all,
+        kTs = self.kTs
+        obs_save = self.obs_save
+        dlogz = self.dlogz
+        logweight_history = self.logweight_history
+        obsnames = self.obsnames
+        isamples_offsets = self.isamples_offsets
+        comm = self.comm
+        postproc(
+            kTs, obs_save, dlogz, logweight_history, obsnames, isamples_offsets, comm, E2T=self.E2T
         )
 
-        logweights_all = buffer_all[:, :, 0]
-        dlogz_all = buffer_all[:, :, 1]
-        obs_all = buffer_all[:, :, 2:]
 
-        logweights_max = logweights_all.max(axis=0)
-        weights = np.exp(logweights_all - logweights_max)
-        ow = np.einsum("ito,it->ito", obs_all, weights)
+def postproc(
+    kTs,
+    obs_save,
+    dlogz,
+    logweight_history,
+    obsnames,
+    isamples_offsets,
+    comm,
+    E2T:float=1.0,
+):
+    procs = comm.Get_size()
+    rank = comm.Get_rank()
 
-        lzw = logweights_all + dlogz_all - logweights_max
-        lzw_max = lzw.max(axis=0)
-        zw = np.exp(lzw - lzw_max)
+    nT = len(kTs)
+    obs_arr = np.array(obs_save)
+    nobs = obs_arr.shape[1]
 
-        # bootstrap
-        index = np.random.randint(nreplicas, size=nreplicas)
-        numer = ow[index, :, :].mean(axis=0)
-        zw_numer = zw[index, :].mean(axis=0)
-        denom = weights[index, :].mean(axis=0)
-        o = np.zeros((nT, 3 * nobs + 1), dtype=np.float64)
-        for iobs in range(nobs):
-            o[:, 3 * iobs] = numer[:, 2 * iobs] / denom[:]
-            o[:, 3 * iobs + 1] = numer[:, 2 * iobs + 1] / denom[:]
-            o[:, 3 * iobs + 2] = o[:, 3 * iobs + 1] - o[:, 3 * iobs] ** 2
-        o[:, 3 * nobs] = zw_numer / denom
-        o_all = np.zeros((nreplicas, nT, 3 * nobs + 1), dtype=np.float64)
-        self.comm.Allgather(o, o_all)
-        if self.rank == 0:
-            o_mean = o_all.mean(axis=0)
-            o_err = o_all.std(axis=0)
-            for iobs, oname in enumerate(self.obsnames):
-                with open(f"{oname}.dat", "w") as f:
-                    f.write( "# $1: temperature\n")
-                    f.write(f"# $2: <{oname}>\n")
-                    f.write(f"# $3: ERROR of <{oname}>\n")
-                    f.write(f"# $4: <{oname}^2>\n")
-                    f.write(f"# $5: ERROR of <{oname}^2>\n")
-                    f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
-                    f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
+    obs1 = np.zeros((nT, nobs))
+    obs2 = np.zeros((nT, nobs))
+    logweights = np.zeros(nT)
+    dlogz = np.array(dlogz)
 
-                    for iT in range(nT):
-                        f.write(f"{self.kTs[iT]}")
-                        for j in range(3):
-                            f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
-                        f.write("\n")
-            dlogZ = np.log(o_mean[:, 3 * nobs]) + lzw_max[:]
-            dlogZ_err = o_err[:, 3 * nobs] / o_mean[:, 3 * nobs]
-            with open("logZ.dat", "w") as f:
+    for i, (offset, offset2) in enumerate(
+        zip(isamples_offsets[:-1], isamples_offsets[1:])
+    ):
+        logweights[i] = logweight_history[offset]
+        o_a = obs_arr[offset:offset2, :]
+        obs1[i, :] += o_a.mean(axis=0)
+        obs2[i, :] += (o_a * o_a).mean(axis=0)
+
+    obs = np.zeros((nT, 2 * nobs), dtype=np.float64)
+    for iobs in range(nobs):
+        obs[:, 2 * iobs] = obs1[:, iobs]
+        obs[:, 2 * iobs + 1] = obs2[:, iobs]
+
+    nreplicas = procs
+    buffer_all = np.zeros((nreplicas, nT, 2 + 2 * nobs), dtype=np.float64)
+    comm.Allgather(
+        np.concatenate([logweights.reshape(-1, 1), dlogz.reshape(-1, 1), obs], axis=1),
+        buffer_all,
+    )
+
+    logweights_all = buffer_all[:, :, 0]
+    dlogz_all = buffer_all[:, :, 1]
+    obs_all = buffer_all[:, :, 2:]
+
+    logweights_max = logweights_all.max(axis=0)
+    weights = np.exp(logweights_all - logweights_max)
+    ow = np.einsum("ito,it->ito", obs_all, weights)
+
+    lzw = logweights_all + dlogz_all - logweights_max
+    lzw_max = lzw.max(axis=0)
+    zw = np.exp(lzw - lzw_max)
+
+    # bootstrap
+    index = np.random.randint(nreplicas, size=nreplicas)
+    numer = ow[index, :, :].mean(axis=0)
+    zw_numer = zw[index, :].mean(axis=0)
+    denom = weights[index, :].mean(axis=0)
+    o = np.zeros((nT, 3 * nobs + 1), dtype=np.float64)
+    for iobs in range(nobs):
+        o[:, 3 * iobs] = numer[:, 2 * iobs] / denom[:]
+        o[:, 3 * iobs + 1] = numer[:, 2 * iobs + 1] / denom[:]
+        o[:, 3 * iobs + 2] = o[:, 3 * iobs + 1] - o[:, 3 * iobs] ** 2
+    o[:, 3 * nobs] = zw_numer / denom
+    o_all = np.zeros((nreplicas, nT, 3 * nobs + 1), dtype=np.float64)
+    comm.Allgather(o, o_all)
+    if rank == 0:
+        o_mean = o_all.mean(axis=0)
+        o_err = o_all.std(axis=0)
+        for iobs, oname in enumerate(obsnames):
+            with open(f"{oname}.dat", "w") as f:
                 f.write("# $1: temperature\n")
-                f.write("# $2: logZ\n")
-                f.write("# $3: ERROR of log(Z)\n")
-                f.write("# $4: log(Z/Z')\n")
-                f.write("# $5: ERROR of log(Z/Z')\n")
-                F = 0.0
-                dF = 0.0
-                f.write(f"inf 0.0 0.0 0.0 0.0\n")
-                for i, (dlz, dlz_e) in enumerate(zip(dlogZ, dlogZ_err)):
-                    F += dlz
-                    dF += dlz_e
-                    f.write(f"{self.kTs[i]} {F} {dF} {dlz} {dlz_e}\n")
+                f.write(f"# $2: <{oname}>\n")
+                f.write(f"# $3: ERROR of <{oname}>\n")
+                f.write(f"# $4: <{oname}^2>\n")
+                f.write(f"# $5: ERROR of <{oname}^2>\n")
+                f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
+                f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
 
-        self.comm.Barrier()
+                for iT in range(nT):
+                    f.write(f"{E2T*kTs[iT]}")
+                    for j in range(3):
+                        f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
+                    f.write("\n")
+        dlogZ = np.log(o_mean[:, 3 * nobs]) + lzw_max[:]
+        dlogZ_err = o_err[:, 3 * nobs] / o_mean[:, 3 * nobs]
+        with open("logZ.dat", "w") as f:
+            f.write("# $1: temperature\n")
+            f.write("# $2: logZ\n")
+            f.write("# $3: ERROR of log(Z)\n")
+            f.write("# $4: log(Z/Z')\n")
+            f.write("# $5: ERROR of log(Z/Z')\n")
+            F = 0.0
+            dF = 0.0
+            f.write(f"inf 0.0 0.0 0.0 0.0\n")
+            for i, (dlz, dlz_e) in enumerate(zip(dlogZ, dlogZ_err)):
+                F += dlz
+                dF += dlz_e
+                f.write(f"{E2T*kTs[i]} {F} {dF} {dlz} {dlz_e}\n")
+    comm.Barrier()

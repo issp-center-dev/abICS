@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "abics"
-version = "2.1.0"
+version = "2.2.0"
 description = "ab-Initio Configuration Sampling tool kit"
 authors = ["abICS developers <abics-dev@issp.u-tokyo.ac.jp>"]
 license = "GPL-3.0-or-later"
@@ -13,15 +13,17 @@ packages = [
   ]
 
 [tool.poetry.dependencies]
-python = "^3.7"
+python = "^3.9"
 numpy = "^1.20"
 toml = ">=0.10"
 scipy = "^1"
 mpi4py = "^3"
-pymatgen = ">=2019.12.3 <2023.5.8"
+pymatgen = ">=2022.1.20"
 qe_tools = "^1.1"
+nequip = {version=">=0.5.6", optional=true}
 
 [tool.poetry.extras]
+nequip = ["nequip"]
 
 [tool.poetry.dev-dependencies]
 Sphinx = "^4.5.0"
@@ -33,6 +35,7 @@ st2abics = "abics.scripts.st2abics_config:main"
 abicsRXsepT = "abics.scripts.abicsRXsepT:main"
 abics_mlref = "abics.scripts.activelearn:main"
 abics_train = "abics.scripts.train:main"
+abics_postproc = "abics.scripts.postproc:main"
 
 [tool.mypy]
 files = "abics"

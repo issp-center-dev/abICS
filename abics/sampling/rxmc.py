@@ -96,7 +96,10 @@ class RXParams:
         else:
             kTstart = d["kTstart"]
             kTend = d["kTend"]
-            params.kTs = np.linspace(kTstart, kTend, params.nreplicas)
+            if d.get("linspace_in_beta", False):
+                params.kTs = 1.0 / np.linspace(1.0 / kTstart, 1.0 / kTend, params.nreplicas)
+            else:
+                params.kTs = np.linspace(kTstart, kTend, params.nreplicas)
         params.nsteps = d["nsteps"]
         params.RXtrial_frequency = d.get("RXtrial_frequency", 1)
         params.sample_frequency = d.get("sample_frequency", 1)
@@ -135,7 +138,8 @@ class TemperatureRX_MPI(ParallelMC):
         model: Model,
         configs,
         kTs: list[float],
-        write_node=True,
+        write_node: bool=True,
+        T2E: float=1.0,
     ):
         """
 
@@ -154,10 +158,10 @@ class TemperatureRX_MPI(ParallelMC):
         subdirs: boolean
             If true, working directory for this rank is made
         """
-        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
-        self.mycalc.kT = kTs[self.rank]
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node, T2E=T2E)
+        self.mycalc.kT = self.kTs[self.rank]
         self.mycalc.config = configs[self.rank]
-        self.betas = 1.0 / np.array(kTs)
+        self.betas = 1.0 / np.array(self.kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
         self.float_buffer = np.array(0.0, dtype=np.float64)
         self.int_buffer = np.array(0, dtype=np.int64)
@@ -313,15 +317,15 @@ class TemperatureRX_MPI(ParallelMC):
             os.chdir(str(self.rank))
         self.accept_count = 0
         if not self.Lreload:
-            #self.mycalc.config.shuffle()
+            # self.mycalc.config.shuffle()
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
             obs_len = len(test_observe)
             obs = np.zeros([len(self.kTs), obs_len])
-        #with open("obs.dat", "a") as output:
+        # with open("obs.dat", "a") as output:
         #    obs_step = observer.observe(self.mycalc, output, True)
-        
+
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
@@ -360,9 +364,9 @@ class TemperatureRX_MPI(ParallelMC):
         with open("acceptance_ratio.dat", "w") as f:
             for T, acc, trial in zip(self.kTs, self.naccepted, self.ntrials):
                 if trial > 0:
-                    f.write(f"{T} {acc/trial}\n")
+                    f.write(f"{self.E2T*T} {acc/trial}\n")
                 else:
-                    f.write(f"{T} {acc}/{trial}\n")
+                    f.write(f"{self.E2T*T} {acc}/{trial}\n")
 
         if nsample != 0:
             obs_buffer = np.empty(obs.shape)
@@ -403,116 +407,10 @@ class TemperatureRX_MPI(ParallelMC):
     def postproc(self, throw_out: int | float):
         assert throw_out >= 0
         obs_save, Trank_hist, kT_hist = self.__merge_obs()
-        nsteps, nobs = obs_save.shape
-        nT = self.rank_to_T.size
-        if isinstance(throw_out, float):
-            throw_out = int(nsteps * throw_out)
-
-        # gather observables with same temperature (Trank == myrank)
-        recv_obss = []
-        start = throw_out
-        buffer_size = 1000
-        while start < nsteps:
-            end = start + buffer_size
-            if end > nsteps:
-                end = nsteps
-            obs = [[] for _ in range(nT)]
-            for istep in range(start, end):
-                iT = Trank_hist[istep]
-                obs[iT].append(obs_save[istep, :])
-            start = end
-            send_obs = []
-            for rank in range(self.comm.size):
-                if len(obs[rank]) > 0:
-                    send = np.array(obs[rank])
-                else:
-                    send = np.zeros((0,nobs))
-                send_obs.append(send)
-            recv_obs = self.comm.alltoall(send_obs)
-            for ro in recv_obs:
-                recv_obss.append(ro)
-        X = np.concatenate(recv_obss)  # nsamples X nobs
-        nsamples = X.shape[0]
-
-        # jackknife method
-        X2 = X**2
-        X_mean = X.mean(axis=0)
-        X_err = np.sqrt(X.var(axis=0, ddof=1) / (nsamples - 1))
-        X_jk = self.__jackknife(X)
-        X2_mean = X2.mean(axis=0)
-        X2_err = np.sqrt(X2.var(axis=0, ddof=1) / (nsamples - 1))
-        X2_jk = self.__jackknife(X2)
-        F = X2.mean(axis=0) - X.mean(axis=0) ** 2  # F stands for Fluctuation
-        F_jk = X2_jk - X_jk**2
-        F_mean = F_jk.sum(axis=0) - F_jk.mean(axis=0) * (nsamples - 1)
-        F_err = np.sqrt((nsamples - 1) * F_jk.var(axis=0, ddof=0))
-
-        # estimate free energy
-        target_T = -1.0
-        if self.kTs[0] <= self.kTs[-1]:
-            if self.rank > 0:
-                target_T = self.kTs[self.rank - 1]
-        else:
-            if self.rank < self.comm.size - 1:
-                target_T = self.kTs[self.rank + 1]
-        if target_T >= 0.0:
-            dbeta = 1.0 / target_T - 1.0 / self.kTs[self.rank]
-            energies = X[:, 0]
-            emin = energies.min()
-            Exp = np.exp(-dbeta * (energies - emin))
-            Exp_jk = self.__jackknife(Exp)
-            Logz_jk = np.log(Exp_jk)
-            Logz_mean = Logz_jk.sum() - Logz_jk.mean() * (nsamples - 1) - dbeta * emin
-            Logz_err = np.sqrt((nsamples - 1) * Logz_jk.var(ddof=0))
-        else:
-            Logz_mean = 0.0
-            Logz_err = 0.0
-
-        obs = np.array([X_mean, X_err, X2_mean, X2_err, F_mean, F_err])
-        obs_all = np.zeros([self.comm.size, *obs.shape])   # nT X nobs X ntype
-        self.comm.Allgather(obs, obs_all)
-        dlogz = self.comm.allgather([Logz_mean, Logz_err]) # nT X 2
-
-        if self.rank == 0:
-            ntype = obs.shape[0]
-            for iobs, oname in enumerate(self.obsnames):
-                with open(f"{oname}.dat", "w") as f:
-                    f.write( "# $1: temperature\n")
-                    f.write(f"# $2: <{oname}>\n")
-                    f.write(f"# $3: ERROR of <{oname}>\n")
-                    f.write(f"# $4: <{oname}^2>\n")
-                    f.write(f"# $5: ERROR of <{oname}^2>\n")
-                    f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
-                    f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
-                    for iT in range(nT):
-                        f.write(f"{self.kTs[iT]}")
-                        for itype in range(ntype):
-                            f.write(f" {obs_all[iT, itype, iobs]}")
-                        f.write("\n")
-
-            with open("logZ.dat", "w") as f:
-                f.write("# $1: temperature\n")
-                f.write("# $2: logZ\n")
-                f.write("# $3: ERROR of log(Z)\n")
-                f.write("# $4: log(Z/Z')\n")
-                f.write("# $5: ERROR of log(Z/Z')\n")
-                F = 0.0
-                dF = 0.0
-                if self.kTs[0] <= self.kTs[-1]:
-                    f.write(f"{self.kTs[-1]} {F} {dF} {0.0} {0.0}\n")
-                    for iT in np.arange(1, nT)[::-1]:
-                        dlz, dlz_e = dlogz[iT]
-                        F += dlz
-                        dF += dlz_e
-                        f.write(f"{self.kTs[iT-1]} {F} {dF} {dlz} {dlz_e}\n")
-                else:
-                    f.write(f"{self.kTs[0]} {F} {dF} {0.0} {0.0}\n")
-                    for iT in np.arange(0, nT-1):
-                        dlz, dlz_e = dlogz[iT]
-                        F += dlz
-                        dF += dlz_e
-                        f.write(f"{self.kTs[iT+1]} {F} {dF} {dlz} {dlz_e}\n")
-        self.comm.Barrier()
+        kTs = self.kTs
+        comm = self.comm
+        obsnames = self.obsnames
+        postproc(obs_save, Trank_hist, kT_hist, kTs, comm, obsnames, throw_out, E2T=self.E2T)
 
     def __merge_obs(self):
         if hasattr(self, "obs_save0"):
@@ -525,8 +423,127 @@ class TemperatureRX_MPI(ParallelMC):
             kT_hist_ = np.array(self.kT_hist)
         return obs_save_, Trank_hist_, kT_hist_
 
-    def __jackknife(self, X: np.ndarray) -> np.ndarray:
-        nsamples = X.shape[0]
-        S = X.sum(axis=0)
-        X_jk = (S - X) / (nsamples - 1)
-        return X_jk
+def jackknife(X: np.ndarray) -> np.ndarray:
+    nsamples = X.shape[0]
+    S = X.sum(axis=0)
+    X_jk = (S - X) / (nsamples - 1)
+    return X_jk
+
+
+def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
+             obsnames, throw_out: int | float,
+             E2T: float = 1.0,
+             ):
+    assert throw_out >= 0
+    rank = comm.Get_rank()
+    nT = comm.Get_size()
+    nsteps, nobs = obs_save.shape
+    # nT = rank_to_T.size
+    if isinstance(throw_out, float):
+        throw_out = int(nsteps * throw_out)
+
+    # gather observables with same temperature (Trank == myrank)
+    recv_obss = []
+    start = throw_out
+    buffer_size = 1000
+    while start < nsteps:
+        end = start + buffer_size
+        if end > nsteps:
+            end = nsteps
+        obs = [[] for _ in range(nT)]
+        for istep in range(start, end):
+            iT = Trank_hist[istep]
+            obs[iT].append(obs_save[istep, :])
+        start = end
+        send_obs = []
+        for rk in range(comm.size):
+            if len(obs[rk]) > 0:
+                send = np.array(obs[rk])
+            else:
+                send = np.zeros((0, nobs))
+            send_obs.append(send)
+        recv_obs = comm.alltoall(send_obs)
+        for ro in recv_obs:
+            recv_obss.append(ro)
+    X = np.concatenate(recv_obss)  # nsamples X nobs
+    nsamples = X.shape[0]
+
+    # jackknife method
+    X2 = X**2
+    X_mean = X.mean(axis=0)
+    X_err = np.sqrt(X.var(axis=0, ddof=1) / (nsamples - 1))
+    X_jk = jackknife(X)
+    X2_mean = X2.mean(axis=0)
+    X2_err = np.sqrt(X2.var(axis=0, ddof=1) / (nsamples - 1))
+    X2_jk = jackknife(X2)
+    F = X2.mean(axis=0) - X.mean(axis=0) ** 2  # F stands for Fluctuation
+    F_jk = X2_jk - X_jk**2
+    F_mean = nsamples * F - F_jk.mean(axis=0) * (nsamples - 1)
+    F_err = np.sqrt((nsamples - 1) * F_jk.var(axis=0, ddof=0))
+
+    # estimate free energy
+    target_T = -1.0
+    if kTs[0] <= kTs[-1]:
+        if rank > 0:
+            target_T = kTs[rank - 1]
+    else:
+        if rank < comm.size - 1:
+            target_T = kTs[rank + 1]
+    if target_T >= 0.0:
+        dbeta = 1.0 / target_T - 1.0 / kTs[rank]
+        energies = X[:, 0]
+        emin = energies.min()
+        Exp = np.exp(-dbeta * (energies - emin))
+        Exp_jk = jackknife(Exp)
+        Logz_jk = np.log(Exp_jk)
+        Logz_mean = nsamples * np.log(Exp.mean()) - Logz_jk.mean() * (nsamples - 1) - dbeta * emin
+        Logz_err = np.sqrt((nsamples - 1) * Logz_jk.var(ddof=0))
+    else:
+        Logz_mean = 0.0
+        Logz_err = 0.0
+
+    obs = np.array([X_mean, X_err, X2_mean, X2_err, F_mean, F_err])
+    obs_all = np.zeros([comm.size, *obs.shape])  # nT X nobs X ntype
+    comm.Allgather(obs, obs_all)
+    dlogz = comm.allgather([Logz_mean, Logz_err])  # nT X 2
+
+    if rank == 0:
+        ntype = obs.shape[0]
+        for iobs, oname in enumerate(obsnames):
+            with open(f"{oname}.dat", "w") as f:
+                f.write("# $1: temperature\n")
+                f.write(f"# $2: <{oname}>\n")
+                f.write(f"# $3: ERROR of <{oname}>\n")
+                f.write(f"# $4: <{oname}^2>\n")
+                f.write(f"# $5: ERROR of <{oname}^2>\n")
+                f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
+                f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
+                for iT in range(nT):
+                    f.write(f"{E2T*kTs[iT]}")
+                    for itype in range(ntype):
+                        f.write(f" {obs_all[iT, itype, iobs]}")
+                    f.write("\n")
+
+        with open("logZ.dat", "w") as f:
+            f.write("# $1: temperature\n")
+            f.write("# $2: logZ\n")
+            f.write("# $3: ERROR of log(Z)\n")
+            f.write("# $4: log(Z/Z')\n")
+            f.write("# $5: ERROR of log(Z/Z')\n")
+            F = 0.0
+            dF = 0.0
+            if kTs[0] <= kTs[-1]:
+                f.write(f"{E2T*kTs[-1]} {F} {dF} {0.0} {0.0}\n")
+                for iT in np.arange(1, nT)[::-1]:
+                    dlz, dlz_e = dlogz[iT]
+                    F += dlz
+                    dF += dlz_e
+                    f.write(f"{E2T*kTs[iT-1]} {F} {dF} {dlz} {dlz_e}\n")
+            else:
+                f.write(f"{E2T*kTs[0]} {F} {dF} {0.0} {0.0}\n")
+                for iT in np.arange(0, nT - 1):
+                    dlz, dlz_e = dlogz[iT]
+                    F += dlz
+                    dF += dlz_e
+                    f.write(f"{E2T*kTs[iT+1]} {F} {dF} {dlz} {dlz_e}\n")
+    comm.Barrier()

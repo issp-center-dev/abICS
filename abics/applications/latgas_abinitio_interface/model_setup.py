@@ -1268,7 +1268,8 @@ class Config:
         assert num_sites == ntot_defects
         constraint_fullfilled = self.set_latgas()
         if not constraint_fullfilled:
-            self.shuffle()
+            constraint_fullfilled, msg = self.shuffle()
+            print(msg)
 
         # internal energy and grand potential
         self.internal_energy = None
@@ -1317,7 +1318,7 @@ class Config:
         st = map2perflat(st, st_in)
         st.remove_species(["X"])
 
-        for defect_sublattice in self.defect_sublattices:    
+        for defect_sublattice in self.defect_sublattices:
             # Extract group information for this sublattice
             d_sp2grp = {}
             sp = set()
@@ -1359,6 +1360,7 @@ class Config:
             raise InputError(
                 "initial structure violates constraints specified by constraint_func"
                 )
+        self.structure_norel = copy.deepcopy(self.structure)
 
     def dummy_structure(self):
         """
@@ -1481,7 +1483,7 @@ class Config:
         return dummy_structure
 
     def shuffle(self):
-        max_trial = 1000
+        max_trial = 10000
         num_trial = 0
         while num_trial < max_trial:
             for defect_sublattice in self.defect_sublattices:
@@ -1492,7 +1494,7 @@ class Config:
                     norr = group.orientations
                     site[1] = rand.randint(norr)
             if self.set_latgas(): 
-                return 0, 'Configuration initialized randomly'
+                return 0, f'Constraint fulfilling configuration found after shuffling {num_trial+1} time(s)'
             else:
                 if self.constraint_energy: 
                     e = self.constraint_energy(self.structure)
@@ -1500,9 +1502,28 @@ class Config:
                     while num_trial < max_trial: 
                         num_trial += 1
                         defect_sublattice = rand.choice(self.defect_sublattices)
-                        latgas_rep = defect_sublattice.latgas_rep
-                        i0, i1 = rand.choice(len(latgas_rep), 2)
-                        latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
+                        # Exchange different groups between sites
+                        ex1_group, ex2_group = rand.choice(
+                                defect_sublattice.groups, 2, replace=False
+                            )
+                        ex1_idlist = match_latgas_group(latgas_rep, ex1_group)
+                        ex2_idlist = match_latgas_group(latgas_rep, ex2_group)
+
+                        if len(ex1_idlist) == 0 or len(ex2_idlist) == 0:
+                            logger.debug("try_exchange: list empty {}({}), {}({}). retry".format(
+                                ex1_group.name, len(ex1_idlist), ex2_group.name, len(ex2_idlist)))
+                            continue
+
+                        ex1_id = rand.choice(ex1_idlist)
+                        ex2_id = rand.choice(ex2_idlist)
+                        latgas_rep[ex1_id], latgas_rep[ex2_id] = (
+                            latgas_rep[ex2_id],
+                            latgas_rep[ex1_id],
+                        )
+
+                        #latgas_rep = defect_sublattice.latgas_rep
+                        #i0, i1 = rand.choice(len(latgas_rep), 2)
+                        #latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
                         if self.set_latgas():
                             msg = "---constraint_module.constraint_energy was used" + \
                                 " to find configuration that follows constraints with {} trials".format(num_trial)
@@ -1512,7 +1533,7 @@ class Config:
                             msg = "There's something wrong: constraint_func and constraint_energy are inconsistent"
                             return 1, msg
                         if e1 > e:
-                            latgas_rep[i0], latgas_rep[i1] = latgas_rep[i1], latgas_rep[i0]
+                            latgas_rep[ex1_id], latgas_rep[ex2_id] = latgas_rep[ex2_id], latgas_rep[ex1_id]
                         else:
                             e = e1
                     msg = "Failed to find configuration with constraint_module.constraint_energy after {} trials".format(num_trial)

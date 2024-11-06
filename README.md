@@ -9,13 +9,13 @@ and OpenMX input files for obtaining the reference training data for the machine
 
 ## Requirement
 
-- python3 (>=3.7)
+- python3 (>=3.9)
 - numpy
 - scipy
 - toml (for parsing input files)
 - mpi4py (for parallel tempering)
   - This requires one of the MPI implementation
-- pymatgen (>=2019.12.3) (for using Structure as a configuration)
+- pymatgen (>=2022.1.20) (for using Structure as a configuration)
   - This requires Cython
 - qe-tools (for parsing QE I/O)
 
@@ -25,7 +25,7 @@ Pymatgen requires Cython but Cython will not be installed automatically,
 please make sure that this is installed,
 
 ``` bash
-$ pip3 install Cython
+$ python3 -m pip install Cython
 ```
 
 mpi4py requires one of the MPI implementations such as OpenMPI,
@@ -39,7 +39,7 @@ $ brew install open-mpi
 After installing Cython and MPI,
 
 ``` bash
-$ pip3 install abics
+$ python3 -m pip install abics
 ```
 
 will install abICS and dependencies.
@@ -48,10 +48,10 @@ If you want to change the directory where abICS is installed,
 add `--user` option or `--prefix=DIRECTORY` option to the above command as
 
 ``` bash
-$ pip3 install --user abics
+$ python3 -m pip install --user abics
 ```
 
-For details of `pip` , see the manual of `pip` by `pip3 help install`
+For details of `pip` , see the manual of `pip` by `python3 -m pip help install`
 
 If you want to install abICS from source, see [wiki page](https://github.com/issp-center-dev/abICS/wiki/Install)
 
@@ -93,6 +93,6 @@ Shusuke Kasamatsu, Yuichi Motoyama, Tatsumi Aoyama, Kazuyoshi Yoshimi
 
 [English online manual](https://issp-center-dev.github.io/abICS/docs/master/en/html/index.html)
 
-[Japnese online manual](https://issp-center-dev.github.io/abICS/docs/master/ja/html/index.html)
+[Japanese online manual](https://issp-center-dev.github.io/abICS/docs/master/ja/html/index.html)
 
 [API reference](https://issp-center-dev.github.io/abICS/docs/api/master/html/index.html)

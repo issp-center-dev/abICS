@@ -69,10 +69,8 @@ class TestVASP(unittest.TestCase):
 
         self.assertEqual(res["INCAR"], ref["INCAR"])
         self.assertTrue(res["POSCAR"].structure.matches(ref["POSCAR"].structure))
-        self.assertEqual(
-            res["POSCAR"].structure.site_properties,
-            ref["POSCAR"].structure.site_properties,
-        )
+        for k,v in ref["POSCAR"].structure.site_properties.items():
+            self.assertTrue(np.allclose(res["POSCAR"].structure.site_properties[k], v))
 
     def test_cl_algs(self):
         nprocs = 2
