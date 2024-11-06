@@ -18,7 +18,7 @@ numpy = "^1.20"
 toml = ">=0.10"
 scipy = "^1"
 mpi4py = "^3"
-pymatgen = ">=2022.1.20 <2023.5.8"
+pymatgen = ">=2022.1.20"
 qe_tools = "^1.1"
 nequip = {version=">=0.5.6", optional=true}
 
