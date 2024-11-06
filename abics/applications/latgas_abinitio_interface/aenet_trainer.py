@@ -1,5 +1,21 @@
+# ab-Initio Configuration Sampling tool kit (abICS)
+# Copyright (C) 2019- The University of Tokyo
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see http://www.gnu.org/licenses/.
+
 from __future__ import annotations
-from typing import Sequence
+from typing import Sequence, Dict
 
 import numpy as np
 import os, pathlib, shutil, subprocess, shlex
@@ -8,9 +24,10 @@ import time
 from pymatgen.core import Structure
 
 from abics.util import expand_cmd_path
-from abics.applications.latgas_abinitio_interface import aenet
+from abics.applications.latgas_abinitio_interface.base_trainer import TrainerBase
+from abics.applications.latgas_abinitio_interface.util import structure_to_XSF
 
-class aenet_trainer:
+class AenetTrainer(TrainerBase):
     def __init__(
         self,
         structures: Sequence[Structure],
@@ -18,20 +35,19 @@ class aenet_trainer:
         generate_inputdir: os.PathLike,
         train_inputdir: os.PathLike,
         predict_inputdir: os.PathLike,
-        generate_exe: str,
-        train_exe: str,
+        execute_commands: Dict,
     ):
         self.structures = structures
         self.energies = energies
         self.generate_inputdir = generate_inputdir
         self.train_inputdir = train_inputdir
         self.predict_inputdir = predict_inputdir
+        generate_exe = execute_commands["generate"]
         self.generate_exe = [expand_cmd_path(e) for e in shlex.split(generate_exe)]
         self.generate_exe.append("generate.in")
+        train_exe = execute_commands["train"]
         self.train_exe = [expand_cmd_path(e) for e in shlex.split(train_exe)]
         self.train_exe.append("train.in")
-        # self.generate_exe = generate_exe
-        # self.train_exe = train_exe
         assert len(self.structures) == len(self.energies)
         self.numdata = len(self.structures)
         self.is_prepared = False
@@ -48,7 +64,7 @@ class aenet_trainer:
         xsfdir = os.getcwd()
         if latgas_mode:
             for i, st in enumerate(self.structures):
-                xsf_string = aenet.to_XSF(st, write_force_zero=False)
+                xsf_string = structure_to_XSF(st, write_force_zero=False)
                 xsf_string = (
                     "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
                 )
@@ -56,7 +72,7 @@ class aenet_trainer:
                     fi.write(xsf_string)
         else:
             for i, st in enumerate(self.structures):
-                xsf_string = aenet.to_XSF(st, write_force_zero=False)
+                xsf_string = structure_to_XSF(st, write_force_zero=False)
                 xsf_string = (
                     "# total energy = {} eV\n\n".format(self.energies[i]) + xsf_string
                 )
@@ -170,7 +186,7 @@ class aenet_trainer:
         os.chdir(pathlib.Path(os.getcwd()).parent)
         self.is_trained = True
 
-    def new_baseinput(self, baseinput_dir):
+    def new_baseinput(self, baseinput_dir, train_dir=""):
         try:
             assert self.is_trained
         except AssertionError as e:

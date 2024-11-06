@@ -25,7 +25,7 @@ from collections import namedtuple
 import numpy as np
 from pymatgen.core import Structure
 
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase
 from .params import ALParams, DFTParams
 
 
@@ -227,6 +227,3 @@ class AenetPyLammpsSolver(SolverBase):
     def create(cls, params: ALParams | DFTParams):
         ignore_species = params.ignore_species
         return cls(ignore_species)
-
-
-register_solver("aenetpylammps", AenetPyLammpsSolver)

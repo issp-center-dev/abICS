@@ -147,6 +147,8 @@ def expand_path(path, basedir):
 def expand_cmd_path(path):
     path = os.path.expanduser(path)
     path = os.path.expandvars(path)
+    if path.startswith("./"):
+        path = os.path.join(os.getcwd(), path)
     return path
 
 

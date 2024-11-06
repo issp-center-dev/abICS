@@ -30,7 +30,7 @@ from pymatgen.io.vasp.outputs import Oszicar
 from pymatgen.core import Structure
 
 from .params import ALParams, DFTParams
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase
 
 
 class VASPSolver(SolverBase):
@@ -245,5 +245,3 @@ class VASPSolver(SolverBase):
         path = params.path
         ignore_species = params.ignore_species
         return cls(path, ignore_species)
-
-register_solver("vasp", VASPSolver)

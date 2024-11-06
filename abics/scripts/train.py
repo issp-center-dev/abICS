@@ -15,28 +15,27 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 from __future__ import annotations
-from typing import MutableMapping, Any
 
-import sys, datetime
-
-import os, sys
+import datetime
 import itertools
+import logging
+import os
+import sys
+from typing import Any, MutableMapping
 
-import numpy as np
 import networkx as nx
+import numpy as np
 from pymatgen.core import Structure
 
-from abics import __version__
-from abics.applications.latgas_abinitio_interface.params import DFTParams, TrainerParams
-from abics.applications.latgas_abinitio_interface import aenet_trainer
-from abics.applications.latgas_abinitio_interface import map2perflat
-from abics.applications.latgas_abinitio_interface.defect import (
-    defect_config,
-    DFTConfigParams,
+from .. import __version__, loggers
+from ..applications.latgas_abinitio_interface import map2perflat
+from ..applications.latgas_abinitio_interface.base_trainer import get_trainer_class
+from ..applications.latgas_abinitio_interface.defect import (
+    DFTConfigParams, defect_config
 )
-
-import logging
-import abics.loggers as loggers
+from ..applications.latgas_abinitio_interface.params import (
+    DFTParams, TrainerParams
+)
 
 logger = logging.getLogger("main")
 
@@ -74,7 +73,7 @@ def main_impl(params_root: MutableMapping):
     species = config.structure.symbol_set
     dummy_sts = {sp: config.dummy_structure_sp(sp) for sp in species}
 
-    if trainer_type != "aenet":
+    if trainer_type not in ["aenet", "allegro", "nequip", "mlip_3"]:
         logger.error("Unknown trainer: ", trainer_type)
         sys.exit(1)
 
@@ -100,7 +99,6 @@ def main_impl(params_root: MutableMapping):
         
         logger.info("--Done")
 
-
     logger.info("-Mapping relaxed structures in AL* to on-lattice model...")
 
     # val_map is a list of list [[sp0, vac0], [sp1, vac1], ...]
@@ -120,7 +118,7 @@ def main_impl(params_root: MutableMapping):
         for pair in itertools.combinations(sp_list, 2):
             G.add_edge(*pair)
     sp_groups = nx.connected_components(G)
-    dummy_sts_share : list[tuple[Structure, list]] = []
+    dummy_sts_share: list[tuple[Structure, list]] = []
     for c in nx.connected_components(G):
         # merge dummy structures for species that share sublattices
         sps = list(c)
@@ -148,7 +146,9 @@ def main_impl(params_root: MutableMapping):
                         step_ids.append(int(words[2]))
                 for step_id, energy in zip(step_ids, energies_ref):
                     if os.path.exists(f"structure.{step_id}_mapped.vasp"):
-                        structures.append(Structure.from_file(f"structure.{step_id}_mapped.vasp"))
+                        structures.append(
+                            Structure.from_file(f"structure.{step_id}_mapped.vasp")
+                        )
                         energies.append(energy)
                 rpl += 1
                 os.chdir(rootdir)
@@ -182,7 +182,9 @@ def main_impl(params_root: MutableMapping):
                 st_tmp.remove_species(["X"])
                 mapped_sts.append(st_tmp)
                 if num_sp != len(st_tmp):
-                    logger.info(f"--mapping failed for structure {step_id} in replica {rpl}")
+                    logger.info(
+                        f"--mapping failed for structure {step_id} in replica {rpl}"
+                    )
                     mapping_success = False
 
             for sts in mapped_sts[1:]:
@@ -192,39 +194,40 @@ def main_impl(params_root: MutableMapping):
                 mapped_sts[0].remove_species(ignore_species)
             if mapping_success:
                 structures.append(mapped_sts[0])
-                mapped_sts[0].to(filename=f"structure.{step_id}_mapped.vasp", fmt="POSCAR")
+                mapped_sts[0].to(
+                    filename=f"structure.{step_id}_mapped.vasp", fmt="POSCAR"
+                )
                 energies.append(energy)
         rpl += 1
         os.chdir(rootdir)
     logger.info("--Finished mapping")
-    
+
     generate_input_dirs = []
     train_input_dirs = []
     predict_input_dirs = []
 
     if dftparams.ensemble:
         if len(trainer_input_dirs) != len(base_input_dir):
-            logger.error("You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP")
+            logger.error(
+                "You must set the number of trainer input dirs equal to baseinput dirs for ensemble NNP"
+            )
             sys.exit(1)
     for d in trainer_input_dirs:
         generate_input_dirs.append(os.path.join(d, "generate"))
         train_input_dirs.append(os.path.join(d, "train"))
         predict_input_dirs.append(os.path.join(d, "predict"))
 
-    generate_exe = trainer_commands[0]
-    train_exe = trainer_commands[1]
-
+    trainer_class = get_trainer_class(trainer_type)
     trainers = []
     for i in range(len(trainer_input_dirs)):
         trainers.append(
-            aenet_trainer(
+            trainer_class(
                 structures,
                 energies,
                 generate_input_dirs[i],
                 train_input_dirs[i],
                 predict_input_dirs[i],
-                generate_exe,
-                train_exe,
+                trainer_commands,
             )
         )
 
@@ -248,15 +251,16 @@ def main_impl(params_root: MutableMapping):
     for trainer in trainers:
         trainer.generate_wait()
     logger.info(f"--Finished generate run(s)")
-    
+
     # We use MPI version of train.x so no need to write parallel code here
     for i, trainer in enumerate(trainers):
-        logger.info(f"-Training run in train{i}")
-        trainer.train(train_dir="train{}".format(i))
-        logger.info(f"--Training run finished in train{i}")
+        train_dir = f"train{i}"
+        logger.info(f"-Training run in {train_dir}")
+        trainer.train(train_dir=train_dir)
+        logger.info(f"--Training run finished in {train_dir}")
         logger.info(f"-Preparing NN model for abics_sampling in {base_input_dir[i]}")
-        trainer.new_baseinput(base_input_dir[i])
-        logger.info(f"--Success.")
+        trainer.new_baseinput(base_input_dir[i], train_dir=train_dir)
+        logger.info("--Success.")
 
     with open("ALloop.progress", "a") as fi:
         logger.info("-Writing ALloop.progress")
@@ -272,14 +276,16 @@ def main():
     now = datetime.datetime.now()
 
     import toml
+
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     params_root = toml.load(tomlfile)
 
     loggers.set_log_handles(
-        app_name = "train",
-        level = logging.INFO,
-        console = "serial",
-        params=params_root.get("log", {}))
+        app_name="train",
+        level=logging.INFO,
+        console="serial",
+        params=params_root.get("log", {}),
+    )
 
     logger.info(f"Running abics_train (abICS v{__version__}) on {now}")
     logger.info(f"-Reading input from: {tomlfile}")

@@ -22,9 +22,8 @@ nreplicas = 8
 ndata = 5
 
 [mlref.solver]
-type = 'vasp'
-path = ''
-base_input_dir = ['./baseinput_ref', './baseinput_ref']
+type = 'qe'
+base_input_dir = './baseinput_ref'
 perturb = 0.05
 ignore_species = []
 

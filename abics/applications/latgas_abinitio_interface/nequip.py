@@ -1,6 +1,9 @@
 # ab-Initio Configuration Sampling tool kit (abICS)
 # Copyright (C) 2019- The University of Tokyo
 #
+# abICS wrapper of NequIP solver
+# Munehiro Kobayashi, Yusuke Konishi (Academeia Co., Ltd.) 2024
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -15,63 +18,80 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 """
-User-defined function as energy calculator
+energy calculator using nequip python interface
 """
 
 from __future__ import annotations
 
+import os.path
 from collections import namedtuple
-import os
-import sys
-import importlib
-
+import numpy as np
 from pymatgen.core import Structure
+import torch
+from ase import Atoms
+from nequip.data import AtomicDataDict, AtomicData
+from nequip.utils import Config
 
-from .base_solver import SolverBase
+from .base_solver import SolverBase, register_solver
 from .params import ALParams, DFTParams
 
 
-class UserFunctionSolver(SolverBase):
+class NequipSolver(SolverBase):
     """
-    UserFunction solver
+    Nequip solver
 
     Attributes
     ----------
-    path_to_solver : function(st) -> float
-    input : SimpleFunctionSolver.Input
+    path_to_solver : str
+        Path to the solver
+    input : NequipSolver.Input
         Input manager
-    output : SimpleFunctionSolver.Output
+    output : NequipSolver.Output
         Output manager
     """
 
-    def __init__(self, function = None):
+    def __init__(self, ignore_species):
         """
         Initialize the solver.
 
         """
-        super(UserFunctionSolver, self).__init__("")
-        self.input = UserFunctionSolver.Input()
-        self.output = UserFunctionSolver.Output()
-        self.path_to_solver = self.__call__
-        self.__fn = function
 
-    def __call__(self, fi, output_dir):
-        st = self.input.st
-        if self.__fn is None:
-            raise ValueError("Function is not set")
-        ene = self.__fn(st)
-        with open(os.path.join(output_dir, "energy.dat"), "w") as f:
-            f.write("{:.15f}\n".format(ene))
+        super(NequipSolver, self).__init__("")
+        self.path_to_solver = self.calculate_energy
+        self.input = NequipSolver.Input(ignore_species)
+        self.output = NequipSolver.Output()
 
     def name(self):
-        return "UserFunction"
+        return "nequip"
 
-    def set_function(self, fn):
-        self.__fn = fn
+    def calculate_energy(self, fi, output_dir):
+        st = self.input.st
+        symbols = [site.specie.symbol for site in st]
+        positions = [site.coords for site in st]
+        pbc = (True, True, True)
+        cell = st.lattice.matrix
+        atoms = Atoms(symbols=symbols, positions=positions, pbc=pbc, cell=cell)
+
+        atom_types = torch.tensor([self.input.element_list.index(atom) for atom in symbols], dtype=torch.long)
+
+        data = AtomicData.from_ase(atoms, r_max=self.input.r_max)
+        data[AtomicDataDict.ATOM_TYPE_KEY] = atom_types
+
+        self.input.model.eval()
+        with torch.no_grad():
+            # Convert AtomicData to dictionary
+            data_dict = data.to_dict()
+            predicted = self.input.model(data_dict)
+
+        # Get predicted energy
+        ene = predicted['total_energy'].item()
+
+        self.output.st = st
+        self.output.ene = ene
 
     class Input(object):
         """
-        Input manager for SimpleFunction
+        Input manager for Mock
 
         Attributes
         ----------
@@ -81,9 +101,9 @@ class UserFunctionSolver(SolverBase):
 
         st: Structure
 
-        def __init__(self):
+        def __init__(self, ignore_species=None):
+            self.ignore_species = ignore_species
             # self.st = Structure()
-            pass
 
         def from_directory(self, base_input_dir):
             """
@@ -93,7 +113,12 @@ class UserFunctionSolver(SolverBase):
             base_input_dir : str
                 Path to the directory including base input files.
             """
-            pass
+            self.base_input_dir = base_input_dir
+            self.model = torch.jit.load(os.path.join(base_input_dir, "deployed.pth"))
+            yaml_file = os.path.join(base_input_dir, "input.yaml")
+            yaml_dic = Config.from_file(yaml_file)
+            self.element_list = yaml_dic["chemical_symbols"]
+            self.r_max = yaml_dic["r_max"]
 
         def update_info_by_structure(self, structure):
             """
@@ -104,7 +129,9 @@ class UserFunctionSolver(SolverBase):
             structure : pymatgen.Structure
                 Atomic structure
             """
-            self.st = structure
+            self.st = structure.copy()
+            if self.ignore_species is not None:
+                self.st.remove_species(self.ignore_species)
 
         def update_info_from_files(self, workdir, rerun):
             """
@@ -121,10 +148,12 @@ class UserFunctionSolver(SolverBase):
             workdir : str
                 Path to working directory.
             """
-            os.makedirs(output_dir, exist_ok=True)
-            self.st.to(
-                fmt="POSCAR", filename=os.path.join(output_dir, "structure.vasp")
-            )
+            if not os.path.exists(output_dir):
+                import shutil
+
+                shutil.copytree(self.base_input_dir, output_dir)
+
+            # self.st.to("POSCAR", os.path.join(output_dir, "structure.vasp"))
 
         def cl_args(self, nprocs, nthreads, workdir):
             """
@@ -170,27 +199,13 @@ class UserFunctionSolver(SolverBase):
                 The energy is measured in the units of eV
                 and coodinates is measured in the units of Angstrom.
             """
-            # Read results from files in output_dir and calculate values
-            Phys = namedtuple("PhysValues", ("energy", "structure"))
-            with open(os.path.join(workdir, "energy.dat")) as f:
-                ene = float(f.read())
-            st = Structure.from_file(os.path.join(workdir, "structure.vasp"))
-            return Phys(ene, st)
+            Phys = namedtuple("PhysVaules", ("energy", "structure"))
+            return Phys(self.ene, self.st)
 
     def solver_run_schemes(self):
         return ("function",)
 
     @classmethod
     def create(cls, params: ALParams | DFTParams):
-        fn = None
-        if params.function_module:
-            sys.path.append(os.getcwd())
-            pkg = params.function_module.split('.')
-            modname = '.'.join(pkg[:-1])
-            funcname = pkg[-1]
-            try:
-                mod = importlib.import_module(modname)
-                fn = getattr(mod, funcname)
-            except ImportError:
-                raise ImportError(f"Cannot import module {modname}")
-        return cls(fn)
+        ignore_species = params.ignore_species
+        return cls(ignore_species)
