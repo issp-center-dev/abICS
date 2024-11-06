@@ -8,14 +8,11 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.12']
         testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3]
-        exclude:
-          - python-version: 3.7
-            testname: ActiveLearnNequip
       fail-fast: false
 
     steps:
