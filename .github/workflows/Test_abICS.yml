@@ -3,7 +3,10 @@
 
 name: Test for abICS
 
-on: [push]
+on:
+  push:
+  schedule:
+    - cron: '0 0 1,15 * *' # JST 9:00 on 1st and 15th every month
 
 jobs:
   build:
