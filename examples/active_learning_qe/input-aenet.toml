@@ -30,10 +30,12 @@ ignore_species = []
 [train]
 type = 'aenet'
 base_input_dir = './aenet_train_input'
-exe_command = ['generate.x-2.0.4-ifort_serial', 'srun train.x-2.0.4-ifort_intelmpi']
 ignore_species = ["O"]
 vac_map = []
 restart = false
+[train.exe_command]
+generate = 'generate.x-2.0.4-ifort_serial'
+train = 'srun train.x-2.0.4-ifort_intelmpi'
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],

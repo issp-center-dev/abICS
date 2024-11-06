@@ -10,11 +10,11 @@ print_frequency = 1
 reload = false
 
 [sampling.solver]
-type = 'aenet'
-path= 'predict.x-2.0.4-ifort_serial'
+type = 'mlip_3'
+path= 'mlp'
 base_input_dir = './baseinput'
 perturb = 0.0
-run_scheme = 'subprocess' #'mpi_spawn_ready'
+run_scheme = 'subprocess'
 ignore_species = ["O"]
 
 [mlref]
@@ -22,21 +22,19 @@ nreplicas = 8
 ndata = 5
 
 [mlref.solver]
-type = 'vasp'
-path = ''
-base_input_dir = ['./baseinput_ref', './baseinput_ref']
+type = 'qe'
+base_input_dir = './baseinput_ref'
 perturb = 0.05
 ignore_species = []
 
 [train]
-type = 'aenet'
-base_input_dir = './aenet_train_input'
+type = 'mlip_3'
+base_input_dir = './mlip-3_train_input'
 ignore_species = ["O"]
 vac_map = []
 restart = false
 [train.exe_command]
-generate = 'generate.x-2.0.4-ifort_serial'
-train = 'srun train.x-2.0.4-ifort_intelmpi'
+train = 'mlp'
 
 [config]
 unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
