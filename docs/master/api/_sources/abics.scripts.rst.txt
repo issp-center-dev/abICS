@@ -13,6 +13,8 @@ Submodules
    abics.scripts.main_dft_latgas
    abics.scripts.main_potts
    abics.scripts.mocksolver
+   abics.scripts.postproc
+   abics.scripts.postproc_dft_latgas
    abics.scripts.st2abics_config
    abics.scripts.train
 

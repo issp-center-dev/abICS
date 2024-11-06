@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>5.1. [sampling] セクション &#8212; abICS 2.1.0 ドキュメント</title>
+    <title>5.1. [sampling] セクション &#8212; abICS 2.2.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1e655c66" />
-    <script src="../_static/documentation_options.js?v=b9788144"></script>
+    <script src="../_static/documentation_options.js?v=2b075faf"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=91613774"></script>
@@ -77,6 +77,7 @@ print_frequency = 1
 <div><ul>
 <li><p>温度点は <code class="docutils literal notranslate"><span class="pre">kTs</span></code> を用いて陽に指定するか、 <code class="docutils literal notranslate"><span class="pre">kTstart</span></code> と <code class="docutils literal notranslate"><span class="pre">kTend</span></code> とを用いて等間隔に自動生成するかのどちらかで指定します。
 両方指定した場合、 <code class="docutils literal notranslate"><span class="pre">kTs</span></code> が優先されます.</p></li>
+<li><p>温度はケルビンを単位とした絶対温度で指定します.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">kTs</span></code></p>
 <p><strong>形式 :</strong> list of float (&gt;0)</p>
 <p><strong>説明 :</strong>
@@ -98,7 +99,16 @@ print_frequency = 1
 <p><strong>説明 :</strong>
 温度点の数.
 <code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;PAMC&quot;</span></code> のときに使用.
-<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code> のときは、 レプリカ数 <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> と同じ値になります.</p>
+<code class="docutils literal notranslate"><span class="pre">sampler</span> <span class="pre">=</span> <span class="pre">&quot;RXMC&quot;</span></code> のときは、 レプリカ数 <code class="docutils literal notranslate"><span class="pre">nreplicas</span></code> が温度点の数になります.</p>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">linspace_in_beta</span></code></p>
+<blockquote>
+<div><p><strong>形式 :</strong> true or false</p>
+<p><strong>説明 :</strong>
+true の場合、温度点を生成する時に、逆温度空間で等間隔に生成します.
+false の場合、温度空間で等間隔に生成します.
+デフォルト値 = false.</p>
+</div></blockquote>
 </li>
 </ul>
 </div></blockquote>

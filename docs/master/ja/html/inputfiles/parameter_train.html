@@ -5,10 +5,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>5.4. [train] セクション &#8212; abICS 2.1.0 ドキュメント</title>
+    <title>5.4. [train] セクション &#8212; abICS 2.2.0 ドキュメント</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1e655c66" />
-    <script src="../_static/documentation_options.js?v=b9788144"></script>
+    <script src="../_static/documentation_options.js?v=2b075faf"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/translations.js?v=91613774"></script>
@@ -37,15 +37,16 @@
 <h1><span class="section-number">5.4. </span>[train] セクション<a class="headerlink" href="#train" title="Link to this heading">¶</a></h1>
 <p>訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います。</p>
 <p>予測モデルの作成・学習には外部のプログラムを利用します。
-現在はaenetのみに対応しています。
+現在はaenet, NequIP, MLIP-3に対応しています。
 ソフトウェア固有の注意事項（入力ファイル名など）は <a class="reference internal" href="../how_to_use/index.html#trainer-specific-notes"><span class="std std-ref">機械学習モデルソルバー利用時の注意点</span></a> を参照してください.</p>
 <p>本セクションは以下のようなファイルフォーマットをしています.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[train]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenet&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./aenet_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
-<span class="w">              </span><span class="s1">&#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
 <span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="k">[train.exe_command]</span>
+<span class="n">generate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;</span>
+<span class="n">train</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;</span>
 </pre></div>
 </div>
 <section id="id1">
@@ -60,7 +61,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
 <p><strong>形式 :</strong> str型</p>
 <p><strong>説明 :</strong>
-訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います.現在のところ、abICSではaenetのみに対応しています.</p>
+訓練データから配置エネルギー予測モデルを学習する学習器の設定を行います.
+aenet, nequip, mlip_3を利用できます.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code></p>
 <p><strong>形式 :</strong> str型</p>
@@ -68,9 +70,56 @@
 設定したディレクトリの中に、学習器の設定ファイルを設置します.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">exe_command</span></code></p>
-<p><strong>形式 :</strong> strのlist型</p>
+<p><strong>形式 :</strong> 辞書型</p>
 <p><strong>説明 :</strong>
-aenetの <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> と <code class="docutils literal notranslate"><span class="pre">train.x</span></code> へのパスを指定します。 <code class="docutils literal notranslate"><span class="pre">train.x</span></code> についてはMPI並列版が利用可能で、その場合は、上の例で示すように、MPI実行するためのコマンド（ <code class="docutils literal notranslate"><span class="pre">srun</span></code> 、 <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> など）を合わせて設定してください。</p>
+学習器で使う実行コマンドを指定します.
+コマンドライン引数も指定できますが, それぞれの学習機の入力ファイル (<code class="docutils literal notranslate"><span class="pre">input.yaml</span></code> など)は含めないようにしてください.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">'aenet'</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate</span></code> と <code class="docutils literal notranslate"><span class="pre">train</span></code> の2つのキーを持ちます.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>aenetの <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> へのパスを指定します.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>aenetの <code class="docutils literal notranslate"><span class="pre">train.x</span></code> へのパスを指定します.</p></li>
+<li><p>MPI並列版が利用可能です. その場合、上の例で示すように、MPI実行するためのコマンド（ <code class="docutils literal notranslate"><span class="pre">srun</span></code> 、 <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> など）を合わせて設定してください。</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>abICS 2.0 以前との互換性のために、配列形式もサポートしています.
+最初の要素が <code class="docutils literal notranslate"><span class="pre">generate</span></code>, 2番目の要素が <code class="docutils literal notranslate"><span class="pre">train</span></code> です.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">'nequip'</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">nequip-train</span></code> へのパスを指定します.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">'mlip_3'</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">mlp</span></code> へのパスを指定します.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</li>
+</ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ignore_species</span></code></p>
 <p><strong>形式 :</strong> list型</p>

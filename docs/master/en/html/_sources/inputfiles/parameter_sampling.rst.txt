@@ -39,6 +39,7 @@ Keywords
 
    - Specify temperature points by using ``kTs`` or ``kTstart``, ``kTend``, and ``kTnum`` (lineary spaced).
      If ``kTs`` is specified, the others will be ignored.
+   - Temperatures should be given in the unit of Kelvin.
 
    - ``kTs``
 
@@ -69,6 +70,15 @@ Keywords
        **Description :**
        The number of temperature points.
        When ``sampler = "RXMC"``, the number of temperature points will equal to ``nreplicas``.
+
+    - ``linspace_in_beta``
+
+       **Format :** true or false
+
+       **Description :**
+       If true, temperature points are generated in the inverse temperature space with equal intervals.
+       If false, temperature points are generated in the temperature space with equal intervals.
+       Default value = false.
 
 - About replica 
 

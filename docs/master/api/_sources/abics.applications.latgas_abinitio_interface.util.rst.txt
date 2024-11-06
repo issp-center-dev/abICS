@@ -1,0 +1,7 @@
+abics.applications.latgas\_abinitio\_interface.util module
+==========================================================
+
+.. automodule:: abics.applications.latgas_abinitio_interface.util
+   :members:
+   :undoc-members:
+   :show-inheritance:

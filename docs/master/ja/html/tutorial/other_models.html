@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html lang="ja" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>4.3. 他のモデルを利用したサンプリング &#8212; abICS 2.2.0 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1e655c66" />
+    <script src="../_static/documentation_options.js?v=2b075faf"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=91613774"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="5. 入力ファイルフォーマット" href="../inputfiles/index.html" />
+    <link rel="prev" title="4.1. ニューラルネットワークの構築" href="aenet.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorial-nequip">
+<span id="id1"></span><h1><span class="section-number">4.3. </span>他のモデルを利用したサンプリング<a class="headerlink" href="#tutorial-nequip" title="Link to this heading">¶</a></h1>
+<p>abICSでは、機械学習モデルとして、aenet以外にも、
+NequIP, MLIP-3を利用したサンプリングが可能となっています。
+本項では、それぞれのモデルの学習およびサンプリングの方法について説明します。</p>
+<section id="nequip">
+<h2><span class="section-number">4.3.1. </span>NequIPを利用したサンプリング<a class="headerlink" href="#nequip" title="Link to this heading">¶</a></h2>
+<section id="id2">
+<h3>NequIP のインストール<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nequip</span></code> の利用には、 NequIPのインストールが必要です。</p>
+<p>下記コマンドにてインストールします。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wandb
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip
+</pre></div>
+</div>
+<p>また、abICSインストール時に[nequip]オプションを指定すれば、NequIPもインストールされます。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/path/to/abics
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;.abics[nequip]&#39;</span>
+</pre></div>
+</div>
+</section>
+<section id="id3">
+<h3>インプットファイルの準備<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p>まず、input_nequip.tomlを準備し、NequIPの実行に必要なパラメータを設定します。
+下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_nequip&#39;</span>
+<span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+
+<span class="k">[train]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./nequip_train_input&#39;</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;nequip-train&#39;</span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</pre></div>
+</div>
+<p>また、NequIPのインプットファイルinput.yamlをnequip_train_input/trainディレクトリに作成します。</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/spinel</span>
+<span class="nt">run_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">run</span>
+<span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">123</span>
+<span class="nt">dataset_seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">456</span>
+
+<span class="c1"># network</span>
+<span class="nt">num_basis</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="nt">BesselBasis_trainable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">PolynomialCutoff_p</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<span class="nt">l_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">r_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.0</span>
+<span class="nt">parity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">num_layers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="nt">num_features</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+
+<span class="nt">nonlinearity_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gate</span>
+
+<span class="nt">nonlinearity_scalars</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">e</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">silu</span>
+<span class="w">  </span><span class="nt">o</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tanh</span>
+
+<span class="nt">nonlinearity_gates</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">e</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">silu</span>
+<span class="w">  </span><span class="nt">o</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tanh</span>
+
+<span class="nt">model_builders</span><span class="p">:</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SimpleIrrepsConfig</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">EnergyModel</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PerSpeciesRescale</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RescaleEnergyEtc</span>
+
+
+<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ase</span>
+<span class="nt">dataset_file_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">structure.xyz</span>
+<span class="nt">chemical_symbols</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Mg</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Al</span>
+
+<span class="c1"># logging</span>
+<span class="nt">wandb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="c1"># verbose: debug</span>
+
+<span class="c1"># training</span>
+<span class="nt">n_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80%</span>
+<span class="nt">n_val</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20%</span>
+<span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="nt">train_val_split</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random</span>
+<span class="c1">#shuffle: true</span>
+<span class="nt">metrics_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validation_loss</span>
+<span class="nt">use_ema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">ema_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
+<span class="nt">ema_use_num_updates</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">max_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="c1"># loss function</span>
+<span class="nt">loss_coeffs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">total_energy</span>
+</pre></div>
+</div>
+<p>モデル学習、サンプリングの方法に関してはaenetと同様です。</p>
+</section>
+</section>
+<section id="allegro">
+<h2><span class="section-number">4.3.2. </span>Allegroを利用したサンプリング<a class="headerlink" href="#allegro" title="Link to this heading">¶</a></h2>
+<p>NequIPの拡張として実装されたモデルも、拡張パッケージをインストールし、NequIPの入力ファイルを適切に設定することで、そのまま利用可能です。Allegroは拡張パッケージの一つです。</p>
+<section id="id4">
+<h3>Allegro のインストール<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<p>下記コマンドにてインストールします。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>https://github.com/mir-group/allegro.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>allegro
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h3>インプットファイルの準備<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<p>まず、input_allegro.tomlを準備し、Allegroの実行に必要なパラメータを設定します。
+下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_allegro&#39;</span>
+<span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+
+<span class="k">[train]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./allegro_train_input&#39;</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w">  </span><span class="s1">&#39;nequip-train&#39;</span><span class="w"> </span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</pre></div>
+</div>
+<p>また、Allegroのインプットファイル <code class="docutils literal notranslate"><span class="pre">input.yaml</span></code> を <code class="docutils literal notranslate"><span class="pre">allegro_train_input/train</span></code> ディレクトリに作成します。</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">root</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">results/spinel</span>
+<span class="nt">run_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">run</span>
+<span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">123</span>
+<span class="nt">dataset_seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">456</span>
+
+<span class="c1"># network</span>
+<span class="nt">num_basis</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<span class="nt">BesselBasis_trainable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">PolynomialCutoff_p</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">6</span>
+<span class="nt">l_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">r_max</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.0</span>
+<span class="nt">parity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">o3_full</span>
+<span class="nt">num_layers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="c1"># num_features: 16</span>
+
+<span class="nt">env_embed_multiplicity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">16</span>
+<span class="nt">embed_initial_edge</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">two_body_latent_mlp_latent_dimensions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">32</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">64</span><span class="p p-Indicator">]</span>
+<span class="nt">two_body_latent_mlp_nonlinearity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">silu</span>
+<span class="nt">latent_mlp_latent_dimensions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">64</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">64</span><span class="p p-Indicator">]</span>
+<span class="nt">latent_mlp_nonlinearity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">silu</span>
+<span class="nt">latent_mlp_initialization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uniform</span>
+<span class="nt">latent_resnet</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">env_embed_mlp_latent_dimensions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<span class="nt">env_embed_mlp_nonlinearity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="nt">env_embed_mlp_initialization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uniform</span>
+<span class="nt">edge_eng_mlp_latent_dimensions</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">16</span><span class="p p-Indicator">]</span>
+<span class="nt">edge_eng_mlp_nonlinearity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span>
+<span class="nt">edge_eng_mlp_initialization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uniform</span>
+
+<span class="nt">model_builders</span><span class="p">:</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">allegro.model.Allegro</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PerSpeciesRescale</span>
+<span class="w"> </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">RescaleEnergyEtc</span>
+
+
+<span class="nt">dataset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ase</span>
+<span class="nt">dataset_file_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">structure.xyz</span>
+<span class="nt">chemical_symbols</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Mg</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Al</span>
+
+<span class="c1"># logging</span>
+<span class="nt">wandb</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<span class="c1"># verbose: debug</span>
+
+<span class="c1"># training</span>
+<span class="nt">n_train</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80%</span>
+<span class="nt">n_val</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">20%</span>
+<span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="nt">train_val_split</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">random</span>
+<span class="c1">#shuffle: true</span>
+<span class="nt">metrics_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">validation_loss</span>
+<span class="nt">use_ema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">ema_decay</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.99</span>
+<span class="nt">ema_use_num_updates</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">max_epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="c1"># loss function</span>
+<span class="nt">loss_coeffs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">total_energy</span>
+</pre></div>
+</div>
+<p>モデル学習、サンプリングの方法に関してはaenetと同様です。</p>
+</section>
+</section>
+<section id="mlip-3">
+<h2><span class="section-number">4.3.3. </span>MLIP-3を利用したサンプリング<a class="headerlink" href="#mlip-3" title="Link to this heading">¶</a></h2>
+<section id="id6">
+<h3>MLIP-3 のインストール<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">mlip-3</span></code> の利用には、 MLIP-3のインストールが必要です。</p>
+<p>下記コマンドにてインストールします。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>https://gitlab.com/ashapeev/mlip-3.git
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>mlip-3
+$<span class="w"> </span>./configure<span class="w"> </span>--no-mpi
+$<span class="w"> </span>make<span class="w"> </span>mlp
+</pre></div>
+</div>
+</section>
+<section id="id7">
+<h3>インプットファイルの準備<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<p>まず、input_mlip3.tomlを準備し、mlip-3の実行に必要なパラメータを設定します。
+下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。</p>
+<div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
+<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;~/git/mlip-3/bin/mlp&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput&#39;</span>
+<span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;subprocess&#39;</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+
+<span class="k">[train]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./mlip_3_train_input&#39;</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;~/git/mlip-3/bin/mlp&#39;</span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
+<span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
+</pre></div>
+</div>
+<p>上記の内、 <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> の <code class="docutils literal notranslate"><span class="pre">path</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> の <code class="docutils literal notranslate"><span class="pre">exe_command</span></code> では
+MLIP-3の実行ファイル <code class="docutils literal notranslate"><span class="pre">mlp</span></code> のパスを指定します。お使いの環境に合わせて変更してください。</p>
+<p>また、MLIP-3のインプットファイル <code class="docutils literal notranslate"><span class="pre">input.almtp</span></code> を <code class="docutils literal notranslate"><span class="pre">mlip_3_train_input/train</span></code> ディレクトリに作成します。</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>MTP
+version = 1.1.0
+potential_name = MTP1m
+species_count = 3
+potential_tag =
+radial_basis_type = RBChebyshev
+ min_dist = 2.3
+     max_dist = 5
+     radial_basis_size = 8
+     radial_funcs_count = 2
+alpha_moments_count = 8
+alpha_index_basic_count = 5
+alpha_index_basic = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}, {1, 0, 0, 0}}
+alpha_index_times_count = 5
+alpha_index_times = {{0, 0, 1, 5}, {1, 1, 1, 6}, {2, 2, 1, 6}, {3, 3, 1, 6}, {0, 5, 1, 7}}
+alpha_scalar_moments = 5
+alpha_moment_mapping = {0, 4, 5, 6, 7}
+</pre></div>
+</div>
+<p>モデル学習、サンプリングの方法に関してはaenetと同様です。</p>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">2. インストール方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">4. チュートリアル</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="aenet.html">4.1. ニューラルネットワークの構築</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aenet.html#id8">4.2. モンテカルロサンプリング</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.3. 他のモデルを利用したサンプリング</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html"><span class="section-number">4. </span>チュートリアル</a><ul>
+      <li>Previous: <a href="aenet.html" title="前の章へ"><span class="section-number">4.1. </span>ニューラルネットワークの構築</a></li>
+      <li>Next: <a href="../inputfiles/index.html" title="次の章へ"><span class="section-number">5. </span>入力ファイルフォーマット</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/tutorial/other_models.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

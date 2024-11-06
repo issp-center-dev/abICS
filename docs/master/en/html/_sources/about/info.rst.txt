@@ -20,7 +20,7 @@ Developers
 ------------------------------------------
 abICS is developed by the following members.
 
-- ver. 2.0
+- ver. 2.0-
    - Shusuke Kasamatsu (Yamagata University)
    - Yuichi Motoyama (Institute for Solid State Physics, Univ. of Tokyo)
    - Kazuyoshi Yoshimi (Institute for Solid State Physics, Univ. of Tokyo)
@@ -38,6 +38,7 @@ abICS is developed by the following members.
 Version information
 ------------------------------------------
 
+- ver. 2.2.0    : 2024/11/07.
 - ver. 2.1.0    : 2023/06/12.
 - ver. 2.0.1    : 2022/11/04.
 - ver. 2.0      : 2022/06/24.
@@ -76,4 +77,3 @@ Copyright
 *(c) 2019- The University of Tokyo. All rights reserved.*
 
 This software was developed with the support of \"*Project for advancement of software usability in materials science*\" of The Institute for Solid State Physics, The University of Tokyo. 
-     

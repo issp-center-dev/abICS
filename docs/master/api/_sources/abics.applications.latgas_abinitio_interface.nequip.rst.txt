@@ -1,0 +1,7 @@
+abics.applications.latgas\_abinitio\_interface.nequip module
+============================================================
+
+.. automodule:: abics.applications.latgas_abinitio_interface.nequip
+   :members:
+   :undoc-members:
+   :show-inheritance:

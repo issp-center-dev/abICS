@@ -1,0 +1,7 @@
+abics.applications.latgas\_abinitio\_interface.mlip\_3\_trainer module
+======================================================================
+
+.. automodule:: abics.applications.latgas_abinitio_interface.mlip_3_trainer
+   :members:
+   :undoc-members:
+   :show-inheritance:

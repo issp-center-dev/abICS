@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>4.1. Constructing a neural network model &#8212; abICS 2.1.0 documentation</title>
+    <title>4.1. Constructing a neural network model &#8212; abICS 2.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
     <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1e655c66" />
-    <script src="../_static/documentation_options.js?v=20623aea"></script>
+    <script src="../_static/documentation_options.js?v=b21de401"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="5. Input Files Format" href="../inputfiles/index.html" />
+    <link rel="next" title="4.3. Sampling using other machine learning models" href="other_models.html" />
     <link rel="prev" title="4. Tutorial" href="index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -459,7 +459,8 @@ The actual result of the calculation of the inversion rate (DOI) is shown in the
 In this example, the first result is <code class="docutils literal notranslate"><span class="pre">MC0</span></code>, followed by <code class="docutils literal notranslate"><span class="pre">MC1</span></code>, <code class="docutils literal notranslate"><span class="pre">MC2</span></code>, and so on.
 The first run is quite different from the others, thus we can expect that it is not accurate.
 On the other hand, if we train on the results of one Monte Carlo run, we find that the values are almost identical from the next run.</p>
-<a class="reference internal image-reference" href="../_images/doi_aenet.png"><img alt="../_images/doi_aenet.png" class="align-center" src="../_images/doi_aenet.png" style="width: 800px;" /></a>
+<a class="reference internal image-reference" href="../_images/doi_aenet.png"><img alt="../_images/doi_aenet.png" class="align-center" src="../_images/doi_aenet.png" style="width: 800px;" />
+</a>
 <p>The DOI can be calculated by the following procedure.</p>
 <ol class="arabic simple">
 <li><p>Go to <code class="docutils literal notranslate"><span class="pre">MCxxx</span></code> directory.</p></li>
@@ -571,6 +572,7 @@ place the input file <code class="docutils literal notranslate"><span class="pre
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">4. Tutorial</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">4.1. Constructing a neural network model</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#monte-carlo-sampling">4.2. Monte Carlo sampling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="other_models.html">4.3. Sampling using other machine learning models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. Input Files Format</a></li>
@@ -587,7 +589,7 @@ place the input file <code class="docutils literal notranslate"><span class="pre
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="index.html"><span class="section-number">4. </span>Tutorial</a><ul>
       <li>Previous: <a href="index.html" title="previous chapter"><span class="section-number">4. </span>Tutorial</a></li>
-      <li>Next: <a href="../inputfiles/index.html" title="next chapter"><span class="section-number">5. </span>Input Files Format</a></li>
+      <li>Next: <a href="other_models.html" title="next chapter"><span class="section-number">4.3. </span>Sampling using other machine learning models</a></li>
   </ul></li>
   </ul></li>
 </ul>
