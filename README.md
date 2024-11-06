@@ -15,7 +15,7 @@ and OpenMX input files for obtaining the reference training data for the machine
 - toml (for parsing input files)
 - mpi4py (for parallel tempering)
   - This requires one of the MPI implementation
-- pymatgen (>=2019.12.3) (for using Structure as a configuration)
+- pymatgen (>=2022.1.20) (for using Structure as a configuration)
   - This requires Cython
 - qe-tools (for parsing QE I/O)
 
