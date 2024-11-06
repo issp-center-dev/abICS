@@ -5,7 +5,7 @@
 
 ``abics_train`` creates and trains a regression model from configurations to energies.
 Indeed, ``abics_train`` uses an external program to train the model.
-In the current version, only ``aenet`` is supported as an external program.
+In the current version, Aenet, Nequip, and MLIP-3 are supported as an external program.
 For software-specific notes (such as input file names), see :ref:`trainer_specific_notes`.
 
 The input information for ``abics_train`` is described in the ``[trainer]`` section. The description of each parameter is as follows.
@@ -33,7 +33,7 @@ Key words
 
   **Format :** str
 
-  **Description :** The trainer to generate the neural network potential (currently only 'aenet').
+  **Description :** The trainer to generate the neural network potential (currently 'aenet', 'nequip', and 'mlip_3' are available).
   
 - ``base_input_dir``
 
@@ -44,10 +44,38 @@ Key words
 
 - ``exe_command``
 
-  **Format :** list of str 
+  **Format :** dict
 
   **Description :**
   List of commands to execute; if you use aenet, you need to specify the path to ``generate.x`` and ``train.x``.
+
+  - ``type = 'aenet'``
+
+    - ``generate`` and ``train`` keys are required.
+    - ``generate``
+
+        - Specify the path to ``generate.x`` of aenet.
+
+    - ``train``
+
+        - Specify the path to ``train.x`` of aenet.
+        - The MPI parallel version is available. In that case, set the command to execute MPI (e.g., ``srun``, ``mpirun``) .
+    
+    - Array format is supported for compatibility with abICS 2.0 and earlier.
+      The first element is ``generate``, and the second element is ``train``.
+
+  - ``type = 'nequip'``
+
+    - ``train`` 
+
+        - Specify the path to ``nequip-train``.
+
+  - ``type = 'mlip_3'``
+
+    - ``train``
+
+        - Specify the path to ``mlp``.
+
   
 - ``ignore_species``
 

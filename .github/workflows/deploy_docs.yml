@@ -12,7 +12,7 @@ on:
 jobs:
   deploy:
     timeout-minutes: 10.0
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
     - name: Inject slug/short variables
       uses: rlespinasse/github-slug-action@v4.x

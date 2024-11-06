@@ -1,7 +1,4 @@
 [sampling]
-sampler = "RXMC"
-# sampler = "PAMC"
-# kTnum = 10
 nreplicas = 2
 nprocs_per_replica = 1 
 kTstart = 1200.0
@@ -14,8 +11,8 @@ reload = false
 seed = 12345
 
 [sampling.solver]
-type = 'aenet'
-path= '~/opt/aenet/bin/predict.x_serial'
+type = 'mlip_3'
+path= './mlip-3/bin/mlp'
 base_input_dir = './baseinput'
 perturb = 0.0
 run_scheme = 'subprocess'
@@ -32,12 +29,9 @@ function = 'mock.calc_energy'
 perturb = 0.05
 
 [train]
-type = 'aenet'
-base_input_dir = './aenet_train_input'
-exe_command = [
-'~/opt/aenet/bin/generate.x_serial',
-'mpiexec -np 2 --oversubscribe ~/opt/aenet/bin/train.x_mpi'
-]
+type = 'mlip_3'
+base_input_dir = './mlip-3_train_input'
+exe_command = { train = './mlip-3/bin/mlp' }
 ignore_species = ["O"]
 vac_map = []
 restart = false

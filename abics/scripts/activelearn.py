@@ -38,7 +38,7 @@ from abics.applications.latgas_abinitio_interface.defect import (
     DFTConfigParams,
 )
 from abics.applications.latgas_abinitio_interface.base_solver import SolverBase, create_solver
-from abics.applications.latgas_abinitio_interface.params import ALParams, DFTParams
+from abics.applications.latgas_abinitio_interface.params import ALParams, DFTParams, TrainerParams
 
 from abics.util import exists_on_all_nodes
 from pymatgen.core import Structure
@@ -60,6 +60,10 @@ def main_impl(params_root: MutableMapping):
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
     mcparams = DFTParams.from_dict(params_root["sampling"]["solver"])
     configparams = DFTConfigParams.from_dict(params_root["config"])
+    trainerparams = TrainerParams.from_dict(params_root["train"])
+
+    energy_ref_empty = trainerparams.energy_ref
+    mult_now = np.prod(configparams.supercell)
 
     solver: SolverBase = create_solver(alparams.solver, alparams)
 
@@ -274,7 +278,7 @@ def main_impl(params_root: MutableMapping):
             logger.error("Either train (abics_train) or MC (abics_sampling) first.")
             sys.exit(1)
         obs = np.load(os.path.join(MCdir, str(myreplica), "obs_save.npy"))
-        energy_ref = obs[:, 0]
+        energy_ref = obs[:, 0] + energy_ref_empty * mult_now
         ALstep = nextMC_index
         ALdir = os.path.join(os.getcwd(), f"AL{ALstep}", str(myreplica))
         config = defect_config(configparams)

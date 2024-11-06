@@ -185,6 +185,8 @@ class TrainerParams:
         self.exe_command = []
         self.vac_map = []
         self.previous_dir = []
+        self.energy_ref = 0.0
+        self.prev_dirs_energy_ref = False
 
     @classmethod
     def from_dict(cls, d):
@@ -210,13 +212,24 @@ class TrainerParams:
         )
         params.solver = d["type"]
         exe_command = d["exe_command"]
+        params.exe_command = {}
         if isinstance(exe_command, str):
-            exe_command = [exe_command]
-        params.exe_command = exe_command
+            params.exe_command = {"train": exe_command}
+        elif isinstance(exe_command, list):
+            # For backward compatibility
+            for i, cmd in enumerate(exe_command):
+                if i == 0:
+                    params.exe_command["generate"] = cmd
+                elif i == 1:
+                    params.exe_command["train"] = cmd
+        elif isinstance(exe_command, dict):
+            params.exe_command = exe_command
         params.solver_run_scheme = d.get("run_scheme", "subprocess")
         params.ignore_species = d.get("ignore_species", None)
         params.vac_map = d.get("vac_map", [])
         params.previous_dir = d.get("previous_dirs", [])
+        params.energy_ref = d.get("energy_ref", 0.0)
+        params.prev_dirs_energy_ref = d.get("prev_dirs_energy_ref", False)
         if isinstance(params.previous_dir, str):
             params.previous_dir = [params.previous_dir]
 

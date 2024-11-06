@@ -33,7 +33,7 @@ from pymatgen.core import Structure
 from qe_tools.parsers import PwInputFile
 
 from .params import ALParams, DFTParams
-from .base_solver import SolverBase, register_solver
+from .base_solver import SolverBase
 from ...util import expand_path
 from ...exception import InputError
 
@@ -444,6 +444,3 @@ class QESolver(SolverBase):
         path = params.path
         parallel_level = params.properties.get("parallel_level", {})
         return cls(path, parallel_level=parallel_level)
-
-
-register_solver("qe", QESolver)
