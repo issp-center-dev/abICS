@@ -66,130 +66,6 @@ The input file of abICS is comprised of the following five sections:</p>
 </ol>
 <p>For details, see <a class="reference internal" href="../inputfiles/index.html"><span class="doc">Input Files Format</span></a> .
 The following is an example of an input file selecting aenet as a solver.</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
-nreplicas = 8
-nprocs_per_replica = 1 
-kTstart = 600.0
-kTend = 2000.0
-nsteps = 6400 # Number of steps for sampling
-RXtrial_frequency = 4
-sample_frequency = 16
-print_frequency = 1
-reload = false
-
-[sampling.solver]
-type = &#39;aenet&#39;
-path= &#39;predict.x-2.0.4-ifort_serial&#39;
-base_input_dir = &#39;./baseinput&#39;
-perturb = 0.0
-run_scheme = &#39;subprocess&#39; #&#39;mpi_spawn_ready&#39;
-ignore_species = [&quot;O&quot;]
-
-[mlref]
-nreplicas = 8
-ndata = 5
-
-[mlref.solver]
-type = &#39;qe&#39;
-base_input_dir = &#39;./baseinput_ref&#39;
-perturb = 0.05
-ignore_species = []
-
-[train]
-type = &#39;aenet&#39;
-base_input_dir = &#39;./aenet_train_input&#39;
-exe_command = [&#39;generate.x-2.0.4-ifort_serial&#39;, &#39;srun train.x-2.0.4-ifort_intelmpi&#39;]
-ignore_species = [&quot;O&quot;]
-vac_map = []
-restart = false
-
-[config]
-unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
-            [0.0000000000, 8.1135997772, 0.0000000000],
-            [0.0000000000, 0.0000000000, 8.1135997772]]
-supercell = [1,1,1]
-
-[[config.base_structure]]
-type = &quot;O&quot;
-coords = [
-     [0.237399980, 0.237399980, 0.237399980],
-     [0.762599945, 0.762599945, 0.762599945],
-     [0.512599945, 0.012600004, 0.737399936],
-     [0.487399966, 0.987399936, 0.262599975],
-     [0.012600004, 0.737399936, 0.512599945],
-     [0.987399936, 0.262599975, 0.487399966],
-     [0.737399936, 0.512599945, 0.012600004],
-     [0.262599975, 0.487399966, 0.987399936],
-     [0.987399936, 0.487399966, 0.262599975],
-     [0.012600004, 0.512599945, 0.737399936],
-     [0.487399966, 0.262599975, 0.987399936],
-     [0.512599945, 0.737399936, 0.012600004],
-     [0.262599975, 0.987399936, 0.487399966],
-     [0.737399936, 0.012600004, 0.512599945],
-     [0.237399980, 0.737399936, 0.737399936],
-     [0.762599945, 0.262599975, 0.262599975],
-     [0.512599945, 0.512599945, 0.237399980],
-     [0.487399966, 0.487399966, 0.762599945],
-     [0.012600004, 0.237399980, 0.012600004],
-     [0.987399936, 0.762599945, 0.987399936],
-     [0.987399936, 0.987399936, 0.762599945],
-     [0.012600004, 0.012600004, 0.237399980],
-     [0.487399966, 0.762599945, 0.487399966],
-     [0.512599945, 0.237399980, 0.512599945],
-     [0.737399936, 0.237399980, 0.737399936],
-     [0.262599975, 0.762599945, 0.262599975],
-     [0.237399980, 0.512599945, 0.512599945],
-     [0.762599945, 0.487399966, 0.487399966],
-     [0.762599945, 0.987399936, 0.987399936],
-     [0.237399980, 0.012600004, 0.012600004],
-     [0.737399936, 0.737399936, 0.237399980],
-     [0.262599975, 0.262599975, 0.762599945],
-     ]
-
-[[config.defect_structure]]
-coords = [
-     [0.000000000, 0.000000000, 0.000000000],
-     [0.749999940, 0.249999985, 0.499999970],
-     [0.249999985, 0.749999940, 0.499999970],
-     [0.249999985, 0.499999970, 0.749999940],
-     [0.749999940, 0.499999970, 0.249999985],
-     [0.499999970, 0.749999940, 0.249999985],
-     [0.499999970, 0.249999985, 0.749999940],
-     [0.000000000, 0.499999970, 0.499999970],
-     [0.749999940, 0.749999940, 0.000000000],
-     [0.249999985, 0.249999985, 0.000000000],
-     [0.249999985, 0.000000000, 0.249999985],
-     [0.749999940, 0.000000000, 0.749999940],
-     [0.499999970, 0.000000000, 0.499999970],
-     [0.000000000, 0.749999940, 0.749999940],
-     [0.000000000, 0.249999985, 0.249999985],
-     [0.499999970, 0.499999970, 0.000000000],
-     [0.374999970, 0.374999970, 0.374999970],
-     [0.624999940, 0.624999940, 0.624999940],
-     [0.374999970, 0.874999940, 0.874999940],
-     [0.624999940, 0.124999993, 0.124999993],
-     [0.874999940, 0.874999940, 0.374999970],
-     [0.124999993, 0.124999993, 0.624999940],
-     [0.874999940, 0.374999970, 0.874999940],
-     [0.124999993, 0.624999940, 0.124999993],
-     ]
-[[config.defect_structure.groups]]
-name = &#39;Al&#39;
-# species = [&#39;Al&#39;]    # default
-# coords = [[[0,0,0]]]  # default
-num = 16 #432 #16000
-[[config.defect_structure.groups]]
-name = &#39;Mg&#39;
-# species = [&#39;Mg&#39;]    # default
-# coords = [[[0,0,0]]]  # default
-num = 8 #216 #8000
-
-
-[observer]
-reference_structure = &quot;MgAl2O4.vasp&quot;
-ignored_species = [&quot;Al&quot;, &quot;O&quot;]
-</pre></div>
-</div>
 </section>
 <section id="preparing-a-reference-file-for-first-principles-solvers">
 <h2><span class="section-number">3.3. </span>Preparing a reference file for first-principles solvers<a class="headerlink" href="#preparing-a-reference-file-for-first-principles-solvers" title="Link to this heading">¶</a></h2>
@@ -295,28 +171,54 @@ The lattice sites are specified in a separate abICS input file (see below),
 and abICS will take care of generating the coordinates section at each sampling step.</p>
 <section id="machine-learning-trainer-calculator-specific-notes">
 <span id="trainer-specific-notes"></span><h3><span class="section-number">3.4.1. </span>Machine learning trainer/calculator-specific notes<a class="headerlink" href="#machine-learning-trainer-calculator-specific-notes" title="Link to this heading">¶</a></h3>
+<ul>
+<li><p>abICS control file</p>
+<ul class="simple">
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section, set <code class="docutils literal notranslate"><span class="pre">perturb</span></code> be 0.0.</p></li>
+</ul>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;aenet&quot;</span>
+<span class="nv">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>.0
+</pre></div>
+</div>
+</li>
+</ul>
 <section id="aenet">
 <h4>aenet<a class="headerlink" href="#aenet" title="Link to this heading">¶</a></h4>
-<ul>
-<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
-<li><p>Checked with version 2.0.4.</p></li>
-<li><p>Reference file rules</p>
 <ul class="simple">
+<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
+<li><p>Checked with aenet 2.0.4.</p></li>
+<li><p>Reference file rules</p>
+<ul>
 <li><p>Place the input files for aenet in the <code class="docutils literal notranslate"><span class="pre">generate</span></code>, <code class="docutils literal notranslate"><span class="pre">train</span></code>, and <code class="docutils literal notranslate"><span class="pre">predict</span></code> directories in the directory which is set in the <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section.</p></li>
 <li><p>aenet compiles the atomic configuration and energy data for training into an intermediate binary format that is converted to atomic environment descriptor-energy relationships before training. Please place the input files for this conversion <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">generate</span></code> directory.</p></li>
 <li><p>Place an input file for <code class="docutils literal notranslate"><span class="pre">train.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">train</span></code> directory that reads the training data generated by <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> and trains. The file should be named <code class="docutils literal notranslate"><span class="pre">train.in</span></code>.</p></li>
 <li><p>Place the input file <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> for <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> in the <code class="docutils literal notranslate"><span class="pre">predict</span></code> directory to evaluate the energy for the input coordinates using the trained potential model.</p></li>
 </ul>
 </li>
-<li><p>abICS control file</p>
-<ul class="simple">
-<li><p>In the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section, for <code class="docutils literal notranslate"><span class="pre">type</span></code> , <code class="docutils literal notranslate"><span class="pre">perturb</span></code> , and <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code>, set the following if using an active learning scheme.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>“aenet”
-<span class="nv">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>.0
-<span class="nv">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>‘subprocess’
-</pre></div>
-</div>
+</section>
+<section id="nequip">
+<h4>NequIP<a class="headerlink" href="#nequip" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://github.com/mir-group/nequip">https://github.com/mir-group/nequip</a></p></li>
+<li><p>Checked with nequip 0.6.1.</p></li>
+<li><p>Reference file(For specific examples of reference files, see the tutorial)</p>
+<ul>
+<li><p>Place the input file for NequIP <code class="docutils literal notranslate"><span class="pre">input.yaml</span></code> in the <code class="docutils literal notranslate"><span class="pre">train</span></code> directory in the directory set in the <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section.</p></li>
+<li><p>Set the RATIO of training data and validation data in <code class="docutils literal notranslate"><span class="pre">n_train</span></code> and <code class="docutils literal notranslate"><span class="pre">n_val</span></code>. For example, if you set <code class="docutils literal notranslate"><span class="pre">n_train</span> <span class="pre">=</span> <span class="pre">80%</span></code> and <code class="docutils literal notranslate"><span class="pre">n_val</span> <span class="pre">=</span> <span class="pre">20%</span></code>, the ratio of training data and validation data will be 80% and 20%, respectively.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="mlip-3">
+<h4>MLIP-3<a class="headerlink" href="#mlip-3" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://gitlab.com/ashapeev/mlip-3">https://gitlab.com/ashapeev/mlip-3</a></p></li>
+<li><p>Checked with commit hash 5f6970e3966c5941a4b42b27a3e9170f162532a0 (2023-06-06T21:27:11).</p></li>
+<li><p>Reference file(For specific examples of reference files, see the tutorial)</p>
+<ul>
+<li><p>Place the input file for MLIP-3 <code class="docutils literal notranslate"><span class="pre">input.almtp</span></code> in the <code class="docutils literal notranslate"><span class="pre">train</span></code> directory in the directory set in the <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> of the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section.</p></li>
+</ul>
 </li>
 </ul>
 </section>

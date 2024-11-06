@@ -36,7 +36,7 @@
 <h1><span class="section-number">5.4. </span>[train] section<a class="headerlink" href="#train-section" title="Link to this heading">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">abics_train</span></code> creates and trains a regression model from configurations to energies.
 Indeed, <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> uses an external program to train the model.
-In the current version, only <code class="docutils literal notranslate"><span class="pre">aenet</span></code> is supported as an external program.
+In the current version, Aenet, Nequip, and MLIP-3 are supported as an external program.
 For software-specific notes (such as input file names), see <a class="reference internal" href="../how_to_use/index.html#trainer-specific-notes"><span class="std std-ref">Machine learning trainer/calculator-specific notes</span></a>.</p>
 <p>The input information for <code class="docutils literal notranslate"><span class="pre">abics_train</span></code> is described in the <code class="docutils literal notranslate"><span class="pre">[trainer]</span></code> section. The description of each parameter is as follows.
 An example is shown as follows:</p>
@@ -60,7 +60,7 @@ Comments can also be entered by adding # (Subsequent characters are ignored).</p
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">type</span></code></p>
 <p><strong>Format :</strong> str</p>
-<p><strong>Description :</strong> The trainer to generate the neural network potential (currently only ‘aenet’).</p>
+<p><strong>Description :</strong> The trainer to generate the neural network potential (currently ‘aenet’, ‘nequip’, and ‘mlip_3’ are available).</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code></p>
 <p><strong>Format :</strong> str</p>
@@ -68,9 +68,55 @@ Comments can also be entered by adding # (Subsequent characters are ignored).</p
 Path of the directory containing the input files that the learner refers to.</p>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">exe_command</span></code></p>
-<p><strong>Format :</strong> list of str</p>
+<p><strong>Format :</strong> dict</p>
 <p><strong>Description :</strong>
 List of commands to execute; if you use aenet, you need to specify the path to <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> and <code class="docutils literal notranslate"><span class="pre">train.x</span></code>.</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">'aenet'</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate</span></code> and <code class="docutils literal notranslate"><span class="pre">train</span></code> keys are required.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">generate</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Specify the path to <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> of aenet.</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Specify the path to <code class="docutils literal notranslate"><span class="pre">train.x</span></code> of aenet.</p></li>
+<li><p>The MPI parallel version is available. In that case, set the command to execute MPI (e.g., <code class="docutils literal notranslate"><span class="pre">srun</span></code>, <code class="docutils literal notranslate"><span class="pre">mpirun</span></code>) .</p></li>
+</ul>
+</div></blockquote>
+</li>
+<li><p>Array format is supported for compatibility with abICS 2.0 and earlier.
+The first element is <code class="docutils literal notranslate"><span class="pre">generate</span></code>, and the second element is <code class="docutils literal notranslate"><span class="pre">train</span></code>.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">'nequip'</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Specify the path to <code class="docutils literal notranslate"><span class="pre">nequip-train</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">type</span> <span class="pre">=</span> <span class="pre">'mlip_3'</span></code></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">train</span></code></p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Specify the path to <code class="docutils literal notranslate"><span class="pre">mlp</span></code>.</p></li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</li>
+</ul>
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">ignore_species</span></code></p>
 <p><strong>Format :</strong> list</p>

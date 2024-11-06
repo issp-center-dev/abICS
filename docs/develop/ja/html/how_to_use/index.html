@@ -77,130 +77,6 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 </ol>
 <p>これらの詳細については <a class="reference internal" href="../inputfiles/index.html"><span class="doc">入力ファイルフォーマット</span></a> をご覧ください。
 以下に入力ファイルの例を記載します。</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
-nreplicas = 8
-nprocs_per_replica = 1 
-kTstart = 600.0
-kTend = 2000.0
-nsteps = 6400 # Number of steps for sampling
-RXtrial_frequency = 4
-sample_frequency = 16
-print_frequency = 1
-reload = false
-
-[sampling.solver]
-type = &#39;aenet&#39;
-path= &#39;predict.x-2.0.4-ifort_serial&#39;
-base_input_dir = &#39;./baseinput&#39;
-perturb = 0.0
-run_scheme = &#39;subprocess&#39; #&#39;mpi_spawn_ready&#39;
-ignore_species = [&quot;O&quot;]
-
-[mlref]
-nreplicas = 8
-ndata = 5
-
-[mlref.solver]
-type = &#39;qe&#39;
-base_input_dir = &#39;./baseinput_ref&#39;
-perturb = 0.05
-ignore_species = []
-
-[train]
-type = &#39;aenet&#39;
-base_input_dir = &#39;./aenet_train_input&#39;
-exe_command = [&#39;generate.x-2.0.4-ifort_serial&#39;, &#39;srun train.x-2.0.4-ifort_intelmpi&#39;]
-ignore_species = [&quot;O&quot;]
-vac_map = []
-restart = false
-
-[config]
-unitcell = [[8.1135997772, 0.0000000000, 0.0000000000],
-            [0.0000000000, 8.1135997772, 0.0000000000],
-            [0.0000000000, 0.0000000000, 8.1135997772]]
-supercell = [1,1,1]
-
-[[config.base_structure]]
-type = &quot;O&quot;
-coords = [
-     [0.237399980, 0.237399980, 0.237399980],
-     [0.762599945, 0.762599945, 0.762599945],
-     [0.512599945, 0.012600004, 0.737399936],
-     [0.487399966, 0.987399936, 0.262599975],
-     [0.012600004, 0.737399936, 0.512599945],
-     [0.987399936, 0.262599975, 0.487399966],
-     [0.737399936, 0.512599945, 0.012600004],
-     [0.262599975, 0.487399966, 0.987399936],
-     [0.987399936, 0.487399966, 0.262599975],
-     [0.012600004, 0.512599945, 0.737399936],
-     [0.487399966, 0.262599975, 0.987399936],
-     [0.512599945, 0.737399936, 0.012600004],
-     [0.262599975, 0.987399936, 0.487399966],
-     [0.737399936, 0.012600004, 0.512599945],
-     [0.237399980, 0.737399936, 0.737399936],
-     [0.762599945, 0.262599975, 0.262599975],
-     [0.512599945, 0.512599945, 0.237399980],
-     [0.487399966, 0.487399966, 0.762599945],
-     [0.012600004, 0.237399980, 0.012600004],
-     [0.987399936, 0.762599945, 0.987399936],
-     [0.987399936, 0.987399936, 0.762599945],
-     [0.012600004, 0.012600004, 0.237399980],
-     [0.487399966, 0.762599945, 0.487399966],
-     [0.512599945, 0.237399980, 0.512599945],
-     [0.737399936, 0.237399980, 0.737399936],
-     [0.262599975, 0.762599945, 0.262599975],
-     [0.237399980, 0.512599945, 0.512599945],
-     [0.762599945, 0.487399966, 0.487399966],
-     [0.762599945, 0.987399936, 0.987399936],
-     [0.237399980, 0.012600004, 0.012600004],
-     [0.737399936, 0.737399936, 0.237399980],
-     [0.262599975, 0.262599975, 0.762599945],
-     ]
-
-[[config.defect_structure]]
-coords = [
-     [0.000000000, 0.000000000, 0.000000000],
-     [0.749999940, 0.249999985, 0.499999970],
-     [0.249999985, 0.749999940, 0.499999970],
-     [0.249999985, 0.499999970, 0.749999940],
-     [0.749999940, 0.499999970, 0.249999985],
-     [0.499999970, 0.749999940, 0.249999985],
-     [0.499999970, 0.249999985, 0.749999940],
-     [0.000000000, 0.499999970, 0.499999970],
-     [0.749999940, 0.749999940, 0.000000000],
-     [0.249999985, 0.249999985, 0.000000000],
-     [0.249999985, 0.000000000, 0.249999985],
-     [0.749999940, 0.000000000, 0.749999940],
-     [0.499999970, 0.000000000, 0.499999970],
-     [0.000000000, 0.749999940, 0.749999940],
-     [0.000000000, 0.249999985, 0.249999985],
-     [0.499999970, 0.499999970, 0.000000000],
-     [0.374999970, 0.374999970, 0.374999970],
-     [0.624999940, 0.624999940, 0.624999940],
-     [0.374999970, 0.874999940, 0.874999940],
-     [0.624999940, 0.124999993, 0.124999993],
-     [0.874999940, 0.874999940, 0.374999970],
-     [0.124999993, 0.124999993, 0.624999940],
-     [0.874999940, 0.374999970, 0.874999940],
-     [0.124999993, 0.624999940, 0.124999993],
-     ]
-[[config.defect_structure.groups]]
-name = &#39;Al&#39;
-# species = [&#39;Al&#39;]    # default
-# coords = [[[0,0,0]]]  # default
-num = 16 #432 #16000
-[[config.defect_structure.groups]]
-name = &#39;Mg&#39;
-# species = [&#39;Mg&#39;]    # default
-# coords = [[[0,0,0]]]  # default
-num = 8 #216 #8000
-
-
-[observer]
-reference_structure = &quot;MgAl2O4.vasp&quot;
-ignored_species = [&quot;Al&quot;, &quot;O&quot;]
-</pre></div>
-</div>
 </section>
 <section id="id3">
 <h2><span class="section-number">3.3. </span>第一原理ソルバー用参照ファイルの準備<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
@@ -300,26 +176,41 @@ K_POINTS gamma
 <span id="id6"></span><h3><span class="section-number">3.4.1. </span>機械学習モデルソルバー利用時の注意点<a class="headerlink" href="#trainer-specific-notes" title="Link to this heading">¶</a></h3>
 <section id="aenet">
 <h4>aenet<a class="headerlink" href="#aenet" title="Link to this heading">¶</a></h4>
-<ul>
-<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
-<li><p>バージョン2.0.4 で動作確認済。</p></li>
-<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
 <ul class="simple">
+<li><p>URL : <a class="reference external" href="http://ann.atomistic.net">http://ann.atomistic.net</a></p></li>
+<li><p>aenet 2.0.4 で動作確認済。</p></li>
+<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
+<ul>
 <li><p>aenet用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で設定したディレクトリ内の <code class="docutils literal notranslate"><span class="pre">generate</span></code> 、 <code class="docutils literal notranslate"><span class="pre">train</span></code> 、および <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。</p></li>
 <li><p>aenetでは、訓練用の原子配置とエネルギーのデータを、原子環境記述子とエネルギーの関係に変換した中間バイナリフォーマットにまとめてから訓練を行います。この変換を行う <code class="docutils literal notranslate"><span class="pre">generate.x</span></code> 用の 入力ファイルを <code class="docutils literal notranslate"><span class="pre">generate</span></code> ディレクトリに設置してください。</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">generate.x</span></code> で生成された訓練データを読み込み、訓練を行う <code class="docutils literal notranslate"><span class="pre">train.x</span></code> 用の入力ファイルを <code class="docutils literal notranslate"><span class="pre">train</span></code> ディレクトリに設置します。 ファイル名は <code class="docutils literal notranslate"><span class="pre">train.in</span></code> としてください。</p></li>
 <li><p>訓練したポテンシャルモデルを使って入力座標に対してエネルギーを 評価するための <code class="docutils literal notranslate"><span class="pre">predict.x</span></code> 用の入力ファイル <code class="docutils literal notranslate"><span class="pre">predict.in</span></code> を、 <code class="docutils literal notranslate"><span class="pre">predict</span></code> ディレクトリに設置してください。</p></li>
 </ul>
 </li>
-<li><p>abICS 入力ファイル</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">[solver]</span></code> セクションで <code class="docutils literal notranslate"><span class="pre">type</span></code> , <code class="docutils literal notranslate"><span class="pre">perturb</span></code> , <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> に関しては、能動学習スキームを用いる場合は以下に設定してください。</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>“aenet”
-<span class="nv">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>.0
-<span class="nv">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>‘subprocess’
-</pre></div>
-</div>
+</section>
+<section id="nequip">
+<h4>NequIP<a class="headerlink" href="#nequip" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://github.com/mir-group/nequip">https://github.com/mir-group/nequip</a></p></li>
+<li><p>NequIP 0.6.1 で動作確認済。</p></li>
+<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
+<ul>
+<li><p>NequIP用の入力ファイル <code class="docutils literal notranslate"><span class="pre">input.yaml</span></code> を <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で設定したディレクトリ内の <code class="docutils literal notranslate"><span class="pre">train</span></code> ディレクトリに設置してください。</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">n_train</span></code> と <code class="docutils literal notranslate"><span class="pre">n_val</span></code> には、訓練データと検証データの「割合」を指定してください. 例えば、 <code class="docutils literal notranslate"><span class="pre">n_train</span> <span class="pre">=</span> <span class="pre">80%</span></code> 、 <code class="docutils literal notranslate"><span class="pre">n_val</span> <span class="pre">=</span> <span class="pre">20%</span></code> と指定すると、訓練データと検証データの割合がそれぞれ80%、20%になります。</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="mlip-3">
+<h4>MLIP-3<a class="headerlink" href="#mlip-3" title="Link to this heading">¶</a></h4>
+<ul class="simple">
+<li><p>URL : <a class="reference external" href="https://gitlab.com/ashapeev/mlip-3">https://gitlab.com/ashapeev/mlip-3</a></p></li>
+<li><p>コミットハッシュ 5f6970e3966c5941a4b42b27a3e9170f162532a0 (2023-06-06T21:27:11) で動作確認済。</p></li>
+<li><p>参照ファイル(参照ファイルの具体例についてはチュートリアル参照)</p>
+<ul>
+<li><p>MLIP-3用の入力ファイル <code class="docutils literal notranslate"><span class="pre">input.almtp</span></code> を <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で設定したディレクトリ内の <code class="docutils literal notranslate"><span class="pre">train</span></code> ディレクトリに設置してください。</p></li>
+</ul>
 </li>
 </ul>
 </section>
