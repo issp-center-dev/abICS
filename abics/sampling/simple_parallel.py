@@ -210,7 +210,8 @@ class EmbarrassinglyParallelSampling:
         model: Model,
         configs,
         kTs=None,
-        write_node=True,
+        write_node:bool=True,
+        T2E:float=1.0,
     ):
         """
 
@@ -234,7 +235,9 @@ class EmbarrassinglyParallelSampling:
             kTs = [0] * self.procs
         if isinstance(kTs, (int, float)):
             kTs = [kTs] * self.procs
-        self.kTs = kTs
+        self.T2E = T2E
+        self.E2T = 1.0 / T2E
+        self.kTs = np.array([T2E * T for T in kTs])
         self.model = model
         self.nreplicas = len(configs)
         self.write_node = write_node
@@ -248,7 +251,7 @@ class EmbarrassinglyParallelSampling:
             sys.exit(1)
 
         myconfig = configs[self.rank]
-        mytemp = kTs[self.rank]
+        mytemp = self.kTs[self.rank]
         self.mycalc = MCalgo(model, mytemp, myconfig)
         self.obs_save: list[np.ndarray] = []
         self.kT_hist: list[float] = []
@@ -381,11 +384,11 @@ class EmbarrassinglyParallelSampling:
 
 
     def postproc(self, throw_out):
-        postproc(obs_save=np.array(self.obs_save), kTs=self.kTs, comm=self.comm, obsnames=self.obsnames, throw_out=throw_out)
+        postproc(obs_save=np.array(self.obs_save), kTs=self.kTs, comm=self.comm, obsnames=self.obsnames, throw_out=throw_out, E2T=self.E2T)
 
 class RandomSampling_MPI(ParallelMC):
     def __init__(
-        self, comm, MCalgo: type[MCAlgorithm], model: Model, configs, write_node=True
+        self, comm, MCalgo: type[MCAlgorithm], model: Model, configs, write_node=True, T2E:float=1.0,
     ):
         """
 
@@ -401,8 +404,8 @@ class RandomSampling_MPI(ParallelMC):
             Configuration
         """
 
-        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node)
-        self.mycalc.kT = kTs[self.rank]
+        super().__init__(comm, MCalgo, model, configs, kTs, write_node=write_node, T2E=T2E)
+        self.mycalc.kT = self.kTs[self.rank]
         self.mycalc.config = configs[self.rank]
         self.betas = 1.0 / np.array(kTs)
         self.rank_to_T = np.arange(0, self.procs, 1, dtype=np.int64)
@@ -415,7 +418,9 @@ class RandomSampling_MPI(ParallelMC):
 
 
 def postproc(obs_save, kTs, comm,
-             obsnames, throw_out: int | float):
+             obsnames, throw_out: int | float,
+             E2T: float = 1.0,
+             ):
     assert throw_out >= 0
     rank = comm.Get_rank()
     nT = comm.Get_size()
@@ -456,7 +461,7 @@ def postproc(obs_save, kTs, comm,
                 f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
                 f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
                 for iT in range(nT):
-                    f.write(f"{kTs[iT]}")
+                    f.write(f"{E2T*kTs[iT]}")
                     for itype in range(ntype):
                         f.write(f" {obs_all[iT, itype, iobs]}")
                     f.write("\n")

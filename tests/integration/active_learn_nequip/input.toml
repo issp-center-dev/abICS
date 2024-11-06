@@ -1,4 +1,7 @@
 [sampling]
+sampler = "RXMC"
+# sampler = "PAMC"
+# kTnum = 10
 nreplicas = 2
 nprocs_per_replica = 1 
 kTstart = 1200.0

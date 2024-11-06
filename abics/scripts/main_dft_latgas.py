@@ -88,7 +88,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
         # RXMC parameters
         # specify temperatures for each replica, number of steps, etc.
-        kTs = kB * rxparams.kTs
+        kTs = rxparams.kTs
         kTstart = rxparams.kTs[0]
         kTend = rxparams.kTs[-1]
 
@@ -121,7 +121,7 @@ def main_dft_latgas(params_root: MutableMapping):
         kTend = pamcparams.kTs[-1]
         if kTstart < kTend:
             kTstart, kTend = kTend, kTstart
-        kTs = kB * pamcparams.kTs
+        kTs = pamcparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = pamcparams.reload
@@ -167,7 +167,7 @@ def main_dft_latgas(params_root: MutableMapping):
         # specify temperatures for each replica, number of steps, etc.
         kTstart = rxparams.kTs[0]
         kTend = rxparams.kTs[-1]
-        kTs = kB * rxparams.kTs
+        kTs = rxparams.kTs
 
         # Set Lreload to True when restarting
         Lreload = rxparams.reload
@@ -349,7 +349,7 @@ def main_dft_latgas(params_root: MutableMapping):
     if sampler_type == "RXMC":
         # RXMC calculation
         RXcalc = TemperatureRX_MPI(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node, T2E=kB,
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
@@ -370,7 +370,7 @@ def main_dft_latgas(params_root: MutableMapping):
     elif sampler_type == "PAMC":
         # PAMC calculation
         PAcalc = PopulationAnnealing(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node, T2E=kB,
         )
         if Lreload:
             logger.info("-Reloading from previous calculation")
@@ -403,7 +403,7 @@ def main_dft_latgas(params_root: MutableMapping):
 
     elif sampler_type == "parallelMC":
         calc = EmbarrassinglyParallelSampling(
-            comm, mc_class, model, configs, kTs, write_node=write_node
+            comm, mc_class, model, configs, kTs, write_node=write_node, T2E=kB
         )
         if Lreload:
             calc.reload()
