@@ -63,8 +63,9 @@ class AenetPyLammpsSolver(SolverBase):
             cmdargs=["-log", "none", "-screen", "none", "-nocite"], comm=MPI.COMM_SELF
         )
         self.rank = MPI.COMM_WORLD.Get_rank()
-        
+
         # debug             cmdargs=["-log", "test{}.log".format(MPI.COMM_WORLD.Get_rank()), "-screen", "none", "-nocite"], comm=MPI.COMM_SELF
+
     def name(self):
         return "aenetPyLammps"
 
@@ -82,7 +83,7 @@ class AenetPyLammpsSolver(SolverBase):
         by = np.linalg.norm(np.cross(unit_vec(latt[0]), latt[1]))
         cx = np.dot(latt[2], unit_vec(latt[0]))
         cy = (np.dot(latt[1], latt[2]) - bx * cx) / by
-        cz = np.sqrt(np.linalg.norm(latt[2]) ** 2.0 - cx ** 2.0 - cy ** 2.0)
+        cz = np.sqrt(np.linalg.norm(latt[2]) ** 2.0 - cx**2.0 - cy**2.0)
 
         # lmp = lammps(cmdargs=["-log", "none","-nocite"])
         self.calc.command("atom_style atomic")
@@ -92,9 +93,11 @@ class AenetPyLammpsSolver(SolverBase):
         self.calc.command(f"region box prism 0 {ax} 0 {by} 0 {cz} {bx} {cx} {cy}")
         self.calc.command(f"create_box {nspec} box")
         types = list(map(lambda x: spec_dict[x.name], st.species))
-        new_coords = np.dot(st.frac_coords, np.array([[ax,0,0], [bx,by,0], [cx,cy,cz]]))
+        new_coords = np.dot(
+            st.frac_coords, np.array([[ax, 0, 0], [bx, by, 0], [cx, cy, cz]])
+        )
         self.calc.create_atoms(natoms, None, types, new_coords.ravel())
-        
+
         for i in range(1, nspec + 1):
             self.calc.command(f"mass {i} 1")
         self.calc.commands_list(self.input.pair_pot)
