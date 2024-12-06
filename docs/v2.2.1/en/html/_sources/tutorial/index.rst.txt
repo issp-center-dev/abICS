@@ -1,0 +1,13 @@
+***************************
+Tutorial
+***************************
+
+In this tutorial, we demonstrate the calculation of the degree of inversion of Mg and Al atoms
+in an ionic crystal :math:`{\rm Mg}{\rm Al}_2 {\rm O}_4`. 
+Input files are provided in ``examples/active_learning_qe/`` .
+
+.. toctree::
+   :maxdepth: 2
+
+   aenet
+   other_models

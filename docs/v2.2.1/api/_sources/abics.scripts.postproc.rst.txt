@@ -1,0 +1,7 @@
+abics.scripts.postproc module
+=============================
+
+.. automodule:: abics.scripts.postproc
+   :members:
+   :undoc-members:
+   :show-inheritance:

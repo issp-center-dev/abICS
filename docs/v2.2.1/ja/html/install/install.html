@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="ja" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>2.1. 必要なライブラリ・環境 &#8212; abICS 2.2.1 ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1e655c66" />
+    <script src="../_static/documentation_options.js?v=8f7fdbb6"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=91613774"></script>
+    <link rel="index" title="索引" href="../genindex.html" />
+    <link rel="search" title="検索" href="../search.html" />
+    <link rel="next" title="3. 基本的な使用方法" href="../how_to_use/index.html" />
+    <link rel="prev" title="2. インストール方法" href="index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="id1">
+<h1><span class="section-number">2.1. </span>必要なライブラリ・環境<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<p>abICS をインストール・実行するには、 バージョン3.9 以上の Python が必要です。
+また、以下の Python パッケージが必要です。</p>
+<ul class="simple">
+<li><p>numpy</p></li>
+<li><p>scipy</p></li>
+<li><p>toml</p></li>
+<li><p>mpi4py</p></li>
+<li><p>pymatgen (&gt;=2019.12.3)</p></li>
+<li><p>qe-tools</p></li>
+</ul>
+<p>これらのライブラリは自動でインストールされますが、 mpi4py と pymatgen はあらかじめ関連ソフトウェアが必要です。</p>
+<ul>
+<li><p>mpi4py をインストールするには、なんらかのMPI 環境をあらかじめインストールしておく必要があります。</p></li>
+<li><p>pymatgen をインストールするには、 Cython をインストールしておく必要があります。:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install cython
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="pypi">
+<h1><span class="section-number">2.2. </span>PyPI からインストールする<a class="headerlink" href="#pypi" title="Link to this heading">¶</a></h1>
+<p>abICS は PyPI に登録されているため、 <code class="docutils literal notranslate"><span class="pre">pip</span></code> コマンドで簡単にインストールできます。:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install abics
+</pre></div>
+</div>
+<p>書き込み権限がないなどで、ユーザローカルのディレクトリにインストールする場合には <code class="docutils literal notranslate"><span class="pre">--user</span></code> オプションを追加してください。
+この場合、 <code class="docutils literal notranslate"><span class="pre">~/.local/</span></code> 以下に実行可能スクリプトやライブラリがインストールされます。
+また、インストールディレクトリを指定したい場合には、 <code class="docutils literal notranslate"><span class="pre">--prefix=DIRECTORY</span></code> ( <code class="docutils literal notranslate"><span class="pre">DIRECTORY</span></code> はインストールしたいディレクトリ) オプションを指定してください:</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">pip3</span> <span class="pre">install</span> <span class="pre">--user</span> <span class="pre">abics</span></code></p>
+</div></blockquote>
+</section>
+<section id="id2">
+<h1><span class="section-number">2.3. </span>ソースからインストールする<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h1>
+<p>多くの場合には PyPI からインストールすれば良いですが、機能追加する場合などはソースからインストールしてください。</p>
+<section id="id3">
+<h2><span class="section-number">2.3.1. </span>ダウンロード<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h2>
+<p>abICS のソースコードは <a class="reference external" href="https://github.com/issp-center-dev/abICS">GitHub page</a> からダウンロードできます。</p>
+<p><code class="docutils literal notranslate"><span class="pre">$</span> <span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/issp-center-dev/abICS</span></code></p>
+</section>
+<section id="id4">
+<h2><span class="section-number">2.3.2. </span>ディレクトリ構成<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h2>
+<p>abICSのディレクトリ構成は以下のようになっています.
+pythonモジュールは <code class="docutils literal notranslate"><span class="pre">abics</span></code> ディレクトリ以下に一式格納されています.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>.
+|-- COPYING
+|-- README.md
+|-- abics/
+|   |-- __init__.py
+|   |-- applications/
+|   |-- exception.py
+|   |-- mc.py
+|   |-- mc_mpi.py
+|   |-- replica_params.py
+|   |-- scripts/
+|   |-- util.py
+|-- docs/
+|   |-- sphinx/
+|-- examples/
+|-- pyproject.toml
+|-- test/
+|-- tests/
+</pre></div>
+</div>
+</section>
+<section id="id5">
+<h2><span class="section-number">2.3.3. </span>インストール<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">install</span></code> の引数に abICS のルートディレクトリを渡すことでインストール可能です</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ pip3 install ./abICS
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+</section>
+<section id="id6">
+<h1><span class="section-number">2.4. </span>アンインストール<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h1>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">pip3</span> <span class="pre">uninstall</span> <span class="pre">abics</span></code> でアンインストールできます.</p></li>
+</ul>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">abICS</a></h1>
+
+
+
+
+
+
+
+
+<h3>ナビゲーション</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../about/index.html">1. abICS とは？</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">2. インストール方法</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.1. 必要なライブラリ・環境</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pypi">2.2. PyPI からインストールする</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">2.3. ソースからインストールする</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">2.4. アンインストール</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../how_to_use/index.html">3. 基本的な使用方法</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">4. チュートリアル</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../inputfiles/index.html">5. 入力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputfiles/index.html">6. 出力ファイルフォーマット</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tools/index.html">7. 付属ツール</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../algorithm/index.html">8. アルゴリズム</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../acknowledge/index.html">9. 謝辞</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact/index.html">10. お問い合わせ</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html"><span class="section-number">2. </span>インストール方法</a><ul>
+      <li>Previous: <a href="index.html" title="前の章へ"><span class="section-number">2. </span>インストール方法</a></li>
+      <li>Next: <a href="../how_to_use/index.html" title="次の章へ"><span class="section-number">3. </span>基本的な使用方法</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">クイック検索</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="検索" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2019-, Institute for Solid State Physics, University of Tokyo.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="../_sources/install/install.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
