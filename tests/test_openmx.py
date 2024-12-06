@@ -22,7 +22,12 @@ import numpy as np
 
 from pymatgen.core import Structure
 
-from abics.applications.latgas_abinitio_interface.openmx import OpenMXInputFile, OpenMXSolver
+from abics.applications.latgas_abinitio_interface.base_solver import create_solver
+from abics.applications.latgas_abinitio_interface.params import DFTParams
+from abics.applications.latgas_abinitio_interface.openmx import (
+    OpenMXInputFile,
+    OpenMXSolver,
+)
 
 
 class TestOpenMX(unittest.TestCase):
@@ -38,7 +43,17 @@ class TestOpenMX(unittest.TestCase):
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "openmx")
         self.workdir = os.path.join(self.rootdir, "res", "openmx")
-        self.solver = OpenMXSolver(os.path.join(self.datadir, "bin", "openmx.dummy"))
+        params = DFTParams.from_dict(
+            {
+                "type": "openmx",
+                "path": os.path.join(self.datadir, "bin", "openmx.dummy"),
+                "run_scheme": "subprocess",
+            }
+        )
+        self.solver = create_solver(params.solver, params)
+
+    def test_create_solver(self):
+        self.assertIsInstance(self.solver, OpenMXSolver)
 
     def test_get_results(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
@@ -51,7 +66,7 @@ class TestOpenMX(unittest.TestCase):
 
     def test_input(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
-        A = 4.0*np.eye(3)
+        A = 4.0 * np.eye(3)
         r = np.array([[0.0, 0.0, 0.0], [0.5, 0.5, 0.5]])
         st = Structure(
             A,
@@ -69,7 +84,6 @@ class TestOpenMX(unittest.TestCase):
         ref["DATA.PATH"] = [os.path.join(self.datadir, "bin", "..", "DFT_DATA19")]
 
         self.assertEqual(res, ref)
-
 
     def test_cl_algs(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))

@@ -174,6 +174,7 @@ class ALParams:
         d = toml.load(f)
         return cls.from_dict(d["mlref"]["solver"])
 
+
 class TrainerParams:
     def __init__(self):
         self.base_input_dir = []
