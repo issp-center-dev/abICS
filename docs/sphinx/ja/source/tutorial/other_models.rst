@@ -588,7 +588,7 @@ abICS側で定義されているものとなります。
 - val_ratio : 検証データの割合。デフォルト値: 0.05
 - learning_rate : 学習率。デフォルト値: 0.01
 - epochs : エポック数。デフォルト値: 5
-- model_params: finetuningがFalseの時に、CHGNetのパラメータとして使用される。パラメータに関しては https://chgnet.lbl.gov/api#class-chgnet を参照の事。
+- model_params: finetuningがFalseの時に、CHGNetのパラメータとして使用されます。パラメータに関しては https://chgnet.lbl.gov/api#class-chgnet を参照してください。
 
 モデル学習、サンプリングの方法に関してはaenetと同様です。
 
