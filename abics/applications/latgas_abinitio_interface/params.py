@@ -33,6 +33,11 @@ class DFTParams:
         self.ensemble = False
         self.par_ensemble = False
         self.use_tmpdir = False
+        self.use_pretrained = True
+        self.relax = True
+        self.fmax = 0.1
+        self.dvice = "cpu"
+        self.pretrained = None
 
     @classmethod
     def from_dict(cls, d):
@@ -64,6 +69,9 @@ class DFTParams:
         else:
             params.path = ""
 
+        if params.solver == "sevennet":
+            params.pretrained = d.get("pretrained", "7net-0") 
+
         params.perturb = d.get("perturb", 0.1)
         params.ignore_species = d.get("ignore_species", None)
         params.constraint_module = d.get("constraint_module", None)
@@ -71,6 +79,10 @@ class DFTParams:
         params.ensemble = d.get("ensemble", False)
         params.par_ensemble = d.get("par_ensemble", False)
         params.use_tmpdir = d.get("use_tmpdir", True)
+        params.use_pretrained = d.get("use_pretrained", True)
+        params.relax = d.get("relax", True)
+        params.fmax = d.get("fmax", 0.1)
+        params.device = d.get("device", "cpu")
         params.properties = d
 
         return params
