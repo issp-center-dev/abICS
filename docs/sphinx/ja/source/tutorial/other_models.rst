@@ -291,3 +291,304 @@ MLIP-3の実行ファイル ``mlp`` のパスを指定します。お使いの�
    alpha_moment_mapping = {0, 4, 5, 6, 7}
 
 モデル学習、サンプリングの方法に関してはaenetと同様です。
+
+SevenNetを利用したサンプリング
+----------------------------------------------
+
+SevenNetのインストール
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``sevennet`` の利用には、 SevenNetのインストールが必要です。
+
+下記コマンドにてインストールします。
+
+.. code-block:: bash
+
+    $ python3 -m pip install sevenn
+
+学習済みモデルの利用
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+SevenNetでは、モデルを学習してからサンプリングを行う事以外に、
+学習済みモデルを利用してサンプリングを行う事も可能です。
+
+学習済みモデルを用いる場合は、 ``[sanmping.solver]`` セクションを下記のように設定します。
+
+.. code-block:: toml
+
+   [sampling.solver]
+   type = 'sevennet'
+   perturb = 0.0
+
+サンプリングの方法については、aenetと同様です。
+
+モデル学習から実行する場合
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+モデルの学習から実行する場合は、 ``[train]`` セクションを適切に設定の上で、
+``[sanmping.solver]`` セクションに、
+``use_pretrained = false`` を追加する必要があります。
+``relax = false`` とする事で、構造の最適化を行わずにサンプリングを行う事も可能です。
+
+.. code-block:: toml
+
+   [sampling.solver]
+   type = 'sevennet'
+   perturb = 0.0
+   base_input_dir = './baseinput_sevennet'
+   use_pretrained = false
+
+   [train]
+   type = 'sevennet'
+   base_input_dir = './sevennet_train_input'
+   exe_command = ['', 'sevenn']
+   vac_map = []
+   restart = false
+
+また、SevenNetのインプットファイル ``input.yaml`` を ``sevennet_train_input/train`` ディレクトリに作成します。
+ここではコマンドsevennのインプットファイルを作成しています。
+各パラメータの詳しい説明はSevenNetのドキュメントを参照してください。
+
+.. code-block:: yaml
+
+   model:  # model keys should be consistent except for train_* keys
+       chemical_species: 'Auto'
+       cutoff: 5.0
+       channel: 128
+       is_parity: False
+       lmax: 2
+       num_convolution_layer: 5
+       irreps_manual:
+           - "128x0e"
+           - "128x0e+64x1e+32x2e"
+           - "128x0e+64x1e+32x2e"
+           - "128x0e+64x1e+32x2e"
+           - "128x0e+64x1e+32x2e"
+           - "128x0e"
+
+       weight_nn_hidden_neurons: [64, 64]
+       radial_basis:
+           radial_basis_name: 'bessel'
+           bessel_basis_num: 8
+       cutoff_function:
+           cutoff_function_name: 'XPLOR'
+           cutoff_on: 4.5
+       self_connection_type: 'linear'
+
+       train_shift_scale: False   # customizable (True | False)
+       train_denominator: False   # customizable (True | False)
+
+   train:  # Customizable
+       random_seed: 1
+       is_train_stress: False
+       epoch: 5
+
+       optimizer: 'adam'
+       optim_param:
+           lr: 0.004
+       scheduler: 'exponentiallr'
+       scheduler_param:
+           gamma: 0.99
+
+       force_loss_weight: 0.1
+       stress_loss_weight: 1e-06
+
+       per_epoch: 1  # Generate checkpoints every this epoch
+
+       # ['target y', 'metric']
+       # Target y: TotalEnergy, Energy, Force, Stress, Stress_GPa, TotalLoss
+       # Metric  : RMSE, MAE, or Loss
+       error_record:
+           - ['Energy', 'RMSE']
+           - ['TotalLoss', 'None']
+
+       continue:
+           reset_optimizer: True
+           reset_scheduler: True
+           reset_epoch: True
+           checkpoint: 'SevenNet-0_11July2024'
+
+   data:  # Customizable
+       batch_size: 4
+       data_divide_ratio: 0.1
+
+       # SevenNet automatically matches data format from its filename.
+       # For those not `structure_list` or `.pt` files, assumes it is ASE readable
+       # In this case, below arguments are directly passed to `ase.io.read`
+       data_format_args:
+           index: ':'                                # see `https://wiki.fysik.dtu.dk/ase/ase/io/io.html` for more valid arguments
+
+       # validset is needed if you want '_best.pth' during training. If not, both validset and testset is optional.
+       load_trainset_path: ['./structure.xyz']  # Example of using ase as data_format, support multiple files and expansion(*)
+
+モデル学習、サンプリングの方法に関してはaenetと同様です。
+
+Maceを利用したサンプリング
+----------------------------------------------
+
+Maceのインストール
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mace`` の利用には、 Maceのインストールが必要です。
+
+下記コマンドにてインストールします。
+
+.. code-block:: bash
+
+    $ python3 -m pip install mace
+
+モデル学習から実行する場合
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Maceでは、モデルを学習してからサンプリングを行う事以外に、
+学習済みモデルを利用してサンプリングを行う事も可能です。
+
+学習済みモデルを用いる場合は、 ``[sanmping.solver]`` セクションを下記のように設定します。
+
+.. code-block:: toml
+
+   [sampling.solver]
+   type = 'mace'
+   perturb = 0.0
+
+サンプリングの方法については、aenetと同様です。
+
+モデル学習から実行する場合
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+モデルの学習から実行する場合は、 ``[train]`` セクションを適切に設定の上で、
+``[sanmping.solver]`` セクションに、
+``use_pretrained = false`` を追加する必要があります。
+``relax = false`` とする事で、構造の最適化を行わずにサンプリングを行う事も可能です。
+
+.. code-block:: toml
+
+   [sampling.solver]
+   type = 'mace'
+   perturb = 0.0
+   base_input_dir = './baseinput_mace'
+   use_pretrained = false
+
+   [train]
+   type = 'mace'
+   base_input_dir = './mace_train_input'
+   exe_command = ['', 'mace_run_train']
+   vac_map = []
+   restart = false
+
+また、Maceのインプットファイル ``input.yaml`` を ``mace_train_input/train`` ディレクトリに作成します。
+ここではコマンドmace_run_trainのインプットファイルを作成しています。
+各パラメータの詳しい説明はMaceのドキュメントを参照してください。
+
+.. code-block:: yaml
+
+   name: spinel
+   foundation_model: "small"
+   seed: 2024
+   train_file: structure.xyz
+   swa: yes
+   start_swa: 1200
+   max_num_epochs: 5
+   device: cpu
+   E0s:
+     8: -2042.0
+     12: -1750.0
+     13: -1750.0
+   energy_weight: 1.0
+   forces_weight: 0.0
+   stress_weight: 0.0
+
+モデル学習、サンプリングの方法に関してはaenetと同様です。
+
+CHGNetを利用したサンプリング
+----------------------------------------------
+
+CHGNetのインストール
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``chgnet`` の利用には、 CHGNetのインストールが必要です。
+
+下記コマンドにてインストールします。
+
+.. code-block:: bash
+
+    $ python3 -m pip install chgnet
+
+学習済みモデルの利用
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CHGNetでは、モデルを学習してからサンプリングを行う事以外に、
+学習済みモデルを利用してサンプリングを行う事も可能です。
+
+学習済みモデルを用いる場合は、 ``[sanmping.solver]`` セクションを下記のように設定します。
+
+.. code-block:: toml
+
+   [sampling.solver]
+   type = 'chgnet'
+   perturb = 0.0
+
+サンプリングの方法については、aenetと同様です。
+
+モデル学習から実行する場合
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+モデルの学習から実行する場合は、 ``[train]`` セクションを適切に設定の上で、
+``[sanmping.solver]`` セクションに、
+``use_pretrained = false`` を追加する必要があります。
+``relax = false`` とする事で、構造の最適化を行わずにサンプリングを行う事も可能です。
+
+.. code-block:: toml
+
+   [sampling.solver]
+   type = 'chgnet'
+   perturb = 0.0
+   base_input_dir = './baseinput_chgnet'
+   use_pretrained = false
+
+   [train]
+   type = 'chgnet'
+   base_input_dir = './chgnet_train_input'
+   exe_command = ['', 'chgnet']
+   vac_map = []
+   restart = false
+
+また、CHGNetのインプットファイル ``input.yaml`` を ``chgnet_train_input/train`` ディレクトリに作成します。
+
+.. code-block:: yaml
+
+   finetuning : False
+   batch_size : 4
+   train_ratio : 0.9
+   val_ratio : 0.05
+   learning_rate : 0.004
+   epochs : 100
+   model_params:
+     atom_fea_dim : 8
+     bond_fea_dim : 8
+     angle_fea_dim : 8
+     num_radial : 9
+     num_angular : 9
+     num_conv : 2
+     atom_conv_hidden_dim : 4
+     bond_conv_hidden_dim : 4
+     mlp_hidden_dims :
+       - 16
+       - 16
+     atom_graph_cutoff : 7.5
+     bond_graph_cutoff : 6.0
+
+このインプットファイルは、CHGNetの学習に必要なパラメータを設定するものであり、
+abICS側で定義されているものとなります。
+各ファイルのパラメータは下記の通りとなります。
+
+- finetuning : ファインチューニングを行うかどうか。デフォルト値: True
+- batch_size : バッチサイズ。デフォルト値: 4
+- train_ratio : 学習データの割合。デフォルト値: 0.9
+- val_ratio : 検証データの割合。デフォルト値: 0.05
+- learning_rate : 学習率。デフォルト値: 0.01
+- epochs : エポック数。デフォルト値: 5
+- model_params: finetuningがFalseの時に、CHGNetのパラメータとして使用されます。パラメータに関しては https://chgnet.lbl.gov/api#class-chgnet を参照してください。
+
+モデル学習、サンプリングの方法に関してはaenetと同様です。
+

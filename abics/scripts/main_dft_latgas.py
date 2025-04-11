@@ -295,6 +295,13 @@ def main_dft_latgas(params_root: MutableMapping):
 
     ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 
+    # if use_pretrained is True, make directory dftparams.base_input_dir
+    if dftparams.use_pretrained:
+        if comm.Get_rank() == 0:
+            for dir in dftparams.base_input_dir:
+                if not os.path.exists(dir):
+                    os.mkdir(dir)
+
     # Active learning mode
     if ALrun:
         logger.info(f"-Running in active learning mode.")
