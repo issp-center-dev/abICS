@@ -22,6 +22,8 @@ import numpy as np
 
 from pymatgen.core import Structure
 
+from abics.applications.latgas_abinitio_interface.base_solver import create_solver
+from abics.applications.latgas_abinitio_interface.params import DFTParams
 from abics.applications.latgas_abinitio_interface.aenet import AenetSolver
 
 
@@ -35,10 +37,16 @@ class TestAENET(unittest.TestCase):
         os.makedirs(workdir)
 
     def setUp(self):
-        self.solver = AenetSolver(".")
+        params = DFTParams.from_dict(
+            {"type": "aenet", "path": ".", "run_scheme": "subprocess"}
+        )
+        self.solver = create_solver(params.solver, params)
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "aenet")
         self.workdir = os.path.join(self.rootdir, "res", "aenet")
+
+    def test_create_solver(self):
+        self.assertIsInstance(self.solver, AenetSolver)
 
     def test_get_results(self):
         res = self.solver.output.get_results(self.datadir)
@@ -68,4 +76,10 @@ class TestAENET(unittest.TestCase):
         nthreads = 4
         workdir = "work"
         res = self.solver.input.cl_args(nprocs, nthreads, workdir)
-        self.assertEqual(res, [os.path.join(workdir, "predict.in"), os.path.join(workdir, "structure.xsf")])
+        self.assertEqual(
+            res,
+            [
+                os.path.join(workdir, "predict.in"),
+                os.path.join(workdir, "structure.xsf"),
+            ],
+        )

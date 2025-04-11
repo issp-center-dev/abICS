@@ -23,6 +23,7 @@ register_solver("vasp", "VASPSolver", "abics.applications.latgas_abinitio_interf
 register_solver("qe", "QESolver", "abics.applications.latgas_abinitio_interface.qe")
 register_solver("openmx", "OpenMXSolver", "abics.applications.latgas_abinitio_interface.openmx")
 register_solver("aenet", "AenetSolver", "abics.applications.latgas_abinitio_interface.aenet")
+register_solver("aenetPyLammps", "AenetPyLammpsSolver", "abics.applications.latgas_abinitio_interface.aenet_pylammps")
 register_solver("nequip", "NequipSolver", "abics.applications.latgas_abinitio_interface.nequip")
 register_solver("mlip_3", "MLIP3Solver", "abics.applications.latgas_abinitio_interface.mlip_3")
 register_solver("User", "UserFunctionSolver", "abics.applications.latgas_abinitio_interface.user_function_solver")

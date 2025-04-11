@@ -26,12 +26,15 @@ from .base_solver import SolverBase
 from .params import ALParams, DFTParams
 from .util import structure_to_XSF, structure_from_XSF
 
+
 class AenetSolver(SolverBase):
     """
     This class defines the aenet solver.
     """
 
-    def __init__(self, path_to_solver: os.PathLike, ignore_species=None, run_scheme="subprocess"):
+    def __init__(
+        self, path_to_solver: os.PathLike, ignore_species=None, run_scheme="subprocess"
+    ):
         """
         Initialize the solver.
 
@@ -49,7 +52,7 @@ class AenetSolver(SolverBase):
         return "aenet"
 
     class Input(object):
-        def __init__(self, ignore_species : str | None, run_scheme="subprocess"):
+        def __init__(self, ignore_species: str | None, run_scheme="subprocess"):
             self.base_info = None
             self.pos_info = None
             self.ignore_species = ignore_species
@@ -138,6 +141,8 @@ class AenetSolver(SolverBase):
                     os.path.join(output_dir, "predict.in"),
                     os.path.join(output_dir, "structure.xsf"),
                 ]
+            else:
+                raise RuntimeError("Invalid run_scheme: {}".format(self.run_scheme))
 
     class Output(object):
         def get_results(self, output_dir):

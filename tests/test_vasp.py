@@ -23,6 +23,8 @@ import numpy as np
 from pymatgen.core import Structure
 from pymatgen.io.vasp.inputs import VaspInput
 
+from abics.applications.latgas_abinitio_interface.base_solver import create_solver
+from abics.applications.latgas_abinitio_interface.params import DFTParams
 from abics.applications.latgas_abinitio_interface.vasp import VASPSolver
 
 
@@ -36,10 +38,14 @@ class TestVASP(unittest.TestCase):
         os.makedirs(workdir)
 
     def setUp(self):
-        self.solver = VASPSolver(".")
+        params = DFTParams.from_dict({"type": "vasp", "path": "."})
+        self.solver = create_solver(params.solver, params)
         self.rootdir = os.path.dirname(__file__)
         self.datadir = os.path.join(self.rootdir, "data", "vasp")
         self.workdir = os.path.join(self.rootdir, "res", "vasp")
+
+    def test_create_solver(self):
+        self.assertIsInstance(self.solver, VASPSolver)
 
     def test_get_results(self):
         os.utime(os.path.join(self.datadir, "output", "OSZICAR"))
@@ -69,7 +75,7 @@ class TestVASP(unittest.TestCase):
 
         self.assertEqual(res["INCAR"], ref["INCAR"])
         self.assertTrue(res["POSCAR"].structure.matches(ref["POSCAR"].structure))
-        for k,v in ref["POSCAR"].structure.site_properties.items():
+        for k, v in ref["POSCAR"].structure.site_properties.items():
             self.assertTrue(np.allclose(res["POSCAR"].structure.site_properties[k], v))
 
     def test_cl_algs(self):
@@ -78,4 +84,3 @@ class TestVASP(unittest.TestCase):
         workdir = "work"
         res = self.solver.input.cl_args(nprocs, nthreads, workdir)
         self.assertEqual(res, [workdir])
-
