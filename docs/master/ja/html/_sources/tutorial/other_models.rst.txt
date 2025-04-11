@@ -62,37 +62,40 @@ NequIP のインストール
    dataset_seed: 456
 
    # network
-   num_basis: 8
-   BesselBasis_trainable: true
+   AllegroBesselBasis_trainable: true
+   bessel_frequency_cutoff: 4
    PolynomialCutoff_p: 6
    l_max: 1
    r_max: 8.0
-   parity: true
-   num_layers: 3
-   num_features: 16
+   parity: o3_full
+   num_layers: 2
 
-   nonlinearity_type: gate
-
-   nonlinearity_scalars:
-     e: silu
-     o: tanh
-
-   nonlinearity_gates:
-     e: silu
-     o: tanh
+   num_tensor_features: 16
+   tensors_mixing_mode: p
+   two_body_latent_mlp_latent_dimensions: [32, 64]
+   two_body_latent_mlp_nonlinearity: silu
+   latent_mlp_latent_dimensions: [64, 64]
+   latent_mlp_nonlinearity: silu
+   latent_mlp_initialization: uniform
+   latent_resnet: true
+   env_embed_mlp_latent_dimensions: []
+   env_embed_mlp_nonlinearity: null
+   env_embed_mlp_initialization: uniform
+   edge_eng_mlp_latent_dimensions: [16]
+   edge_eng_mlp_nonlinearity: null
+   edge_eng_mlp_initialization: uniform
 
    model_builders:
-    - SimpleIrrepsConfig
-    - EnergyModel
-    - PerSpeciesRescale
-    - RescaleEnergyEtc
+   - allegro.model.Allegro
+   - PerSpeciesRescale
+   - RescaleEnergyEtc
 
 
    dataset: ase
    dataset_file_name: structure.xyz
    chemical_symbols:
-     - Mg
-     - Al
+   - Mg
+   - Al
 
    # logging
    wandb: false
@@ -165,17 +168,16 @@ Allegro のインストール
    dataset_seed: 456
 
    # network
-   num_basis: 8
-   BesselBasis_trainable: true
+   AllegroBesselBasis_trainable: true
+   bessel_frequency_cutoff: 4
    PolynomialCutoff_p: 6
    l_max: 1
    r_max: 8.0
    parity: o3_full
    num_layers: 2
-   # num_features: 16
 
-   env_embed_multiplicity: 16
-   embed_initial_edge: true
+   num_tensor_features: 16
+   tensors_mixing_mode: p
    two_body_latent_mlp_latent_dimensions: [32, 64]
    two_body_latent_mlp_nonlinearity: silu
    latent_mlp_latent_dimensions: [64, 64]
@@ -190,16 +192,16 @@ Allegro のインストール
    edge_eng_mlp_initialization: uniform
 
    model_builders:
-    - allegro.model.Allegro
-    - PerSpeciesRescale
-    - RescaleEnergyEtc
+   - allegro.model.Allegro
+   - PerSpeciesRescale
+   - RescaleEnergyEtc
 
 
    dataset: ase
    dataset_file_name: structure.xyz
    chemical_symbols:
-     - Mg
-     - Al
+   - Mg
+   - Al
 
    # logging
    wandb: false
