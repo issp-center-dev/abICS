@@ -13,4 +13,10 @@ sleep 5
 #train
 echo start training
 abics_train input.toml
+
+# for debug
+echo '== cat train0/stdout =='
+cat train0/stdout
+echo '== end of train0/stdout =='
+
 echo Done
