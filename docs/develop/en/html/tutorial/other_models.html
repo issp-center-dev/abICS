@@ -41,10 +41,11 @@ This section explains how to train and sample using each model.</p>
 <h2><span class="section-number">4.3.1. </span>Sampling with NequIP<a class="headerlink" href="#sampling-with-nequip" title="Link to this heading">¶</a></h2>
 <section id="installation-of-nequip">
 <h3>Installation of NequIP<a class="headerlink" href="#installation-of-nequip" title="Link to this heading">¶</a></h3>
-<p>To use <code class="docutils literal notranslate"><span class="pre">nequip</span></code>, you need to install NequIP.</p>
+<p>To use <code class="docutils literal notranslate"><span class="pre">nequip</span></code>, you need to install NequIP.
+Currently, NequIP 0.6.2 is supported.</p>
 <p>Install it with the following command.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wandb
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">nequip</span><span class="o">==</span><span class="m">0</span>.6.2
 </pre></div>
 </div>
 <p>Also, when installing abICS, you can install NequIP by specifying the [nequip] option.</p>
@@ -143,9 +144,8 @@ Below, we extract [sampling.solver] and [train] with changes from the aenet inpu
 <section id="installation-of-allegro">
 <h3>Installation of Allegro<a class="headerlink" href="#installation-of-allegro" title="Link to this heading">¶</a></h3>
 <p>Install Allegro with the following command.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>https://github.com/mir-group/allegro.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>allegro
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+<p>Currently, nequip-allegro 0.3.0 is supported.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip-allegro<span class="o">==</span><span class="m">0</span>.3.0
 </pre></div>
 </div>
 </section>
@@ -277,10 +277,10 @@ potential_name = MTP1m
 species_count = 3
 potential_tag =
 radial_basis_type = RBChebyshev
- min_dist = 2.3
-     max_dist = 5
-     radial_basis_size = 8
-     radial_funcs_count = 2
+min_dist = 2.3
+   max_dist = 5
+   radial_basis_size = 8
+radial_funcs_count = 2
 alpha_moments_count = 8
 alpha_index_basic_count = 5
 alpha_index_basic = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}, {1, 0, 0, 0}}

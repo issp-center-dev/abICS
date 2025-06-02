@@ -42,13 +42,14 @@ NequIP, MLIP-3を利用したサンプリングが可能となっています。
 <h2><span class="section-number">4.3.1. </span>NequIPを利用したサンプリング<a class="headerlink" href="#nequip" title="Link to this heading">¶</a></h2>
 <section id="id2">
 <h3>NequIP のインストール<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">nequip</span></code> の利用には、 NequIPのインストールが必要です。</p>
+<p><code class="docutils literal notranslate"><span class="pre">nequip</span></code> の利用には、 NequIPのインストールが必要です。
+2025年6月現在、NequIP 0.6.2 がサポートされています。</p>
 <p>下記コマンドにてインストールします。</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wandb
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">nequip</span><span class="o">==</span><span class="m">0</span>.6.2
 </pre></div>
 </div>
-<p>また、abICSインストール時に[nequip]オプションを指定すれば、NequIPもインストールされます。</p>
+<p>また、abICSインストール時に <code class="docutils literal notranslate"><span class="pre">[nequip]</span></code> オプションを指定すれば、NequIPもインストールされます。</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/path/to/abics
 $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;.abics[nequip]&#39;</span>
 </pre></div>
@@ -57,7 +58,7 @@ $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </spa
 <section id="id3">
 <h3>インプットファイルの準備<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <p>まず、input_nequip.tomlを準備し、NequIPの実行に必要なパラメータを設定します。
-下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。</p>
+下では、aenetのインプットから変更のある <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> を抜粋しています。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_nequip&#39;</span>
@@ -144,16 +145,15 @@ $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </spa
 <section id="id4">
 <h3>Allegro のインストール<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <p>下記コマンドにてインストールします。</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>https://github.com/mir-group/allegro.git
-$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>allegro
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>.
+<p>2025年6月現在、nequip-allegro 0.3.0 がサポートされています。</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip-allegro<span class="o">==</span><span class="m">0</span>.3.0
 </pre></div>
 </div>
 </section>
 <section id="id5">
 <h3>インプットファイルの準備<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <p>まず、input_allegro.tomlを準備し、Allegroの実行に必要なパラメータを設定します。
-下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。</p>
+下では、aenetのインプットから変更のある <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> を抜粋しています。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
 <span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_allegro&#39;</span>
@@ -250,7 +250,7 @@ $<span class="w"> </span>make<span class="w"> </span>mlp
 <section id="id7">
 <h3>インプットファイルの準備<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
 <p>まず、input_mlip3.tomlを準備し、mlip-3の実行に必要なパラメータを設定します。
-下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。</p>
+下では、aenetのインプットから変更のある <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> を抜粋しています。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
 <span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
 <span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;~/git/mlip-3/bin/mlp&#39;</span>
@@ -277,10 +277,10 @@ potential_name = MTP1m
 species_count = 3
 potential_tag =
 radial_basis_type = RBChebyshev
- min_dist = 2.3
-     max_dist = 5
-     radial_basis_size = 8
-     radial_funcs_count = 2
+   min_dist = 2.3
+   max_dist = 5
+   radial_basis_size = 8
+radial_funcs_count = 2
 alpha_moments_count = 8
 alpha_index_basic_count = 5
 alpha_index_basic = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}, {1, 0, 0, 0}}

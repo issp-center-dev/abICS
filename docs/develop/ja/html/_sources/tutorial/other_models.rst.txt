@@ -15,29 +15,30 @@ NequIP のインストール
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ``nequip`` の利用には、 NequIPのインストールが必要です。
+2025年6月現在、NequIP 0.6.2 がサポートされています。
 
 下記コマンドにてインストールします。
 
 .. code-block:: bash
 
-    $ python3 -m pip install wandb
-    $ python3 -m pip install nequip
+   $ python3 -m pip install wandb
+   $ python3 -m pip install nequip==0.6.2
 
-また、abICSインストール時に[nequip]オプションを指定すれば、NequIPもインストールされます。
+また、abICSインストール時に ``[nequip]`` オプションを指定すれば、NequIPもインストールされます。
 
 .. code-block:: bash
 
-    $ cd /path/to/abics
-    $ python3 -m pip install '.abics[nequip]'
+   $ cd /path/to/abics
+   $ python3 -m pip install '.abics[nequip]'
 
 インプットファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 まず、input_nequip.tomlを準備し、NequIPの実行に必要なパラメータを設定します。
-下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。
+下では、aenetのインプットから変更のある ``[sampling.solver]`` と ``[train]`` を抜粋しています。
 
 .. code-block:: toml
-    
+
    [sampling.solver]
    type = 'nequip'
    base_input_dir = './baseinput_nequip'
@@ -129,21 +130,21 @@ Allegro のインストール
 
 下記コマンドにてインストールします。
 
+2025年6月現在、nequip-allegro 0.3.0 がサポートされています。
+
 .. code-block:: bash
 
-    $ git clone --depth 1 https://github.com/mir-group/allegro.git
-    $ cd allegro
-    $ python3 -m pip install .
+   $ python3 -m pip install nequip-allegro==0.3.0
 
 
 インプットファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 まず、input_allegro.tomlを準備し、Allegroの実行に必要なパラメータを設定します。
-下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。
+下では、aenetのインプットから変更のある ``[sampling.solver]`` と ``[train]`` を抜粋しています。
 
 .. code-block:: toml
-    
+
    [sampling.solver]
    type = 'allegro'
    base_input_dir = './baseinput_allegro'
@@ -237,20 +238,20 @@ MLIP-3 のインストール
 
 .. code-block:: bash
 
-    $ git clone https://gitlab.com/ashapeev/mlip-3.git
-    $ cd mlip-3
-    $ ./configure --no-mpi
-    $ make mlp
+   $ git clone https://gitlab.com/ashapeev/mlip-3.git
+   $ cd mlip-3
+   $ ./configure --no-mpi
+   $ make mlp
 
 
 インプットファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 まず、input_mlip3.tomlを準備し、mlip-3の実行に必要なパラメータを設定します。
-下では、aenetのインプットから変更のある[sampling.solver]と[train]を抜粋しています。
+下では、aenetのインプットから変更のある ``[sampling.solver]`` と ``[train]`` を抜粋しています。
 
 .. code-block:: toml
-    
+
    [sampling.solver]
    type = 'mlip_3'
    path= '~/git/mlip-3/bin/mlp'
@@ -278,12 +279,12 @@ MLIP-3の実行ファイル ``mlp`` のパスを指定します。お使いの�
    version = 1.1.0
    potential_name = MTP1m
    species_count = 3
-   potential_tag = 
+   potential_tag =
    radial_basis_type = RBChebyshev
-    min_dist = 2.3
-   	max_dist = 5
-   	radial_basis_size = 8
-	radial_funcs_count = 2
+      min_dist = 2.3
+      max_dist = 5
+      radial_basis_size = 8
+   radial_funcs_count = 2
    alpha_moments_count = 8
    alpha_index_basic_count = 5
    alpha_index_basic = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}, {1, 0, 0, 0}}
