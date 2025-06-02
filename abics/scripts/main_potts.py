@@ -39,7 +39,7 @@ def main_potts(params_root: MutableMapping):
     param_config = params_root["config"]
     Q = param_config.get("Q", 2)
     Ls = param_config["L"]
-    nspins = typing.cast(int, np.product(Ls))
+    nspins = typing.cast(int, np.prod(Ls))
     write_node = True
 
     model = Potts()
