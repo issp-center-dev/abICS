@@ -17,6 +17,9 @@ jobs:
         python-version: ['3.9', '3.13']
         numpy-version: ['1.20.0', '1.26.4', 'latest']
         testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3]
+        exclude:
+          - python-version: '3.13'
+            numpy-version: '1.20.0'
       fail-fast: false
 
     steps:
