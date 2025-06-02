@@ -11,5 +11,5 @@ which python3
 echo
 
 python3 -m pip install torch==2.5.1
-python3 -m pip install 'nequip<0.7'
-python3 -m pip install git+https://github.com/mir-group/allegro.git
+python3 -m pip install nequip==0.6.2
+python3 -m pip install nequip-allegro==0.3.0
