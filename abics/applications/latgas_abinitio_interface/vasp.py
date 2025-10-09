@@ -23,6 +23,7 @@ from __future__ import annotations
 import os, os.path
 import time
 from collections import namedtuple
+from typing import Union
 
 import numpy as np
 from pymatgen.io.vasp.inputs import Poscar, VaspInput
@@ -241,7 +242,7 @@ class VASPSolver(SolverBase):
     # -- factory
 
     @classmethod
-    def create(cls, params: ALParams | DFTParams):
+    def create(cls, params: Union[ALParams, DFTParams]):
         path = params.path
         ignore_species = params.ignore_species
         return cls(path, ignore_species)

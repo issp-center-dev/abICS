@@ -30,6 +30,7 @@ import os
 import shutil
 import sys
 from collections import namedtuple
+from typing import Union
 
 import numpy as np
 from pymatgen.core import Structure
@@ -220,7 +221,7 @@ class MLIP3Solver(SolverBase):
 
     class Input(object):
         def __init__(
-            self, mlip3_solver, ignore_species: str | None, run_scheme="subprocess"
+            self, mlip3_solver, ignore_species: Union[str, None], run_scheme="subprocess"
         ):
             self.mlip3_solver = mlip3_solver
             self.base_info = None
@@ -374,7 +375,7 @@ class MLIP3Solver(SolverBase):
         return ("subprocess", "mpi_spawn_ready")
 
     @classmethod
-    def create(cls, params: ALParams | DFTParams):
+    def create(cls, params: Union[ALParams, DFTParams]):
         path = params.path
         ignore_species = params.ignore_species
         run_scheme = params.solver_run_scheme

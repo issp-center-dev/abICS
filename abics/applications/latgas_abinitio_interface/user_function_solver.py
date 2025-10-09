@@ -24,6 +24,7 @@ from collections import namedtuple
 import os
 import sys
 import importlib
+from typing import Union
 
 from pymatgen.core import Structure
 
@@ -181,7 +182,7 @@ class UserFunctionSolver(SolverBase):
         return ("function",)
 
     @classmethod
-    def create(cls, params: ALParams | DFTParams):
+    def create(cls, params: Union[ALParams, DFTParams]):
         fn = None
         if params.function_module:
             sys.path.append(os.getcwd())

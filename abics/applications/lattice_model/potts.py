@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Union
 
 import numpy as np
 import numpy.random
@@ -80,7 +81,7 @@ class DConfig:
 
 class Observer(ObserverBase):
     def __init__(
-        self, comm: (None | MPI.Comm) = None, Lreload: bool = False, params: dict = {}
+        self, comm: Union[None, MPI.Comm] = None, Lreload: bool = False, params: dict = {}
     ):
         super().__init__(comm, Lreload, params)
         self.names = ["energy", "magnetization"]

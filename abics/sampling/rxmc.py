@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import sys
+from typing import Union
 
 from mpi4py import MPI
 
@@ -275,7 +276,7 @@ class TemperatureRX_MPI(ParallelMC):
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
         nsubsteps_in_step: int = 1,
-        throw_out: int | float = 0.5,
+        throw_out: Union[int, float] = 0.5,
         observer: ObserverBase = ObserverBase(),
         subdirs: bool = True,
         save_obs: bool = True,
@@ -294,7 +295,7 @@ class TemperatureRX_MPI(ParallelMC):
             The number of Monte Carlo steps for saving physical quantities.
         nsubsteps_in_step: int
             The number of Monte Carlo substeps in one MC step.
-        throw_out: int | float
+        throw_out: Union[int, float]
             The number (int) or ratio (float) of measurements to be dropped out as thermalization
         observer: observer object
         subdirs: boolean
@@ -404,7 +405,7 @@ class TemperatureRX_MPI(ParallelMC):
             if subdirs:
                 os.chdir(str(self.rank))
 
-    def postproc(self, throw_out: int | float):
+    def postproc(self, throw_out: Union[int, float]):
         assert throw_out >= 0
         obs_save, Trank_hist, kT_hist = self.__merge_obs()
         kTs = self.kTs
@@ -431,7 +432,7 @@ def jackknife(X: np.ndarray) -> np.ndarray:
 
 
 def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
-             obsnames, throw_out: int | float,
+             obsnames, throw_out: Union[int, float],
              E2T: float = 1.0,
              ):
     assert throw_out >= 0

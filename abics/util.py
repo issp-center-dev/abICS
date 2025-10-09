@@ -20,6 +20,7 @@ import os.path
 import pickle
 import time
 from itertools import groupby
+from typing import Union
 
 import numpy as np
 from numpy.typing import DTypeLike
@@ -27,16 +28,16 @@ from numpy.typing import DTypeLike
 from .exception import InputError
 
 
-def read_vector(v: str | list[float] | np.ndarray, *, dtype: DTypeLike = np.float64) -> np.ndarray:
+def read_vector(v: Union[str, list[float], np.ndarray], *, dtype: DTypeLike = np.float64) -> np.ndarray:
     return read_tensor(v, rank=1, dtype=dtype)
 
 
-def read_matrix(v: str | list[float] | np.ndarray, *, dtype: DTypeLike = np.float64) -> np.ndarray:
+def read_matrix(v: Union[str, list[float], np.ndarray], *, dtype: DTypeLike = np.float64) -> np.ndarray:
     return read_tensor(v, rank=2, dtype=dtype)
 
 
 def read_tensor(
-    v: str | list[float] | list[list] | np.ndarray, *, rank: int = 2, dtype: DTypeLike = np.float64
+    v: Union[str, list[float], list[list], np.ndarray], *, rank: int = 2, dtype: DTypeLike = np.float64
 ) -> np.ndarray:
     """
     Read tensor

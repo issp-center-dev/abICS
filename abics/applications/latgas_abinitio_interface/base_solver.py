@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 from collections import namedtuple
+from typing import Union
 
 from pymatgen.core.structure import Structure
 
@@ -181,7 +182,7 @@ class SolverBase(object):
         return ()
 
     @classmethod
-    def create(cls, params: ALParams | DFTParams) -> SolverBase:
+    def create(cls, params: Union[ALParams, DFTParams]) -> SolverBase:
         """
         Create solver instance.
 
@@ -217,7 +218,7 @@ def register_solver(solver_name: str, solver_class: str, solver_module: str) -> 
     __solver_table[solver_name.lower()] = (solver_class, solver_module)
 
 
-def create_solver(solver_name, params: ALParams | DFTParams) -> SolverBase:
+def create_solver(solver_name, params: Union[ALParams, DFTParams]) -> SolverBase:
     """
     Create solver instance.
 
