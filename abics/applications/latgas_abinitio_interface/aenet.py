@@ -19,7 +19,6 @@ from __future__ import annotations
 import os
 import sys, shutil, io
 from collections import namedtuple
-from typing import Union
 import numpy as np
 from pymatgen.core import Structure
 
@@ -53,7 +52,7 @@ class AenetSolver(SolverBase):
         return "aenet"
 
     class Input(object):
-        def __init__(self, ignore_species: Union[str, None], run_scheme="subprocess"):
+        def __init__(self, ignore_species: str | None, run_scheme="subprocess"):
             self.base_info = None
             self.pos_info = None
             self.ignore_species = ignore_species
@@ -190,7 +189,7 @@ class AenetSolver(SolverBase):
         return ("subprocess", "mpi_spawn_ready")
 
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         path = params.path
         ignore_species = params.ignore_species
         run_scheme = params.solver_run_scheme

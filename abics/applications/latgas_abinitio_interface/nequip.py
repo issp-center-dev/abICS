@@ -25,7 +25,6 @@ from __future__ import annotations
 
 import os.path
 from collections import namedtuple
-from typing import Union
 import numpy as np
 from pymatgen.core import Structure
 import torch
@@ -207,6 +206,6 @@ class NequipSolver(SolverBase):
         return ("function",)
 
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         ignore_species = params.ignore_species
         return cls(ignore_species)

@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import os
 import sys
-from typing import Union
 
 from mpi4py import MPI
 
@@ -274,7 +273,7 @@ class EmbarrassinglyParallelSampling:
         sample_frequency: int = verylargeint,
         print_frequency: int = verylargeint,
         nsubsteps_in_step: int = 1,
-        throw_out: Union[int, float] = 0.5,
+        throw_out: int | float = 0.5,
         observer: ObserverBase = ObserverBase(),
         subdirs: bool = True,
         save_obs: bool = True,
@@ -419,7 +418,7 @@ class RandomSampling_MPI(ParallelMC):
 
 
 def postproc(obs_save, kTs, comm,
-             obsnames, throw_out: Union[int, float],
+             obsnames, throw_out: int | float,
              E2T: float = 1.0,
              ):
     assert throw_out >= 0

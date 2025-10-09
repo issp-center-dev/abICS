@@ -99,13 +99,13 @@ def obs_encode(*args):
 
 
 class ObserverBase:
-    comm: Union[None, MPI.Comm]
+    comm: (None|MPI.Comm)
     Lreload: bool
     params: dict
     lprintcount: int
     names: list[str]
 
-    def __init__(self, comm: Union[None, MPI.Comm] = None, Lreload: bool = False, params: dict = {}):
+    def __init__(self, comm: (None|MPI.Comm) = None, Lreload: bool = False, params: dict = {}):
         self.comm = comm
         self.lprintcount = 0
         self.Lreload = Lreload
@@ -232,7 +232,7 @@ class ObserverBase:
 
 class ObserverParams:
     type: str
-    observer_class: Union[type, None]
+    observer_class: (type | None)
     dict: dict
 
     def __init__(self):

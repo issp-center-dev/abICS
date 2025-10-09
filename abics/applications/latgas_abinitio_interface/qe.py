@@ -22,7 +22,6 @@ To deal with QuantumESPRESSO
 from __future__ import annotations
 
 from collections import namedtuple
-from typing import Union
 import xml.etree.ElementTree as ET
 import operator
 import os
@@ -441,7 +440,7 @@ class QESolver(SolverBase):
     # -- factory
 
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         path = params.path
         parallel_level = params.properties.get("parallel_level", {})
         return cls(path, parallel_level=parallel_level)

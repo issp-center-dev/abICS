@@ -19,7 +19,6 @@ from __future__ import annotations
 from collections import namedtuple
 import os
 import subprocess
-from typing import Union
 
 import numpy as np
 import scipy.constants as spc
@@ -404,6 +403,6 @@ class OpenMXSolver(SolverBase):
 
     # -- factory
     @classmethod
-    def create(cls, params: Union[ALParams, DFTParams]):
+    def create(cls, params: ALParams | DFTParams):
         path = params.path
         return cls(path)

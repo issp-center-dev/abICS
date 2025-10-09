@@ -19,7 +19,6 @@ from __future__ import annotations
 import os
 import sys
 import copy
-from typing import Union
 
 import numpy as np
 
@@ -78,7 +77,7 @@ class DefaultObserver(ObserverBase):
         Minimum of energy
     """
 
-    references: Union[dict[str, Structure], None]
+    references: dict[str, Structure] | None
     reference_species: list[str]
     calculators: list
 
