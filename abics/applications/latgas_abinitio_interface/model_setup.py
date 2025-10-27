@@ -1417,27 +1417,24 @@ class Config:
         for defect_sublattice in self.defect_sublattices:
             latgas_rep = defect_sublattice.latgas_rep
             assert len(latgas_rep) == len(defect_sublattice.site_centers_sc)
-            # find all species that can reside on this lattice
-            species_sublattice = set()
-            groups = defect_sublattice.group_dict.keys()
-            for grp_name in groups:
-                group = defect_sublattice.group_dict[grp_name]
-                if group.natoms > 1:
-                    logger.info("dummy_structure_sp does not support multi-atom groups")
-                if group.natoms == 1:
-                    species_sublattice.add(group.species[0])
-            if species_in not in species_sublattice:
-                continue
-            for isite in range(len(latgas_rep)):
-                dummy_structure.append(
-                    "X",
-                    defect_sublattice.site_centers_sc[isite],
-                    properties={
-                        "seldyn": (True, True, True),
-                        "magnetization": (0, 0, 0),
-                    },
-                )
-
+            groups = defect_sublattice.group_dict.values()
+            for group in groups:
+                if species_in in group.species:
+                    # index of the matching species within this group's species list
+                    sp_idxs = [i for i, s in enumerate(group.species) if s == species_in]
+                    for sp_idx in sp_idxs:
+                        for orr in range(group.orientations):
+                            coord = group.coords[orr][sp_idx]  # coordinate of the matching species
+                            for isite in range(len(latgas_rep)):
+                                dummy_structure.append(
+                                    "X",
+                                    coord + defect_sublattice.site_centers_sc[isite],
+                                    properties={
+                                        "seldyn": group.relaxations[sp_idx, :],
+                                        "magnetization": group.magnetizations[sp_idx],
+                                    },
+                                )
+                        
         return dummy_structure
 
     def dummy_structure_from_sublattice(self, defect_sublattice):
