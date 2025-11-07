@@ -358,7 +358,8 @@ class PopulationAnnealing(ParallelMC):
             obs = np.zeros([len(self.kTs), obs_len])
         nsample = 0
         output = open("obs.dat", "a")
-        write_obs_header(output, self.mycalc, observer)
+        if self.write_node:
+            write_obs_header(output, self.mycalc, observer)
         numT = self.betas.size
         while self.Tindex < numT:
             if self.Tindex > 0:
