@@ -273,12 +273,12 @@ def main_dft_latgas(params_root: MutableMapping):
     # NNP ensemble error estimation
     if "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
-        solver = create_solver(ensembleparams.solver, ensembleparams)
+        #solver = create_solver(ensembleparams.solver, ensembleparams)
 
         energy_calculators = [
             Runner(
                 base_input_dir=base_input_dir,
-                Solver=copy.deepcopy(solver),
+                Solver=create_solver(ensembleparams.solver, ensembleparams),
                 nprocs_per_solver=nprocs_per_replica,
                 comm=MPI.COMM_SELF,
                 perturb=ensembleparams.perturb,

@@ -224,6 +224,8 @@ class EnsembleErrorObserver(DefaultObserver):
         self.comm = comm
 
     def logfunc(self, calc_state: MCAlgorithm):
+        assert calc_state.config is not None
+        structure: Structure = calc_state.config.structure_norel
         energy_internal = calc_state.model.internal_energy(calc_state.config)
         energy = calc_state.model.energy(calc_state.config)
 
@@ -233,7 +235,7 @@ class EnsembleErrorObserver(DefaultObserver):
                 f.write(str(self.minE) + "\n")
             calc_state.config.structure.to(fmt="POSCAR", filename="minE.vasp")
 
-        energies = [energy_internal]
+        result = [energy_internal, energy]
         npar = self.comm.Get_size()
         if npar > 1:
             assert npar == len(self.calculators)
@@ -254,10 +256,10 @@ class EnsembleErrorObserver(DefaultObserver):
                 )
                 energies_tmp.append(energy)
             std = np.std(energies_tmp, ddof=1)
-        energies.extend(energies_tmp)
-        energies.append(std)
+        result.extend(energies_tmp)
+        result.append(std)
 
-        return np.asarray(energies)
+        return np.asarray(result)
 
 
 class EnsembleParams:
