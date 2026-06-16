@@ -18,7 +18,7 @@
 # along with this program. If not, see http://www.gnu.org/licenses/.
 
 """
-energy calculator using sevennet python interface
+energy calculator using chgnet python interface
 """
 
 from __future__ import annotations
@@ -26,10 +26,6 @@ from __future__ import annotations
 import os.path
 from collections import namedtuple
 from pymatgen.core import Structure
-import torch
-from ase import Atoms
-from ase.calculators.calculator import Calculator
-from nequip.utils import Config
 from chgnet.model.model import CHGNet
 from chgnet.model import StructOptimizer
 

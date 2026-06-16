@@ -25,13 +25,9 @@ from __future__ import annotations
 
 import os.path
 from collections import namedtuple
-import numpy as np
 from pymatgen.core import Structure
-import torch
 from ase import Atoms
 from ase.optimize import BFGS
-from nequip.data import AtomicDataDict, AtomicData
-from nequip.utils import Config
 from mace.calculators import mace_mp, MACECalculator
 
 from .base_solver import SolverBase, register_solver

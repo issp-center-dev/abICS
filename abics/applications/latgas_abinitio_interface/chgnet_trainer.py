@@ -222,11 +222,9 @@ class CHGNetTrainer(TrainerBase):
         self.is_trained = True
 
     def new_baseinput(self, baseinput_dir, train_dir = "train"):
-        try:
-            assert self.is_trained
-        except AssertionError as e:
-            e.args += "you have to train before getting results!"
-    
+        if not self.is_trained:
+            raise RuntimeError("you have to train before getting results!")
+
         baseinput = str(pathlib.Path(baseinput_dir).resolve())
         os.makedirs(baseinput, exist_ok=True)
         shutil.copy(os.path.join(train_dir,"input.yaml"),baseinput)

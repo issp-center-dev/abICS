@@ -36,7 +36,7 @@ class DFTParams:
         self.use_pretrained = True
         self.relax = True
         self.fmax = 0.1
-        self.dvice = "cpu"
+        self.device = "cpu"
         self.pretrained = None
 
     @classmethod
@@ -70,7 +70,7 @@ class DFTParams:
             params.path = ""
 
         if params.solver == "sevennet":
-            params.pretrained = d.get("pretrained", "7net-0") 
+            params.pretrained = d.get("pretrained", "7net-0")
 
         params.perturb = d.get("perturb", 0.1)
         params.ignore_species = d.get("ignore_species", None)
