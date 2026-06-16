@@ -17,12 +17,20 @@ Installation of NequIP
 To use ``nequip``, you need to install NequIP.
 Currently, NequIP 0.6.2 is supported.
 
+.. note::
+
+   The supported NequIP (< 0.7) relies on ``numpy.in1d``, which was removed in
+   NumPy 2, so it requires a ``numpy<2`` environment. Because no NumPy 1.x wheels
+   are available for Python 3.13, the NequIP path currently cannot be used on
+   Python 3.13 (please use Python 3.12 or earlier).
+
 Install it with the following command.
 
 .. code-block:: bash
 
     $ python3 -m pip install wandb
     $ python3 -m pip install nequip==0.6.2
+    $ python3 -m pip install "numpy<2"
 
 Also, when installing abICS, you can install NequIP by specifying the [nequip] option.
 
@@ -30,6 +38,11 @@ Also, when installing abICS, you can install NequIP by specifying the [nequip] o
 
     $ cd /path/to/abics
     $ python3 -m pip install '.[nequip]'
+    $ python3 -m pip install "numpy<2"
+
+The ``numpy<2`` constraint above is required regardless of the installation
+method (the ``[nequip]`` option does not constrain the numpy version, so install
+it separately).
 
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,7 +149,12 @@ Currently, nequip-allegro 0.3.0 is supported.
 .. code-block:: bash
 
    $ python3 -m pip install nequip-allegro==0.3.0
+   $ python3 -m pip install "numpy<2"
 
+.. note::
+
+   Allegro runs on top of the same NequIP (< 0.7) stack, so like NequIP it
+   requires a ``numpy<2`` environment and cannot be used on Python 3.13.
 
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
