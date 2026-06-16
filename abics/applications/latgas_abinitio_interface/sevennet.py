@@ -25,19 +25,14 @@ from __future__ import annotations
 
 import os.path
 from collections import namedtuple
-import numpy as np
 from pymatgen.core import Structure
-import torch
 from ase import Atoms
 from ase.optimize import BFGS
-from nequip.data import AtomicDataDict, AtomicData
-from nequip.utils import Config
 from sevenn.sevennet_calculator import SevenNetCalculator
 
 from .base_solver import SolverBase, register_solver
 from .params import ALParams, DFTParams
 
-import tomli
 
 class SevennetSolver(SolverBase):
     """
