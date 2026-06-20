@@ -20,6 +20,9 @@ scipy = "^1"
 mpi4py = ">=3"
 pymatgen = ">=2022.1.20"
 qe_tools = "^1.1"
+# nequip is capped at <0.7: 0.7+ is a backwards-incompatible rewrite that the
+# abICS nequip solver/trainer do not yet support. The supported series uses the
+# removed numpy.in1d, so it needs numpy<2 and cannot run on Python 3.13.
 nequip = {version=">=0.5.6, <0.7", optional=true}
 
 [tool.poetry.extras]

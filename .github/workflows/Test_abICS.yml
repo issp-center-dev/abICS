@@ -21,6 +21,18 @@ jobs:
         exclude:
           - python-version: '3.13'
             numpy-version: '1.20.0'
+          # nequip 0.6.2 (the pinned version) calls the removed numpy.in1d and
+          # therefore requires numpy<2, but Python 3.13 has no numpy 1.x wheels.
+          # This is an upstream nequip/numpy-2 incompatibility, not an abICS bug,
+          # so skip the nequip integration test on Python 3.13.
+          #
+          # NOTE for developers: as a result the nequip path is only exercised on
+          # Python 3.9 (install_nequip.sh pins numpy<2 for that environment); there
+          # is no numpy-2 / Python 3.13 coverage for nequip. Restoring it requires
+          # migrating the abICS nequip solver/trainer to nequip >=0.7 (a backwards-
+          # incompatible rewrite). See the nequip cap in pyproject.toml.
+          - python-version: '3.13'
+            testname: ActiveLearnNequip
       fail-fast: false
 
     steps:

@@ -203,10 +203,14 @@ class TemperatureRX_MPI(ParallelMC):
         procrank: int
         """
         i = np.argwhere(self.rank_to_T == Trank)
-        if i is None:
+        if i.size == 0:
             sys.exit("Internal error in TemperatureRX_MPI.find_procrank_from_Trank")
         else:
-            return i
+            # np.argwhere returns a 2-D array (shape (1, 1) here); return a plain
+            # Python int so it can be used as an MPI source/dest rank. NumPy 2.x
+            # rejects int() on non-0-dimensional arrays, which previously broke
+            # comm.Recv/Send on Python 3.13 (numpy>=2).
+            return int(i[0, 0])
 
     def Xtrial(self, XCscheme):
         """
