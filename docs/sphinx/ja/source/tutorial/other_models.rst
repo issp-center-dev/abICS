@@ -17,19 +17,31 @@ NequIP のインストール
 ``nequip`` の利用には、 NequIPのインストールが必要です。
 2025年6月現在、NequIP 0.6.2 がサポートされています。
 
+.. note::
+
+   サポートされている NequIP (< 0.7) は、NumPy 2 で削除された ``numpy.in1d``
+   を利用するため、 ``numpy<2`` の環境が必要です。Python 3.13 には NumPy 1.x の
+   wheel が存在しないため、現状 NequIP 経路は Python 3.13 では利用できません
+   (Python 3.12 以前をご利用ください)。
+
 下記コマンドにてインストールします。
 
 .. code-block:: bash
 
    $ python3 -m pip install wandb
    $ python3 -m pip install nequip==0.6.2
+   $ python3 -m pip install "numpy<2"
 
 また、abICSインストール時に ``[nequip]`` オプションを指定すれば、NequIPもインストールされます。
 
 .. code-block:: bash
 
    $ cd /path/to/abics
-   $ python3 -m pip install '.abics[nequip]'
+   $ python3 -m pip install '.[nequip]'
+   $ python3 -m pip install "numpy<2"
+
+いずれのインストール方法でも、上記の ``numpy<2`` 制約が必要です（``[nequip]``
+オプションは numpy のバージョンを制約しないため、別途指定してください）。
 
 インプットファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -135,7 +147,12 @@ Allegro のインストール
 .. code-block:: bash
 
    $ python3 -m pip install nequip-allegro==0.3.0
+   $ python3 -m pip install "numpy<2"
 
+.. note::
+
+   Allegro は上記の NequIP (< 0.7) スタック上で動作するため、NequIP と同じく
+   ``numpy<2`` の環境が必要で、Python 3.13 では利用できません。
 
 インプットファイルの準備
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
