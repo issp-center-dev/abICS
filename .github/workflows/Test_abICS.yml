@@ -17,7 +17,7 @@ jobs:
       matrix:
         python-version: ['3.9', '3.13']
         numpy-version: ['1.20.0', '1.26.4', 'latest']
-        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3, SamplingCHGNet]
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3, SamplingCHGNet, SamplingMace]
         exclude:
           - python-version: '3.13'
             numpy-version: '1.20.0'
@@ -37,6 +37,11 @@ jobs:
           # runs only on Python 3.13. Unlike nequip, chgnet supports numpy 2.
           - python-version: '3.9'
             testname: SamplingCHGNet
+          # The MACE pretrained smoke test runs only on Python 3.13 to keep the
+          # job light (mace-torch supports 3.9 too, but these new MLIP solvers
+          # are exercised on the numpy-2 / Python 3.13 target).
+          - python-version: '3.9'
+            testname: SamplingMace
       fail-fast: false
 
     steps:
@@ -83,5 +88,8 @@ jobs:
         SamplingCHGNet ) cd tests/integration/sampling_chgnet
                          sh ./install_chgnet.sh
                          sh ./run.sh ;;
+        SamplingMace ) cd tests/integration/sampling_mace
+                       sh ./install_mace.sh
+                       sh ./run.sh ;;
         * ) echo "Unknown testname";;
         esac
