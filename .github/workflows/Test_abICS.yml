@@ -17,7 +17,7 @@ jobs:
       matrix:
         python-version: ['3.9', '3.13']
         numpy-version: ['1.20.0', '1.26.4', 'latest']
-        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3, SamplingCHGNet, SamplingMace]
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3, SamplingCHGNet, SamplingMace, SamplingSevenNet]
         exclude:
           - python-version: '3.13'
             numpy-version: '1.20.0'
@@ -42,6 +42,10 @@ jobs:
           # are exercised on the numpy-2 / Python 3.13 target).
           - python-version: '3.9'
             testname: SamplingMace
+          # The SevenNet pretrained smoke test runs only on Python 3.13 (same
+          # rationale as MACE; sevenn supports numpy 2).
+          - python-version: '3.9'
+            testname: SamplingSevenNet
       fail-fast: false
 
     steps:
@@ -91,5 +95,8 @@ jobs:
         SamplingMace ) cd tests/integration/sampling_mace
                        sh ./install_mace.sh
                        sh ./run.sh ;;
+        SamplingSevenNet ) cd tests/integration/sampling_sevennet
+                           sh ./install_sevennet.sh
+                           sh ./run.sh ;;
         * ) echo "Unknown testname";;
         esac
