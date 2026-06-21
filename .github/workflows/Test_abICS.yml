@@ -17,7 +17,7 @@ jobs:
       matrix:
         python-version: ['3.9', '3.13']
         numpy-version: ['1.20.0', '1.26.4', 'latest']
-        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3]
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3, SamplingCHGNet]
         exclude:
           - python-version: '3.13'
             numpy-version: '1.20.0'
@@ -33,6 +33,10 @@ jobs:
           # incompatible rewrite). See the nequip cap in pyproject.toml.
           - python-version: '3.13'
             testname: ActiveLearnNequip
+          # chgnet requires Python >=3.10, so the CHGNet pretrained smoke test
+          # runs only on Python 3.13. Unlike nequip, chgnet supports numpy 2.
+          - python-version: '3.9'
+            testname: SamplingCHGNet
       fail-fast: false
 
     steps:
@@ -76,5 +80,8 @@ jobs:
         ActiveLearnMLIP-3 ) cd tests/integration/active_learn_mlip3
                             sh ./install_mlip3.sh
                             sh ./run.sh ;;
+        SamplingCHGNet ) cd tests/integration/sampling_chgnet
+                         sh ./install_chgnet.sh
+                         sh ./run.sh ;;
         * ) echo "Unknown testname";;
         esac
