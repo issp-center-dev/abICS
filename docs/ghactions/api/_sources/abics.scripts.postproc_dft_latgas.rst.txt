@@ -1,0 +1,7 @@
+abics.scripts.postproc\_dft\_latgas module
+==========================================
+
+.. automodule:: abics.scripts.postproc_dft_latgas
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,28 +1,25 @@
-
 <!DOCTYPE html>
 
-<html lang="ja">
+<html lang="ja" data-content_root="../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>QuantumESPRESSO を用いた例 &#8212; abICS 2.0.0 ドキュメント</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/sphinx_highlight.js"></script>
-    <script src="../_static/translations.js"></script>
+    <title>QuantumESPRESSO を用いた例 &#8212; abICS 2.3-dev ドキュメント</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/alabaster.css?v=1e655c66" />
+    <script src="../_static/documentation_options.js?v=d7563f6c"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/translations.js?v=91613774"></script>
     <link rel="index" title="索引" href="../genindex.html" />
     <link rel="search" title="検索" href="../search.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
+
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+  
 
   </head><body>
   
@@ -35,9 +32,9 @@
           <div class="body" role="main">
             
   <section id="quantumespresso">
-<h1>QuantumESPRESSO を用いた例<a class="headerlink" href="#quantumespresso" title="この見出しへのパーマリンク">¶</a></h1>
+<h1>QuantumESPRESSO を用いた例<a class="headerlink" href="#quantumespresso" title="Link to this heading">¶</a></h1>
 <section id="abics">
-<h2>abICS の入力ファイルの準備<a class="headerlink" href="#abics" title="この見出しへのパーマリンク">¶</a></h2>
+<h2>abICS の入力ファイルの準備<a class="headerlink" href="#abics" title="Link to this heading">¶</a></h2>
 <p>abICS の入力ファイルは <code class="docutils literal notranslate"><span class="pre">input_qe.toml</span></code> です。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling]
 nreplicas = 2
@@ -164,7 +161,7 @@ num = 8
 <code class="docutils literal notranslate"><span class="pre">Al</span></code> 原子 16 個と、 <code class="docutils literal notranslate"><span class="pre">Mg</span></code> 原子 8 個を <code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> で指定した座標中に動かします。</p>
 </section>
 <section id="qe">
-<h2>QE の入力ファイルの準備<a class="headerlink" href="#qe" title="この見出しへのパーマリンク">¶</a></h2>
+<h2>QE の入力ファイルの準備<a class="headerlink" href="#qe" title="Link to this heading">¶</a></h2>
 <p>abICS では、内部で保持した原子座標をもとに QE の入力ファイルを生成しますが、原子座標以外の情報、例えば擬ポテンシャルの情報は、ユーザが与える必要があります。
 QE の場合は、この情報は <code class="docutils literal notranslate"><span class="pre">base_input_dir</span></code> で指定したディレクトリの中に <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> という名前で、 <code class="docutils literal notranslate"><span class="pre">pw.x</span></code> で使うファイルをそのまま置きます。
 このファイルをもとに、ユニットセルや原子座標などを書き換えた入力ファイルが自動生成されます。</p>
@@ -179,7 +176,7 @@ QE の場合は、この情報は <code class="docutils literal notranslate"><sp
 </ul>
 </section>
 <section id="id1">
-<h2>実行・解析<a class="headerlink" href="#id1" title="この見出しへのパーマリンク">¶</a></h2>
+<h2>実行・解析<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>MPI 実行におけるプロセス数やオプションの設定については <a class="reference internal" href="../how_to_use/index.html#sec-basic-usage"><span class="std std-ref">基本的な使用方法</span></a> を参照してください。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>mpiexec -np 2 abics_sampling input_qe.toml
 </pre></div>
@@ -197,14 +194,16 @@ QE の場合は、この情報は <code class="docutils literal notranslate"><sp
 </pre></div>
 </div>
 <p>結果が <code class="docutils literal notranslate"><span class="pre">Tseparate/DOI_T.dat</span></code> に出力されます。</p>
-<a class="reference internal image-reference" href="../_images/doi_2.png"><img alt="../_images/doi_2.png" class="align-center" src="../_images/doi_2.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="../_images/doi_2.png"><img alt="../_images/doi_2.png" class="align-center" src="../_images/doi_2.png" style="width: 400px;" />
+</a>
 <p>レプリカ数を増やすと様々な温度で計算ができます。
 また、ステップ数を増やすことでよりきれいな結果を得られます。
 モンテカルロ平均で最初に捨てるサンプル数は <code class="docutils literal notranslate"><span class="pre">calc_DOI.py</span></code> スクリプトにある <code class="docutils literal notranslate"><span class="pre">throwout</span></code> の値で指定できます。
 実際の計算ではさらに、DFT 計算の前に構造最適化をする必要があります。
 QE の場合には <code class="docutils literal notranslate"><span class="pre">baseinput/scf.in</span></code> の <code class="docutils literal notranslate"><span class="pre">CALCULATION</span></code> パラメータを <code class="docutils literal notranslate"><span class="pre">relax</span></code> にしてください。
 例えば、17 レプリカ、1000 ステップで、 <code class="docutils literal notranslate"><span class="pre">perturb</span> <span class="pre">=</span> <span class="pre">0.1</span></code> のもとで計算をすると</p>
-<a class="reference internal image-reference" href="../_images/doi_qe.png"><img alt="../_images/doi_qe.png" class="align-center" src="../_images/doi_qe.png" style="width: 400px;" /></a>
+<a class="reference internal image-reference" href="../_images/doi_qe.png"><img alt="../_images/doi_qe.png" class="align-center" src="../_images/doi_qe.png" style="width: 400px;" />
+</a>
 <p>といった結果が得られます。
 温度を上げるほど反転度が上がっていくのがわかります。</p>
 </section>
@@ -215,7 +214,7 @@ QE の場合には <code class="docutils literal notranslate"><span class="pre">
           
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
 <h1 class="logo"><a href="../index.html">abICS</a></h1>
 
@@ -247,7 +246,7 @@ QE の場合には <code class="docutils literal notranslate"><span class="pre">
   </ul></li>
 </ul>
 </div>
-<div id="searchbox" style="display: none" role="search">
+<search id="searchbox" style="display: none" role="search">
   <h3 id="searchlabel">クイック検索</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
@@ -255,7 +254,7 @@ QE の場合には <code class="docutils literal notranslate"><span class="pre">
       <input type="submit" value="検索" />
     </form>
     </div>
-</div>
+</search>
 <script>document.getElementById('searchbox').style.display = "block"</script>
 
 
@@ -270,11 +269,11 @@ QE の場合には <code class="docutils literal notranslate"><span class="pre">
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019-, Institute for Solid State Physics, University of Tokyo.
+      &#169;2019-, Institute for Solid State Physics, University of Tokyo.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.4.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
       
       |
       <a href="../_sources/tutorial/qe.rst.txt"

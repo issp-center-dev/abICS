@@ -1,0 +1,7 @@
+abics.applications.latgas\_abinitio\_interface.mlip\_3 module
+=============================================================
+
+.. automodule:: abics.applications.latgas_abinitio_interface.mlip_3
+   :members:
+   :undoc-members:
+   :show-inheritance:

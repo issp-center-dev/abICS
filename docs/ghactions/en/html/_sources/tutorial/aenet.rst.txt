@@ -522,3 +522,74 @@ Also, please note that the number of Monte Carlo steps in this example input is 
 fully converging the degree of inversion. It is recommended to perform a separate 
 RXMC calculation using the obtained neural network model 
 with a larger number of sampling steps to calculate thermodynamic averages.
+
+
+.. _tutorial_aenet_lammps:
+
+Predict energy of annet model via LAMMPS interface
+----------------------------------------------------
+
+abICS can call the ``aenet`` library via the LAMMPS interface (``aenetPyLammps``).
+This is faster than calling ``aenet`` directly because it does not need file I/O.
+The set of input files used in this tutorial can be found in ``examples/active_learning_qe``.
+
+Install aenetPyLammps
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use ``aenetPyLammps``, you need to install ``aenet-lammps`` and ``lammps``.
+
+- URL : https://github.com/HidekiMori-CIT/aenet-lammps
+
+- Use `the commit 5d0f4bca <https://github.com/HidekiMori-CIT/aenet-lammps/commit/5d0f4bcacb7cd3ecbcdb0e4fdd9dc3d7bf06af0a>`_ .
+
+  - ``git checkout 5d0f4bca``
+
+- Please install ``aenet-lammps``` according to the procedure specified in the above URL. Below are notes on installation.
+
+  - ``aenet``
+
+    - Make sure to add ``-fPIC`` to ``FCFLAGS`` in ``makefiles/Makefile.*``.
+
+  - ``lammps``
+
+    - Make sure to add ``LMP_INC = -DLAMMPS_EXCEPTIONS`` in ``src/Makefile``.
+    - Make sure to add ``mode=shared`` to the make command option as ``make mode=shared mpi`` (when GCC, for example).
+
+  - After completing the above installation, run ``make install-python``.
+
+    - ``lammps`` python package will be installed to the Python environment which is invoked by ``python`` command.
+
+
+Training
+~~~~~~~~~~~~
+
+The training procedure is the same as the previous section.
+
+Sampling
+~~~~~~~~~~~
+
+Input file for prediction
+****************************
+
+Instead of the input file ``predict.in`` for ``predict.x``,
+place the input file ``in.lammps`` under the ``predict``::
+
+    pair_style      aenet
+    pair_coeff      * * v00 Al Mg 15t-15t.nn Al Mg
+    neighbor        0.1 bin
+
+
+The detailed format of ``in.lammmps`` is written in the README of ``aenet-lammps`` repository.
+
+Input for Sampling
+********************
+
+Change the ``type`` and ``run_scheme`` in the ``[sampling.solver]`` section of the input file to ``'aenetPyLammps'`` and ``'function'``, respectively.
+
+.. code-block:: toml
+
+    [sampling.solver]
+    type = 'aenetPyLammps'
+    base_input_dir = ['./baseinput']
+    perturb = 0.0
+    run_scheme = 'function'

@@ -10,3 +10,4 @@ Input files are provided in ``examples/active_learning_qe/`` .
    :maxdepth: 2
 
    aenet
+   other_models

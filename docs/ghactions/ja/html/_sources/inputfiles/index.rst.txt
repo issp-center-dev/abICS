@@ -26,6 +26,11 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 
    合金の配位などを指定します.
 
+6. [log] セクション
+   
+   ログの出力先などを指定します.
+
+
 以下, 順に各セクションの詳細について説明します.
 
 .. toctree::
@@ -33,8 +38,8 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 
    parameter_sampling
    parameter_mlref
+   parameter_solver
    parameter_train
    parameter_observer
    parameter_config
-   
-   
+   parameter_log

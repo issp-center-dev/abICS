@@ -5,7 +5,7 @@
 [config] section
 -------------------------------
 
-This section specifies alloy coordination, etc.
+This section specifies configurations such as alloy coordination.
 An example is shown as follows:
 
   ::
@@ -51,6 +51,9 @@ Comments can also be entered by adding # (Subsequent characters are ignored).
 Key words
 ^^^^^^^^^^
 
+In the case of ``solver.type != "potts"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 - Specify lattice
 
     -  ``unitcell``
@@ -68,9 +71,36 @@ Key words
        **Description :**
        The size of super lattice by the list format[ :math:`\bf{a}, \bf{b}, \bf{c}` ].
 
-- [[config.base_structure]] section
+    -  ``init_structure``
 
-  ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
+       **Format :** str
+
+       **Description :**
+       The name of structure file (e.g., POSCAR, cif) to be used as the initial structure.
+       If not specified, the initial structure is generated randomly based on ``[[config.base_structure]]`` and ``[[config.defect_structure]]``.
+
+    -  ``constraint_module``
+
+       **Format :** bool ("true" or "false")
+
+       **Description :**
+       Whether to apply a constraint condition to configurations. The default value is ``false``.
+
+       When it is set to ``true``, the constraint condition is given as a user-defined function with the name ``constraint_func`` in ``constraint_module.py``. This function takes structure data of pymatgen.core.Structure type, and returns a boolean value. The module may also contain a function named ``constraint_energy`` that evaluates energy from the structure data in the ``shuffle`` operation.
+
+     -  ``constraint``
+
+	**Format :** str
+
+	**Description :**
+	The name of the user-defined function used for a constraint condition to configurations. If it is not specified, no constraint is applied. The default is unspecified.
+
+	The constraint condition is given as a function that takes structure data of pymatgen.core.Structure type and returns a boolean value. The parameter ``constraint`` specifies the name of the function in the form ``"module_name.function_name"``.
+	When ``constraint_module`` is also set to ``true``, the value of ``constraint`` is adopted for the function name.
+       
+- ``[[config.base_structure]]`` section
+
+    ``type`` and ``coords`` specify the atomic species that do not move in Monte Carlo calculation and their coordinates.
     If there are multiple atomic species, specify multiple [[config.base_structure]] sections.
 
     - ``type``
@@ -87,7 +117,7 @@ Key words
       Coordinates. Specify a list of N elements (number of atoms) arranged in 3 elements representing 3D coordinates, or a string of coordinates arranged in N rows and 3 columns.
 
 
-- [[config.defect_structure]] section
+- ``[[config.defect_structure]]`` section
 
     This sections specifies the lattice coordinates (coords) and atoms (or atom groups) (groups) that can reside on those lattice sites. Monte Carlo sampling is performed on the lattice specified in this section. In Ver. 1.0, conversion tools from POSCAR and cif will be available.
   
@@ -168,3 +198,66 @@ Key words
 
          **Description :**
          The number of atom groups of the type specified in this section.
+
+- ``[[config.chemical_potential]]`` section
+
+  This section specifies the chemical potentials of the atoms and atom groups for the grand canonical sampling.
+
+      - ``species``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+	 Name of atom or atom group, or a list of names of atom groups when a set of atom groups are considered simultaneously.
+
+      - ``mu``
+
+         **Format :** float
+
+         **Description :**
+	 The value of chemical potential that corresponds to ``species``.
+
+- ``[[config.grandcanonical_move]]`` section
+
+  This section specifies how the atoms or atom groups are added/removed.
+  It also describes how atoms of one type are replaced by those of another type
+  when such processes are considered.
+
+  - add/remove atoms or atom groups:
+
+      - ``species``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+	 Name of atom or atom group, or a list of names of atom groups when a set of atom groups are considered simultaneously.
+
+
+  - replace atoms:
+    
+      - ``from``, ``to``
+
+         **Format :** str, or list of strs
+
+         **Description :**
+         Names of atoms or atom groups to be replaced are specified in the form of ``from A to B``. It also implies the reverse process ``from B to A``. The number of atoms of ``from`` and ``to`` must be equal, and the atoms are assumed to belong to the same defect sublattice.
+
+  If ``grandcanonical_move`` is not specified, the addition/removal of ``species`` of ``chemical_potential`` are implicitly introduced. Otherwise, only the specified processes may occur.
+
+
+In the case of ``solver.type = "potts"``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+    - ``Q``
+
+      **Format :** int
+
+      **Description :** The local degree of freedom of a spin.
+
+    - ``L``
+
+      **Format :** List of integers
+
+      **Description :** Size of a hyper cubic lattice.
+
