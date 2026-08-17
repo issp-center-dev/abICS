@@ -50,7 +50,10 @@ class TestVASP(unittest.TestCase):
     def test_get_results(self):
         os.utime(os.path.join(self.datadir, "output", "OSZICAR"))
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
-        res.structure.to("POSCAR", os.path.join(self.workdir, "pos.vasp"))
+        written = os.path.join(self.workdir, "pos.vasp")
+        res.structure.to(fmt="POSCAR", filename=written)
+        # guards the argument order: a swapped call writes ./POSCAR instead
+        self.assertTrue(os.path.exists(written))
         ref = Structure.from_file(os.path.join(self.datadir, "..", "pos.vasp"))
         ref_energy = 0.54083824
         self.assertTrue(np.isclose(res.energy, ref_energy))
