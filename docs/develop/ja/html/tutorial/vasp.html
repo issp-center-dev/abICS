@@ -39,11 +39,11 @@
 以下、 <code class="docutils literal notranslate"><span class="pre">examples/spinel</span></code> にある <code class="docutils literal notranslate"><span class="pre">input_vasp.toml</span></code> を例に説明します。
 <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> セクションのみ、QuantumESPRESSOと異なり、以下のように指定しています。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling.solver]
-type = &#39;vasp&#39;
-path = &#39;./vasp&#39;
-base_input_dir = &#39;./baseinput&#39;
+type = 'vasp'
+path = './vasp'
+base_input_dir = './baseinput'
 perturb = 0.0
-run_scheme = &#39;mpi_spawn_ready&#39;
+run_scheme = 'mpi_spawn_ready'
 </pre></div>
 </div>
 <p>VASP を用いるために <code class="docutils literal notranslate"><span class="pre">type</span></code> を <code class="docutils literal notranslate"><span class="pre">'vasp'</span></code> にしています。

@@ -44,32 +44,43 @@ NequIP, MLIP-3を利用したサンプリングが可能となっています。
 <h3>NequIP のインストール<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">nequip</span></code> の利用には、 NequIPのインストールが必要です。
 2025年6月現在、NequIP 0.6.2 がサポートされています。</p>
+<div class="admonition note">
+<p class="admonition-title">注釈</p>
+<p>サポートされている NequIP (&lt; 0.7) は、NumPy 2 で削除された <code class="docutils literal notranslate"><span class="pre">numpy.in1d</span></code>
+を利用するため、 <code class="docutils literal notranslate"><span class="pre">numpy&lt;2</span></code> の環境が必要です。Python 3.13 には NumPy 1.x の
+wheel が存在しないため、現状 NequIP 経路は Python 3.13 では利用できません
+(Python 3.12 以前をご利用ください)。</p>
+</div>
 <p>下記コマンドにてインストールします。</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wandb
 $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">nequip</span><span class="o">==</span><span class="m">0</span>.6.2
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"numpy&lt;2"</span>
 </pre></div>
 </div>
 <p>また、abICSインストール時に <code class="docutils literal notranslate"><span class="pre">[nequip]</span></code> オプションを指定すれば、NequIPもインストールされます。</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/path/to/abics
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;.abics[nequip]&#39;</span>
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'.[nequip]'</span>
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"numpy&lt;2"</span>
 </pre></div>
 </div>
+<p>いずれのインストール方法でも、上記の <code class="docutils literal notranslate"><span class="pre">numpy&lt;2</span></code> 制約が必要です（<code class="docutils literal notranslate"><span class="pre">[nequip]</span></code>
+オプションは numpy のバージョンを制約しないため、別途指定してください）。</p>
 </section>
 <section id="id3">
 <h3>インプットファイルの準備<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <p>まず、input_nequip.tomlを準備し、NequIPの実行に必要なパラメータを設定します。
 下では、aenetのインプットから変更のある <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> を抜粋しています。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_nequip&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'nequip'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput_nequip'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 
 <span class="k">[train]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./nequip_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;nequip-train&#39;</span><span class="p">}</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'nequip'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./nequip_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">'nequip-train'</span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>
@@ -147,7 +158,13 @@ $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </spa
 <p>下記コマンドにてインストールします。</p>
 <p>2025年6月現在、nequip-allegro 0.3.0 がサポートされています。</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip-allegro<span class="o">==</span><span class="m">0</span>.3.0
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"numpy&lt;2"</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">注釈</p>
+<p>Allegro は上記の NequIP (&lt; 0.7) スタック上で動作するため、NequIP と同じく
+<code class="docutils literal notranslate"><span class="pre">numpy&lt;2</span></code> の環境が必要で、Python 3.13 では利用できません。</p>
 </div>
 </section>
 <section id="id5">
@@ -155,16 +172,16 @@ $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </spa
 <p>まず、input_allegro.tomlを準備し、Allegroの実行に必要なパラメータを設定します。
 下では、aenetのインプットから変更のある <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> を抜粋しています。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_allegro&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'allegro'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput_allegro'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 
 <span class="k">[train]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./allegro_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w">  </span><span class="s1">&#39;nequip-train&#39;</span><span class="w"> </span><span class="p">}</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'allegro'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./allegro_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w">  </span><span class="s1">'nequip-train'</span><span class="w"> </span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>
@@ -252,18 +269,18 @@ $<span class="w"> </span>make<span class="w"> </span>mlp
 <p>まず、input_mlip3.tomlを準備し、mlip-3の実行に必要なパラメータを設定します。
 下では、aenetのインプットから変更のある <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> と <code class="docutils literal notranslate"><span class="pre">[train]</span></code> を抜粋しています。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
-<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;~/git/mlip-3/bin/mlp&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'mlip_3'</span>
+<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">'~/git/mlip-3/bin/mlp'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;subprocess&#39;</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'subprocess'</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 
 <span class="k">[train]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./mlip_3_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;~/git/mlip-3/bin/mlp&#39;</span><span class="p">}</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'mlip_3'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./mlip_3_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">'~/git/mlip-3/bin/mlp'</span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>

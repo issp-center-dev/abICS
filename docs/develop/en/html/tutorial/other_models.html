@@ -43,32 +43,44 @@ This section explains how to train and sample using each model.</p>
 <h3>Installation of NequIP<a class="headerlink" href="#installation-of-nequip" title="Link to this heading">¶</a></h3>
 <p>To use <code class="docutils literal notranslate"><span class="pre">nequip</span></code>, you need to install NequIP.
 Currently, NequIP 0.6.2 is supported.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The supported NequIP (&lt; 0.7) relies on <code class="docutils literal notranslate"><span class="pre">numpy.in1d</span></code>, which was removed in
+NumPy 2, so it requires a <code class="docutils literal notranslate"><span class="pre">numpy&lt;2</span></code> environment. Because no NumPy 1.x wheels
+are available for Python 3.13, the NequIP path currently cannot be used on
+Python 3.13 (please use Python 3.12 or earlier).</p>
+</div>
 <p>Install it with the following command.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wandb
 $<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="nv">nequip</span><span class="o">==</span><span class="m">0</span>.6.2
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"numpy&lt;2"</span>
 </pre></div>
 </div>
 <p>Also, when installing abICS, you can install NequIP by specifying the [nequip] option.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>/path/to/abics
-$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">&#39;.[nequip]&#39;</span>
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s1">'.[nequip]'</span>
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"numpy&lt;2"</span>
 </pre></div>
 </div>
+<p>The <code class="docutils literal notranslate"><span class="pre">numpy&lt;2</span></code> constraint above is required regardless of the installation
+method (the <code class="docutils literal notranslate"><span class="pre">[nequip]</span></code> option does not constrain the numpy version, so install
+it separately).</p>
 </section>
 <section id="preparation-of-input-files">
 <h3>Preparation of input files<a class="headerlink" href="#preparation-of-input-files" title="Link to this heading">¶</a></h3>
 <p>First, prepare input_nequip.toml and set the parameters required to run NequIP.
 Below, we extract [sampling.solver] and [train] with changes from the aenet input.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_nequip&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'nequip'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput_nequip'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 
 <span class="k">[train]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;nequip&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./nequip_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;nequip-train&#39;</span><span class="w"> </span><span class="p">}</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'nequip'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./nequip_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">'nequip-train'</span><span class="w"> </span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>
@@ -146,7 +158,13 @@ Below, we extract [sampling.solver] and [train] with changes from the aenet inpu
 <p>Install Allegro with the following command.</p>
 <p>Currently, nequip-allegro 0.3.0 is supported.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>nequip-allegro<span class="o">==</span><span class="m">0</span>.3.0
+$<span class="w"> </span>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"numpy&lt;2"</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Allegro runs on top of the same NequIP (&lt; 0.7) stack, so like NequIP it
+requires a <code class="docutils literal notranslate"><span class="pre">numpy&lt;2</span></code> environment and cannot be used on Python 3.13.</p>
 </div>
 </section>
 <section id="id1">
@@ -154,16 +172,16 @@ Below, we extract [sampling.solver] and [train] with changes from the aenet inpu
 <p>First, prepare input_allegro.toml and set the parameters required to run Allegro.
 Below, we extract <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> and <code class="docutils literal notranslate"><span class="pre">[train]</span></code> with changes from the aenet input.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput_allegro&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'allegro'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput_allegro'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 
 <span class="k">[train]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;allegro&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./allegro_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;nequip-train&#39;</span><span class="p">}</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'allegro'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./allegro_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">'nequip-train'</span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>
@@ -251,18 +269,18 @@ $<span class="w"> </span>make<span class="w"> </span>mlp
 <p>First, prepare <code class="docutils literal notranslate"><span class="pre">input_mlip3.toml</span></code> and set the parameters required to run MLIP-3.
 Below, we extract <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> and <code class="docutils literal notranslate"><span class="pre">[train]</span></code> with changes from the aenet input.</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
-<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;~/github/mlip-3/bin/mlp&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'mlip_3'</span>
+<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">'~/github/mlip-3/bin/mlp'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;subprocess&#39;</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'subprocess'</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 
 <span class="k">[train]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;mlip_3&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./mlip_3_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">&#39;~/github/mlip-3/bin/mlp&#39;</span><span class="p">}</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'mlip_3'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./mlip_3_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">train</span><span class="w"> </span><span class="p">=</span><span class="w"> </span><span class="s1">'~/github/mlip-3/bin/mlp'</span><span class="p">}</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>

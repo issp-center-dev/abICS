@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>abics.model &mdash; abICS API  documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
@@ -95,17 +95,17 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">abics</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
 
-<span class="sd">&quot;&quot;&quot;Defines base classes for Monte Carlo simulations&quot;&quot;&quot;</span>
+<span class="sd">"""Defines base classes for Monte Carlo simulations"""</span>
 
 
 <div class="viewcode-block" id="Model">
 <a class="viewcode-back" href="../../abics.model.html#abics.model.Model">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class defines a model whose energy equals 0 no matter the configuration, and the configuration</span>
+<span class="w">    </span><span class="sd">"""This class defines a model whose energy equals 0 no matter the configuration, and the configuration</span>
 <span class="sd">    never changes.</span>
-<span class="sd">    This is a base template for building useful models.&quot;&quot;&quot;</span>
+<span class="sd">    This is a base template for building useful models."""</span>
 
-    <span class="n">model_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">model_name</span> <span class="o">=</span> <span class="s2">""</span>
 
     <span class="c1"># def __init__(self):</span>
 
@@ -113,7 +113,7 @@
 <a class="viewcode-back" href="../../abics.model.html#abics.model.Model.energy">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Calculate energy of configuration: input: config</span>
 
 <span class="sd">        Parameters</span>
@@ -125,7 +125,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        energy: float</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="o">...</span></div>
 
 
@@ -133,7 +133,7 @@
 <a class="viewcode-back" href="../../abics.model.html#abics.model.Model.trialstep">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">trialstep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">energy</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Define a trial step on config</span>
+<span class="w">        </span><span class="sd">"""Define a trial step on config</span>
 
 <span class="sd">        Returns dconfig, which can contain the minimal information for</span>
 <span class="sd">        constructing the trial configuration from config to be used in newconfig().</span>
@@ -154,10 +154,10 @@
 <span class="sd">            from config to be used in newconfig()</span>
 <span class="sd">        dE: float</span>
 <span class="sd">            Energy difference</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 
         <span class="c1"># Return only change in configuration dconfig so that</span>
-        <span class="c1"># you don&#39;t have to copy entire configurations,</span>
+        <span class="c1"># you don't have to copy entire configurations,</span>
         <span class="c1"># which can sometimes be costly</span>
         <span class="o">...</span></div>
 
@@ -166,7 +166,7 @@
 <a class="viewcode-back" href="../../abics.model.html#abics.model.Model.newconfig">[docs]</a>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">newconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">dconfig</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Update config by using the trial step, dconfig</span>
 
 <span class="sd">        Parameters</span>
@@ -181,13 +181,13 @@
 <span class="sd">        -------</span>
 <span class="sd">        config: config object</span>
 <span class="sd">            updated configuration</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">config</span></div>
 </div>
 
 
 <span class="c1"># For backward compatibility</span>
-<span class="k">if</span> <span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">&quot;3&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="n">__version__</span> <span class="o">&lt;</span> <span class="s2">"3"</span><span class="p">:</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">Model</span>
 </pre></div>
 

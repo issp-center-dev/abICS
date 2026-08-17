@@ -75,17 +75,17 @@ The path of the reference file is specified by <code class="docutils literal not
 The coordinate information should not be written here; it will be written by abICS.
 The following is an example of a QE reference file.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
-  calculation = &#39;relax&#39;
+  calculation = 'relax'
   tstress = .false.
   tprnfor = .false.
-  pseudo_dir = &#39;./pseudo&#39;
-  disk_io = &#39;low&#39;
+  pseudo_dir = './pseudo'
+  disk_io = 'low'
   wf_collect = .false.
 /
 &amp;SYSTEM
   ecutwfc      =  60.0
-  occupations  = &quot;smearing&quot;
-  smearing     = &quot;gauss&quot;
+  occupations  = "smearing"
+  smearing     = "gauss"
   degauss      = 0.01
 /
 &amp;electrons
@@ -176,7 +176,7 @@ and abICS will take care of generating the coordinates section at each sampling 
 <ul class="simple">
 <li><p>In the <code class="docutils literal notranslate"><span class="pre">[solver]</span></code> section, set <code class="docutils literal notranslate"><span class="pre">perturb</span></code> be 0.0.</p></li>
 </ul>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;aenet&quot;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"aenet"</span>
 <span class="nv">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>.0
 </pre></div>
 </div>

@@ -100,8 +100,8 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 <section id="ii-mlref-solver">
 <h4>(ii)  <code class="docutils literal notranslate"><span class="pre">[mlref.solver]</span></code> セクション<a class="headerlink" href="#ii-mlref-solver" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[mlref.solver]</span><span class="w"> </span><span class="c1"># 参照第一原理ソルバーの設定</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;qe&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;./baseinput_ref&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;./baseinput_ref&#39;</span><span class="p">]</span><span class="w"> </span><span class="c1">#, &#39;./baseinput_ref&#39;]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'qe'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">'./baseinput_ref'</span><span class="p">,</span><span class="w"> </span><span class="s1">'./baseinput_ref'</span><span class="p">,</span><span class="w"> </span><span class="s1">'./baseinput_ref'</span><span class="p">]</span><span class="w"> </span><span class="c1">#, './baseinput_ref']</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.05</span>
 <span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 </pre></div>
@@ -129,7 +129,7 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 <span class="n">supercell</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
 
 <span class="k">[[config.base_structure]]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;O&quot;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">"O"</span>
 <span class="n">coords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span>
 <span class="w">    </span><span class="p">[</span><span class="mf">0.237399980</span><span class="p">,</span><span class="w"> </span><span class="mf">0.237399980</span><span class="p">,</span><span class="w"> </span><span class="mf">0.237399980</span><span class="p">],</span>
 <span class="w">    </span><span class="p">[</span><span class="mf">0.762599945</span><span class="p">,</span><span class="w"> </span><span class="mf">0.762599945</span><span class="p">,</span><span class="w"> </span><span class="mf">0.762599945</span><span class="p">],</span>
@@ -151,17 +151,17 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 <p><code class="docutils literal notranslate"><span class="pre">baseinput_ref</span></code> にQEのscf計算で参照する入力ファイルを配置します。
 以下、サンプルディレクトリにある <code class="docutils literal notranslate"><span class="pre">scf.in</span></code> ファイルを記載します。</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&amp;</span><span class="n">CONTROL</span>
-<span class="n">calculation</span> <span class="o">=</span> <span class="s1">&#39;relax&#39;</span>
+<span class="n">calculation</span> <span class="o">=</span> <span class="s1">'relax'</span>
 <span class="n">tstress</span> <span class="o">=</span> <span class="o">.</span><span class="n">false</span><span class="o">.</span>
 <span class="n">tprnfor</span> <span class="o">=</span> <span class="o">.</span><span class="n">false</span><span class="o">.</span>
-<span class="n">pseudo_dir</span> <span class="o">=</span> <span class="s1">&#39;./pseudo&#39;</span>
-<span class="n">disk_io</span> <span class="o">=</span> <span class="s1">&#39;low&#39;</span>
+<span class="n">pseudo_dir</span> <span class="o">=</span> <span class="s1">'./pseudo'</span>
+<span class="n">disk_io</span> <span class="o">=</span> <span class="s1">'low'</span>
 <span class="n">wf_collect</span> <span class="o">=</span> <span class="o">.</span><span class="n">false</span><span class="o">.</span>
 <span class="o">/</span>
 <span class="o">&amp;</span><span class="n">SYSTEM</span>
   <span class="n">ecutwfc</span>      <span class="o">=</span>  <span class="mf">60.0</span>
-  <span class="n">occupations</span>  <span class="o">=</span> <span class="s2">&quot;smearing&quot;</span>
-  <span class="n">smearing</span>     <span class="o">=</span> <span class="s2">&quot;gauss&quot;</span>
+  <span class="n">occupations</span>  <span class="o">=</span> <span class="s2">"smearing"</span>
+  <span class="n">smearing</span>     <span class="o">=</span> <span class="s2">"gauss"</span>
   <span class="n">degauss</span>      <span class="o">=</span> <span class="mf">0.01</span>
 <span class="o">/</span>
 <span class="o">&amp;</span><span class="n">electrons</span>
@@ -207,11 +207,11 @@ $ st2abics st2abics_MgAl2O4.toml MgAl2O4.vasp &gt; input.toml
 <section id="i-train">
 <h4>(i)  <code class="docutils literal notranslate"><span class="pre">[train]</span></code> セクション<a class="headerlink" href="#i-train" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[train]</span><span class="w"> </span><span class="c1"># モデル学習器の設定</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenet&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./aenet_train_input&#39;</span>
-<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;generate.x-2.0.4-ifort_serial&#39;</span><span class="p">,</span>
-<span class="w">              </span><span class="s1">&#39;srun train.x-2.0.4-ifort_intelmpi&#39;</span><span class="p">]</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'aenet'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./aenet_train_input'</span>
+<span class="n">exe_command</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">'generate.x-2.0.4-ifort_serial'</span><span class="p">,</span>
+<span class="w">              </span><span class="s1">'srun train.x-2.0.4-ifort_intelmpi'</span><span class="p">]</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 <span class="n">vac_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[]</span>
 <span class="n">restart</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span>
 </pre></div>
@@ -438,12 +438,12 @@ abics_train<span class="w"> </span>input.toml<span class="w"> </span>&gt;&gt;<sp
 <section id="ii-sampling-solver">
 <h4>(ii)  <code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> セクション<a class="headerlink" href="#ii-sampling-solver" title="Link to this heading">¶</a></h4>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span><span class="w"> </span><span class="c1"># RXMC計算に使うソルバーの設定</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenet&#39;</span>
-<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;predict.x-2.0.4-ifort_serial&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;./baseinput&#39;</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'aenet'</span>
+<span class="n">path</span><span class="o">=</span><span class="w"> </span><span class="s1">'predict.x-2.0.4-ifort_serial'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'./baseinput'</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;subprocess&#39;</span>
-<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'subprocess'</span>
+<span class="n">ignore_species</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">"O"</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>RXMC計算に使うエネルギーソルバーの設定を行います。今回は、aenetを使ってニューラルネットワークモデルの評価を行います。
@@ -563,10 +563,10 @@ VASPのPOSCARファイル形式で記載された各ステップごとの原子�
 <h4>サンプリング<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h4>
 <p><code class="docutils literal notranslate"><span class="pre">[sanmping.solver]</span></code> セクションの <code class="docutils literal notranslate"><span class="pre">type</span></code> を <code class="docutils literal notranslate"><span class="pre">'aenetPyLammps'</span></code> に、 <code class="docutils literal notranslate"><span class="pre">run_scheme</span></code> を <code class="docutils literal notranslate"><span class="pre">'function'</span></code> に設定すると、 LAMMPS インターフェースを利用したサンプリングを実行できます。</p>
 <div class="highlight-toml notranslate"><div class="highlight"><pre><span></span><span class="k">[sampling.solver]</span>
-<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;aenetPyLammps&#39;</span>
-<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">&#39;./baseinput&#39;</span><span class="p">]</span>
+<span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'aenetPyLammps'</span>
+<span class="n">base_input_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s1">'./baseinput'</span><span class="p">]</span>
 <span class="n">perturb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span>
-<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;function&#39;</span>
+<span class="n">run_scheme</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'function'</span>
 </pre></div>
 </div>
 </section>

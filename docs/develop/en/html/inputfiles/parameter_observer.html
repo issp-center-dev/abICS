@@ -39,17 +39,17 @@ An example is shown as follows:</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[observer]
 [observer.similarity]
-reference_structure = &#39;./MgAl2O4.vasp&#39;
-ignored_species = [&quot;O&quot;]
+reference_structure = './MgAl2O4.vasp'
+ignored_species = ["O"]
 
 [[observer.solver]]
-name = &quot;magnetization&quot;
-type = &#39;aenet&#39;
-path= &#39;~/opt/aenet/bin/predict.x_serial&#39;
-base_input_dir = &#39;./baseinput_mag&#39;
+name = "magnetization"
+type = 'aenet'
+path= '~/opt/aenet/bin/predict.x_serial'
+base_input_dir = './baseinput_mag'
 perturb = 0.0
-run_scheme = &#39;subprocess&#39;
-ignore_species = [&quot;O&quot;]
+run_scheme = 'subprocess'
+ignore_species = ["O"]
 </pre></div>
 </div>
 </div></blockquote>

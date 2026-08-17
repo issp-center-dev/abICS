@@ -42,11 +42,11 @@ For software-specific notes (such as input file names), see <a class="reference 
 An example is shown as follows:</p>
 <blockquote>
 <div><div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[trainer] # Configure the model trainer.
-type = &#39;aenet&#39;
-base_input_dir = &#39;. /aenet_train_input&#39;
-exe_command = [&#39;~/git/aenet/bin/generate.x-2.0.4-ifort_serial&#39;,
-             &#39;srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi&#39;]
-ignore_species = [&quot;O&quot;]
+type = 'aenet'
+base_input_dir = '. /aenet_train_input'
+exe_command = ['~/git/aenet/bin/generate.x-2.0.4-ifort_serial',
+             'srun ~/git/aenet/bin/train.x-2.0.4-ifort_intelmpi']
+ignore_species = ["O"]
 </pre></div>
 </div>
 </div></blockquote>

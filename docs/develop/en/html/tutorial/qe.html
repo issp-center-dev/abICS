@@ -51,11 +51,11 @@ print_frequency = 1
 <p><code class="docutils literal notranslate"><span class="pre">[sampling]</span></code> is a section for specifying parameters of the replica exchange Monte Carlo method.
 In this example, the number of the replicas is 2 and the number of the steps is 5.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling.solver]
-type = &#39;qe&#39;
-path= &#39;./pw.x&#39;
-base_input_dir = &#39;./baseinput&#39;
+type = 'qe'
+path= './pw.x'
+base_input_dir = './baseinput'
 perturb = 0.0
-run_scheme = &#39;mpi_spawn&#39;
+run_scheme = 'mpi_spawn'
 </pre></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">[sampling.solver]</span></code> is a section for specifying a solver program.
@@ -74,7 +74,7 @@ supercell = [1,1,1]
 <p><code class="docutils literal notranslate"><span class="pre">[config]</span></code> is the atomic position section.
 It specifies the simulation cell (In units of angstrom) to be simulated by <code class="docutils literal notranslate"><span class="pre">unitcell</span></code> and <code class="docutils literal notranslate"><span class="pre">supercell</span></code>.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.base_structure]]
-type = &quot;O&quot;
+type = "O"
 coords = [
      [0.237399980, 0.237399980, 0.237399980],
      [0.762599945, 0.762599945, 0.762599945],
@@ -145,13 +145,13 @@ coords = [
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> is the section for specifying the positions of the atoms you want to move in the Monte Carlo calculation.</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.defect_structure.groups]]
-name = &#39;Al&#39;
-# species = [&#39;Al&#39;]    # default
+name = 'Al'
+# species = ['Al']    # default
 # coords = [[[0,0,0]]]  # default
 num = 16
 [[config.defect_structure.groups]]
-name = &#39;Mg&#39;
-# species = [&#39;Mg&#39;]    # default
+name = 'Mg'
+# species = ['Mg']    # default
 # coords = [[[0,0,0]]]  # default
 num = 8
 </pre></div>

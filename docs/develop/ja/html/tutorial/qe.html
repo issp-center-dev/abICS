@@ -52,11 +52,11 @@ print_frequency = 1
 <p>レプリカ交換モンテカルロ法に関する情報です。
 この例では簡単のため、レプリカ数を2つに設定し、全ステップ数は 5 にしてあります。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[sampling.solver]
-type = &#39;qe&#39;
-path= &#39;./pw.x&#39;
-base_input_dir = &#39;./baseinput&#39;
+type = 'qe'
+path= './pw.x'
+base_input_dir = './baseinput'
 perturb = 0.0
-run_scheme = &#39;mpi_spawn&#39;
+run_scheme = 'mpi_spawn'
 </pre></div>
 </div>
 <p>第一原理エネルギー計算を行うソルバーの情報です。
@@ -75,7 +75,7 @@ supercell = [1,1,1]
 <p><code class="docutils literal notranslate"><span class="pre">[config]</span></code> は原子位置を指定するセクションです。
 <code class="docutils literal notranslate"><span class="pre">unitcell</span></code> および <code class="docutils literal notranslate"><span class="pre">supercell</span></code> でシミュレーションする空間を（オングストローム単位で）指定します。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.base_structure]]
-type = &quot;O&quot;
+type = "O"
 coords = [
      [0.237399980, 0.237399980, 0.237399980],
      [0.762599945, 0.762599945, 0.762599945],
@@ -146,13 +146,13 @@ coords = [
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">[[config.defect_structure]]</span></code> はモンテカルロ計算で動かす原子の位置を指定するセクションです。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[[config.defect_structure.groups]]
-name = &#39;Al&#39;
-# species = [&#39;Al&#39;]    # default
+name = 'Al'
+# species = ['Al']    # default
 # coords = [[[0,0,0]]]  # default
 num = 16
 [[config.defect_structure.groups]]
-name = &#39;Mg&#39;
-# species = [&#39;Mg&#39;]    # default
+name = 'Mg'
+# species = ['Mg']    # default
 # coords = [[[0,0,0]]]  # default
 num = 8
 </pre></div>

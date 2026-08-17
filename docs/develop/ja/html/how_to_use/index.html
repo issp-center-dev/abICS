@@ -85,17 +85,17 @@ abICSの入力ファイルは, 以下の5つのセクションから構成され
 座標情報については記載する必要はありません。
 以下、Quantum ESPRESSOの参照ファイルの例について記載します。</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>&amp;CONTROL
-  calculation = &#39;relax&#39;
+  calculation = 'relax'
   tstress = .false.
   tprnfor = .false.
-  pseudo_dir = &#39;./pseudo&#39;
-  disk_io = &#39;low&#39;
+  pseudo_dir = './pseudo'
+  disk_io = 'low'
   wf_collect = .false.
 /
 &amp;SYSTEM
   ecutwfc      =  60.0
-  occupations  = &quot;smearing&quot;
-  smearing     = &quot;gauss&quot;
+  occupations  = "smearing"
+  smearing     = "gauss"
   degauss      = 0.01
 /
 &amp;electrons
