@@ -17,7 +17,9 @@ jobs:
       contents: write  # push the built docs to the gh-pages branch
     steps:
     - name: Inject slug/short variables
-      uses: rlespinasse/github-slug-action@v4.x
+      # pinned to a commit: the job now carries a write-capable GITHUB_TOKEN,
+      # so a third-party action must not be resolved through a mutable tag
+      uses: rlespinasse/github-slug-action@797d68864753cbceedc271349d402da4590e6302  # v4.5.0
 
     - name: Checkout
       uses: actions/checkout@v4
