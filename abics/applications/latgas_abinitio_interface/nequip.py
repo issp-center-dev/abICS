@@ -114,11 +114,23 @@ class NequipSolver(SolverBase):
                 Path to the directory including base input files.
             """
             self.base_input_dir = base_input_dir
-            self.model = torch.jit.load(os.path.join(base_input_dir, "deployed.pth"))
-            yaml_file = os.path.join(base_input_dir, "input.yaml")
-            yaml_dic = Config.from_file(yaml_file)
-            self.element_list = yaml_dic["chemical_symbols"]
-            self.r_max = yaml_dic["r_max"]
+
+            metadata = {
+                "r_max": "",
+                "type_names": "",
+            }
+
+            self.model = torch.jit.load(
+                os.path.join(base_input_dir, "deployed.pth"),
+                _extra_files=metadata,
+            )
+
+            for key, value in metadata.items():
+                if isinstance(value, bytes):
+                    metadata[key] = value.decode()
+
+            self.element_list = metadata["type_names"].split()
+            self.r_max = float(metadata["r_max"])
 
         def update_info_by_structure(self, structure):
             """
