@@ -180,6 +180,47 @@ MLIP-3
 
   - MLIP-3用の入力ファイル ``input.almtp`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``train`` ディレクトリに設置してください。
 
+SevenNet
+***********
+
+- URL : https://github.com/MDIL-SNU/SevenNet
+
+- SevenNet 0.10.1 で動作確認済。
+
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+
+  - 学習済みモデルを使用する場合: abicsのinput.tomlだけで問題ありません
+
+  - 学習を行う場合: SevenNetのinputファイル ``input.yaml`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``train`` ディレクトリに設置してください。
+
+Mace
+***********
+
+- URL : https://github.com/ACEsuit/mace
+
+- Mace 0.3.8 で動作確認済。
+
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+
+  - 学習済みモデルを使用する場合: abicsのinput.tomlだけで問題ありません
+
+  - 学習を行う場合: Maceのinputファイル ``input.yaml`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``train`` ディレクトリに設置してください。
+
+CHGNet
+***********
+
+- URL : https://chgnet.lbl.gov/
+
+- CHGNet 0.3.8 で動作確認済。
+
+- 参照ファイル(参照ファイルの具体例についてはチュートリアル参照)
+
+  - 学習済みモデルを使用する場合: abicsのinput.tomlだけで問題ありません
+
+  - 学習を行う場合: inputファイル ``input.yaml`` を ``[train]`` セクションの ``base_input_dir`` で設定したディレクトリ内の ``train`` ディレクトリに設置してください。
+
+    - こちらの ``input.yaml`` はCHGNet側のinputファイルとは異なり、abICS側で定義された形式となっております。詳しくはチュートリアルを参照してください。
+
 
 学習データの作成
 -------------------
