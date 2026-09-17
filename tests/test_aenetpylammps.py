@@ -103,3 +103,14 @@ class TestAenetPyLammps(unittest.TestCase):
         self.assertNotIn("NULL", spec_dict)
         self.assertEqual(spec_dict["Mg"], 3)
         self.assertEqual(nspec, 3)
+
+    def test_species_map_rejects_duplicate_species(self):
+        st = Structure(
+            np.eye(3),
+            ["Mg"],
+            [[0.0, 0.0, 0.0]],
+            coords_are_cartesian=False,
+        )
+
+        with self.assertRaisesRegex(ValueError, "duplicate species"):
+            get_lammps_species_map(st, ["Al", "Mg", "Mg"])

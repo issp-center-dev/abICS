@@ -50,6 +50,13 @@ def get_species_order_from_pair_pot(pair_pot: list[str]) -> list[str]:
 def get_lammps_species_map(
     structure: Structure, species_order: list[str]
 ) -> tuple[dict[str, int], int]:
+    ordered_species = [sp for sp in species_order if sp != "NULL"]
+    duplicate_species = sorted({sp for sp in ordered_species if ordered_species.count(sp) > 1})
+    if duplicate_species:
+        raise ValueError(
+            "in.lammps pair_coeff contains duplicate species entries: "
+            f"{duplicate_species}"
+        )
     spec_dict = {sp: i + 1 for i, sp in enumerate(species_order) if sp != "NULL"}
     missing_species = sorted(set(structure.symbol_set) - set(spec_dict))
     if missing_species:
