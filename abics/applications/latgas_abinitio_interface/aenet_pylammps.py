@@ -21,7 +21,7 @@ energy calculator using aenet python interface
 from __future__ import annotations
 
 import os.path
-from collections import namedtuple
+from collections import Counter, namedtuple
 import numpy as np
 from pymatgen.core import Structure
 
@@ -51,7 +51,9 @@ def get_lammps_species_map(
     structure: Structure, species_order: list[str]
 ) -> tuple[dict[str, int], int]:
     ordered_species = [sp for sp in species_order if sp != "NULL"]
-    duplicate_species = sorted({sp for sp in ordered_species if ordered_species.count(sp) > 1})
+    duplicate_species = sorted(
+        sp for sp, count in Counter(ordered_species).items() if count > 1
+    )
     if duplicate_species:
         raise ValueError(
             "in.lammps pair_coeff contains duplicate species entries: "
