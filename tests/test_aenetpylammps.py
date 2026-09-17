@@ -16,6 +16,7 @@
 
 import os
 import shutil
+import tempfile
 import unittest
 
 import numpy as np
@@ -26,6 +27,7 @@ from abics.applications.latgas_abinitio_interface.base_solver import create_solv
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 from abics.applications.latgas_abinitio_interface.aenet_pylammps import (
     AenetPyLammpsSolver,
+    get_lammps_species_map,
 )
 
 
@@ -55,3 +57,25 @@ class TestAenetPyLammps(unittest.TestCase):
     def test_create_solver(self):
         if self.imported:
             self.assertIsInstance(self.solver, AenetPyLammpsSolver)
+
+    def test_input_reads_species_order_from_in_lammps(self):
+        input_mgr = AenetPyLammpsSolver.Input()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "in.lammps"), "w") as f:
+                f.write("pair_style aenet\n")
+                f.write("pair_coeff * * v00 Al Mg 15t-15t.nn Al Mg\n")
+            input_mgr.from_directory(tmpdir)
+
+        self.assertEqual(input_mgr.lammps_species, ["Al", "Mg"])
+
+    def test_species_map_uses_in_lammps_order(self):
+        st = Structure(
+            np.eye(3),
+            ["Mg"],
+            [[0.0, 0.0, 0.0]],
+            coords_are_cartesian=False,
+        )
+        spec_dict, nspec = get_lammps_species_map(st, ["Al", "Mg"])
+
+        self.assertEqual(spec_dict["Mg"], 2)
+        self.assertEqual(nspec, 2)

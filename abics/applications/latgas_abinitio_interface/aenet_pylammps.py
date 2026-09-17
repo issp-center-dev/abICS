@@ -33,6 +33,33 @@ def unit_vec(a):
     return a / np.linalg.norm(a)
 
 
+def get_species_order_from_pair_pot(pair_pot: list[str]) -> list[str]:
+    for line in pair_pot:
+        fields = line.split()
+        if not fields or fields[0] != "pair_coeff":
+            continue
+        for i, field in enumerate(fields):
+            if field.endswith(".nn"):
+                species_order = fields[i + 1 :]
+                if species_order:
+                    return species_order
+                break
+    raise ValueError("Could not determine LAMMPS species ordering from in.lammps pair_coeff.")
+
+
+def get_lammps_species_map(
+    structure: Structure, species_order: list[str]
+) -> tuple[dict[str, int], int]:
+    spec_dict = {sp: i + 1 for i, sp in enumerate(species_order)}
+    missing_species = sorted(set(structure.symbol_set) - set(spec_dict))
+    if missing_species:
+        raise ValueError(
+            "Structure contains species not listed in in.lammps pair_coeff: "
+            f"{missing_species}"
+        )
+    return spec_dict, len(species_order)
+
+
 class AenetPyLammpsSolver(SolverBase):
     """
     Aenetpy solver
@@ -71,11 +98,8 @@ class AenetPyLammpsSolver(SolverBase):
 
     def calculate_energy(self, fi, output_dir):
         st = self.input.st
-        spec_dict = {}
-        for i, sp in enumerate(list(st.symbol_set)):
-            spec_dict[sp] = i + 1
+        spec_dict, nspec = get_lammps_species_map(st, self.input.lammps_species)
         natoms = len(st)
-        nspec = len(st.symbol_set)
 
         latt = st.lattice.matrix
         ax = np.linalg.norm(latt[0])
@@ -122,6 +146,7 @@ class AenetPyLammpsSolver(SolverBase):
 
         def __init__(self, ignore_species=None):
             self.ignore_species = ignore_species
+            self.lammps_species: list[str] = []
             # self.st = Structure()
 
         def from_directory(self, base_input_dir):
@@ -140,6 +165,7 @@ class AenetPyLammpsSolver(SolverBase):
                     if line == "" or line.startswith("#"):
                         continue
                     self.pair_pot.append(line)
+            self.lammps_species = get_species_order_from_pair_pot(self.pair_pot)
 
         def update_info_by_structure(self, structure):
             """

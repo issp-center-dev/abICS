@@ -30,10 +30,7 @@ import sys
 
 import toml
 
-from abics.applications.latgas_abinitio_interface.defect import (
-    DFTConfigParams,
-    defect_config,
-)
+from abics.applications.latgas_abinitio_interface.defect import DFTConfigParams
 
 FINGERPRINT_TEMPLATE = """DESCR
   N. Artrith and A. Urban, Comput. Mater. Sci. 114 (2016) 135-150.
@@ -52,16 +49,26 @@ radial_Rc = {radial_rc}  radial_N = {radial_n} angular_Rc = {angular_rc}  angula
 """
 
 
-def get_species(params_root: dict) -> list[str]:
-    """Species used for training = all species in [config] minus train.ignore_species."""
+def get_config_species(params_root: dict) -> set[str]:
+    """All non-vacancy species declared in the [config] section."""
     configparams = DFTConfigParams.from_dict(params_root["config"])
-    config = defect_config(configparams)
-    all_species = set(config.structure.symbol_set)
-    ignore_species = set(params_root.get("train", {}).get("ignore_species", None) or [])
+    all_species = set(configparams.base_structure.symbol_set)
+    for defect_sublattice in configparams.defect_sublattices:
+        for group in defect_sublattice.groups:
+            all_species.update(group.species)
+    return all_species
+
+
+def get_species(params_root: dict, ignore_species: list[str] | None = None) -> list[str]:
+    """Species declared in [config] minus the ignored ones."""
+    all_species = get_config_species(params_root)
+    if ignore_species is None:
+        ignore_species = params_root.get("train", {}).get("ignore_species", None) or []
+    ignore_species = set(ignore_species)
     species = sorted(all_species - ignore_species)
     if not species:
         raise ValueError(
-            "No species left for training after removing ignore_species "
+            "No species left after removing ignore_species "
             f"({sorted(ignore_species)}) from config species ({sorted(all_species)})."
         )
     return species
@@ -145,7 +152,7 @@ def write_predict_input(outdir: str, species: list[str]) -> None:
 
 
 def write_lammps_input(outdir: str, species: list[str]) -> None:
-    # species order must match the LAMMPS atom types, which abICS assigns alphabetically
+    # species order must match the LAMMPS atom types consumed by AenetPyLammpsSolver
     os.makedirs(outdir, exist_ok=True)
     species_list = " ".join(species)
     lines = [
@@ -206,7 +213,18 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
 
     solver_type = params_root.get("sampling", {}).get("solver", {}).get("type", "")
     if solver_type == "aenetPyLammps":
-        write_lammps_input(predict_dir, species)
+        sampling_ignore_species = (
+            params_root.get("sampling", {}).get("solver", {}).get("ignore_species", None) or []
+        )
+        lammps_species = get_species(params_root, sampling_ignore_species)
+        missing_species = sorted(set(lammps_species) - set(species))
+        if missing_species:
+            raise ValueError(
+                "sampling.solver.ignore_species requires untrained species "
+                f"{missing_species}. Update train.ignore_species or sampling.solver.ignore_species "
+                "so the generated aenet networks cover every LAMMPS species."
+            )
+        write_lammps_input(predict_dir, lammps_species)
     else:
         write_predict_input(predict_dir, species)
 
