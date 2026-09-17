@@ -57,7 +57,7 @@ def get_lammps_species_map(
             "Structure contains species not listed in in.lammps pair_coeff: "
             f"{missing_species}"
         )
-    return spec_dict, max(spec_dict.values(), default=0)
+    return spec_dict, len(species_order)
 
 
 class AenetPyLammpsSolver(SolverBase):
