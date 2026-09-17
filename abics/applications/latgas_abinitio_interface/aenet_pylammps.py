@@ -60,7 +60,7 @@ def get_lammps_species_map(
             f"{duplicate_species}"
         )
     spec_dict = {sp: i + 1 for i, sp in enumerate(species_order) if sp != "NULL"}
-    present_species = {site.name for site in structure.species}
+    present_species = {specie.name for specie in structure.species}
     missing_species = sorted(present_species - set(spec_dict))
     if missing_species:
         raise ValueError(
