@@ -19,6 +19,7 @@ from __future__ import annotations
 import os
 import sys
 import copy
+from typing import cast
 
 import numpy as np
 
@@ -204,6 +205,48 @@ class DefaultObserver(ObserverBase):
         calc_state.config.structure_norel.to(
             fmt="POSCAR", filename="structure_norel." + str(self.lprintcount) + ".vasp"
         )
+
+
+class WangLandauObserver(DefaultObserver):
+    """Default observer for Wang-Landau sampling.
+
+    In addition to the standard configuration and solver observables, this
+    records the current energy-bin index, entropy estimate, and histogram
+    count.  The modification factor is already written by
+    :class:`ObserverBase` through ``calc_state.parameters()``.
+    """
+
+    def __init__(self, comm, Lreload=False, params={}, with_energy=True):
+        super().__init__(comm, Lreload, params, with_energy=with_energy)
+        self.names.extend(
+            [
+                "wl_energy_bin",
+                "wl_entropy",
+                "wl_histogram",
+            ]
+        )
+
+    def logfunc(self, calc_state: MCAlgorithm) -> tuple[float, ...]:
+        result = list(super().logfunc(calc_state))
+        energy_index_method = getattr(calc_state, "_energy_index", None)
+        if not callable(energy_index_method):
+            raise TypeError("WangLandauObserver requires a Wang-Landau sampler")
+        energy_index = cast(int | None, energy_index_method(calc_state.energy))
+        if energy_index is None:
+            raise ValueError(
+                f"Current energy {calc_state.energy} is outside "
+                f"[{getattr(calc_state, 'emin')}, {getattr(calc_state, 'emax')})"
+            )
+        entropy = getattr(calc_state, "entropy")
+        histogram = getattr(calc_state, "hist")
+        result.extend(
+            [
+                float(energy_index),
+                float(entropy[energy_index]),
+                float(histogram[energy_index]),
+            ]
+        )
+        return tuple(result)
 
 
 class EnsembleErrorObserver(DefaultObserver):

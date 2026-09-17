@@ -34,9 +34,13 @@ from abics.sampling.simple_parallel import (
     EmbarrassinglyParallelSampling,
     ParallelRandomParams,
 )
+from abics.sampling.wl import WangLandauMonteCarlo
+from abics.sampling.wl_mpi import ParallelWL
+from abics.replica_params import ParallelWLParams
 
 from abics.applications.latgas_abinitio_interface.default_observer import (
     DefaultObserver,
+    WangLandauObserver,
     EnsembleParams,
     EnsembleErrorObserver,
 )
@@ -177,6 +181,26 @@ def main_dft_latgas(params_root: MutableMapping):
         print_frequency = rxparams.print_frequency
         logger.info(f"-Running parallel MC sampling")
 
+    elif sampler_type == "parallelWL":
+        wlparams = ParallelWLParams.from_dict(params_sampling)
+        nreplicas = wlparams.nreplicas
+        nprocs_per_replica = wlparams.nprocs_per_replica
+        nensemble = len(dftparams.base_input_dir)
+        comm, commEnsemble, commAll = RX_MPI_init(
+            wlparams.nreplicas, wlparams.seed, nensemble
+        )
+
+        Lreload = wlparams.reload
+        nsteps = wlparams.nsteps
+        sample_frequency = wlparams.sample_frequency
+        print_frequency = wlparams.print_frequency
+        logger.info(f"-Running parallel Wang-Landau sampling with {nreplicas} walkers")
+        logger.info(
+            "--Energy window varies from %s to %s",
+            wlparams.energy_window[0],
+            wlparams.energy_window[1],
+        )
+
     else:
         logger.error("Unknown sampler. Exiting...")
         sys.exit(1)
@@ -271,7 +295,9 @@ def main_dft_latgas(params_root: MutableMapping):
     logger.info("--Success.")
 
     # NNP ensemble error estimation
-    if "ensemble" in params_root:
+    if sampler_type == "parallelWL":
+        observer = WangLandauObserver(comm, Lreload, params_observer)
+    elif "ensemble" in params_root:
         ensembleparams = EnsembleParams.from_dict(params_root["ensemble"])
         #solver = create_solver(ensembleparams.solver, ensembleparams)
 
@@ -414,6 +440,30 @@ def main_dft_latgas(params_root: MutableMapping):
             observer=observer,
             subdirs=True,
             throw_out=rxparams.throw_out,
+        )
+    elif sampler_type == "parallelWL":
+        calc = ParallelWL(
+            comm,
+            WangLandauMonteCarlo,
+            model,
+            configs,
+            wlparams.energy_window,
+            wlparams.n_interval,
+            wlparams.finit,
+            ffactor=wlparams.ffactor,
+            flatness=wlparams.flatness,
+            check_interval=wlparams.check_interval,
+            write_node=write_node,
+        )
+        if Lreload:
+            logger.info("-Reloading from previous calculation")
+            calc.reload()
+        obs = calc.run(
+            nsteps,
+            sample_frequency=sample_frequency,
+            print_frequency=print_frequency,
+            observer=observer,
+            subdirs=True,
         )
     logger.info("--Sampling completed sucessfully.")
 

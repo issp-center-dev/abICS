@@ -308,3 +308,63 @@ class RXParams:
         import toml
 
         return cls.from_dict(toml.load(fname))
+
+
+class ParallelWLParams:
+    """Parameter set for independent parallel Wang-Landau walkers.
+
+    All MPI ranks use the same energy window and Wang-Landau parameters,
+    while each rank owns an independent configuration and walker state.
+    """
+
+    def __init__(self) -> None:
+        self.nreplicas = 1
+        self.nprocs_per_replica = 1
+        self.nsteps = 0
+        self.sample_frequency = 1
+        self.print_frequency = 1
+        self.energy_window = (0.0, 0.0)
+        self.n_interval = 0
+        self.finit = 0.0
+        self.ffactor = 0.9
+        self.flatness = 0.8
+        self.check_interval = 1000
+        self.reload = False
+        self.seed = 0
+
+    @classmethod
+    def from_dict(cls, d: MutableMapping[str, Any]) -> "ParallelWLParams":
+        """Read parameters from a dictionary or a ``replica`` subsection."""
+        if "replica" in d:
+            d = d["replica"]
+
+        params = cls()
+        params.nreplicas = d["nreplicas"]
+        params.nprocs_per_replica = d.get("nprocs_per_replica", 1)
+        params.nsteps = d["nsteps"]
+        params.sample_frequency = d.get("sample_frequency", 1)
+        params.print_frequency = d.get("print_frequency", 1)
+
+        if "energy_window" in d:
+            energy_window = d["energy_window"]
+            if len(energy_window) != 2:
+                raise ValueError("energy_window must contain (emin, emax)")
+            params.energy_window = (float(energy_window[0]), float(energy_window[1]))
+        else:
+            params.energy_window = (float(d["emin"]), float(d["emax"]))
+
+        params.n_interval = d["n_interval"]
+        params.finit = d["finit"]
+        params.ffactor = d.get("ffactor", 0.9)
+        params.flatness = d.get("flatness", 0.8)
+        params.check_interval = d.get("check_interval", 1000)
+        params.reload = d.get("reload", False)
+        params.seed = d.get("seed", 0)
+        return params
+
+    @classmethod
+    def from_toml(cls, fname: str) -> "ParallelWLParams":
+        """Read parameters from a TOML file."""
+        import toml
+
+        return cls.from_dict(toml.load(fname))
