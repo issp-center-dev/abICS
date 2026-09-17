@@ -144,6 +144,20 @@ def write_predict_input(outdir: str, species: list[str]) -> None:
         f.write("\n".join(lines) + "\n")
 
 
+def write_lammps_input(outdir: str, species: list[str]) -> None:
+    # species order must match the LAMMPS atom types, which abICS assigns alphabetically
+    os.makedirs(outdir, exist_ok=True)
+    species_list = " ".join(species)
+    lines = [
+        f"pair_style      aenet",
+        f"pair_coeff      * * v00 {species_list} {HIDDEN_LAYERS_TAG}.nn {species_list}",
+        "neighbor        0.1 bin",
+        "",
+    ]
+    with open(os.path.join(outdir, "in.lammps"), "w") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 # Defaults taken from the descriptor/network settings used in the examples
 # (examples/active_learning_*/aenet_train_input)
 RMIN = 0.55
@@ -189,7 +203,12 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
 
     write_generate_input(generate_dir, species)
     write_train_input(train_dir, species)
-    write_predict_input(predict_dir, species)
+
+    solver_type = params_root.get("sampling", {}).get("solver", {}).get("type", "")
+    if solver_type == "aenetPyLammps":
+        write_lammps_input(predict_dir, species)
+    else:
+        write_predict_input(predict_dir, species)
 
     print(f"Generated default aenet training input files for species {species} in {output_dir}")
 
