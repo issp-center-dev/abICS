@@ -38,26 +38,26 @@ def get_species_order_from_pair_pot(pair_pot: list[str]) -> list[str]:
         fields = line.split()
         if not fields or fields[0] != "pair_coeff":
             continue
-        for i, field in enumerate(fields):
-            if field.endswith(".nn"):
-                species_order = fields[i + 1 :]
-                if species_order:
-                    return species_order
-                break
+        nn_idxs = [i for i, field in enumerate(fields) if field.endswith(".nn")]
+        if not nn_idxs:
+            continue
+        species_order = fields[nn_idxs[-1] + 1 :]
+        if species_order:
+            return species_order
     raise ValueError("Could not determine LAMMPS species ordering from in.lammps pair_coeff.")
 
 
 def get_lammps_species_map(
     structure: Structure, species_order: list[str]
 ) -> tuple[dict[str, int], int]:
-    spec_dict = {sp: i + 1 for i, sp in enumerate(species_order)}
+    spec_dict = {sp: i + 1 for i, sp in enumerate(species_order) if sp != "NULL"}
     missing_species = sorted(set(structure.symbol_set) - set(spec_dict))
     if missing_species:
         raise ValueError(
             "Structure contains species not listed in in.lammps pair_coeff: "
             f"{missing_species}"
         )
-    return spec_dict, len(species_order)
+    return spec_dict, max(spec_dict.values(), default=0)
 
 
 class AenetPyLammpsSolver(SolverBase):
@@ -159,13 +159,19 @@ class AenetPyLammpsSolver(SolverBase):
             """
             self.base_input_dir = base_input_dir
             self.pair_pot: list[str] = []
+            self.lammps_species = []
             with open("{}/in.lammps".format(base_input_dir)) as f:
                 for line in f:
                     line = line.strip()
-                    if line == "" or line.startswith("#"):
+                    if line == "":
+                        continue
+                    if line.startswith("#"):
+                        if line.startswith("# abics_species_order"):
+                            self.lammps_species = line.split()[2:]
                         continue
                     self.pair_pot.append(line)
-            self.lammps_species = get_species_order_from_pair_pot(self.pair_pot)
+            if not self.lammps_species:
+                self.lammps_species = get_species_order_from_pair_pot(self.pair_pot)
 
         def update_info_by_structure(self, structure):
             """

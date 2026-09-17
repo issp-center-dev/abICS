@@ -62,8 +62,19 @@ class TestAenetPyLammps(unittest.TestCase):
         input_mgr = AenetPyLammpsSolver.Input()
         with tempfile.TemporaryDirectory() as tmpdir:
             with open(os.path.join(tmpdir, "in.lammps"), "w") as f:
+                f.write("# abics_species_order Al Mg\n")
                 f.write("pair_style aenet\n")
                 f.write("pair_coeff * * v00 Al Mg 15t-15t.nn Al Mg\n")
+            input_mgr.from_directory(tmpdir)
+
+        self.assertEqual(input_mgr.lammps_species, ["Al", "Mg"])
+
+    def test_input_falls_back_to_species_order_after_last_network_file(self):
+        input_mgr = AenetPyLammpsSolver.Input()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "in.lammps"), "w") as f:
+                f.write("pair_style aenet\n")
+                f.write("pair_coeff * * v00 Al Mg Al.nn Mg.nn Al Mg\n")
             input_mgr.from_directory(tmpdir)
 
         self.assertEqual(input_mgr.lammps_species, ["Al", "Mg"])
@@ -79,3 +90,16 @@ class TestAenetPyLammps(unittest.TestCase):
 
         self.assertEqual(spec_dict["Mg"], 2)
         self.assertEqual(nspec, 2)
+
+    def test_species_map_keeps_null_placeholders_out_of_mapping(self):
+        st = Structure(
+            np.eye(3),
+            ["Mg"],
+            [[0.0, 0.0, 0.0]],
+            coords_are_cartesian=False,
+        )
+        spec_dict, nspec = get_lammps_species_map(st, ["NULL", "Al", "Mg"])
+
+        self.assertNotIn("NULL", spec_dict)
+        self.assertEqual(spec_dict["Mg"], 3)
+        self.assertEqual(nspec, 3)

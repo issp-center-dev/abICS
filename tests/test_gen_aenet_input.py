@@ -53,7 +53,10 @@ class TestGenAenetInput(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             main_impl(params_root, tmpdir, force=False)
             with open(os.path.join(tmpdir, "predict", "in.lammps")) as f:
-                self.assertIn("pair_coeff      * * v00 Al Mg 15t-15t.nn Al Mg", f.read())
+                contents = f.read()
+
+            self.assertIn("# abics_species_order Al Mg", contents)
+            self.assertIn("pair_coeff      * * v00 Al Mg 15t-15t.nn Al Mg", contents)
 
     def test_main_impl_rejects_untrained_lammps_species(self):
         params_root = {

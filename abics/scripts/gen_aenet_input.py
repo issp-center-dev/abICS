@@ -156,6 +156,7 @@ def write_lammps_input(outdir: str, species: list[str]) -> None:
     os.makedirs(outdir, exist_ok=True)
     species_list = " ".join(species)
     lines = [
+        f"# abics_species_order {species_list}",
         f"pair_style      aenet",
         f"pair_coeff      * * v00 {species_list} {HIDDEN_LAYERS_TAG}.nn {species_list}",
         "neighbor        0.1 bin",
