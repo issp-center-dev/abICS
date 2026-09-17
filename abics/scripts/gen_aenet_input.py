@@ -189,7 +189,7 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
             file=sys.stderr,
         )
 
-    species = get_species(params_root)
+    trained_species = get_species(params_root)
 
     if output_dir is None:
         base_input_dir = train_params.get("base_input_dir", "./aenet_train_input")
@@ -209,8 +209,8 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
             )
             sys.exit(1)
 
-    write_generate_input(generate_dir, species)
-    write_train_input(train_dir, species)
+    write_generate_input(generate_dir, trained_species)
+    write_train_input(train_dir, trained_species)
 
     solver_type = params_root.get("sampling", {}).get("solver", {}).get("type", "")
     if solver_type == "aenetPyLammps":
@@ -218,7 +218,7 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
             params_root.get("sampling", {}).get("solver", {}).get("ignore_species", None) or []
         )
         lammps_species = get_species(params_root, sampling_ignore_species)
-        missing_species = sorted(set(lammps_species) - set(species))
+        missing_species = sorted(set(lammps_species) - set(trained_species))
         if missing_species:
             raise ValueError(
                 "sampling.solver.ignore_species requires untrained species "
@@ -227,9 +227,11 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
             )
         write_lammps_input(predict_dir, lammps_species)
     else:
-        write_predict_input(predict_dir, species)
+        write_predict_input(predict_dir, trained_species)
 
-    print(f"Generated default aenet training input files for species {species} in {output_dir}")
+    print(
+        f"Generated default aenet training input files for species {trained_species} in {output_dir}"
+    )
 
 
 def main():
