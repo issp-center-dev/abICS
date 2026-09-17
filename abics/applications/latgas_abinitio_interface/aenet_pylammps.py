@@ -60,7 +60,8 @@ def get_lammps_species_map(
             f"{duplicate_species}"
         )
     spec_dict = {sp: i + 1 for i, sp in enumerate(species_order) if sp != "NULL"}
-    missing_species = sorted(set(structure.symbol_set) - set(spec_dict))
+    present_species = {site.name for site in structure.species}
+    missing_species = sorted(present_species - set(spec_dict))
     if missing_species:
         raise ValueError(
             "Structure contains species not listed in in.lammps pair_coeff: "
