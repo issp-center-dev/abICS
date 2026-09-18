@@ -1,0 +1,7 @@
+abics.scripts.gen\_aenet\_input module
+======================================
+
+.. automodule:: abics.scripts.gen_aenet_input
+   :members:
+   :undoc-members:
+   :show-inheritance:
