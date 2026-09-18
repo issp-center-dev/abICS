@@ -39,6 +39,7 @@ abicsRXsepT = "abics.scripts.abicsRXsepT:main"
 abics_mlref = "abics.scripts.activelearn:main"
 abics_train = "abics.scripts.train:main"
 abics_postproc = "abics.scripts.postproc:main"
+abics_gen_aenet_input = "abics.scripts.gen_aenet_input:main"
 
 [tool.mypy]
 files = "abics"

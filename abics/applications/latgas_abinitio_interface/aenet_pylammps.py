@@ -21,7 +21,7 @@ energy calculator using aenet python interface
 from __future__ import annotations
 
 import os.path
-from collections import namedtuple
+from collections import Counter, namedtuple
 import numpy as np
 from pymatgen.core import Structure
 
@@ -31,6 +31,45 @@ from .params import ALParams, DFTParams
 
 def unit_vec(a):
     return a / np.linalg.norm(a)
+
+
+def get_species_order_from_pair_pot(pair_pot: list[str]) -> list[str]:
+    # Determine the species ordering from the pair_coeff lines in a LAMMPS input file.
+    for line in pair_pot:
+        fields = line.split()
+        if not fields or fields[0] != "pair_coeff":
+            continue
+        nn_idxs = [i for i, field in enumerate(fields) if field.endswith(".nn")]
+        if not nn_idxs:
+            continue
+        species_order = fields[nn_idxs[-1] + 1 :]
+        if species_order:
+            return species_order
+    raise ValueError("Could not determine LAMMPS species ordering from in.lammps pair_coeff.")
+
+
+def get_lammps_species_map(
+    structure: Structure, species_order: list[str]
+) -> tuple[dict[str, int], int]:
+    # Determine the mapping from species names to LAMMPS atom types based on the provided species order.
+    ordered_species = [sp for sp in species_order if sp != "NULL"]
+    duplicate_species = sorted(
+        sp for sp, count in Counter(ordered_species).items() if count > 1
+    )
+    if duplicate_species:
+        raise ValueError(
+            "in.lammps pair_coeff contains duplicate species entries: "
+            f"{duplicate_species}"
+        )
+    spec_dict = {sp: i + 1 for i, sp in enumerate(species_order) if sp != "NULL"}
+    present_species = {specie.name for specie in structure.species}
+    missing_species = sorted(present_species - set(spec_dict))
+    if missing_species:
+        raise ValueError(
+            "Structure contains species not listed in in.lammps pair_coeff: "
+            f"{missing_species}"
+        )
+    return spec_dict, len(species_order)
 
 
 class AenetPyLammpsSolver(SolverBase):
@@ -71,11 +110,8 @@ class AenetPyLammpsSolver(SolverBase):
 
     def calculate_energy(self, fi, output_dir):
         st = self.input.st
-        spec_dict = {}
-        for i, sp in enumerate(list(st.symbol_set)):
-            spec_dict[sp] = i + 1
+        spec_dict, nspec = get_lammps_species_map(st, self.input.lammps_species)
         natoms = len(st)
-        nspec = len(st.symbol_set)
 
         latt = st.lattice.matrix
         ax = np.linalg.norm(latt[0])
@@ -122,6 +158,7 @@ class AenetPyLammpsSolver(SolverBase):
 
         def __init__(self, ignore_species=None):
             self.ignore_species = ignore_species
+            self.lammps_species: list[str] = []
             # self.st = Structure()
 
         def from_directory(self, base_input_dir):
@@ -134,12 +171,19 @@ class AenetPyLammpsSolver(SolverBase):
             """
             self.base_input_dir = base_input_dir
             self.pair_pot: list[str] = []
+            self.lammps_species = []
             with open("{}/in.lammps".format(base_input_dir)) as f:
                 for line in f:
                     line = line.strip()
-                    if line == "" or line.startswith("#"):
+                    if line == "":
+                        continue
+                    if line.startswith("#"):
+                        if line.startswith("# abics_species_order"):
+                            self.lammps_species = line.split()[2:]
                         continue
                     self.pair_pot.append(line)
+            if not self.lammps_species:
+                self.lammps_species = get_species_order_from_pair_pot(self.pair_pot)
 
         def update_info_by_structure(self, structure):
             """
