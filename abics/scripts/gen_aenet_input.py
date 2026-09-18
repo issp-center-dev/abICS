@@ -221,9 +221,9 @@ def main_impl(params_root: dict, output_dir: str, force: bool) -> None:
         missing_species = sorted(set(lammps_species) - set(trained_species))
         if missing_species:
             raise ValueError(
-                "sampling.solver.ignore_species requires untrained species "
+                "sampling.solver requires untrained species "
                 f"{missing_species}. Update train.ignore_species or sampling.solver.ignore_species "
-                "so the generated aenet networks cover every LAMMPS species."
+                "so the generated aenet networks cover every species seen by the solver."
             )
         write_lammps_input(predict_dir, lammps_species)
     else:

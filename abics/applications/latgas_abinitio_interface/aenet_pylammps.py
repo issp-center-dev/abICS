@@ -34,6 +34,7 @@ def unit_vec(a):
 
 
 def get_species_order_from_pair_pot(pair_pot: list[str]) -> list[str]:
+    # Determine the species ordering from the pair_coeff lines in a LAMMPS input file.
     for line in pair_pot:
         fields = line.split()
         if not fields or fields[0] != "pair_coeff":
@@ -50,6 +51,7 @@ def get_species_order_from_pair_pot(pair_pot: list[str]) -> list[str]:
 def get_lammps_species_map(
     structure: Structure, species_order: list[str]
 ) -> tuple[dict[str, int], int]:
+    # Determine the mapping from species names to LAMMPS atom types based on the provided species order.
     ordered_species = [sp for sp in species_order if sp != "NULL"]
     duplicate_species = sorted(
         sp for sp, count in Counter(ordered_species).items() if count > 1
