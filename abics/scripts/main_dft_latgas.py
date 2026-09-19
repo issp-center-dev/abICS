@@ -260,12 +260,17 @@ def main_dft_latgas(params_root: MutableMapping):
 
     gc_flag = params_sampling.get("enable_grandcanonical", False)
     gc_ratio = params_sampling.get("gc_ratio", 0.3)
+    patch_exchange = params_sampling.get("patch_exchange", {})
 
     model = DFTLatticeGas(
         energy_calculator,
         save_history=False,
         enable_grandcanonical=gc_flag,
         gc_ratio=gc_ratio,
+        patch_exchange_enable=patch_exchange.get("enable", False),
+        patch_exchange_ratio=patch_exchange.get("ratio", 0.0),
+        patch_exchange_shapes=patch_exchange.get("shapes"),
+        patch_exchange_mode=patch_exchange.get("mode", "single_sublattice"),
     )
 
     logger.info("--Success.")

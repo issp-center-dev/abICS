@@ -133,6 +133,44 @@ def perturb_structure(st: Structure, distance: float) -> None:
             st.sites[i].coords += seldyn[i, :] / norm * distance
 
 
+def _latgas_index(ix, iy, iz, ib, cellsize, nbasis):
+    nx, ny, nz = cellsize
+    ix %= nx
+    iy %= ny
+    iz %= nz
+    return (((ix * ny + iy) * nz + iz) * nbasis + ib)
+
+
+def _patch_indices(origin, shape, cellsize, nbasis):
+    ox, oy, oz = origin
+    lx, ly, lz = shape
+    indices = []
+    for dx in range(lx):
+        for dy in range(ly):
+            for dz in range(lz):
+                ix = (ox + dx) % cellsize[0]
+                iy = (oy + dy) % cellsize[1]
+                iz = (oz + dz) % cellsize[2]
+                for ib in range(nbasis):
+                    indices.append(_latgas_index(ix, iy, iz, ib, cellsize, nbasis))
+    return indices
+
+
+def _valid_patch_displacements(shape, cellsize):
+    first = set(_patch_indices((0, 0, 0), shape, cellsize, 1))
+    valid = []
+    for dx in range(cellsize[0]):
+        for dy in range(cellsize[1]):
+            for dz in range(cellsize[2]):
+                displacement = (dx, dy, dz)
+                if displacement == (0, 0, 0):
+                    continue
+                second = set(_patch_indices(displacement, shape, cellsize, 1))
+                if first.isdisjoint(second):
+                    valid.append(displacement)
+    return valid
+
+
 class DFTLatticeGas(Model):
     """
     This class defines the DFT lattice gas mapping model
@@ -150,6 +188,10 @@ class DFTLatticeGas(Model):
         enable_grandcanonical=False,
         gc_ratio=0.3,
         debug=False,
+        patch_exchange_enable=False,
+        patch_exchange_ratio=0.0,
+        patch_exchange_shapes=None,
+        patch_exchange_mode="single_sublattice",
     ):
         """
 
@@ -172,11 +214,116 @@ class DFTLatticeGas(Model):
         self.enable_grandcanonical = enable_grandcanonical
         self.gc_ratio = gc_ratio
         self.debug = debug
+        self.patch_exchange_enable = patch_exchange_enable
+        self.patch_exchange_ratio = patch_exchange_ratio
+        self.patch_exchange_shapes = patch_exchange_shapes or []
+        self.patch_exchange_mode = patch_exchange_mode
+        self._patch_displacements = {}
+
+        if not 0.0 <= self.patch_exchange_ratio <= 1.0:
+            raise InputError("patch_exchange_ratio should be between 0 and 1")
+        if self.patch_exchange_mode != "single_sublattice":
+            raise InputError(
+                "unsupported patch_exchange_mode: {}".format(self.patch_exchange_mode)
+            )
+        if self.patch_exchange_enable and not self.patch_exchange_shapes:
+            raise InputError(
+                "patch_exchange_shapes is required when patch exchange is enabled"
+            )
 
         if self.debug:
             logger.debug("debug mode enabled")
         logger.debug("enable_grandcanonical = {}".format(self.enable_grandcanonical))
         logger.debug("gc_ratio = {}".format(self.gc_ratio))
+
+    def _prepare_patch_geometry(self, cellsize):
+        cellsize = tuple(int(value) for value in cellsize)
+        if len(cellsize) != 3 or any(value < 1 for value in cellsize):
+            raise InputError("cellsize should contain three positive integers")
+        if cellsize in self._patch_displacements:
+            return
+
+        displacements = {}
+        for raw_shape in self.patch_exchange_shapes:
+            if len(raw_shape) != 3:
+                raise InputError("patch shape should contain three integers")
+            shape = tuple(int(value) for value in raw_shape)
+            if any(value < 1 for value in shape) or any(
+                shape[index] > cellsize[index] for index in range(3)
+            ):
+                raise InputError(
+                    "patch shape dimensions must be between 1 and cellsize"
+                )
+            valid = _valid_patch_displacements(shape, cellsize)
+            if not valid:
+                raise InputError(
+                    "patch shape has no non-overlapping periodic displacement: {}".format(
+                        shape
+                    )
+                )
+            valid_set = set(valid)
+            for displacement in valid:
+                inverse = tuple(
+                    (-value) % cellsize[index]
+                    for index, value in enumerate(displacement)
+                )
+                if inverse not in valid_set:
+                    raise InputError("patch displacement set is not symmetric")
+            displacements[shape] = valid
+        self._patch_displacements[cellsize] = displacements
+
+    def _try_patch_exchange(self, config):
+        cellsize = tuple(int(value) for value in config.cellsize)
+        self._prepare_patch_geometry(cellsize)
+        shapes = tuple(self._patch_displacements[cellsize])
+        if not shapes:
+            logger.debug("try_patch_exchange: no valid displacement")
+            info = {"mode": "patch_exchange", "result": "no_valid_displacement"}
+            return (False, info) if self.debug else False
+
+        shape = shapes[rand.randint(len(shapes))]
+        displacements = self._patch_displacements[cellsize][shape]
+        origin1 = tuple(rand.randint(value) for value in cellsize)
+        displacement = displacements[rand.randint(len(displacements))]
+        origin2 = tuple(
+            (origin1[index] + displacement[index]) % cellsize[index]
+            for index in range(3)
+        )
+        sublat_id = rand.randint(len(config.defect_sublattices))
+        sublat = config.defect_sublattices[sublat_id]
+        nbasis = len(sublat.site_centers)
+        ids1 = _patch_indices(origin1, shape, cellsize, nbasis)
+        ids2 = _patch_indices(origin2, shape, cellsize, nbasis)
+        rep = sublat.latgas_rep
+        info = {
+            "mode": "patch_exchange",
+            "shape": shape,
+            "origin1": origin1,
+            "origin2": origin2,
+            "displacement": displacement,
+            "sublat_id": sublat_id,
+            "num_sites": len(ids1),
+        }
+        logger.debug(
+            "try_patch_exchange: shape={}, origin1={}, origin2={}, "
+            "displacement={}, sublat_id={}, num_sites={}".format(
+                shape,
+                origin1,
+                origin2,
+                displacement,
+                sublat_id,
+                len(ids1),
+            )
+        )
+        if all(rep[index1] == rep[index2] for index1, index2 in zip(ids1, ids2)):
+            logger.debug("try_patch_exchange: selected patches are identical")
+            info["result"] = "null"
+            return (False, info) if self.debug else False
+        for index1, index2 in zip(ids1, ids2):
+            rep[index1], rep[index2] = rep[index2], rep[index1]
+        logger.debug("try_patch_exchange: exchanged {} sites".format(len(ids1)))
+        info["result"] = "ok"
+        return (True, info) if self.debug else True
 
     def energy(self, config):
         if config.energy is None:
@@ -713,47 +860,54 @@ class DFTLatticeGas(Model):
 
                 # If there is more than one group on the defect_sublattice,
                 # we either change orientation of one group, or  exchange groups between sites
-
-                defect_sublattice = rand.choice(config.defect_sublattices)
-                #latgas_rep = defect_sublattice.latgas_rep
-
-                if self.debug:
-                    for i, x in enumerate(config.defect_sublattices):
-                        if x == defect_sublattice:
-                            sublat_id = i
-                            break
-                    else:
-                        sublat_id = -1
-                        logger.error("sublattice id not found")
-
-                if len(defect_sublattice.groups) == 1:
-                    logger.debug("trialstep: try rotate only")
+                if self.patch_exchange_enable and rand.rand() < self.patch_exchange_ratio:
+                    logger.debug("trialstep: try patch exchange")
                     if self.debug:
-                        trial, trial_info = self._try_rotate(defect_sublattice)
+                        trial, trial_info = self._try_patch_exchange(config)
                     else:
-                        trial = self._try_rotate(defect_sublattice)
-                elif not defect_sublattice.groups_orr:
-                    logger.debug("trialstep: try exchange only")
-                    if self.debug:
-                        trial, trial_info = self._try_exchange(defect_sublattice)
-                    else:
-                        trial = self._try_exchange(defect_sublattice)
+                        trial = self._try_patch_exchange(config)
                 else:
-                    if rand.rand() < 0.5:
-                        logger.debug("trialstep: try rotate")
+                    defect_sublattice = rand.choice(config.defect_sublattices)
+                    #latgas_rep = defect_sublattice.latgas_rep
+
+                    if self.debug:
+                        for i, x in enumerate(config.defect_sublattices):
+                            if x == defect_sublattice:
+                                sublat_id = i
+                                break
+                        else:
+                            sublat_id = -1
+                            logger.error("sublattice id not found")
+
+                    if len(defect_sublattice.groups) == 1:
+                        logger.debug("trialstep: try rotate only")
                         if self.debug:
                             trial, trial_info = self._try_rotate(defect_sublattice)
                         else:
                             trial = self._try_rotate(defect_sublattice)
-                    else:
-                        logger.debug("trialstep: try exchange")
+                    elif not defect_sublattice.groups_orr:
+                        logger.debug("trialstep: try exchange only")
                         if self.debug:
                             trial, trial_info = self._try_exchange(defect_sublattice)
                         else:
                             trial = self._try_exchange(defect_sublattice)
 
-                if self.debug:
-                    trial_info['sublat_id'] = sublat_id
+                    else:
+                        if rand.rand() < 0.5:
+                            logger.debug("trialstep: try rotate")
+                            if self.debug:
+                                trial, trial_info = self._try_rotate(defect_sublattice)
+                            else:
+                                trial = self._try_rotate(defect_sublattice)
+                        else:
+                            logger.debug("trialstep: try exchange")
+                            if self.debug:
+                                trial, trial_info = self._try_exchange(defect_sublattice)
+                            else:
+                                trial = self._try_exchange(defect_sublattice)
+
+                    if self.debug:
+                        trial_info['sublat_id'] = sublat_id
 
             else:
                 # grandcanonical move
