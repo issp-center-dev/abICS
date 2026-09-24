@@ -11,6 +11,18 @@ sample_frequency =
 print_frequency = 
 reload = false
 
+# Optional reversible patch exchange. The defect_structure coordinates must
+# describe the chosen translational repeat cell; the larger lattice is made
+# with config.supercell. Patch moves do not infer hidden translations.
+# mode = "single_sublattice" exchanges one randomly chosen defect sublattice;
+# mode = "all_sublattices" exchanges the same repeat-cell block in every
+# defect sublattice within a single trial.
+# [sampling.patch_exchange]
+# enable = true
+# ratio = 0.2
+# mode = "single_sublattice"
+# shapes = [[2, 2, 2], [3, 3, 3]]
+
 [sampling.solver]
 type = 
 path = 

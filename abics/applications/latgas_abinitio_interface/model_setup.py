@@ -222,7 +222,7 @@ class DFTLatticeGas(Model):
 
         if not 0.0 <= self.patch_exchange_ratio <= 1.0:
             raise InputError("patch_exchange_ratio should be between 0 and 1")
-        if self.patch_exchange_mode != "single_sublattice":
+        if self.patch_exchange_mode not in ("single_sublattice", "all_sublattices"):
             raise InputError(
                 "unsupported patch_exchange_mode: {}".format(self.patch_exchange_mode)
             )
@@ -289,6 +289,18 @@ class DFTLatticeGas(Model):
             (origin1[index] + displacement[index]) % cellsize[index]
             for index in range(3)
         )
+
+        if self.patch_exchange_mode == "all_sublattices":
+            return self._try_patch_exchange_all_sublattices(
+                config, shape, origin1, origin2, displacement, cellsize
+            )
+        return self._try_patch_exchange_single_sublattice(
+            config, shape, origin1, origin2, displacement, cellsize
+        )
+
+    def _try_patch_exchange_single_sublattice(
+        self, config, shape, origin1, origin2, displacement, cellsize
+    ):
         sublat_id = rand.randint(len(config.defect_sublattices))
         sublat = config.defect_sublattices[sublat_id]
         nbasis = len(sublat.site_centers)
@@ -322,6 +334,53 @@ class DFTLatticeGas(Model):
         for index1, index2 in zip(ids1, ids2):
             rep[index1], rep[index2] = rep[index2], rep[index1]
         logger.debug("try_patch_exchange: exchanged {} sites".format(len(ids1)))
+        info["result"] = "ok"
+        return (True, info) if self.debug else True
+
+    def _try_patch_exchange_all_sublattices(
+        self, config, shape, origin1, origin2, displacement, cellsize
+    ):
+        per_sublat = []
+        for sublat in config.defect_sublattices:
+            nbasis = len(sublat.site_centers)
+            ids1 = _patch_indices(origin1, shape, cellsize, nbasis)
+            ids2 = _patch_indices(origin2, shape, cellsize, nbasis)
+            per_sublat.append((sublat, ids1, ids2))
+
+        num_sites = [len(ids1) for _, ids1, _ in per_sublat]
+        info = {
+            "mode": "patch_exchange",
+            "shape": shape,
+            "origin1": origin1,
+            "origin2": origin2,
+            "displacement": displacement,
+            "sublat_ids": list(range(len(per_sublat))),
+            "num_sites": num_sites,
+        }
+        logger.debug(
+            "try_patch_exchange: shape={}, origin1={}, origin2={}, "
+            "displacement={}, num_sites={} (all sublattices)".format(
+                shape, origin1, origin2, displacement, num_sites
+            )
+        )
+        is_null = all(
+            sublat.latgas_rep[index1] == sublat.latgas_rep[index2]
+            for sublat, ids1, ids2 in per_sublat
+            for index1, index2 in zip(ids1, ids2)
+        )
+        if is_null:
+            logger.debug("try_patch_exchange: selected patches are identical")
+            info["result"] = "null"
+            return (False, info) if self.debug else False
+        for sublat, ids1, ids2 in per_sublat:
+            rep = sublat.latgas_rep
+            for index1, index2 in zip(ids1, ids2):
+                rep[index1], rep[index2] = rep[index2], rep[index1]
+        logger.debug(
+            "try_patch_exchange: exchanged {} sites (all sublattices)".format(
+                sum(num_sites)
+            )
+        )
         info["result"] = "ok"
         return (True, info) if self.debug else True
 
