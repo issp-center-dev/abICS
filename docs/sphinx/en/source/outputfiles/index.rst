@@ -92,8 +92,16 @@ Example::
 
 ``RANK/acceptance_ratio.dat``
 ===============================
-Acceptance ratio of Monte Carlo steps for each temperature.
-The first column is temperature and the second column is acceptance ratio (number of accepted / number of trials).
+Acceptance ratio and trial counts of Monte Carlo steps for each temperature.
+
+- The 1st column is temperature.
+- The 2nd column is the acceptance ratio (number of accepted / number of trials).
+- The 3rd column is the number of trials ``ntrials``.
+- The 4th column is the number of accepted trials ``naccepted``.
+- The 5th column is the number of trials for which no move could be proposed, ``nfail``.
+
+``nfail`` counts trials such as a grandcanonical move that tries to remove a species that is absent.
+They are included in the number of trials and are never accepted.
 
 ``logZ.dat``
 ==============

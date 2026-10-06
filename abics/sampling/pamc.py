@@ -28,7 +28,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
-from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
+from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header, write_acceptance_ratio
 from abics.sampling.mc_mpi import ParallelMC
 from abics.sampling.resampling import WalkerTable
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
@@ -153,6 +153,9 @@ class PopulationAnnealing(ParallelMC):
     dlogz: list[float]
     kT_history: list[float]
     acceptance_ratios: list[float]
+    ntrials: list[int]
+    naccepted: list[int]
+    nfail: list[int]
 
     def __init__(
         self,
@@ -195,6 +198,9 @@ class PopulationAnnealing(ParallelMC):
         self.dlogz = []
         self.kT_history = []
         self.acceptance_ratios = []
+        self.ntrials = []
+        self.naccepted = []
+        self.nfail = []
         self.Lreload = False
         self.use_resample_old = False
 
@@ -375,6 +381,7 @@ class PopulationAnnealing(ParallelMC):
                     logger.info("--Resampling finishes")
             ntrials = self.mycalc.ntrials
             naccepted = self.mycalc.naccepted
+            nfail = self.mycalc.nfail
             for i in range(1, self.nsteps_between_anneal[self.Tindex] + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if i % sample_frequency == 0:
@@ -393,10 +400,18 @@ class PopulationAnnealing(ParallelMC):
                         self.save(save_obs)
             naccepted = self.mycalc.naccepted - naccepted
             ntrials = self.mycalc.ntrials - ntrials
+            nfail = self.mycalc.nfail - nfail
             self.acceptance_ratios.append(naccepted / ntrials)
-            with open("acceptance_ratio.dat", "w") as f:
-                for T, ar in zip(self.kTs, self.acceptance_ratios):
-                    f.write(f"{self.E2T*T} {ar}\n")
+            self.ntrials.append(ntrials)
+            self.naccepted.append(naccepted)
+            self.nfail.append(nfail)
+            write_acceptance_ratio(
+                "acceptance_ratio.dat",
+                [self.E2T * T for T in self.kTs],
+                self.ntrials,
+                self.naccepted,
+                self.nfail,
+            )
             self.Tindex += 1
             self.isamples_offsets[self.Tindex] = nsample
         output.close()

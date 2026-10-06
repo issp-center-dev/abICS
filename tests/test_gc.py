@@ -631,9 +631,146 @@ class TestGrandCanonical(unittest.TestCase):
         config = defect_config(params)
         model.energy(config)
         for _ in range(50):
-            dconfig, dE, info = model.trialstep(config, config.energy)
+            dconfig, dE, dW, info = model.trialstep(config, config.energy)
             self.assertEqual(info['mode'], 'rotate')
             self.assertEqual(info['result'], 'ok')
+            self.assertEqual(dW, 0.0)
+
+    #----------------
+    def make_canonical_model_config(self, proto, src, orientations={}):
+        # build a canonical model and a config; orientations maps a group
+        # name to the number of orientations it should have
+        model = DFTLatticeGas(StabCalculator(),
+                              save_history = False,
+                              enable_grandcanonical = False,
+                              gc_ratio = 0.0,
+                              debug = True)
+        pp = [ [ { 'name': q, 'num': src[i][k] } for k,q in enumerate(p) ] for i,p in enumerate(proto) ]
+        p = Params().create_params(pp)
+        for ds in p['config']['defect_structure']:
+            for g in ds['groups']:
+                if g['name'] in orientations:
+                    g['coords'] = [ [[0, 0, 0.1 * i]] for i in range(orientations[g['name']]) ]
+        params = DFTConfigParams.from_dict(p['config'])
+        config = defect_config(params)
+        model.energy(config)
+        return model, config
+
+    #----------------
+    def test_rotate_skips_unoccupied_orientable_group(self):
+        # A has orientations but no sites; B and C are not orientable.
+        # Rotation must not be proposed, every trial is an exchange.
+        N = 24
+        model, config = self.make_canonical_model_config(
+            [['A', 'B', 'C']], [[0, N//2, N//2]], orientations={'A': 3})
+        for _ in range(100):
+            dconfig, dE, dW, info = model.trialstep(config, config.energy)
+            self.assertEqual(info['mode'], 'exchange')
+            self.assertEqual(info['result'], 'ok')
+            self.assertEqual(dW, 0.0)
+
+    #----------------
+    def test_trialstep_skips_immobile_sublattice(self):
+        # sublattice 0 is filled by one non-orientable group and cannot move;
+        # sublattice 1 can exchange. Only sublattice 1 must be chosen.
+        # (the template has 24 sites in total, split evenly over sublattices)
+        N = 12
+        model, config = self.make_canonical_model_config(
+            [['A'], ['A', 'B']], [[N], [N//2, N//2]])
+        for _ in range(100):
+            dconfig, dE, dW, info = model.trialstep(config, config.energy)
+            self.assertEqual(info['sublat_id'], 1)
+            self.assertEqual(info['result'], 'ok')
+            self.assertEqual(dW, 0.0)
+
+    #----------------
+    def test_trialstep_raises_when_nothing_can_move(self):
+        # canonical sampling with no movable degree of freedom is an input error
+        N = 24
+        model, config = self.make_canonical_model_config([['A']], [[N]])
+        from abics.exception import InputError
+        with self.assertRaises(InputError):
+            model.trialstep(config, config.energy)
+
+    #----------------
+    def test_canonical_mc_counts_failed_trials(self):
+        # a model whose trialstep cannot propose a move (dW = NaN) must be
+        # counted in nfail and never accepted by CanonicalMonteCarlo
+        from abics.sampling.mc import CanonicalMonteCarlo
+
+        class NullModel:
+            def energy(self, config):
+                return 0.0
+            def trialstep(self, config, energy_now):
+                return None, 0.0, float("nan")
+            def newconfig(self, config, dconfig):
+                raise AssertionError("failed trial must not be accepted")
+
+        mc = CanonicalMonteCarlo(NullModel(), 1.0, config=None)
+        mc.energy = 0.0
+        mc.MCstep(10)
+        self.assertEqual(mc.ntrials, 10)
+        self.assertEqual(mc.naccepted, 0)
+        self.assertEqual(mc.nfail, 10)
+
+    #----------------
+    def test_canonical_mc_accepts_two_value_trialstep(self):
+        # models that return only (dconfig, dE) keep working
+        from abics.sampling.mc import CanonicalMonteCarlo
+
+        class TwoValueModel:
+            def energy(self, config):
+                return 0.0
+            def trialstep(self, config, energy_now):
+                return "new", -1.0
+            def newconfig(self, config, dconfig):
+                return dconfig
+
+        mc = CanonicalMonteCarlo(TwoValueModel(), 1.0, config="old")
+        mc.energy = 0.0
+        mc.MCstep(5)
+        self.assertEqual(mc.ntrials, 5)
+        self.assertEqual(mc.naccepted, 5)
+        self.assertEqual(mc.nfail, 0)
+        self.assertEqual(mc.config, "new")
+
+    #----------------
+    def test_gc_failed_trial_returns_nan_weight(self):
+        # grandcanonical: removing a species that is absent cannot be proposed
+        model = DFTLatticeGas(StabCalculator(),
+                              save_history = False,
+                              enable_grandcanonical = True,
+                              gc_ratio = 1.0,
+                              debug = True)
+        N = 24
+        pp = [ [ { 'name': 'A', 'num': 0 } ] ]
+        chem_tbl = [ { 'species': ['A'], 'mu': 0.1 } ]
+        move_tbl = [ { 'from': ['A'], 'to': [] } ]
+        p = Params().create_params(pp, chem_tbl, move_tbl)
+        params = DFTConfigParams.from_dict(p['config'])
+        config = defect_config(params)
+        model.energy(config)
+        results = set()
+        for _ in range(50):
+            dconfig, dE, dW, info = model.trialstep(config, config.energy)
+            results.add((info['mode'], info['result'], np.isnan(dW)))
+        # the reversible move picks add or remove; remove must fail with NaN
+        self.assertIn(('remove', 'nochoice', True), results)
+        self.assertIn(('add', 'ok', False), results)
+        self.assertTrue(all(is_nan == (res == 'nochoice') for mode, res, is_nan in results))
+
+    #----------------
+    def test_write_acceptance_ratio(self):
+        import tempfile
+        from abics.sampling.mc import write_acceptance_ratio
+        with tempfile.TemporaryDirectory() as d:
+            fname = os.path.join(d, "acceptance_ratio.dat")
+            write_acceptance_ratio(fname, [100.0, 200.0], [10, 0], [4, 0], [2, 0])
+            rows = [ line.split() for line in open(fname) if not line.startswith("#") ]
+        self.assertEqual(rows[0], ["100.0", "0.4", "10", "4", "2"])
+        self.assertEqual(rows[1][0], "200.0")
+        self.assertEqual(rows[1][1], "nan")
+        self.assertEqual(rows[1][2:], ["0", "0", "0"])
 
     #----------------
     def test_exchange_2species(self):
