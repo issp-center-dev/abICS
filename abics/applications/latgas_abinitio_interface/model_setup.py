@@ -107,6 +107,21 @@ def match_latgas_group(latgas_rep, group):
     """
     return [ idx for idx,v in enumerate(latgas_rep) if v[0] == group.name ]
 
+def occupied_groups(defect_sublattice):
+    """
+    Return the groups of defect_sublattice that occupy at least one site.
+
+    Parameters
+    ----------
+    defect_sublattice: DefectSublattice
+
+    Returns
+    -------
+        List of groups whose count in latgas_rep is nonzero.
+    """
+    names = set(v[0] for v in defect_sublattice.latgas_rep)
+    return [ grp for grp in defect_sublattice.groups if grp.name in names ]
+
 def perturb_structure(st: Structure, distance: float) -> None:
     """
     Perform random perturbation of the atomic coordinates.
@@ -322,20 +337,24 @@ class DFTLatticeGas(Model):
     def _try_exchange(self, defect_sublattice):
         latgas_rep = defect_sublattice.latgas_rep
 
-        # Exchange different groups between sites
-        ex1_group, ex2_group = rand.choice(
-            defect_sublattice.groups, 2, replace=False
-        )
-        ex1_idlist = match_latgas_group(latgas_rep, ex1_group)
-        ex2_idlist = match_latgas_group(latgas_rep, ex2_group)
+        # Exchange different groups between sites.
+        # Only groups that occupy at least one site are candidates
+        # (e.g. the vacancy group is skipped when the sublattice is full).
+        # Exchanges preserve the number of each group, so the candidate set
+        # is the same before and after the move and the proposal stays symmetric.
+        occupied = occupied_groups(defect_sublattice)
 
-        if len(ex1_idlist) == 0 or len(ex2_idlist) == 0:
-            logger.debug("try_exchange: list empty {}({}), {}({}). retry".format(
-                ex1_group.name, len(ex1_idlist), ex2_group.name, len(ex2_idlist)))
+        if len(occupied) < 2:
+            logger.debug("try_exchange: less than two occupied groups {}".format(
+                [ grp.name for grp in occupied ]))
             if self.debug:
                 return False, { 'mode': 'exchange', 'result': 'empty' }
             else:
                 return False
+
+        ex1_group, ex2_group = rand.choice(occupied, 2, replace=False)
+        ex1_idlist = match_latgas_group(latgas_rep, ex1_group)
+        ex2_idlist = match_latgas_group(latgas_rep, ex2_group)
 
         ex1_id = rand.choice(ex1_idlist)
         ex2_id = rand.choice(ex2_idlist)
@@ -726,7 +745,7 @@ class DFTLatticeGas(Model):
                         sublat_id = -1
                         logger.error("sublattice id not found")
 
-                if len(defect_sublattice.groups) == 1:
+                if len(occupied_groups(defect_sublattice)) == 1:
                     logger.debug("trialstep: try rotate only")
                     if self.debug:
                         trial, trial_info = self._try_rotate(defect_sublattice)

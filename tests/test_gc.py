@@ -569,6 +569,73 @@ class TestGrandCanonical(unittest.TestCase):
             self.try_exchange(proto, 0, [[0]])
 
     #----------------
+    def exchange_stats(self, proto, src, nrepeat):
+        # run _try_exchange nrepeat times on sublattice 0 and
+        # return the list of (stat, info)
+        model = DFTLatticeGas(StabCalculator(),
+                              save_history = False,
+                              enable_grandcanonical = False,
+                              gc_ratio = 0.0,
+                              debug = True)
+        pp = [ [ { 'name': q, 'num': src[i][k] } for k,q in enumerate(p) ] for i,p in enumerate(proto) ]
+        params = DFTConfigParams.from_dict(Params().create_params(pp)['config'])
+        config = defect_config(params)
+        return [ model._try_exchange(config.defect_sublattices[0]) for _ in range(nrepeat) ]
+
+    #----------------
+    def test_exchange_skips_unoccupied_groups(self):
+        # fully occupied sublattice: the vacancy group has zero sites and
+        # must never be chosen, so every trial is a real exchange
+        N = 24
+        for proto, src in [ ([['A','B']], [[N//2, N//2]]),
+                            ([['A','B','C']], [[N//3, N//3, N//3]]),
+                            ([['A','B']], [[N, 0]]) ]:
+            results = self.exchange_stats(proto, src, 200)
+            if proto == [['A','B']] and src == [[N, 0]]:
+                # only one occupied group: nothing to exchange
+                self.assertTrue(all(stat is False for stat, info in results))
+            else:
+                self.assertTrue(all(stat is True for stat, info in results))
+                chosen = set()
+                for stat, info in results:
+                    chosen.add(info['ex1_group'])
+                    chosen.add(info['ex2_group'])
+                self.assertEqual(chosen, set(proto[0]))
+
+    #----------------
+    def test_exchange_uses_vacancy_when_present(self):
+        # with a vacancy the vacancy group is a regular exchange partner
+        N = 24
+        results = self.exchange_stats([['A','B']], [[N//2, N//2 - 1]], 300)
+        self.assertTrue(all(stat is True for stat, info in results))
+        chosen = set()
+        for stat, info in results:
+            chosen.add(info['ex1_group'])
+            chosen.add(info['ex2_group'])
+        self.assertEqual(chosen, {'A', 'B', '@'})
+
+    #----------------
+    def test_trialstep_rotate_only_when_single_group_occupied(self):
+        # a sublattice filled by one orientable group must only try rotations
+        N = 24
+        model = DFTLatticeGas(StabCalculator(),
+                              save_history = False,
+                              enable_grandcanonical = False,
+                              gc_ratio = 0.0,
+                              debug = True)
+        pp = [ [ { 'name': 'A', 'num': N } ] ]
+        p = Params().create_params(pp)
+        # give group A two orientations
+        p['config']['defect_structure'][0]['groups'][0]['coords'] = [[[0,0,0]], [[0,0,0.1]]]
+        params = DFTConfigParams.from_dict(p['config'])
+        config = defect_config(params)
+        model.energy(config)
+        for _ in range(50):
+            dconfig, dE, info = model.trialstep(config, config.energy)
+            self.assertEqual(info['mode'], 'rotate')
+            self.assertEqual(info['result'], 'ok')
+
+    #----------------
     def test_exchange_2species(self):
         proto = [ ['A', 'B'], ['A', 'B'] ]
         N = 12
