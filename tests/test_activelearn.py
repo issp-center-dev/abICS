@@ -37,7 +37,7 @@ def write_mc_replica(mc_replica_dir, energies, with_oxygen=True):
 
 
 class TestReferenceCandidates(unittest.TestCase):
-    def test_default_candidates_follow_obs_dat_and_obs_save(self):
+    def test_default_candidates_follow_obs_dat(self):
         energies = [-1.0, -2.0, -3.0, -4.0]
         with tempfile.TemporaryDirectory() as tmpdir:
             mcdir = os.path.join(tmpdir, "MC0", "0")
@@ -55,6 +55,40 @@ class TestReferenceCandidates(unittest.TestCase):
                 candidates[2].structure_norel_file,
                 os.path.join(mcdir, "structure_norel.2.vasp"),
             )
+
+    def test_energies_come_from_the_line_of_the_structure(self):
+        # print_frequency = 2 * sample_frequency: obs_save.npy has twice as
+        # many rows as obs.dat, and structure.<i>.vasp belongs to line i of
+        # obs.dat, not to row i of obs_save.npy.
+        printed = [-1.0, -3.0, -5.0]
+        saved = [-1.0, -2.0, -3.0, -4.0, -5.0, -6.0]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            mcdir = os.path.join(tmpdir, "MC0", "0")
+            write_mc_replica(mcdir, printed)
+            np.save(
+                os.path.join(mcdir, "obs_save.npy"),
+                np.column_stack((np.array(saved), np.zeros(len(saved)))),
+            )
+
+            candidates = al.reference_candidates(mcdir, "RXMC")
+
+            self.assertEqual([c.index for c in candidates], [0, 1, 2])
+            self.assertEqual([c.energy for c in candidates], printed)
+
+    def test_energy_column_is_located_by_header_name(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "obs.dat"), "w") as f:
+                # a sampler with two parameters (e.g. kT and mu) before the observables
+                f.write("# $1: step\n# $2: kT\n# $3: mu\n# $4: energy\n# $5: doi\n")
+                f.write("0\t1000.0\t0.5\t-1.25\t0.1\n")
+                f.write("1\t1000.0\t0.5\t-2.5\t0.2\n")
+            self.assertEqual(al.read_obs_energies(tmpdir), [-1.25, -2.5])
+
+            # without a header: step, temperature, energy
+            with open(os.path.join(tmpdir, "obs.dat"), "w") as f:
+                f.write("0\t1000.0\t-1.0\n1\t1000.0\t-2.0\n")
+            self.assertEqual(al.read_obs_energies(tmpdir), [-1.0, -2.0])
+            self.assertEqual(al.count_mc_samples(tmpdir), 2)
 
     def test_registered_reader_is_used_for_its_sampler_only(self):
         def reader(mc_replica_dir):
@@ -74,6 +108,12 @@ class TestReferenceCandidates(unittest.TestCase):
             self.assertEqual([c.index for c in default], [0, 1])
         finally:
             del al._candidate_readers["testSampler"]
+
+    def test_refparams_reads_seed(self):
+        params = RefParams.from_dict({"nreplicas": 2, "ndata": 5, "seed": 123})
+        self.assertEqual(params.seed, 123)
+        self.assertEqual(params.sampler, "linspace")
+        self.assertEqual(RefParams.from_dict({"nreplicas": 2, "ndata": 5}).seed, 0)
 
     def test_select_candidates_linspace(self):
         candidates = [

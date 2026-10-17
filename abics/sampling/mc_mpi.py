@@ -86,6 +86,7 @@ class RefParams:
         params.nreplicas = d["nreplicas"]
         params.ndata = d["ndata"]
         params.sampler = d.get("sampler", "linspace")
+        params.seed = d.get("seed", 0)
         # params.nprocs_per_replica = d["nprocs_per_replica"]
         # params.nsteps = d["nsteps"]
         # params.sample_frequency = d.get("sample_frequency", 1)

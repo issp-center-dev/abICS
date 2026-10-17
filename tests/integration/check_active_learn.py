@@ -34,9 +34,9 @@ active-learning scripts can be verified not to change it:
   ``energy_corr.dat`` (MLIP energy, reference energy, MC sample index) and,
   for ``n >= 1``, ``relax_max.dat``.
 * For ``n >= 1`` the MLIP energies in ``energy_corr.dat`` are the ones
-  recorded by ``MC<n-1>`` in ``obs_save.npy`` for the selected samples,
-  and the reference energies are reproduced by the mock solver from
-  ``structure.<i>.vasp``.
+  recorded by ``MC<n-1>`` in ``obs.dat`` on the lines of the selected
+  samples, and the reference energies are reproduced by the mock solver
+  from ``structure.<i>.vasp``.
 * ``MC<n>/<replica>/`` holds the sampled structures and observables.
 * For ``n >= 1``, ``AL<n>/convergence.dat`` reproduces the error statistics
   (RMSE, MAE, largest error) of ``energy_corr.dat`` per replica and overall.
@@ -150,11 +150,19 @@ def check_al_step(n, r, params, nsamples, calc_energy):
                 f"{corr_path}: sample indices must be {ndata} distinct values "
                 f"in [0, {nsamples})",
             )
-        obs = np.load(os.path.join(f"MC{n - 1}", str(r), "obs_save.npy"))
-        expected_mlip = obs[steps, 0] + energy_ref * mult
+        # The MLIP energy of sample i is the energy on line i of obs.dat
+        # (columns: step, kT, energy, ... for RXMC), the line for which
+        # structure.<i>.vasp was written.
+        obs_lines = []
+        with open(os.path.join(f"MC{n - 1}", str(r), "obs.dat")) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    obs_lines.append(float(line.split()[2]))
+        expected_mlip = np.array(obs_lines)[steps] + energy_ref * mult
         check(
             np.allclose(ene_mlip, expected_mlip, rtol=1e-10, atol=1e-8),
-            f"{corr_path}: MLIP energies do not match MC{n - 1}/{r}/obs_save.npy",
+            f"{corr_path}: MLIP energies do not match MC{n - 1}/{r}/obs.dat",
         )
 
     check(

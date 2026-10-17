@@ -205,35 +205,60 @@ def reference_candidates(mc_replica_dir: str, sampler_type: str) -> List[Referen
 
 def count_mc_samples(mc_replica_dir: str) -> int:
     """Number of samples recorded in ``obs.dat`` of one replica."""
-    nsamples = 0
+    return len(read_obs_energies(mc_replica_dir))
+
+
+def read_obs_energies(mc_replica_dir: str) -> List[float]:
+    """Energies of the samples recorded in ``obs.dat`` of one replica, in file order.
+
+    ``obs.dat`` is written by ``ObserverBase.observe``: a header of lines
+    ``# $<column>: <name>`` (step, the sampler's parameters such as the
+    temperature, then the observables, ``energy`` first), followed by one
+    line per sample.  The energy column is located by its header name;
+    without a header the third column is used (step, temperature, energy).
+    """
+    energies: List[float] = []
+    energy_column: Optional[int] = None
     with open(os.path.join(mc_replica_dir, "obs.dat")) as f:
         for line in f:
             line = line.strip()
-            if line.startswith("#"):
+            if not line:
                 continue
-            nsamples += 1
-    return nsamples
+            if line.startswith("#"):
+                # "# $3: energy"
+                fields = line[1:].split(":", 1)
+                if len(fields) == 2 and fields[1].strip() == "energy":
+                    column = fields[0].strip()
+                    if column.startswith("$") and column[1:].isdigit():
+                        energy_column = int(column[1:]) - 1
+                continue
+            if energy_column is None:
+                energy_column = 2
+            energies.append(float(line.split()[energy_column]))
+    return energies
 
 
 def default_candidates(mc_replica_dir: str) -> List[ReferenceCandidate]:
     """Candidates from the output layout written by ``DefaultObserver``.
 
-    ``obs.dat`` has one line per sample, ``structure.<i>.vasp`` and
+    ``obs.dat`` has one line per sample, and ``structure.<i>.vasp`` and
     ``structure_norel.<i>.vasp`` are written by ``DefaultObserver.writefile``
-    with the line number ``i``, and column 0 of ``obs_save.npy`` is the
-    energy.  All samplers shipped with abICS (RXMC, PAMC, parallelRand,
-    parallelMC) use this layout.
+    for the sample on line ``i``.  The energy of each candidate is taken
+    from the same line of ``obs.dat``, so that it belongs to the structure
+    even when ``print_frequency`` differs from ``sample_frequency``
+    (``obs_save.npy`` has one row per ``sample_frequency`` steps instead).
+    All samplers shipped with abICS (RXMC, PAMC, parallelRand, parallelMC)
+    use this layout.
     """
-    nsamples = count_mc_samples(mc_replica_dir)
-    obs = np.load(os.path.join(mc_replica_dir, "obs_save.npy"))
+    energies = read_obs_energies(mc_replica_dir)
     return [
         ReferenceCandidate(
             index=i,
             structure_file=os.path.join(mc_replica_dir, f"structure.{i}.vasp"),
             structure_norel_file=os.path.join(mc_replica_dir, f"structure_norel.{i}.vasp"),
-            energy=obs[i, 0],
+            energy=energy,
         )
-        for i in range(nsamples)
+        for i, energy in enumerate(energies)
     ]
 
 

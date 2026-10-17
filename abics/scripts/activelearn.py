@@ -262,11 +262,6 @@ def main_impl(params_root: MutableMapping):
         ALstep = nextMC_index
         aldir = os.path.join(rootdir, f"AL{ALstep}")
         replica_dir = os.path.join(aldir, str(myreplica))
-        # NOTE: the Config object is not used below, but constructing it calls
-        # Config.shuffle() and thus advances the random number generator.
-        # It is kept so that the random perturbations (and the "random"
-        # sampler) stay identical to those of earlier versions of abics_mlref.
-        config = defect_config(configparams)
 
         if exists_on_all_nodes(comm, replica_dir):  # We're going to read solver results
             # (wait until baseinput.progress is seen consistently from all ranks)
