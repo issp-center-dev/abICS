@@ -15,7 +15,7 @@ rm -rf ./MC1
 rm -rf ./nequipXSF
 rm -rf ./train0
 rm -rf ./generate0
-rm -rf ./baseinput
+rm -rf ./baseinput_allegro
 
 sh ./AL.sh
 sh ./MC.sh
