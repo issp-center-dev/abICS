@@ -178,7 +178,7 @@ class ReferenceCandidate:
     structure_norel_file: str
     "Structure before the solver run, including the ignored species"
     energy: float
-    "Energy of the structure predicted by the model used for sampling"
+    "Internal energy of the structure predicted by the model used for sampling (comparable with the solver's total energy)"
     weight: float = 1.0
     "Relative statistical weight of the sample (1 for samples of a Boltzmann distribution)"
 
@@ -208,34 +208,60 @@ def count_mc_samples(mc_replica_dir: str) -> int:
     return len(read_obs_energies(mc_replica_dir))
 
 
+ENERGY_COLUMN_NAMES = ("energy_internal", "energy")
+"""Header names of the internal energy in ``obs.dat``, in order of preference.
+
+``DefaultObserver`` records both ``energy_internal`` (the energy of the
+configuration, to be compared with the solver's total energy) and
+``energy`` (the quantity sampled, which differs from the internal energy
+in grand-canonical runs); other observers may only record ``energy``.
+"""
+
+
 def read_obs_energies(mc_replica_dir: str) -> List[float]:
-    """Energies of the samples recorded in ``obs.dat`` of one replica, in file order.
+    """Internal energies of the samples recorded in ``obs.dat`` of one replica, in file order.
 
     ``obs.dat`` is written by ``ObserverBase.observe``: a header of lines
     ``# $<column>: <name>`` (step, the sampler's parameters such as the
-    temperature, then the observables, ``energy`` first), followed by one
-    line per sample.  The energy column is located by its header name;
-    without a header the third column is used (step, temperature, energy).
+    temperature, then the observables), followed by one line per sample.
+    The energy column is located by its header name
+    (:data:`ENERGY_COLUMN_NAMES`).  If ``obs.dat`` has no header, the
+    energies are taken from column 0 of ``obs_save.npy`` (the internal
+    energy), which corresponds line by line to ``obs.dat`` only when
+    ``print_frequency`` equals ``sample_frequency``; a warning is logged.
     """
-    energies: List[float] = []
-    energy_column: Optional[int] = None
+    columns: Dict[str, int] = {}
+    lines: List[List[str]] = []
     with open(os.path.join(mc_replica_dir, "obs.dat")) as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
             if line.startswith("#"):
-                # "# $3: energy"
+                # "# $3: energy_internal"
                 fields = line[1:].split(":", 1)
-                if len(fields) == 2 and fields[1].strip() == "energy":
-                    column = fields[0].strip()
-                    if column.startswith("$") and column[1:].isdigit():
-                        energy_column = int(column[1:]) - 1
+                column = fields[0].strip()
+                if len(fields) == 2 and column.startswith("$") and column[1:].isdigit():
+                    columns[fields[1].strip()] = int(column[1:]) - 1
                 continue
-            if energy_column is None:
-                energy_column = 2
-            energies.append(float(line.split()[energy_column]))
-    return energies
+            lines.append(line.split())
+
+    for name in ENERGY_COLUMN_NAMES:
+        if name in columns:
+            return [float(fields[columns[name]]) for fields in lines]
+
+    logger.warning(
+        f"{mc_replica_dir}/obs.dat has no header naming the energy column; "
+        "taking the energies from obs_save.npy, which match the structures only if "
+        "print_frequency equals sample_frequency."
+    )
+    obs = np.load(os.path.join(mc_replica_dir, "obs_save.npy"))
+    if obs.shape[0] < len(lines):
+        raise ValueError(
+            f"{mc_replica_dir}/obs_save.npy has {obs.shape[0]} rows but obs.dat has "
+            f"{len(lines)} samples; the energies of the samples cannot be determined."
+        )
+    return [float(obs[i, 0]) for i in range(len(lines))]
 
 
 def default_candidates(mc_replica_dir: str) -> List[ReferenceCandidate]:

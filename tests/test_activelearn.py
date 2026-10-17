@@ -17,9 +17,12 @@ def write_mc_replica(mc_replica_dir, energies, with_oxygen=True):
     os.makedirs(mc_replica_dir)
     lattice = Lattice.cubic(4.0)
     with open(os.path.join(mc_replica_dir, "obs.dat"), "w") as f:
-        f.write("# $1: step\n# $2: kT\n# $3: energy\n")
+        # the layout of DefaultObserver: the "energy" column (the sampled
+        # quantity, e.g. the grand potential) is deliberately different from
+        # "energy_internal" so that tests notice which column is read
+        f.write("# $1: step\n# $2: Temperature\n# $3: energy_internal\n# $4: energy\n")
         for i, energy in enumerate(energies):
-            f.write(f"{i}\t1000.0\t{energy}\n")
+            f.write(f"{i}\t1000.0\t{energy}\t{energy - 0.5}\n")
     np.save(
         os.path.join(mc_replica_dir, "obs_save.npy"),
         np.column_stack((np.array(energies), np.zeros(len(energies)))),
@@ -78,17 +81,37 @@ class TestReferenceCandidates(unittest.TestCase):
     def test_energy_column_is_located_by_header_name(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             with open(os.path.join(tmpdir, "obs.dat"), "w") as f:
-                # a sampler with two parameters (e.g. kT and mu) before the observables
-                f.write("# $1: step\n# $2: kT\n# $3: mu\n# $4: energy\n# $5: doi\n")
-                f.write("0\t1000.0\t0.5\t-1.25\t0.1\n")
-                f.write("1\t1000.0\t0.5\t-2.5\t0.2\n")
+                # a sampler with two parameters (e.g. kT and mu) before the
+                # observables; energy_internal is preferred over energy
+                f.write("# $1: step\n# $2: kT\n# $3: mu\n# $4: energy_internal\n# $5: energy\n# $6: doi\n")
+                f.write("0\t1000.0\t0.5\t-1.25\t-1.75\t0.1\n")
+                f.write("1\t1000.0\t0.5\t-2.5\t-3.0\t0.2\n")
             self.assertEqual(al.read_obs_energies(tmpdir), [-1.25, -2.5])
 
-            # without a header: step, temperature, energy
+            # an observer that only records "energy"
             with open(os.path.join(tmpdir, "obs.dat"), "w") as f:
+                f.write("# $1: step\n# $2: kT\n# $3: energy\n")
                 f.write("0\t1000.0\t-1.0\n1\t1000.0\t-2.0\n")
             self.assertEqual(al.read_obs_energies(tmpdir), [-1.0, -2.0])
             self.assertEqual(al.count_mc_samples(tmpdir), 2)
+
+    def test_energies_without_header_fall_back_to_obs_save(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with open(os.path.join(tmpdir, "obs.dat"), "w") as f:
+                f.write("0\t1000.0\t-1.0\t-1.5\n1\t1000.0\t-2.0\t-2.5\n")
+            np.save(
+                os.path.join(tmpdir, "obs_save.npy"),
+                np.array([[-1.0, -1.5], [-2.0, -2.5], [-3.0, -3.5]]),
+            )
+            with self.assertLogs("main", level="WARNING") as logs:
+                self.assertEqual(al.read_obs_energies(tmpdir), [-1.0, -2.0])
+            self.assertIn("no header", logs.output[0])
+
+            # obs_save.npy shorter than obs.dat: the energies cannot be determined
+            np.save(os.path.join(tmpdir, "obs_save.npy"), np.array([[-1.0, -1.5]]))
+            with self.assertLogs("main", level="WARNING"):
+                with self.assertRaises(ValueError):
+                    al.read_obs_energies(tmpdir)
 
     def test_registered_reader_is_used_for_its_sampler_only(self):
         def reader(mc_replica_dir):

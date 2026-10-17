@@ -150,15 +150,21 @@ def check_al_step(n, r, params, nsamples, calc_energy):
                 f"{corr_path}: sample indices must be {ndata} distinct values "
                 f"in [0, {nsamples})",
             )
-        # The MLIP energy of sample i is the energy on line i of obs.dat
-        # (columns: step, kT, energy, ... for RXMC), the line for which
-        # structure.<i>.vasp was written.
+        # The MLIP energy of sample i is the internal energy on line i of
+        # obs.dat (the column named "energy_internal" in its header), the
+        # line for which structure.<i>.vasp was written.
         obs_lines = []
+        column = None
         with open(os.path.join(f"MC{n - 1}", str(r), "obs.dat")) as f:
             for line in f:
                 line = line.strip()
-                if line and not line.startswith("#"):
-                    obs_lines.append(float(line.split()[2]))
+                if line.startswith("#"):
+                    name, _, label = line[1:].partition(":")
+                    if label.strip() == "energy_internal":
+                        column = int(name.strip().lstrip("$")) - 1
+                elif line:
+                    obs_lines.append(float(line.split()[column]))
+        check(column is not None, f"MC{n - 1}/{r}/obs.dat: no energy_internal column in header")
         expected_mlip = np.array(obs_lines)[steps] + energy_ref * mult
         check(
             np.allclose(ene_mlip, expected_mlip, rtol=1e-10, atol=1e-8),
