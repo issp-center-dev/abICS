@@ -84,6 +84,21 @@ class TestReferenceCandidates(unittest.TestCase):
 
         self.assertEqual([c.index for c in selected], [0, 3, 6, 9])
 
+    def test_select_candidates_rejects_ndata_larger_than_samples(self):
+        candidates = [
+            al.ReferenceCandidate(i, f"s{i}", f"n{i}", float(i)) for i in range(4)
+        ]
+        refparams = RefParams()
+        refparams.ndata = 5
+        for sampler in ("linspace", "random"):
+            refparams.sampler = sampler
+            with self.assertRaises(ValueError) as cm:
+                al.select_candidates(candidates, refparams)
+            self.assertIn("ndata = 5", str(cm.exception))
+        refparams.ndata = 4
+        refparams.sampler = "linspace"
+        self.assertEqual(len(al.select_candidates(candidates, refparams)), 4)
+
     def test_select_candidates_random_is_a_sorted_subset(self):
         candidates = [
             al.ReferenceCandidate(i, f"s{i}", f"n{i}", float(i)) for i in range(10)
@@ -188,7 +203,15 @@ class TestErrorStatistics(unittest.TestCase):
                 os.path.join(aldir, "1", "energy_corr.dat"), [(-1.0, -1.0, 0), (-3.0, -2.0, 8)]
             )
 
-            per_replica, overall = al.al_step_error_statistics(aldir, 2)
+            rows = al.read_al_step_rows(aldir, 2)
+            self.assertEqual([r.shape for r in rows], [(2, 3), (2, 3)])
+            per_replica, overall = al.al_step_error_statistics(rows)
+            # the same from in-memory rows as gathered by abics_mlref (lists of tuples)
+            per_replica_mem, overall_mem = al.al_step_error_statistics(
+                [[(-1.0, -1.5, 0), (-2.0, -2.0, 8)], [(-1.0, -1.0, 0), (-3.0, -2.0, 8)]]
+            )
+            self.assertEqual(per_replica_mem, per_replica)
+            self.assertEqual(overall_mem, overall)
             self.assertEqual([r for r, _ in per_replica], [0, 1])
             self.assertAlmostEqual(per_replica[0][1].max_error, 0.5)
             self.assertEqual(per_replica[0][1].max_error_sample, 0)

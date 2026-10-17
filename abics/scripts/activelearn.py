@@ -287,21 +287,29 @@ def main_impl(params_root: MutableMapping):
             relax_max = []
             rundir_list = []
             sample_list = al.list_input_indices(replica_dir)
+            missing = [i for i in sample_list if i not in energy_ref]
+            if missing:
+                logger.error(
+                    f"No sample of {MCdirname}/{myreplica} corresponds to the input directories "
+                    f"{[fmtstr.format(i) for i in missing]} of AL{ALstep}/{myreplica}."
+                )
+                logger.error("The MC output or the sampler setting ([sampling] sampler) has changed since the inputs were generated.")
+                comm.Abort(1)
             for i in sample_list:
                 input_dir = os.path.join(replica_dir, fmtstr.format(i))
                 if finalrun:
+                    # structure before perturbation: used to restore the ignored species
+                    # and to measure the relaxation
+                    st_in = Structure.from_file(os.path.join(input_dir, "initial.vasp"))
                     # energy_calculator may return the structure w/o ignored species
                     energy, st_rel = al.parse_reference_output(
-                        solver_output, input_dir, runstep, alparams.ignore_species
+                        solver_output, input_dir, runstep, alparams.ignore_species, st_in
                     )
                     st_rel.to(
                         fmt="POSCAR",
                         filename=os.path.join(replica_dir, f"structure.{i}.vasp"),
                     )
                     energy_corrlist.append((energy_ref[i], energy, i))
-
-                    # Examine relaxation against the structure before perturbation
-                    st_in = Structure.from_file(os.path.join(input_dir, "initial.vasp"))
                     relax_max.append(al.max_displacement(st_in, st_rel))
                 else:
                     energy, st_rel = al.parse_reference_output(solver_output, input_dir, runstep)
@@ -317,9 +325,11 @@ def main_impl(params_root: MutableMapping):
                 al.write_energy_corr(os.path.join(replica_dir, "energy_corr.dat"), energy_corrlist)
                 al.write_relax_max(os.path.join(replica_dir, "relax_max.dat"), relax_max)
                 # Errors of the model energies against the solver, over all replicas
-                comm.Barrier()
+                # (gathered in memory: rank 0 must not depend on seeing the files
+                # just written by the other ranks on a shared file system)
+                replica_rows = comm.gather(energy_corrlist, root=0)
                 if myreplica == 0:
-                    per_replica, overall = al.al_step_error_statistics(aldir, comm.Get_size())
+                    per_replica, overall = al.al_step_error_statistics(replica_rows)
                     lines = al.format_convergence(f"AL{ALstep}", per_replica, overall)
                     al.write_convergence(os.path.join(aldir, "convergence.dat"), lines)
                     logger.info(f"-Errors of the model energies against {alparams.solver} results (AL{ALstep}/convergence.dat):")

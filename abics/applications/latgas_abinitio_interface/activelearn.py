@@ -42,6 +42,7 @@ Directory layout (``rootdir`` is where ``abics_mlref`` is run)::
 from __future__ import annotations
 
 import glob
+import logging
 import os
 from dataclasses import dataclass
 from typing import Callable, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
@@ -52,6 +53,8 @@ from pymatgen.core import Structure
 from abics.applications.latgas_abinitio_interface.model_setup import (
     perturb_structure,
 )
+
+logger = logging.getLogger("main")
 
 PROGRESS_FILE = "ALloop.progress"
 STAGE_FILE = "baseinput.progress"
@@ -145,8 +148,11 @@ def generate_random_structures(config, ndata: int) -> Iterator[Structure]:
     random draws of shuffling and perturbation interleave per configuration.
     """
     for _ in range(ndata):
-        constraint_fullfilled, msg = config.shuffle()
-        print(msg)
+        status, msg = config.shuffle()
+        if status == 0:
+            logger.debug(msg)
+        else:
+            logger.warning(msg)
         config.structure.sort(key=lambda site: site.species_string)
         yield config.structure
 
@@ -241,6 +247,12 @@ def select_candidates(
     of them, evenly spaced or random).  The candidates' weights are not
     used by these two policies.
     """
+    if refparams.ndata > len(candidates):
+        raise ValueError(
+            f"[mlref] ndata = {refparams.ndata} exceeds the number of configurations "
+            f"sampled by the Monte Carlo run ({len(candidates)}); "
+            "reduce ndata or sample more configurations (nsteps / sample_frequency)."
+        )
     positions = refparams.sampling(len(candidates))
     return [candidates[i] for i in positions]
 
@@ -321,16 +333,19 @@ def parse_reference_output(
     input_dir: str,
     stage: int,
     ignore_species: Optional[Sequence[str]] = None,
+    initial_structure: Optional[Structure] = None,
 ) -> Tuple[float, Structure]:
     """Energy and final structure of one configuration from the solver output.
 
     If ``ignore_species`` is given, those species (absent from the solver
-    output) are restored from ``input_dir/initial.vasp``.
+    output) are restored from ``initial_structure``, or from
+    ``input_dir/initial.vasp`` when it is not given.
     """
     energy, st = solver_output.get_results(stage_dir(input_dir, stage))
     if ignore_species:
-        initial = Structure.from_file(os.path.join(input_dir, "initial.vasp"))
-        _append_ignored_species(st, initial, ignore_species)
+        if initial_structure is None:
+            initial_structure = Structure.from_file(os.path.join(input_dir, "initial.vasp"))
+        _append_ignored_species(st, initial_structure, ignore_species)
     return energy, st
 
 
@@ -424,17 +439,30 @@ def error_statistics(energy_corr: np.ndarray) -> ErrorStatistics:
 
 
 def al_step_error_statistics(
-    aldir: str, nreplicas: int
+    replica_rows: Sequence[np.ndarray],
 ) -> Tuple[List[Tuple[int, ErrorStatistics]], ErrorStatistics]:
-    """Error statistics of every replica of ``AL<n>`` and of all replicas together."""
+    """Error statistics of every replica and of all replicas together.
+
+    ``replica_rows[r]`` holds the rows of ``energy_corr.dat`` of replica
+    ``r`` (model energy, reference energy, sample index), as an array of
+    shape (n, 3).
+    """
     per_replica = []
     rows = []
-    for replica in range(nreplicas):
-        corr = read_energy_corr(os.path.join(aldir, str(replica), "energy_corr.dat"))
+    for replica, corr in enumerate(replica_rows):
+        corr = np.asarray(corr, dtype=float).reshape(-1, 3)
         per_replica.append((replica, error_statistics(corr)))
         rows.append(corr)
     overall = error_statistics(np.concatenate(rows) if rows else np.zeros((0, 3)))
     return per_replica, overall
+
+
+def read_al_step_rows(aldir: str, nreplicas: int) -> List[np.ndarray]:
+    """Rows of ``energy_corr.dat`` of every replica of ``AL<n>``, for :func:`al_step_error_statistics`."""
+    return [
+        read_energy_corr(os.path.join(aldir, str(replica), "energy_corr.dat"))
+        for replica in range(nreplicas)
+    ]
 
 
 def format_convergence(
