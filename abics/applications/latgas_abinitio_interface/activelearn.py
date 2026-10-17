@@ -369,3 +369,100 @@ def write_relax_max(path: str, rows: Iterable[Tuple[int, float]]) -> None:
     with open(path, "w") as fi:
         for dmax_id, dmax in rows:
             fi.write("{} \t {}\n".format(dmax_id, dmax))
+
+
+# ---------------------------------------------------------------------------
+# Error statistics of the model against the reference solver
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ErrorStatistics:
+    """Errors of the model energies against the reference energies of one AL step."""
+
+    n: int
+    "Number of configurations with both energies available"
+    rmse: float
+    "Root mean square error"
+    mae: float
+    "Mean absolute error"
+    max_error: float
+    "Largest absolute error"
+    max_error_sample: int
+    "Sample index of the configuration with the largest error (-1 if n == 0)"
+
+
+def read_energy_corr(path: str) -> np.ndarray:
+    """Rows of ``energy_corr.dat`` as an array of shape (n, 3)."""
+    return np.loadtxt(path, ndmin=2)
+
+
+def error_statistics(energy_corr: np.ndarray) -> ErrorStatistics:
+    """Error statistics from rows of ``energy_corr.dat`` (model, reference, sample).
+
+    Rows whose model energy is not available (``NaN``, as in ``AL0``) are
+    skipped.  Errors are in the units of the energies, i.e. per supercell.
+    """
+    if len(energy_corr) == 0:
+        return ErrorStatistics(0, float("nan"), float("nan"), float("nan"), -1)
+    ene_model = energy_corr[:, 0]
+    ene_ref = energy_corr[:, 1]
+    samples = energy_corr[:, 2].astype(int)
+    valid = np.isfinite(ene_model) & np.isfinite(ene_ref)
+    n = int(valid.sum())
+    if n == 0:
+        return ErrorStatistics(0, float("nan"), float("nan"), float("nan"), -1)
+    diff = ene_model[valid] - ene_ref[valid]
+    imax = int(np.argmax(np.abs(diff)))
+    return ErrorStatistics(
+        n=n,
+        rmse=float(np.sqrt(np.mean(diff**2))),
+        mae=float(np.mean(np.abs(diff))),
+        max_error=float(np.abs(diff[imax])),
+        max_error_sample=int(samples[valid][imax]),
+    )
+
+
+def al_step_error_statistics(
+    aldir: str, nreplicas: int
+) -> Tuple[List[Tuple[int, ErrorStatistics]], ErrorStatistics]:
+    """Error statistics of every replica of ``AL<n>`` and of all replicas together."""
+    per_replica = []
+    rows = []
+    for replica in range(nreplicas):
+        corr = read_energy_corr(os.path.join(aldir, str(replica), "energy_corr.dat"))
+        per_replica.append((replica, error_statistics(corr)))
+        rows.append(corr)
+    overall = error_statistics(np.concatenate(rows) if rows else np.zeros((0, 3)))
+    return per_replica, overall
+
+
+def format_convergence(
+    label: str,
+    per_replica: Sequence[Tuple[int, ErrorStatistics]],
+    overall: ErrorStatistics,
+) -> List[str]:
+    """Lines of ``convergence.dat`` (also suitable for logging)."""
+    lines = [
+        f"# {label}: errors of the model energies against the reference solver",
+        "# (per supercell, in the units of energy_corr.dat)",
+        "# replica  n  rmse  mae  max_error  max_error_sample",
+    ]
+    for replica, stats in per_replica:
+        lines.append(_format_stats_row(str(replica), stats))
+    lines.append(_format_stats_row("all", overall))
+    return lines
+
+
+def _format_stats_row(name: str, stats: ErrorStatistics) -> str:
+    return (
+        f"{name}  {stats.n}  {stats.rmse:.6g}  {stats.mae:.6g}  "
+        f"{stats.max_error:.6g}  {stats.max_error_sample}"
+    )
+
+
+def write_convergence(path: str, lines: Iterable[str]) -> None:
+    """Write the lines of :func:`format_convergence` to ``convergence.dat``."""
+    with open(path, "w") as fi:
+        for line in lines:
+            fi.write(line + "\n")

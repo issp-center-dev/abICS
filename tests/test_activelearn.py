@@ -153,5 +153,61 @@ class TestBookkeeping(unittest.TestCase):
                 self.assertEqual(f.read(), "3 \t 0.05\n")
 
 
+class TestErrorStatistics(unittest.TestCase):
+    def test_error_statistics_skips_nan_rows(self):
+        corr = np.array(
+            [
+                [np.nan, -1.0, 0],
+                [-2.0, -2.5, 8],  # error 0.5
+                [-3.0, -2.0, 17],  # error 1.0
+            ]
+        )
+        stats = al.error_statistics(corr)
+        self.assertEqual(stats.n, 2)
+        self.assertAlmostEqual(stats.rmse, np.sqrt((0.25 + 1.0) / 2))
+        self.assertAlmostEqual(stats.mae, 0.75)
+        self.assertAlmostEqual(stats.max_error, 1.0)
+        self.assertEqual(stats.max_error_sample, 17)
+
+    def test_error_statistics_without_valid_rows(self):
+        stats = al.error_statistics(np.array([[np.nan, -1.0, 0]]))
+        self.assertEqual(stats.n, 0)
+        self.assertTrue(np.isnan(stats.rmse))
+        self.assertEqual(stats.max_error_sample, -1)
+        self.assertEqual(al.error_statistics(np.zeros((0, 3))).n, 0)
+
+    def test_al_step_statistics_and_convergence_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            aldir = os.path.join(tmpdir, "AL1")
+            os.makedirs(os.path.join(aldir, "0"))
+            os.makedirs(os.path.join(aldir, "1"))
+            al.write_energy_corr(
+                os.path.join(aldir, "0", "energy_corr.dat"), [(-1.0, -1.5, 0), (-2.0, -2.0, 8)]
+            )
+            al.write_energy_corr(
+                os.path.join(aldir, "1", "energy_corr.dat"), [(-1.0, -1.0, 0), (-3.0, -2.0, 8)]
+            )
+
+            per_replica, overall = al.al_step_error_statistics(aldir, 2)
+            self.assertEqual([r for r, _ in per_replica], [0, 1])
+            self.assertAlmostEqual(per_replica[0][1].max_error, 0.5)
+            self.assertEqual(per_replica[0][1].max_error_sample, 0)
+            self.assertAlmostEqual(per_replica[1][1].max_error, 1.0)
+            self.assertEqual(per_replica[1][1].max_error_sample, 8)
+            self.assertEqual(overall.n, 4)
+            self.assertAlmostEqual(overall.mae, (0.5 + 0.0 + 0.0 + 1.0) / 4)
+            self.assertAlmostEqual(overall.rmse, np.sqrt((0.25 + 1.0) / 4))
+
+            lines = al.format_convergence("AL1", per_replica, overall)
+            path = os.path.join(aldir, "convergence.dat")
+            al.write_convergence(path, lines)
+            with open(path) as f:
+                content = f.read().splitlines()
+            data = [line.split() for line in content if not line.startswith("#")]
+            self.assertEqual([row[0] for row in data], ["0", "1", "all"])
+            self.assertEqual(data[2][1], "4")
+            self.assertAlmostEqual(float(data[2][3]), 0.375)
+
+
 if __name__ == "__main__":
     unittest.main()

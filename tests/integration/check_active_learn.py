@@ -38,6 +38,8 @@ active-learning scripts can be verified not to change it:
   and the reference energies are reproduced by the mock solver from
   ``structure.<i>.vasp``.
 * ``MC<n>/<replica>/`` holds the sampled structures and observables.
+* For ``n >= 1``, ``AL<n>/convergence.dat`` reproduces the error statistics
+  (RMSE, MAE, largest error) of ``energy_corr.dat`` per replica and overall.
 
 The reference solver of the test must be ``mock.py`` in the test directory
 (``mlref.solver.function = "mock.calc_energy"``).
@@ -201,6 +203,56 @@ def check_al_step(n, r, params, nsamples, calc_energy):
         )
 
 
+def check_convergence(n, nreplicas):
+    """AL<n>/convergence.dat (n >= 1) reproduces the statistics of energy_corr.dat."""
+    path = os.path.join(f"AL{n}", "convergence.dat")
+    check(os.path.isfile(path), f"{path} does not exist")
+    rows = {}
+    with open(path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            fields = line.split()
+            check(len(fields) == 6, f"{path}: expected 6 columns, found {line!r}")
+            rows[fields[0]] = fields[1:]
+    expected_names = [str(r) for r in range(nreplicas)] + ["all"]
+    check(
+        list(rows) == expected_names,
+        f"{path}: expected rows {expected_names}, found {list(rows)}",
+    )
+
+    all_diff = []
+    for r in range(nreplicas):
+        corr = np.loadtxt(os.path.join(f"AL{n}", str(r), "energy_corr.dat"), ndmin=2)
+        diff = corr[:, 0] - corr[:, 1]
+        all_diff.append(diff)
+        _check_stats_row(path, str(r), rows[str(r)], diff, corr[:, 2].astype(int))
+    all_diff = np.concatenate(all_diff)
+    _check_stats_row(path, "all", rows["all"], all_diff, None)
+
+
+def _check_stats_row(path, name, fields, diff, samples):
+    n, rmse, mae, max_error, max_sample = fields
+    check(int(n) == len(diff), f"{path}: row {name}: n = {n}, expected {len(diff)}")
+    expected = {
+        "rmse": np.sqrt(np.mean(diff**2)),
+        "mae": np.mean(np.abs(diff)),
+        "max_error": np.max(np.abs(diff)),
+    }
+    for key, value in zip(("rmse", "mae", "max_error"), (rmse, mae, max_error)):
+        check(
+            np.isclose(float(value), expected[key], rtol=1e-5, atol=1e-9),
+            f"{path}: row {name}: {key} = {value}, expected {expected[key]}",
+        )
+    if samples is not None:
+        imax = int(np.argmax(np.abs(diff)))
+        check(
+            int(max_sample) == samples[imax],
+            f"{path}: row {name}: max_error_sample = {max_sample}, expected {samples[imax]}",
+        )
+
+
 def check_mc_step(n, r, nsamples):
     mcdir = os.path.join(f"MC{n}", str(r))
     check(os.path.isdir(mcdir), f"{mcdir} does not exist")
@@ -284,6 +336,8 @@ def main():
             for r in range(nreplicas):
                 check_al_step(n, r, params, nsamples, mock.calc_energy)
                 check_mc_step(n, r, nsamples)
+            if n > 0:
+                check_convergence(n, nreplicas)
         check_rundirs(nloops, nreplicas, ndata)
     except CheckFailure as e:
         print(f"CHECK FAILED: {e}")

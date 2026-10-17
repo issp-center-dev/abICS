@@ -316,6 +316,15 @@ def main_impl(params_root: MutableMapping):
             if finalrun:
                 al.write_energy_corr(os.path.join(replica_dir, "energy_corr.dat"), energy_corrlist)
                 al.write_relax_max(os.path.join(replica_dir, "relax_max.dat"), relax_max)
+                # Errors of the model energies against the solver, over all replicas
+                comm.Barrier()
+                if myreplica == 0:
+                    per_replica, overall = al.al_step_error_statistics(aldir, comm.Get_size())
+                    lines = al.format_convergence(f"AL{ALstep}", per_replica, overall)
+                    al.write_convergence(os.path.join(aldir, "convergence.dat"), lines)
+                    logger.info(f"-Errors of the model energies against {alparams.solver} results (AL{ALstep}/convergence.dat):")
+                    for line in lines:
+                        logger.info(f"  {line}")
                 finish(
                     comm, myreplica, rootdir, f"AL{ALstep}",
                     ["--Done. Please run abics_train next."],
