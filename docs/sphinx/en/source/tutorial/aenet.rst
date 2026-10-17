@@ -493,6 +493,9 @@ In the first step, we trained based on random configurations, thus the accuracy 
 Here, by repeating the step of calculating the energy again by first-principles calculation for the structure estimated by Monte Carlo and relearning it, we expect to improve the accuracy in the whole temperature range.
 
 This process can be calculated by repeating ``AL.sh`` and ``MC.sh`` in turn.
+From the second step on, ``abics_mlref`` writes the errors of the neural network potential against the first-principles energies
+of the sampled configurations to ``ALxx/convergence.dat`` (RMSE, MAE and the largest error per replica and overall; the energy pairs
+themselves are in ``ALxx/RANK/energy_corr.dat``), which helps to decide whether another round is needed.
 The actual result of the calculation of the inversion rate (DOI) is shown in the figure below.
 In this example, the first result is ``MC0``, followed by ``MC1``, ``MC2``, and so on.
 The first run is quite different from the others, thus we can expect that it is not accurate.
