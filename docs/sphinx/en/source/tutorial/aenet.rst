@@ -213,6 +213,8 @@ Preparation of input files for aenet
 
 Place the input files for aenet in the ``generate``, ``train``, and ``predict`` directories
 in the directory set in the ``base_input_dir`` of the ``[train]`` section.
+A template of the set of input files described below can also be generated from the abICS input file
+with the tool ``abics_gen_aenet_input`` (see :doc:`../tools/tools_gen_aenet_input`).
 
 generate
 ********

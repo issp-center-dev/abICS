@@ -224,6 +224,8 @@ aenet用の入力ファイル
 aenet用の入力ファイルを ``[train]`` セクションの ``base_input_dir`` で
 設定したディレクトリ内の ``generate`` 、 ``train`` 、および ``predict``
 ディレクトリに設置します。
+以下で説明する入力ファイル一式の雛形は、付属ツール ``abics_gen_aenet_input`` で
+abICS 入力ファイルから生成することもできます（ :doc:`../tools/tools_gen_aenet_input` 参照）。
 
 generate
 ********
