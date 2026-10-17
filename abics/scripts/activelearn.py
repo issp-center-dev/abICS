@@ -112,6 +112,8 @@ def finish_inputs(comm, replica: int, rootdir: str, rundir_list, messages) -> No
 def main_impl(params_root: MutableMapping):
     rxparams = RefParams.from_dict(params_root["mlref"])
     ndata = rxparams.ndata
+    # the sampler that produced the MC* directories (same default as abics_sampling)
+    sampler_type = params_root["sampling"].get("sampler", "RXMC")
     comm = RX_MPI_init(rxparams.nreplicas, rxparams.seed)
     alparams = ALParams.from_dict(params_root["mlref"]["solver"])
     mcparams = DFTParams.from_dict(params_root["sampling"]["solver"])
@@ -240,8 +242,6 @@ def main_impl(params_root: MutableMapping):
         # Active learning!
         MCdirname = f"MC{nextMC_index-1}"
         mc_replica_dir = os.path.join(rootdir, MCdirname, str(myreplica))
-        nsamples = al.count_mc_samples(mc_replica_dir)
-        fmtstr = al.input_dir_format(nsamples)
         last_li = al.last_progress(rootdir)
         if last_li != MCdirname:
             logger.error("The last action:")
@@ -250,8 +250,15 @@ def main_impl(params_root: MutableMapping):
             logger.error("You shouldn't run activelearn now.")
             logger.error("Either train (abics_train) or MC (abics_sampling) first.")
             sys.exit(1)
-        obs = np.load(os.path.join(mc_replica_dir, "obs_save.npy"))
-        energy_ref = obs[:, 0] + energy_ref_empty * mult_now
+        # Configurations sampled by MC{n-1} in this replica, independent of the sampler
+        candidates = al.reference_candidates(mc_replica_dir, sampler_type)
+        nsamples = len(candidates)
+        fmtstr = al.input_dir_format(nsamples)
+        # energy predicted by the current model, shifted to the solver's energy reference
+        energy_ref = {
+            candidate.index: candidate.energy + energy_ref_empty * mult_now
+            for candidate in candidates
+        }
         ALstep = nextMC_index
         aldir = os.path.join(rootdir, f"AL{ALstep}")
         replica_dir = os.path.join(aldir, str(myreplica))
@@ -328,16 +335,14 @@ def main_impl(params_root: MutableMapping):
             logger.info(f"--Configurations from MC{nextMC_index-1} will be converted to {alparams.solver} input")
             os.makedirs(replica_dir, exist_ok=False)
             solver_input.from_directory(alparams.base_input_dir[0])
-            sample_list = rxparams.sampling(nsamples)
+            selected = al.select_candidates(candidates, rxparams)
             rundir_list = []
             # We read structures from MC, but we also need to add ignored species.
             # We utilize structure_norel.*.vasp, which is the structure before solver run
             # in MC with ignored species.
-            structures = al.load_mc_structures(
-                mc_replica_dir, sample_list, mcparams.ignore_species
-            )
-            for i, structure in zip(sample_list, structures):
-                input_dir = os.path.join(replica_dir, fmtstr.format(i))
+            structures = al.load_candidate_structures(selected, mcparams.ignore_species)
+            for candidate, structure in zip(selected, structures):
+                input_dir = os.path.join(replica_dir, fmtstr.format(candidate.index))
                 rundir_list.append(
                     al.write_reference_input(solver_input, structure, perturb, input_dir)
                 )

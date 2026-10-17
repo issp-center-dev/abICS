@@ -43,8 +43,10 @@ from __future__ import annotations
 
 import glob
 import os
-from typing import Iterable, Iterator, Optional, Sequence, Tuple
+from dataclasses import dataclass
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple
 
+import numpy as np
 from pymatgen.core import Structure
 
 from abics.applications.latgas_abinitio_interface.model_setup import (
@@ -149,6 +151,52 @@ def generate_random_structures(config, ndata: int) -> Iterator[Structure]:
         yield config.structure
 
 
+# ---------------------------------------------------------------------------
+# Candidate configurations from a Monte Carlo run
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ReferenceCandidate:
+    """A configuration sampled by ``abics_sampling`` that may be sent to the reference solver.
+
+    This is the sampler-independent interface between the Monte Carlo output
+    and the selection of reference calculations: a sampler only has to
+    provide a list of these (see :func:`register_candidate_reader`).
+    """
+
+    index: int
+    "Index of the sample in the replica's trajectory (used to name the input directory)"
+    structure_file: str
+    "Structure as seen by the sampling solver (ignored species absent)"
+    structure_norel_file: str
+    "Structure before the solver run, including the ignored species"
+    energy: float
+    "Energy of the structure predicted by the model used for sampling"
+    weight: float = 1.0
+    "Relative statistical weight of the sample (1 for samples of a Boltzmann distribution)"
+
+
+CandidateReader = Callable[[str], List[ReferenceCandidate]]
+_candidate_readers: Dict[str, CandidateReader] = {}
+
+
+def register_candidate_reader(sampler_type: str, reader: CandidateReader) -> None:
+    """Register how to list the candidates of a sampler.
+
+    ``reader`` receives the replica directory (``MC<n>/<replica>``) and
+    returns the candidates in trajectory order.  Samplers that use the
+    output layout of ``DefaultObserver`` need no registration.
+    """
+    _candidate_readers[sampler_type] = reader
+
+
+def reference_candidates(mc_replica_dir: str, sampler_type: str) -> List[ReferenceCandidate]:
+    """Candidates sampled by ``sampler_type`` in one replica directory."""
+    reader = _candidate_readers.get(sampler_type, default_candidates)
+    return reader(mc_replica_dir)
+
+
 def count_mc_samples(mc_replica_dir: str) -> int:
     """Number of samples recorded in ``obs.dat`` of one replica."""
     nsamples = 0
@@ -161,22 +209,55 @@ def count_mc_samples(mc_replica_dir: str) -> int:
     return nsamples
 
 
-def load_mc_structures(
-    mc_replica_dir: str,
-    sample_list: Iterable[int],
+def default_candidates(mc_replica_dir: str) -> List[ReferenceCandidate]:
+    """Candidates from the output layout written by ``DefaultObserver``.
+
+    ``obs.dat`` has one line per sample, ``structure.<i>.vasp`` and
+    ``structure_norel.<i>.vasp`` are written by ``DefaultObserver.writefile``
+    with the line number ``i``, and column 0 of ``obs_save.npy`` is the
+    energy.  All samplers shipped with abICS (RXMC, PAMC, parallelRand,
+    parallelMC) use this layout.
+    """
+    nsamples = count_mc_samples(mc_replica_dir)
+    obs = np.load(os.path.join(mc_replica_dir, "obs_save.npy"))
+    return [
+        ReferenceCandidate(
+            index=i,
+            structure_file=os.path.join(mc_replica_dir, f"structure.{i}.vasp"),
+            structure_norel_file=os.path.join(mc_replica_dir, f"structure_norel.{i}.vasp"),
+            energy=obs[i, 0],
+        )
+        for i in range(nsamples)
+    ]
+
+
+def select_candidates(
+    candidates: Sequence[ReferenceCandidate], refparams
+) -> List[ReferenceCandidate]:
+    """Choose the candidates to be calculated with the reference solver.
+
+    ``refparams`` is the ``RefParams`` of the ``[mlref]`` section; its
+    ``sampling`` method gives the positions in ``candidates`` (``ndata``
+    of them, evenly spaced or random).  The candidates' weights are not
+    used by these two policies.
+    """
+    positions = refparams.sampling(len(candidates))
+    return [candidates[i] for i in positions]
+
+
+def load_candidate_structures(
+    candidates: Iterable[ReferenceCandidate],
     ignore_species: Optional[Sequence[str]],
 ) -> Iterator[Structure]:
-    """Structures sampled by ``abics_sampling``, with ignored species restored.
+    """Structures of the candidates, with ignored species restored.
 
-    ``structure.<i>.vasp`` lacks the species ignored by the sampling solver;
-    they are taken from ``structure_norel.<i>.vasp`` (the structure before
-    the solver run, which contains them).
+    ``structure_file`` lacks the species ignored by the sampling solver;
+    they are taken from ``structure_norel_file`` (the structure before the
+    solver run, which contains them).
     """
-    for i in sample_list:
-        st = Structure.from_file(os.path.join(mc_replica_dir, f"structure.{i}.vasp"))
-        ignore_structure = Structure.from_file(
-            os.path.join(mc_replica_dir, f"structure_norel.{i}.vasp")
-        )
+    for candidate in candidates:
+        st = Structure.from_file(candidate.structure_file)
+        ignore_structure = Structure.from_file(candidate.structure_norel_file)
         if ignore_species:
             _append_ignored_species(st, ignore_structure, ignore_species)
         st.sort(key=lambda site: site.species_string)
