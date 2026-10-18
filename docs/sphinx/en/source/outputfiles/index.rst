@@ -193,6 +193,12 @@ Example::
  1  10  0.213205  0.140375  0.513428  0
  all  20  0.235968  0.175193  0.513428  0
 
+``ALn/parity.png``
+-----------------------------------
+(``AL1`` and later, only when matplotlib is installed)
+Parity plot of ``energy_corr.dat``: the energy predicted by the machine-learning model against the reference energy,
+one colour per replica, with the diagonal as a guide.
+
 ``ALn/baseinput.progress``
 -----------------------------------
 (When several ``base_input_dir`` are given) The indices of the solver stages that have been completed.

@@ -494,3 +494,50 @@ def write_convergence(path: str, lines: Iterable[str]) -> None:
     with open(path, "w") as fi:
         for line in lines:
             fi.write(line + "\n")
+
+
+def write_parity_plot(path: str, label: str, replica_rows: Sequence[np.ndarray]) -> bool:
+    """Parity plot of the model energies against the reference energies.
+
+    One marker per configuration, coloured by replica, with the diagonal
+    as a guide; rows without a model energy (``AL0``) are skipped.
+    ``replica_rows`` is as for :func:`al_step_error_statistics`.
+    Returns ``False`` without writing anything when matplotlib is not
+    installed (it is an optional dependency of abICS).
+    """
+    try:
+        import matplotlib
+
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return False
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+    emin = np.inf
+    emax = -np.inf
+    for replica, rows in enumerate(replica_rows):
+        rows = np.asarray(rows, dtype=float).reshape(-1, 3)
+        valid = np.isfinite(rows[:, 0]) & np.isfinite(rows[:, 1])
+        if not valid.any():
+            continue
+        model = rows[valid, 0]
+        reference = rows[valid, 1]
+        ax.scatter(reference, model, s=18, alpha=0.8, label=f"replica {replica}")
+        emin = min(emin, reference.min(), model.min())
+        emax = max(emax, reference.max(), model.max())
+    if np.isfinite(emin) and np.isfinite(emax):
+        margin = 0.05 * (emax - emin) if emax > emin else 1.0
+        lim = (emin - margin, emax + margin)
+        ax.plot(lim, lim, color="gray", linewidth=0.8, zorder=0)
+        ax.set_xlim(lim)
+        ax.set_ylim(lim)
+        ax.legend(fontsize="small")
+    ax.set_xlabel("reference energy (eV / supercell)")
+    ax.set_ylabel("model energy (eV / supercell)")
+    ax.set_title(f"{label}: model vs reference")
+    ax.set_aspect("equal", adjustable="box")
+    fig.tight_layout()
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return True

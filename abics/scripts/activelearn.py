@@ -335,6 +335,10 @@ def main_impl(params_root: MutableMapping):
                     logger.info(f"-Errors of the model energies against {alparams.solver} results (AL{ALstep}/convergence.dat):")
                     for line in lines:
                         logger.info(f"  {line}")
+                    if al.write_parity_plot(os.path.join(aldir, "parity.png"), f"AL{ALstep}", replica_rows):
+                        logger.info(f"-Parity plot written to AL{ALstep}/parity.png")
+                    else:
+                        logger.info("-matplotlib is not available; no parity plot written")
                 finish(
                     comm, myreplica, rootdir, f"AL{ALstep}",
                     ["--Done. Please run abics_train next."],

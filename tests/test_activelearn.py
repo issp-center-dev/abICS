@@ -1,6 +1,9 @@
+import importlib.util
 import os
+import sys
 import tempfile
 import unittest
+import unittest.mock
 
 import numpy as np
 from pymatgen.core import Lattice, Structure
@@ -230,6 +233,29 @@ class TestErrorStatistics(unittest.TestCase):
             self.assertEqual([row[0] for row in data], ["0", "1", "all"])
             self.assertEqual(data[2][1], "4")
             self.assertAlmostEqual(float(data[2][3]), 0.375)
+
+
+class TestParityPlot(unittest.TestCase):
+    rows = [
+        [(-1.0, -1.5, 0), (-2.0, -2.0, 8)],
+        [(float("nan"), -1.0, 0), (-3.0, -2.0, 8)],
+    ]
+
+    @unittest.skipUnless(importlib.util.find_spec("matplotlib"), "matplotlib not installed")
+    def test_parity_plot_is_written(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "parity.png")
+            self.assertTrue(al.write_parity_plot(path, "AL1", self.rows))
+            self.assertGreater(os.path.getsize(path), 0)
+            with open(path, "rb") as f:
+                self.assertEqual(f.read(8), b"\x89PNG\r\n\x1a\n")
+
+    def test_parity_plot_is_skipped_without_matplotlib(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = os.path.join(tmpdir, "parity.png")
+            with unittest.mock.patch.dict(sys.modules, {"matplotlib": None}):
+                self.assertFalse(al.write_parity_plot(path, "AL1", self.rows))
+            self.assertFalse(os.path.exists(path))
 
 
 if __name__ == "__main__":
