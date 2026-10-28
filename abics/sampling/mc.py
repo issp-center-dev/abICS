@@ -149,7 +149,8 @@ class MCAlgorithm(metaclass=ABCMeta):
         output.close()
 
         logger.info("MCAlgorithm: acceptance = {}".format(self.naccepted/self.ntrials))
-        logger.info("MCAlgotithm: nfail = {} / ntrials = {}".format(self.nfail, self.ntrials))
+        logger.info("MCAlgorithm: ntrials = {}, naccepted = {}, nfail = {}".format(
+            self.ntrials, self.naccepted, self.nfail))
 
         if save_obs:
             np.save(open("obs_save.npy", "wb"), np.array(self.obs_save))
@@ -186,45 +187,11 @@ class CanonicalMonteCarlo(MCAlgorithm):
     # @profile
     def MCstep(self, nsubsteps_in_step: int = 1):
         for istep in range(nsubsteps_in_step):
-            dconfig, dE = self.model.trialstep(self.config, self.energy)
-            # if self.energy == float("inf"):
-            #    self.config = self.model.newconfig(self.config, dconfig)
-            #    self.energy = dE
-            accepted = True
-            if dE >= 0.0:
-                accept_probability = np.exp(-dE / self.kT)
-                trial_rand = rand.random()
-                accepted = trial_rand <= accept_probability
-
-            if accepted:
-                self.config = self.model.newconfig(self.config, dconfig)
-                self.energy += dE
-                self.naccepted += 1
-            self.ntrials += 1
-
-            logger.debug("MCstep: dE/kT = {:e}".format(dE/self.kT))
-            if dE >= 0.0:
-                logger.debug("MCstep: prob  = {}".format(accept_probability))
-                logger.debug("MCstep: rand  = {}".format(trial_rand))
-            logger.debug("MCstep: {}".format("accepted" if accepted else "rejected"))
-
-    def parameters(self):
-        return [self.kT]
-
-    def param_names(self):
-        return ["Temperature"]
-
-
-class WeightedCanonicalMonteCarlo(CanonicalMonteCarlo):
-    def __init__(self, model: Model, kT: float, config):
-        super().__init__(model, kT, config)
-
-    # @profile
-    def MCstep(self, nsubsteps_in_step: int = 1):
-        for istep in range(nsubsteps_in_step):
+            # trialstep may return (dconfig, dE) or (dconfig, dE, dW)
+            # where dW is the log of the proposal weight ratio.
+            # dW = NaN means that no move could be proposed;
+            # such a trial is counted in nfail and never accepted.
             dconfig, dE, *opt = self.model.trialstep(self.config, self.energy)
-
-            # ln weight factor
             dW = opt[0] if len(opt) > 0 else 0.0
 
             if np.isnan(dW):
@@ -255,6 +222,19 @@ class WeightedCanonicalMonteCarlo(CanonicalMonteCarlo):
                 logger.debug("MCstep: rand  = {}".format(trial_rand))
             logger.debug("MCstep: {}".format("accepted" if accepted else "rejected"))
 
+    def parameters(self):
+        return [self.kT]
+
+    def param_names(self):
+        return ["Temperature"]
+
+
+class WeightedCanonicalMonteCarlo(CanonicalMonteCarlo):
+    """Kept for backward compatibility; CanonicalMonteCarlo handles dW itself."""
+
+    def __init__(self, model: Model, kT: float, config):
+        super().__init__(model, kT, config)
+
 class RandomSampling(CanonicalMonteCarlo):
     def MCstep(self, nsubsteps_in_step: int = 1):
         if self.config is None:
@@ -274,3 +254,22 @@ def write_obs_header(output, calc_state: MCAlgorithm, observer: ObserverBase):
     for name in observer.obs_names():
         output.write(f"# ${i}: {name}\n")
         i+=1
+
+
+def write_acceptance_ratio(filename: str, Ts, ntrials, naccepted, nfail):
+    """
+    Write the acceptance ratio and the trial counts for each temperature.
+
+    Columns: temperature, acceptance ratio (naccepted / ntrials),
+    ntrials, naccepted, nfail. nfail is the number of trials for which
+    no move could be proposed; they are included in ntrials and never accepted.
+    """
+    with open(filename, "w") as f:
+        f.write("# $1: temperature\n")
+        f.write("# $2: acceptance ratio (naccepted / ntrials)\n")
+        f.write("# $3: ntrials\n")
+        f.write("# $4: naccepted\n")
+        f.write("# $5: nfail (trials with no move to propose)\n")
+        for T, trial, acc, fail in zip(Ts, ntrials, naccepted, nfail):
+            ratio = acc / trial if trial > 0 else float("nan")
+            f.write(f"{T} {ratio} {trial} {acc} {fail}\n")

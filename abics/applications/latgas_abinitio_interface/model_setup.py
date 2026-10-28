@@ -107,6 +107,46 @@ def match_latgas_group(latgas_rep, group):
     """
     return [ idx for idx,v in enumerate(latgas_rep) if v[0] == group.name ]
 
+def occupied_groups(defect_sublattice):
+    """
+    Return the groups of defect_sublattice that occupy at least one site.
+
+    Parameters
+    ----------
+    defect_sublattice: DefectSublattice
+
+    Returns
+    -------
+        List of groups whose count in latgas_rep is nonzero.
+    """
+    names = set(v[0] for v in defect_sublattice.latgas_rep)
+    return [ grp for grp in defect_sublattice.groups if grp.name in names ]
+
+def rotatable_groups(defect_sublattice):
+    """
+    Return the occupied groups of defect_sublattice that have more than one orientation.
+    """
+    return [ grp for grp in occupied_groups(defect_sublattice) if grp.orientations > 1 ]
+
+def canonical_moves(defect_sublattice):
+    """
+    Return the canonical moves that can be proposed on defect_sublattice.
+
+    Exchange needs two occupied groups, rotation needs an occupied group
+    with more than one orientation. Both conditions depend only on the
+    number of each group, which canonical moves preserve.
+
+    Returns
+    -------
+        List containing "exchange" and/or "rotate" (possibly empty).
+    """
+    moves = []
+    if len(occupied_groups(defect_sublattice)) >= 2:
+        moves.append("exchange")
+    if rotatable_groups(defect_sublattice):
+        moves.append("rotate")
+    return moves
+
 def perturb_structure(st: Structure, distance: float) -> None:
     """
     Perform random perturbation of the atomic coordinates.
@@ -289,7 +329,7 @@ class DFTLatticeGas(Model):
         latgas_rep = defect_sublattice.latgas_rep
 
         rot_ids = []
-        for group in defect_sublattice.groups_orr:
+        for group in rotatable_groups(defect_sublattice):
             rot_ids += match_latgas_group(latgas_rep, group)
 
         if len(rot_ids) == 0:
@@ -322,20 +362,24 @@ class DFTLatticeGas(Model):
     def _try_exchange(self, defect_sublattice):
         latgas_rep = defect_sublattice.latgas_rep
 
-        # Exchange different groups between sites
-        ex1_group, ex2_group = rand.choice(
-            defect_sublattice.groups, 2, replace=False
-        )
-        ex1_idlist = match_latgas_group(latgas_rep, ex1_group)
-        ex2_idlist = match_latgas_group(latgas_rep, ex2_group)
+        # Exchange different groups between sites.
+        # Only groups that occupy at least one site are candidates
+        # (e.g. the vacancy group is skipped when the sublattice is full).
+        # Exchanges preserve the number of each group, so the candidate set
+        # is the same before and after the move and the proposal stays symmetric.
+        occupied = occupied_groups(defect_sublattice)
 
-        if len(ex1_idlist) == 0 or len(ex2_idlist) == 0:
-            logger.debug("try_exchange: list empty {}({}), {}({}). retry".format(
-                ex1_group.name, len(ex1_idlist), ex2_group.name, len(ex2_idlist)))
+        if len(occupied) < 2:
+            logger.debug("try_exchange: less than two occupied groups {}".format(
+                [ grp.name for grp in occupied ]))
             if self.debug:
                 return False, { 'mode': 'exchange', 'result': 'empty' }
             else:
                 return False
+
+        ex1_group, ex2_group = rand.choice(occupied, 2, replace=False)
+        ex1_idlist = match_latgas_group(latgas_rep, ex1_group)
+        ex2_idlist = match_latgas_group(latgas_rep, ex2_group)
 
         ex1_id = rand.choice(ex1_idlist)
         ex2_id = rand.choice(ex2_idlist)
@@ -670,10 +714,16 @@ class DFTLatticeGas(Model):
 
         Returns
         -------
-        dconfig: float
-            Difference of configurations
+        dconfig: tuple
+            Trial structure, latgas representation and energies
+            to be passed to newconfig()
         dE : float
             Difference of energies
+        dW : float
+            Log of the proposal weight ratio Q(trial -> now) / Q(now -> trial).
+            0 for canonical moves. NaN if no move could be proposed.
+        trial_info : dict
+            Only in debug mode. Details of the proposed move.
         """
 
         logger.debug(">>> start trialstep")
@@ -711,49 +761,47 @@ class DFTLatticeGas(Model):
             if not self.enable_grandcanonical or rand.rand() >= self.gc_ratio:
                 # canonical move
 
-                # If there is more than one group on the defect_sublattice,
-                # we either change orientation of one group, or  exchange groups between sites
+                # We either change orientation of one group, or exchange groups
+                # between sites. Only sublattices on which at least one of these
+                # moves can be proposed are candidates. The set of such sublattices
+                # and the moves available on each depend only on the group counts,
+                # which canonical moves preserve, so the proposal stays symmetric.
 
-                defect_sublattice = rand.choice(config.defect_sublattices)
-                #latgas_rep = defect_sublattice.latgas_rep
+                candidates = []
+                for sublat_id, defect_sublattice in enumerate(config.defect_sublattices):
+                    moves = canonical_moves(defect_sublattice)
+                    if moves:
+                        candidates.append((sublat_id, defect_sublattice, moves))
 
-                if self.debug:
-                    for i, x in enumerate(config.defect_sublattices):
-                        if x == defect_sublattice:
-                            sublat_id = i
-                            break
-                    else:
-                        sublat_id = -1
-                        logger.error("sublattice id not found")
-
-                if len(defect_sublattice.groups) == 1:
-                    logger.debug("trialstep: try rotate only")
+                if not candidates:
+                    if not self.enable_grandcanonical:
+                        raise InputError(
+                            "no defect sublattice has a canonical move to propose: "
+                            "check the number and orientations of the groups"
+                        )
+                    # grandcanonical moves may still make a sublattice movable
+                    logger.debug("trialstep: no canonical move available")
+                    trial = False
                     if self.debug:
-                        trial, trial_info = self._try_rotate(defect_sublattice)
+                        trial_info = { 'mode': 'canonical', 'result': 'nomove', 'sublat_id': -1 }
+                else:
+                    sublat_id, defect_sublattice, moves = candidates[rand.randint(len(candidates))]
+
+                    if len(moves) == 1:
+                        move = moves[0]
+                        logger.debug("trialstep: try {} only".format(move))
                     else:
+                        move = moves[rand.randint(len(moves))]
+                        logger.debug("trialstep: try {}".format(move))
+
+                    if move == "rotate":
                         trial = self._try_rotate(defect_sublattice)
-                elif not defect_sublattice.groups_orr:
-                    logger.debug("trialstep: try exchange only")
-                    if self.debug:
-                        trial, trial_info = self._try_exchange(defect_sublattice)
                     else:
                         trial = self._try_exchange(defect_sublattice)
-                else:
-                    if rand.rand() < 0.5:
-                        logger.debug("trialstep: try rotate")
-                        if self.debug:
-                            trial, trial_info = self._try_rotate(defect_sublattice)
-                        else:
-                            trial = self._try_rotate(defect_sublattice)
-                    else:
-                        logger.debug("trialstep: try exchange")
-                        if self.debug:
-                            trial, trial_info = self._try_exchange(defect_sublattice)
-                        else:
-                            trial = self._try_exchange(defect_sublattice)
 
-                if self.debug:
-                    trial_info['sublat_id'] = sublat_id
+                    if self.debug:
+                        trial, trial_info = trial
+                        trial_info['sublat_id'] = sublat_id
 
             else:
                 # grandcanonical move
@@ -839,16 +887,13 @@ class DFTLatticeGas(Model):
         logger.debug("trialstep: dE={:16.12e}, dW={:.5e}".format(dE, dW))
         logger.debug("<<< end trialstep")
 
-        if self.enable_grandcanonical:
-            if self.debug:
-                return dconfig, dE, dW, trial_info
-            else:
-                return dconfig, dE, dW
+        # dW is the log of the proposal weight ratio (0 for canonical moves);
+        # it is NaN when no move could be proposed so that the sampler can
+        # count the trial as failed instead of accepting a null move
+        if self.debug:
+            return dconfig, dE, dW, trial_info
         else:
-            if self.debug:
-                return dconfig, dE, trial_info
-            else:
-                return dconfig, dE
+            return dconfig, dE, dW
 
 
     def newconfig(self, config, dconfig):
