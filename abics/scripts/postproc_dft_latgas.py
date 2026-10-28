@@ -362,7 +362,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
     nobs = len(observer.names)
     obs_save = np.zeros((nsamples, 2 + nobs))
     structure = Structure.from_file(os.path.join(rankdir, "structure.0.vasp"))
-    config = defect_config(configparams)
+    config = spinel_config #defect_config(configparams)
     config.reset_from_structure(structure)
     calc_state = mc_class(model, kT_hist[0], config)
     for isamples, kT in enumerate(kT_hist):

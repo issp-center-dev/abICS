@@ -15,13 +15,22 @@ Installation of NequIP
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To use ``nequip``, you need to install NequIP.
+Currently, NequIP 0.6.2 is supported.
+
+.. note::
+
+   The supported NequIP (< 0.7) relies on ``numpy.in1d``, which was removed in
+   NumPy 2, so it requires a ``numpy<2`` environment. Because no NumPy 1.x wheels
+   are available for Python 3.13, the NequIP path currently cannot be used on
+   Python 3.13 (please use Python 3.12 or earlier).
 
 Install it with the following command.
 
 .. code-block:: bash
 
     $ python3 -m pip install wandb
-    $ python3 -m pip install nequip
+    $ python3 -m pip install nequip==0.6.2
+    $ python3 -m pip install "numpy<2"
 
 Also, when installing abICS, you can install NequIP by specifying the [nequip] option.
 
@@ -29,6 +38,11 @@ Also, when installing abICS, you can install NequIP by specifying the [nequip] o
 
     $ cd /path/to/abics
     $ python3 -m pip install '.[nequip]'
+    $ python3 -m pip install "numpy<2"
+
+The ``numpy<2`` constraint above is required regardless of the installation
+method (the ``[nequip]`` option does not constrain the numpy version, so install
+it separately).
 
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -130,21 +144,26 @@ Installation of Allegro
 
 Install Allegro with the following command.
 
+Currently, nequip-allegro 0.3.0 is supported.
+
 .. code-block:: bash
 
-    $ git clone --depth 1 https://github.com/mir-group/allegro.git
-    $ cd allegro
-    $ python3 -m pip install .
+   $ python3 -m pip install nequip-allegro==0.3.0
+   $ python3 -m pip install "numpy<2"
 
+.. note::
+
+   Allegro runs on top of the same NequIP (< 0.7) stack, so like NequIP it
+   requires a ``numpy<2`` environment and cannot be used on Python 3.13.
 
 Preparation of input files
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, prepare input_allegro.toml and set the parameters required to run Allegro.   
+First, prepare input_allegro.toml and set the parameters required to run Allegro.
 Below, we extract ``[sampling.solver]`` and ``[train]`` with changes from the aenet input.
 
 .. code-block:: toml
-   
+
    [sampling.solver]
    type = 'allegro'
    base_input_dir = './baseinput_allegro'
@@ -280,12 +299,12 @@ Also, create the MLIP-3 input file ``input.almtp`` in the ``mlip_3_train_input/t
    version = 1.1.0
    potential_name = MTP1m
    species_count = 3
-   potential_tag = 
+   potential_tag =
    radial_basis_type = RBChebyshev
-    min_dist = 2.3
-   	max_dist = 5
-   	radial_basis_size = 8
-	radial_funcs_count = 2
+   min_dist = 2.3
+      max_dist = 5
+      radial_basis_size = 8
+   radial_funcs_count = 2
    alpha_moments_count = 8
    alpha_index_basic_count = 5
    alpha_index_basic = {{0, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}, {1, 0, 0, 0}}

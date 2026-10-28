@@ -117,5 +117,8 @@ num = 8 #216 #8000
 
 
 [observer]
-reference_structure = "MgAl2O4.vasp"
-ignored_species = ["Al", "O"]
+[[observer.solver]]
+name = "DOI"
+type = "user"
+function = "calc_DOI.calc_DOI"
+perturb = 0.0

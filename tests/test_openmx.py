@@ -58,7 +58,10 @@ class TestOpenMX(unittest.TestCase):
     def test_get_results(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
         res = self.solver.output.get_results(os.path.join(self.datadir, "output"))
-        res.structure.to("POSCAR", os.path.join(self.workdir, "pos.vasp"))
+        written = os.path.join(self.workdir, "pos.vasp")
+        res.structure.to(fmt="POSCAR", filename=written)
+        # guards the argument order: a swapped call writes ./POSCAR instead
+        self.assertTrue(os.path.exists(written))
         ref = Structure.from_file(os.path.join(self.datadir, "..", "pos.vasp"))
         ref_energy = -119.28626359359154
         self.assertTrue(res.structure.matches(ref))

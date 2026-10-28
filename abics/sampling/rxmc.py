@@ -26,7 +26,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
-from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
+from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header, write_acceptance_ratio
 from abics.sampling.mc_mpi import ParallelMC
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
 
@@ -171,6 +171,7 @@ class TemperatureRX_MPI(ParallelMC):
         self.Lreload = False
         self.ntrials = np.zeros(self.procs, dtype=np.int64)
         self.naccepted = np.zeros(self.procs, dtype=np.int64)
+        self.nfail = np.zeros(self.procs, dtype=np.int64)
         if not (self.procs == self.nreplicas == len(self.kTs)):
             if self.rank == 0:
                 print(
@@ -203,10 +204,14 @@ class TemperatureRX_MPI(ParallelMC):
         procrank: int
         """
         i = np.argwhere(self.rank_to_T == Trank)
-        if i is None:
+        if i.size == 0:
             sys.exit("Internal error in TemperatureRX_MPI.find_procrank_from_Trank")
         else:
-            return i
+            # np.argwhere returns a 2-D array (shape (1, 1) here); return a plain
+            # Python int so it can be used as an MPI source/dest rank. NumPy 2.x
+            # rejects int() on non-0-dimensional arrays, which previously broke
+            # comm.Recv/Send on Python 3.13 (numpy>=2).
+            return int(i[0, 0])
 
     def Xtrial(self, XCscheme):
         """
@@ -329,17 +334,21 @@ class TemperatureRX_MPI(ParallelMC):
         nsample = 0
         XCscheme = 0
         with open("obs.dat", "a") as output:
-            write_obs_header(output, self.mycalc, observer)
+            if self.write_node:
+                write_obs_header(output, self.mycalc, observer)
             ntrials = self.mycalc.ntrials
             naccepted = self.mycalc.naccepted
+            nfail = self.mycalc.nfail
             for i in range(1, nsteps + 1):
                 self.mycalc.MCstep(nsubsteps_in_step)
                 if i % RXtrial_frequency == 0:
                     iT = self.rank_to_T[self.rank]
                     self.ntrials[iT] += self.mycalc.ntrials - ntrials
                     self.naccepted[iT] += self.mycalc.naccepted - naccepted
+                    self.nfail[iT] += self.mycalc.nfail - nfail
                     ntrials = self.mycalc.ntrials
                     naccepted = self.mycalc.naccepted
+                    nfail = self.mycalc.nfail
 
                     self.Xtrial(XCscheme)
                     XCscheme = (XCscheme + 1) % 2
@@ -360,13 +369,15 @@ class TemperatureRX_MPI(ParallelMC):
             iT = self.rank_to_T[self.rank]
             self.ntrials[iT] += self.mycalc.ntrials - ntrials
             self.naccepted[iT] += self.mycalc.naccepted - naccepted
+            self.nfail[iT] += self.mycalc.nfail - nfail
 
-        with open("acceptance_ratio.dat", "w") as f:
-            for T, acc, trial in zip(self.kTs, self.naccepted, self.ntrials):
-                if trial > 0:
-                    f.write(f"{self.E2T*T} {acc/trial}\n")
-                else:
-                    f.write(f"{self.E2T*T} {acc}/{trial}\n")
+        write_acceptance_ratio(
+            "acceptance_ratio.dat",
+            [self.E2T * T for T in self.kTs],
+            self.ntrials,
+            self.naccepted,
+            self.nfail,
+        )
 
         if nsample != 0:
             obs_buffer = np.empty(obs.shape)
