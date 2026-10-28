@@ -1,9 +1,30 @@
+import tempfile
 import unittest
+from pathlib import Path
+from typing import Dict
 from unittest.mock import patch
 
-from abics.applications.latgas_abinitio_interface.nequip import NequipSolver
+try:
+    from abics.applications.latgas_abinitio_interface.nequip import NequipSolver
+except ModuleNotFoundError as exc:
+    if exc.name not in ("torch", "nequip"):
+        raise
+    NequipSolver = None
 
 
+if NequipSolver is not None:
+    import torch
+    import yaml
+    from pymatgen.core import Lattice, Structure
+
+    class TypeEnergyModel(torch.nn.Module):
+        def forward(self, data: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+            return {"total_energy": data["atom_types"].to(torch.float64).sum()}
+
+
+@unittest.skipIf(
+    NequipSolver is None, "Optional torch/nequip dependencies are not installed"
+)
 class TestNequipSolverInput(unittest.TestCase):
 
     def test_deployed_type_names_take_precedence_over_chemical_symbols(self):
@@ -11,9 +32,6 @@ class TestNequipSolverInput(unittest.TestCase):
         The atom type ordering used by a deployed NequIP model must come from
         the deployed model metadata, not from input.yaml chemical_symbols.
         """
-        import tempfile
-        from pathlib import Path
-
         with tempfile.TemporaryDirectory() as tmpdir:
             base_input_dir = Path(tmpdir)
 
@@ -48,6 +66,70 @@ class TestNequipSolverInput(unittest.TestCase):
                 solver_input.from_directory(str(base_input_dir))
 
             self.assertIs(solver_input.model, dummy_model)
+            self.assertEqual(solver_input.element_list, ["V", "Cu", "Sn"])
+            self.assertEqual(solver_input.r_max, 8.0)
+
+    def test_custom_type_names_use_deployed_chemical_mapping(self):
+        # Both mapping directions are supported, including YAML string keys.
+        for mapping in (
+            {"chemical_symbol_to_type": {"H": 1, "O": 0}},
+            {"type_to_chemical_symbol": {"0": "O", "1": "H"}},
+        ):
+            with self.subTest(mapping=mapping), tempfile.TemporaryDirectory() as tmpdir:
+                model_path = Path(tmpdir) / "deployed.pth"
+                model = torch.jit.script(TypeEnergyModel())
+                config = dict(mapping, _jit_fusion_strategy=[("DYNAMIC", 3)])
+                torch.jit.save(
+                    model, str(model_path), _extra_files={
+                        "r_max": "8.0",
+                        "type_names": "oxygen hydrogen",
+                        "config": yaml.dump(config),
+                    },
+                )
+                # A local input must not override the deployed configuration.
+                (Path(tmpdir) / "input.yaml").write_text("chemical_symbols: [H, O]\n")
+                solver = NequipSolver(ignore_species=None)
+                solver.input.from_directory(tmpdir)
+                self.assertEqual(solver.input.element_list, ["O", "H"])
+                structure = Structure(
+                    Lattice.cubic(10),
+                    ["H", "H", "O"],
+                    [[0, 0, 0], [0.1, 0, 0], [0, 0.1, 0]],
+                )
+                solver.input.update_info_by_structure(structure)
+                solver.calculate_energy(None, tmpdir)
+                # Two hydrogens of type 1 and one oxygen of type 0.
+                self.assertEqual(solver.output.ene, 2.0)
+
+    def test_custom_type_names_with_chemical_symbols_only(self):
+        # Legacy configs may only specify chemical_symbols. NequIP sorts them
+        # by atomic number, regardless of their order in the YAML file.
+        with tempfile.TemporaryDirectory() as tmpdir:
+            torch.jit.save(
+                torch.jit.script(TypeEnergyModel()),
+                str(Path(tmpdir) / "deployed.pth"),
+                _extra_files={
+                    "r_max": "8.0",
+                    "type_names": "hydrogen oxygen",
+                    "config": "chemical_symbols: [O, H]\n",
+                },
+            )
+            solver_input = NequipSolver.Input()
+            solver_input.from_directory(tmpdir)
+            self.assertEqual(solver_input.element_list, ["H", "O"])
+
+    def test_string_metadata_without_local_input(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            def fake_jit_load(path, _extra_files):
+                _extra_files.update(type_names="V Cu Sn", r_max="8.0", config="")
+                return object()
+
+            with patch(
+                "abics.applications.latgas_abinitio_interface.nequip.torch.jit.load",
+                side_effect=fake_jit_load,
+            ):
+                solver_input = NequipSolver.Input()
+                solver_input.from_directory(tmpdir)
             self.assertEqual(solver_input.element_list, ["V", "Cu", "Sn"])
             self.assertEqual(solver_input.r_max, 8.0)
 

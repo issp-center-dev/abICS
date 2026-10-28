@@ -28,9 +28,10 @@ from collections import namedtuple
 import numpy as np
 from pymatgen.core import Structure
 import torch
+import yaml
 from ase import Atoms
 from nequip.data import AtomicDataDict, AtomicData
-from nequip.utils import Config
+from nequip.data.transforms import TypeMapper
 
 from .base_solver import SolverBase, register_solver
 from .params import ALParams, DFTParams
@@ -118,6 +119,7 @@ class NequipSolver(SolverBase):
             metadata = {
                 "r_max": "",
                 "type_names": "",
+                "config": "",
             }
 
             self.model = torch.jit.load(
@@ -129,7 +131,27 @@ class NequipSolver(SolverBase):
                 if isinstance(value, bytes):
                     metadata[key] = value.decode()
 
-            self.element_list = metadata["type_names"].split()
+            type_names = metadata["type_names"].split()
+            # Type names are labels, not necessarily chemical symbols. Use the
+            # deployed training configuration to recover the actual mapping.
+            # NequIP uses yaml.dump, which also emits Python tuple tags for
+            # settings such as _jit_fusion_strategy.
+            config = yaml.full_load(metadata["config"]) or {}
+            mapping = {
+                key: config[key]
+                for key in ("chemical_symbol_to_type", "type_to_chemical_symbol")
+                if config.get(key) is not None
+            }
+            if not mapping and config.get("chemical_symbols") is not None:
+                mapping["chemical_symbols"] = config["chemical_symbols"]
+            type_mapper = TypeMapper(type_names=type_names, **mapping)
+            if type_mapper.type_to_chemical_symbol is None:
+                self.element_list = type_names
+            else:
+                self.element_list = [
+                    type_mapper.type_to_chemical_symbol[i]
+                    for i in range(type_mapper.num_types)
+                ]
             self.r_max = float(metadata["r_max"])
 
         def update_info_by_structure(self, structure):
