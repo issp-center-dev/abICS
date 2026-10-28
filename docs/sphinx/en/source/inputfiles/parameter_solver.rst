@@ -113,6 +113,7 @@ Keywords
    Specify a user-defined solver function.
 
    - The solver function must take a ``pymatgen.core.Structure`` object as an argument and return a ``float`` value.
+   - In ``[[observer.solver]]``, the function may instead return an array-like object (list, tuple, or ``numpy.ndarray``) of floats. The array is flattened, and its length must be the same for every structure. In ``sampling.solver``, the function must return a scalar.
    - When ``.`` is included, it is assumed that the function is defined in a module, and the module will be automatically imported.
 
       - For example, if ``function = "mypackage.mymodule.myfunction"`` is specified, ``mypackage.mymodule`` is imported and ``myfunction`` is called.

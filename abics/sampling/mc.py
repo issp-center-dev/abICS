@@ -271,6 +271,6 @@ def write_obs_header(output, calc_state: MCAlgorithm, observer: ObserverBase):
     for name in calc_state.param_names():
         output.write(f"# ${i}: {name}\n")
         i+=1
-    for name in observer.obs_names():
+    for name in observer.obs_column_names():
         output.write(f"# ${i}: {name}\n")
         i+=1

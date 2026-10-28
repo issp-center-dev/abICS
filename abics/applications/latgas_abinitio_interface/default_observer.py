@@ -29,6 +29,7 @@ from abics import __version__
 from abics.util import expand_path, expand_cmd_path
 from abics.exception import InputError
 from abics.mc import ObserverBase, MCAlgorithm
+from abics.observer import ObsInfo
 from abics.applications.latgas_abinitio_interface.base_solver import create_solver
 from abics.applications.latgas_abinitio_interface.run_base_mpi import (
     Runner,
@@ -101,6 +102,7 @@ class DefaultObserver(ObserverBase):
                 self.lprintcount = int(f.readlines()[-1].split()[0]) + 1
 
         self.with_energy = with_energy
+        self._lengths: list[int] | None = None
         if with_energy:
             self.names = ["energy_internal", "energy"]
         else:
@@ -194,7 +196,24 @@ class DefaultObserver(ObserverBase):
                 ref = self.references[sp]
                 sim = similarity(structure, ref, sp, self.matcher)
                 result.append(sim)
+        lengths = ObsInfo(*result).lengths
+        if self._lengths is None:
+            self._lengths = lengths
+        elif self._lengths != lengths:
+            raise RuntimeError(
+                "The number of elements of observables changed during sampling: "
+                f"{self._lengths} -> {lengths}"
+            )
         return tuple(result)
+
+    def obs_lengths(self) -> list[int]:
+        """Number of elements of each observable in `names`.
+
+        Determined by the first call of `logfunc` (probe call).
+        """
+        if self._lengths is None:
+            raise RuntimeError("obs_lengths is unknown before logfunc is called")
+        return list(self._lengths)
 
     def writefile(self, calc_state: MCAlgorithm) -> None:
         assert calc_state.config is not None
@@ -222,6 +241,9 @@ class EnsembleErrorObserver(DefaultObserver):
         super().__init__(comm, Lreload)
         self.calculators = energy_calculators
         self.comm = comm
+
+    def obs_lengths(self) -> list[int]:
+        return [1] * len(self.names)
 
     def logfunc(self, calc_state: MCAlgorithm):
         assert calc_state.config is not None

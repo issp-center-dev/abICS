@@ -25,6 +25,8 @@ import os
 import sys
 import importlib
 
+import numpy as np
+
 from pymatgen.core import Structure
 
 from .base_solver import SolverBase
@@ -59,9 +61,13 @@ class UserFunctionSolver(SolverBase):
         st = self.input.st
         if self.__fn is None:
             raise ValueError("Function is not set")
-        ene = self.__fn(st)
+        ene = np.asarray(self.__fn(st), dtype=float)
         with open(os.path.join(output_dir, "energy.dat"), "w") as f:
-            f.write("{:.15f}\n".format(ene))
+            if ene.ndim == 0:
+                f.write("{:.15f}\n".format(float(ene)))
+            else:
+                # array-valued result: one flattened row, shape is not preserved
+                f.write(" ".join("{:.15f}".format(x) for x in ene.ravel()) + "\n")
 
     def name(self):
         return "UserFunction"
@@ -173,7 +179,8 @@ class UserFunctionSolver(SolverBase):
             # Read results from files in output_dir and calculate values
             Phys = namedtuple("PhysValues", ("energy", "structure"))
             with open(os.path.join(workdir, "energy.dat")) as f:
-                ene = float(f.read())
+                values = [float(x) for x in f.read().split()]
+            ene = values[0] if len(values) == 1 else np.array(values)
             st = Structure.from_file(os.path.join(workdir, "structure.vasp"))
             return Phys(ene, st)
 

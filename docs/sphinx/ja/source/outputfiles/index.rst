@@ -116,4 +116,18 @@ Example::
 - 4列目、5列目は2乗の期待値 :math:`\langle O^2 \rangle` と統計誤差
 - 6列目、7列目はゆらぎ :math:`\langle O^2 \rangle - \langle O \rangle^2` と統計誤差
 
+- 物理量が長さ :math:`N` の配列(ユーザー関数の返り値)の場合, 1列目の温度に続いて, 要素ごとに上記の6列がこの順で :math:`N` ブロック出力されます. 要素は ``obs.dat`` およびファイルのヘッダーでは ``<name>[0]``, ``<name>[1]``, ... と表記されます.
+
    - 例えばエネルギーのゆらぎは熱容量 :math:`C` と次のようにして結びついています: :math:`k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]`
+
+``<name>.npz``
+=================
+``<name>.dat`` と同じ内容を NumPy 配列として保存したファイルです. ``numpy.load`` で読み込めます.
+以下の配列が含まれます.
+
+- ``temperature``: 温度 :math:`T_i` , 形状は ``(nT,)``
+- ``mean``, ``mean_err``: 期待値 :math:`\langle O \rangle` と統計誤差
+- ``second_moment``, ``second_moment_err``: 2乗の期待値 :math:`\langle O^2 \rangle` と統計誤差
+- ``fluctuation``, ``fluctuation_err``: ゆらぎ :math:`\langle O^2 \rangle - \langle O \rangle^2` と統計誤差
+
+``temperature`` 以外の配列の形状は, スカラー量では ``(nT,)`` , 長さ :math:`N` の配列量では ``(nT, N)`` です.

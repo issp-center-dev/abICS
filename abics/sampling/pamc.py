@@ -27,7 +27,7 @@ import numpy as np
 import numpy.random as rand
 
 from abics.model import Model
-from abics.observer import ObserverBase
+from abics.observer import ObserverBase, write_obs_stats_file, write_obs_npz
 from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.sampling.resampling import WalkerTable
@@ -356,6 +356,7 @@ class PopulationAnnealing(ParallelMC):
             test_observe = observer.observe(self.mycalc, f, lprint=False)
             obs_len = len(test_observe)
             obs = np.zeros([len(self.kTs), obs_len])
+            self.obslengths = observer.obs_lengths()
         nsample = 0
         output = open("obs.dat", "a")
         if self.write_node:
@@ -428,7 +429,8 @@ class PopulationAnnealing(ParallelMC):
         isamples_offsets = self.isamples_offsets
         comm = self.comm
         postproc(
-            kTs, obs_save, dlogz, logweight_history, obsnames, isamples_offsets, comm, E2T=self.E2T
+            kTs, obs_save, dlogz, logweight_history, obsnames, isamples_offsets, comm, E2T=self.E2T,
+            obslengths=self.obslengths,
         )
 
 
@@ -441,7 +443,10 @@ def postproc(
     isamples_offsets,
     comm,
     E2T:float=1.0,
+    obslengths=None,
 ):
+    if obslengths is None:
+        obslengths = [1] * len(obsnames)
     procs = comm.Get_size()
     rank = comm.Get_rank()
 
@@ -502,21 +507,24 @@ def postproc(
     if rank == 0:
         o_mean = o_all.mean(axis=0)
         o_err = o_all.std(axis=0)
-        for iobs, oname in enumerate(obsnames):
-            with open(f"{oname}.dat", "w") as f:
-                f.write("# $1: temperature\n")
-                f.write(f"# $2: <{oname}>\n")
-                f.write(f"# $3: ERROR of <{oname}>\n")
-                f.write(f"# $4: <{oname}^2>\n")
-                f.write(f"# $5: ERROR of <{oname}^2>\n")
-                f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
-                f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
-
-                for iT in range(nT):
-                    f.write(f"{E2T*kTs[iT]}")
-                    for j in range(3):
-                        f.write(f" {o_mean[iT, 3*iobs+j]} {o_err[iT, 3*iobs+j]}")
-                    f.write("\n")
+        # (nT, 6, nobs): (mean, err) of <O>, <O^2>, fluctuation
+        stats = np.zeros((nT, 6, nobs))
+        for j in range(3):
+            stats[:, 2 * j, :] = o_mean[:, j : 3 * nobs : 3]
+            stats[:, 2 * j + 1, :] = o_err[:, j : 3 * nobs : 3]
+        offset = 0
+        for oname, length in zip(obsnames, obslengths):
+            write_obs_stats_file(
+                oname, length, kTs, E2T,
+                lambda iT, icol: [
+                    v
+                    for j in range(3)
+                    for v in (o_mean[iT, 3 * icol + j], o_err[iT, 3 * icol + j])
+                ],
+                offset,
+            )
+            write_obs_npz(oname, length, offset, kTs, E2T, stats)
+            offset += length
         dlogZ = np.log(o_mean[:, 3 * nobs]) + lzw_max[:]
         dlogZ_err = o_err[:, 3 * nobs] / o_mean[:, 3 * nobs]
         with open("logZ.dat", "w") as f:

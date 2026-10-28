@@ -98,6 +98,87 @@ def obs_encode(*args):
     return obs_array
 
 
+def obs_column_names(names, lengths=None) -> list[str]:
+    """Expand names of array observables to one name per element, e.g. foo[0], foo[1]"""
+    if lengths is None:
+        lengths = [1] * len(names)
+    cols = []
+    for name, length in zip(names, lengths):
+        if length == 1:
+            cols.append(name)
+        else:
+            cols.extend(f"{name}[{i}]" for i in range(length))
+    return cols
+
+
+def write_obs_stats_file(oname, length, kTs, E2T, values, offset):
+    """Write <oname>.dat of the temperature-dependent statistics.
+
+    Parameters
+    ----------
+    oname: str
+        observable name
+    length: int
+        number of elements of the observable
+    kTs: array-like
+        temperatures (kT)
+    E2T: float
+        conversion factor from kT to temperature
+    values: callable
+        values(iT, icol) -> sequence of 2*ntype values
+        (mean, err, mean of square, err, fluctuation, err) for column icol
+    offset: int
+        index of the first column of this observable
+    """
+    with open(f"{oname}.dat", "w") as f:
+        f.write("# $1: temperature\n")
+        idx = 2
+        for i in range(length):
+            n = oname if length == 1 else f"{oname}[{i}]"
+            f.write(f"# ${idx}: <{n}>\n")
+            f.write(f"# ${idx+1}: ERROR of <{n}>\n")
+            f.write(f"# ${idx+2}: <{n}^2>\n")
+            f.write(f"# ${idx+3}: ERROR of <{n}^2>\n")
+            f.write(f"# ${idx+4}: <{n}^2> - <{n}>^2\n")
+            f.write(f"# ${idx+5}: ERROR of <{n}^2> - <{n}>^2\n")
+            idx += 6
+        for iT, kT in enumerate(kTs):
+            f.write(f"{E2T*kT}")
+            for i in range(length):
+                for v in values(iT, offset + i):
+                    f.write(f" {v}")
+            f.write("\n")
+
+
+def write_obs_npz(oname, length, offset, kTs, E2T, stats):
+    """Write statistics of one observable into <oname>.npz.
+
+    Parameters
+    ----------
+    oname: str
+        observable name
+    length: int
+        number of elements of the observable
+    offset: int
+        index of the first column of this observable in `stats`
+    stats: numpy array, shape (nT, 6, ncolumns)
+        (mean, err, mean of square, err, fluctuation, err) for each column
+
+    The file contains `temperature` (nT) and `mean`, `mean_err`,
+    `second_moment`, `second_moment_err`, `fluctuation`, `fluctuation_err`.
+    Each has shape (nT,) for a scalar observable and (nT, length) for an
+    array observable.
+    """
+    stats = np.asarray(stats)
+    keys = ["mean", "mean_err", "second_moment", "second_moment_err",
+            "fluctuation", "fluctuation_err"]
+    data = {}
+    for i, k in enumerate(keys):
+        v = stats[:, i, offset : offset + length]
+        data[k] = v[:, 0] if length == 1 else v
+    np.savez(f"{oname}.npz", temperature=E2T * np.asarray(kTs), **data)
+
+
 class ObserverBase:
     comm: (None|MPI.Comm)
     Lreload: bool
@@ -198,7 +279,10 @@ class ObserverBase:
         obs_log: numpy array
             log information about observation
         """
-        obs_log = np.atleast_1d(self.logfunc(calc_state))
+        obs_log = self.logfunc(calc_state)
+        if not isinstance(obs_log, tuple):
+            obs_log = (obs_log,)
+        obs_log = obs_encode(*obs_log)
         if lprint:
             line = f"{self.lprintcount}\t"
             for p in calc_state.parameters():
@@ -214,7 +298,6 @@ class ObserverBase:
         if len(obs_save) > 0:
             obs_save = np.atleast_1d(obs_save)
             obs_save = obs_save.ravel()
-            print(obs_log.shape, obs_save.shape)
             return np.concatenate((obs_log, obs_save))
         else:
             return obs_log
@@ -228,6 +311,18 @@ class ObserverBase:
             names of observables
         """
         return self.names
+
+    def obs_lengths(self) -> list[int]:
+        """number of elements of each observable in `names`.
+
+        Observers returning array-valued observables should override this.
+        The lengths may be determined by the first call of `logfunc`.
+        """
+        return [1] * len(self.names)
+
+    def obs_column_names(self) -> list[str]:
+        """names of the columns written to obs.dat (array observables are expanded)"""
+        return obs_column_names(self.obs_names(), self.obs_lengths())
 
 
 class ObserverParams:

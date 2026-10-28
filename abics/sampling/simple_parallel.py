@@ -26,6 +26,7 @@ import numpy.random as rand
 
 from abics.model import Model
 from abics.observer import ObserverBase
+from abics.observer import write_obs_stats_file, write_obs_npz
 from abics.sampling.mc import MCAlgorithm, verylargeint, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.sampling.rxmc import jackknife
@@ -313,6 +314,7 @@ class EmbarrassinglyParallelSampling:
             self.mycalc.energy = self.mycalc.model.energy(self.mycalc.config)
         with open(os.devnull, "w") as f:
             test_observe = observer.observe(self.mycalc, f, lprint=False)
+        self.obslengths = observer.obs_lengths()
         if hasattr(test_observe, "__iter__"):
             obs_len = len(test_observe)
             obs = np.zeros([len(self.kTs), obs_len])
@@ -384,7 +386,7 @@ class EmbarrassinglyParallelSampling:
 
 
     def postproc(self, throw_out):
-        postproc(obs_save=np.array(self.obs_save), kTs=self.kTs, comm=self.comm, obsnames=self.obsnames, throw_out=throw_out, E2T=self.E2T)
+        postproc(obs_save=np.array(self.obs_save), kTs=self.kTs, comm=self.comm, obsnames=self.obsnames, throw_out=throw_out, E2T=self.E2T, obslengths=self.obslengths)
 
 class RandomSampling_MPI(ParallelMC):
     def __init__(
@@ -420,8 +422,11 @@ class RandomSampling_MPI(ParallelMC):
 def postproc(obs_save, kTs, comm,
              obsnames, throw_out: int | float,
              E2T: float = 1.0,
+             obslengths=None,
              ):
     assert throw_out >= 0
+    if obslengths is None:
+        obslengths = [1] * len(obsnames)
     rank = comm.Get_rank()
     nT = comm.Get_size()
     nsteps, nobs = obs_save.shape
@@ -450,19 +455,12 @@ def postproc(obs_save, kTs, comm,
     comm.Allgather(obs, obs_all)
 
     if rank == 0:
-        ntype = obs.shape[0]
-        for iobs, oname in enumerate(obsnames):
-            with open(f"{oname}.dat", "w") as f:
-                f.write("# $1: temperature\n")
-                f.write(f"# $2: <{oname}>\n")
-                f.write(f"# $3: ERROR of <{oname}>\n")
-                f.write(f"# $4: <{oname}^2>\n")
-                f.write(f"# $5: ERROR of <{oname}^2>\n")
-                f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
-                f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
-                for iT in range(nT):
-                    f.write(f"{E2T*kTs[iT]}")
-                    for itype in range(ntype):
-                        f.write(f" {obs_all[iT, itype, iobs]}")
-                    f.write("\n")
+        offset = 0
+        for oname, length in zip(obsnames, obslengths):
+            write_obs_stats_file(
+                oname, length, kTs, E2T,
+                lambda iT, icol: obs_all[iT, :, icol], offset,
+            )
+            write_obs_npz(oname, length, offset, kTs, E2T, obs_all)
+            offset += length
     comm.Barrier()

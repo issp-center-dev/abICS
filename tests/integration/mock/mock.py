@@ -26,3 +26,8 @@ def num_Al(st):
 
 def num_Mg(st):
     return num_element(st, "Mg")
+
+
+def num_Al_Mg(st):
+    # array-valued observable
+    return [num_element(st, "Al"), num_element(st, "Mg")]

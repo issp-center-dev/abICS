@@ -25,7 +25,7 @@ import numpy as np
 import numpy.random as rand
 
 from abics.model import Model
-from abics.observer import ObserverBase
+from abics.observer import ObserverBase, write_obs_stats_file, write_obs_npz
 from abics.sampling.mc import verylargeint, MCAlgorithm, write_obs_header
 from abics.sampling.mc_mpi import ParallelMC
 from abics.util import pickle_dump, pickle_load, numpy_save, numpy_load
@@ -327,6 +327,7 @@ class TemperatureRX_MPI(ParallelMC):
             test_observe = observer.observe(self.mycalc, f, lprint=False)
             obs_len = len(test_observe)
             obs = np.zeros([len(self.kTs), obs_len])
+            self.obslengths = observer.obs_lengths()
         # with open("obs.dat", "a") as output:
         #    obs_step = observer.observe(self.mycalc, output, True)
 
@@ -415,7 +416,8 @@ class TemperatureRX_MPI(ParallelMC):
         kTs = self.kTs
         comm = self.comm
         obsnames = self.obsnames
-        postproc(obs_save, Trank_hist, kT_hist, kTs, comm, obsnames, throw_out, E2T=self.E2T)
+        postproc(obs_save, Trank_hist, kT_hist, kTs, comm, obsnames, throw_out, E2T=self.E2T,
+                 obslengths=self.obslengths)
 
     def __merge_obs(self):
         if hasattr(self, "obs_save0"):
@@ -438,8 +440,11 @@ def jackknife(X: np.ndarray) -> np.ndarray:
 def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
              obsnames, throw_out: int | float,
              E2T: float = 1.0,
+             obslengths=None,
              ):
     assert throw_out >= 0
+    if obslengths is None:
+        obslengths = [1] * len(obsnames)
     rank = comm.Get_rank()
     nT = comm.Get_size()
     nsteps, nobs = obs_save.shape
@@ -513,21 +518,14 @@ def postproc(obs_save, Trank_hist, kT_hist, kTs, comm,
     dlogz = comm.allgather([Logz_mean, Logz_err])  # nT X 2
 
     if rank == 0:
-        ntype = obs.shape[0]
-        for iobs, oname in enumerate(obsnames):
-            with open(f"{oname}.dat", "w") as f:
-                f.write("# $1: temperature\n")
-                f.write(f"# $2: <{oname}>\n")
-                f.write(f"# $3: ERROR of <{oname}>\n")
-                f.write(f"# $4: <{oname}^2>\n")
-                f.write(f"# $5: ERROR of <{oname}^2>\n")
-                f.write(f"# $6: <{oname}^2> - <{oname}>^2\n")
-                f.write(f"# $7: ERROR of <{oname}^2> - <{oname}>^2\n")
-                for iT in range(nT):
-                    f.write(f"{E2T*kTs[iT]}")
-                    for itype in range(ntype):
-                        f.write(f" {obs_all[iT, itype, iobs]}")
-                    f.write("\n")
+        offset = 0
+        for oname, length in zip(obsnames, obslengths):
+            write_obs_stats_file(
+                oname, length, kTs, E2T,
+                lambda iT, icol: obs_all[iT, :, icol], offset,
+            )
+            write_obs_npz(oname, length, offset, kTs, E2T, obs_all)
+            offset += length
 
         with open("logZ.dat", "w") as f:
             f.write("# $1: temperature\n")

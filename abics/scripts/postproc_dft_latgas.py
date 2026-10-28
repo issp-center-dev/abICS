@@ -28,7 +28,7 @@ from pymatgen.core import Structure
 
 from abics import __version__
 from abics.mc import CanonicalMonteCarlo, WeightedCanonicalMonteCarlo, RandomSampling
-from abics.observer import ObserverParams
+from abics.observer import ObserverParams, obs_encode
 
 import abics.sampling.simple_parallel as simple_parallel
 import abics.sampling.rxmc as rxmc
@@ -359,8 +359,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
     kT_hist = np.load(os.path.join(rankdir, "kT_hist.npy"))
     obs_save_e = np.load(os.path.join(rankdir, "obs_save.npy"))[:, 0:2]
     nsamples = obs_save_e.shape[0]
-    nobs = len(observer.names)
-    obs_save = np.zeros((nsamples, 2 + nobs))
+    obs_rows = []
     structure = Structure.from_file(os.path.join(rankdir, "structure.0.vasp"))
     config = defect_config(configparams)
     config.reset_from_structure(structure)
@@ -372,10 +371,13 @@ def postproc_dft_latgas(params_root: MutableMapping):
         config.reset_from_structure(structure)
         calc_state.config = config
         obs = observer.logfunc(calc_state)
-        obs_save[isamples, 0:2] = obs_save_e[isamples, :]
-        obs_save[isamples, 2:] = obs
+        if not isinstance(obs, tuple):
+            obs = (obs,)
+        obs_rows.append(np.concatenate((obs_save_e[isamples, :], obs_encode(*obs))))
+    obs_save = np.array(obs_rows)
     obsnames = ["energy_internal", "energy"]
     obsnames.extend(observer.names)
+    obslengths = [1, 1] + observer.obs_lengths()
     if sampler_type == "RXMC":
         Trank_hist = np.load(os.path.join(rankdir, "Trank_hist.npy"))
         throw_out = rxparams.throw_out
@@ -386,6 +388,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             kTs=kTs,
             comm=comm,
             obsnames=obsnames,
+            obslengths=obslengths,
             throw_out=throw_out,
             E2T=1.0/kB,
         )
@@ -409,6 +412,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             dlogz=dlogz,
             logweight_history=logweight_history,
             obsnames=obsnames,
+            obslengths=obslengths,
             isamples_offsets=isamples_offsets,
             comm=comm,
             E2T=1.0/kB,
@@ -421,6 +425,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             kTs=prparams.kT,
             comm=comm,
             obsnames=obsnames,
+            obslengths=obslengths,
             throw_out=throw_out,
             E2T=1.0/kB,
         )
@@ -432,6 +437,7 @@ def postproc_dft_latgas(params_root: MutableMapping):
             kTs=kTs,
             comm=comm,
             obsnames=obsnames,
+            obslengths=obslengths,
             throw_out=throw_out,
             E2T=1.0/kB,
         )

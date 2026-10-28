@@ -120,3 +120,9 @@ type = 'user'
 perturb = 0.0
 function = 'mock.num_Mg'
 
+
+[[observer.solver]]
+name = 'num_Al_Mg'
+type = 'user'
+perturb = 0.0
+function = 'mock.num_Al_Mg'

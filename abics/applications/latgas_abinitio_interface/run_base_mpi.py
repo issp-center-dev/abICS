@@ -730,8 +730,8 @@ class Runner:
 
         Returns
         -------
-        energy : float
-            Total energy
+        energy : float or numpy.ndarray
+            Total energy (array if a user function returns an array)
         structure : pymatgen.Structure
             Structure of compounds after optimization
         """
@@ -745,7 +745,11 @@ class Runner:
             output_dir = os.path.join(self.tmpdir.name, output_dir)
         self.run.submit(self.solver_name, solverinput, output_dir)
         results = self.output.get_results(output_dir)
-        return float(results.energy), results.structure
+        energy = np.asarray(results.energy, dtype=float)
+        if energy.size == 1:
+            # scalar result, unless a user function returned a 1-element array
+            return float(energy.reshape(())), results.structure
+        return energy, results.structure
 
 
 class RunnerMultistep:

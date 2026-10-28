@@ -113,4 +113,18 @@ Canonical expectation value :math:`\langle O \rangle` and statistical error :mat
 - The 4th and 5th columns are :math:`\langle O^2 \rangle` and its error.
 - The 6th and 7th columns are fluctuation, :math:`\langle O^2 \rangle - \langle O \rangle^2` and its error.
 
+- If the observable is an array of length :math:`N` (returned by a user function), the file contains :math:`N` blocks of six columns after the temperature column, one block per element, in the above order. The elements are named ``<name>[0]``, ``<name>[1]``, ... in ``obs.dat`` and in the file header.
+
    - Note that the heat capacity :math:`C` is related to the fluctuation of energy as :math:`k_B T^2 C = \left[ \langle E^2 \rangle - \langle E \rangle^2 \right]`.
+
+``<name>.npz``
+===============
+The same data as ``<name>.dat`` stored as NumPy arrays, which can be loaded with ``numpy.load``.
+The file contains the following arrays.
+
+- ``temperature``: temperatures :math:`T_i`, shape ``(nT,)``.
+- ``mean``, ``mean_err``: :math:`\langle O \rangle` and its error.
+- ``second_moment``, ``second_moment_err``: :math:`\langle O^2 \rangle` and its error.
+- ``fluctuation``, ``fluctuation_err``: :math:`\langle O^2 \rangle - \langle O \rangle^2` and its error.
+
+Except for ``temperature``, the arrays have the shape ``(nT,)`` for a scalar observable and ``(nT, N)`` for an array observable of length :math:`N`.
