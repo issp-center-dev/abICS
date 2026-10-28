@@ -120,8 +120,16 @@ The logarithm of the Neal-Jarzynski weight for each step in the Numpy binary for
 </section>
 <section id="rank-acceptance-ratio-dat">
 <h2><span class="section-number">6.8. </span><code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code><a class="headerlink" href="#rank-acceptance-ratio-dat" title="Link to this heading">¶</a></h2>
-<p>Acceptance ratio of Monte Carlo steps for each temperature.
-The first column is temperature and the second column is acceptance ratio (number of accepted / number of trials).</p>
+<p>Acceptance ratio and trial counts of Monte Carlo steps for each temperature.</p>
+<ul class="simple">
+<li><p>The 1st column is temperature.</p></li>
+<li><p>The 2nd column is the acceptance ratio (number of accepted / number of trials).</p></li>
+<li><p>The 3rd column is the number of trials <code class="docutils literal notranslate"><span class="pre">ntrials</span></code>.</p></li>
+<li><p>The 4th column is the number of accepted trials <code class="docutils literal notranslate"><span class="pre">naccepted</span></code>.</p></li>
+<li><p>The 5th column is the number of trials for which no move could be proposed, <code class="docutils literal notranslate"><span class="pre">nfail</span></code>.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">nfail</span></code> counts trials such as a grandcanonical move that tries to remove a species that is absent.
+They are included in the number of trials and are never accepted.</p>
 </section>
 <section id="logz-dat">
 <h2><span class="section-number">6.9. </span><code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code><a class="headerlink" href="#logz-dat" title="Link to this heading">¶</a></h2>

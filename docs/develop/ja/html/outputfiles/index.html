@@ -121,8 +121,17 @@ direct
 </section>
 <section id="rank-acceptance-ratio-dat">
 <h2><span class="section-number">6.8. </span><code class="docutils literal notranslate"><span class="pre">RANK/acceptance_ratio.dat</span></code><a class="headerlink" href="#rank-acceptance-ratio-dat" title="Link to this heading">¶</a></h2>
-<p>各温度におけるモンテカルロ更新の採択率。
-1列目に温度, 2列目に採択率（採択回数/更新回数）が出力されます。</p>
+<p>各温度におけるモンテカルロ更新の採択率と試行回数。</p>
+<ul class="simple">
+<li><p>1列目は温度</p></li>
+<li><p>2列目は採択率（採択回数/試行回数）</p></li>
+<li><p>3列目は試行回数 <code class="docutils literal notranslate"><span class="pre">ntrials</span></code></p></li>
+<li><p>4列目は採択回数 <code class="docutils literal notranslate"><span class="pre">naccepted</span></code></p></li>
+<li><p>5列目は提案を生成できなかった試行の回数 <code class="docutils literal notranslate"><span class="pre">nfail</span></code></p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">nfail</span></code> は、たとえばグランドカノニカル更新で存在しない原子種の削除を提案した場合など、
+配置の更新を提案できなかった試行の数です。
+これらは試行回数に含まれ、採択されることはありません。</p>
 </section>
 <section id="logz-dat">
 <h2><span class="section-number">6.9. </span><code class="docutils literal notranslate"><span class="pre">logZ.dat</span></code><a class="headerlink" href="#logz-dat" title="Link to this heading">¶</a></h2>
