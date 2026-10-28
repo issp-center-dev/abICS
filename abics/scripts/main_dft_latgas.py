@@ -295,6 +295,14 @@ def main_dft_latgas(params_root: MutableMapping):
 
     ALrun = exists_on_all_nodes(commAll, "ALloop.progress")
 
+    # For pretrained MLIP solvers no base input files are supplied, so create
+    # the (empty) base_input_dir that write_input() will copy from.
+    if dftparams.use_pretrained and dftparams.solver in ("sevennet", "mace", "chgnet"):
+        if comm.Get_rank() == 0:
+            for dir in dftparams.base_input_dir:
+                if not os.path.exists(dir):
+                    os.makedirs(dir, exist_ok=True)
+
     # Active learning mode
     if ALrun:
         logger.info(f"-Running in active learning mode.")
