@@ -134,9 +134,26 @@ class NequipSolver(SolverBase):
             type_names = metadata["type_names"].split()
             # Type names are labels, not necessarily chemical symbols. Use the
             # deployed training configuration to recover the actual mapping.
-            # NequIP uses yaml.dump, which also emits Python tuple tags for
-            # settings such as _jit_fusion_strategy.
-            config = yaml.full_load(metadata["config"]) or {}
+            # Compose the YAML without constructing unrelated Python objects
+            # (e.g. Allegro's e3nn Irreps), then load only the mapping fields.
+            loader = yaml.SafeLoader(metadata["config"])
+            try:
+                config_node = loader.get_single_node()
+                config = {}
+                if config_node is not None:
+                    if not isinstance(config_node, yaml.MappingNode):
+                        raise ValueError("Deployed NequIP config must be a YAML mapping")
+                    config = {
+                        key.value: loader.construct_object(value, deep=True)
+                        for key, value in config_node.value
+                        if key.value in (
+                            "chemical_symbol_to_type",
+                            "type_to_chemical_symbol",
+                            "chemical_symbols",
+                        )
+                    }
+            finally:
+                loader.dispose()
             mapping = {
                 key: config[key]
                 for key in ("chemical_symbol_to_type", "type_to_chemical_symbol")

@@ -133,6 +133,42 @@ class TestNequipSolverInput(unittest.TestCase):
             self.assertEqual(solver_input.element_list, ["V", "Cu", "Sn"])
             self.assertEqual(solver_input.r_max, 8.0)
 
+    def test_deployed_allegro_config_ignores_unrelated_python_objects(self):
+        from e3nn.o3 import Irreps
+
+        # Allegro writes Irreps objects into its deployed YAML configuration.
+        # These are unrelated to the chemical mapping and must not be loaded.
+        for mapping, type_names, elements in (
+            ({"chemical_symbol_to_type": {"H": 1, "O": 0}},
+             "oxygen hydrogen", ["O", "H"]),
+            ({"type_to_chemical_symbol": {0: "O", 1: "H"}},
+             "oxygen hydrogen", ["O", "H"]),
+            ({"chemical_symbols": ["O", "H"]},
+             "hydrogen oxygen", ["H", "O"]),
+            ({}, "H O", ["H", "O"]),
+        ):
+            with self.subTest(mapping=mapping), tempfile.TemporaryDirectory() as tmpdir:
+                config = dict(
+                    mapping,
+                    tensor_track_allowed_irreps=Irreps("0e + 1o"),
+                    _jit_fusion_strategy=[("DYNAMIC", 3)],
+                )
+                config_yaml = yaml.dump(config)
+                self.assertIn("!!python/object/new:e3nn.o3._irreps.Irreps", config_yaml)
+                torch.jit.save(
+                    torch.jit.script(TypeEnergyModel()),
+                    str(Path(tmpdir) / "deployed.pth"),
+                    _extra_files={
+                        "r_max": "8.0",
+                        "type_names": type_names,
+                        "config": config_yaml,
+                    },
+                )
+                solver_input = NequipSolver.Input()
+                solver_input.from_directory(tmpdir)
+                self.assertEqual(solver_input.element_list, elements)
+                self.assertEqual(solver_input.r_max, 8.0)
+
 
 if __name__ == "__main__":
     unittest.main()
