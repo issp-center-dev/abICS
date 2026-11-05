@@ -28,9 +28,10 @@ from collections import namedtuple
 import numpy as np
 from pymatgen.core import Structure
 import torch
+import yaml
 from ase import Atoms
 from nequip.data import AtomicDataDict, AtomicData
-from nequip.utils import Config
+from nequip.data.transforms import TypeMapper
 
 from .base_solver import SolverBase, register_solver
 from .params import ALParams, DFTParams
@@ -114,11 +115,61 @@ class NequipSolver(SolverBase):
                 Path to the directory including base input files.
             """
             self.base_input_dir = base_input_dir
-            self.model = torch.jit.load(os.path.join(base_input_dir, "deployed.pth"))
-            yaml_file = os.path.join(base_input_dir, "input.yaml")
-            yaml_dic = Config.from_file(yaml_file)
-            self.element_list = yaml_dic["chemical_symbols"]
-            self.r_max = yaml_dic["r_max"]
+
+            metadata = {
+                "r_max": "",
+                "type_names": "",
+                "config": "",
+            }
+
+            self.model = torch.jit.load(
+                os.path.join(base_input_dir, "deployed.pth"),
+                _extra_files=metadata,
+            )
+
+            for key, value in metadata.items():
+                if isinstance(value, bytes):
+                    metadata[key] = value.decode()
+
+            type_names = metadata["type_names"].split()
+            # Type names are labels, not necessarily chemical symbols. Use the
+            # deployed training configuration to recover the actual mapping.
+            # Compose the YAML without constructing unrelated Python objects
+            # (e.g. Allegro's e3nn Irreps), then load only the mapping fields.
+            loader = yaml.SafeLoader(metadata["config"])
+            try:
+                config_node = loader.get_single_node()
+                config = {}
+                if config_node is not None:
+                    if not isinstance(config_node, yaml.MappingNode):
+                        raise ValueError("Deployed NequIP config must be a YAML mapping")
+                    config = {
+                        key.value: loader.construct_object(value, deep=True)
+                        for key, value in config_node.value
+                        if key.value in (
+                            "chemical_symbol_to_type",
+                            "type_to_chemical_symbol",
+                            "chemical_symbols",
+                        )
+                    }
+            finally:
+                loader.dispose()
+            mapping = {
+                key: config[key]
+                for key in ("chemical_symbol_to_type", "type_to_chemical_symbol")
+                if config.get(key) is not None
+            }
+            if not mapping and config.get("chemical_symbols") is not None:
+                mapping["chemical_symbols"] = config["chemical_symbols"]
+            type_mapper = TypeMapper(type_names=type_names, **mapping)
+            if type_mapper.type_to_chemical_symbol is None:
+                self.element_list = type_names
+            else:
+                self.element_list = [
+                    type_mapper.type_to_chemical_symbol[i]
+                    for i in range(type_mapper.num_types)
+                ]
+            self.r_max = float(metadata["r_max"])
 
         def update_info_by_structure(self, structure):
             """

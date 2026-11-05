@@ -72,6 +72,7 @@ jobs:
                            sh ./run.sh ;;
         ActiveLearnNequip ) cd tests/integration/active_learn_nequip
                             sh ./install_nequip.sh
+                            (cd ../../.. && python -m unittest tests.test_nequip)
                             sh ./run.sh ;;
         ActiveLearnMLIP-3 ) cd tests/integration/active_learn_mlip3
                             sh ./install_mlip3.sh
