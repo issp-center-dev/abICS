@@ -83,7 +83,7 @@ def main_impl(params_root: MutableMapping):
 
     
 
-    if trainer_type not in ["aenet", "allegro", "nequip", "mlip_3"]:
+    if trainer_type not in ["aenet", "allegro", "nequip", "mlip_3", "sevennet", "mace", "chgnet"]:
         logger.error("Unknown trainer: ", trainer_type)
         sys.exit(1)
 
