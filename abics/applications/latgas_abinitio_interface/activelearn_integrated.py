@@ -33,8 +33,10 @@ The directory layout of the staged mode is kept: the solver runs in
 ``AL<n>/<replica>/input<i>/baseinput<k>`` (or in a copy under
 ``scratch_dir``, with the outputs copied back), so the results can be
 used, inspected and resumed exactly like those of the staged mode.
-Re-running ``abics_mlref`` after an interruption skips the
-configurations whose final solver output already parses.
+A stage is complete when the marker file ``abics_mlref.done`` has been
+written next to its output, which happens only after the solver exited
+successfully and its output was parsed; re-running ``abics_mlref`` after
+an interruption skips the complete stages and reruns the others.
 
 libEnsemble is an optional dependency (``pip install libensemble``).
 """
@@ -64,6 +66,8 @@ from abics.mlref import RefParams
 logger = logging.getLogger("main")
 
 SOLVER_APP = "reference_solver"
+DONE_MARKER = "abics_mlref.done"
+"""Written into ``baseinput<k>`` when the solver exited successfully and its output was parsed."""
 
 
 # ---------------------------------------------------------------------------
@@ -85,12 +89,14 @@ class IntegratedParams:
     "Seconds after which a solver run is killed (0: no limit)"
     retries: int = 1
     "How many times a failed (or timed-out) solver run is repeated"
+    output_wait: float = 10.0
+    "Seconds to keep re-trying to read the output after the solver exited (shared file systems)"
     scratch_dir: str = ""
-    "Directory (e.g. node-local) in which the solver runs; empty: run in place"
+    "Directory in which the solver runs (must be visible from the solver's nodes); empty: run in place"
     copy_back_exclude: List[str] = field(default_factory=list)
     "Glob patterns of files not copied back from scratch_dir (e.g. '*.wfc*')"
     cores: int = 0
-    "Cores available to the solver runs (0: nworkers * nprocs)"
+    "Cores (libEnsemble resource sets) available to the solver runs (0: nworkers * nprocs)"
 
     @classmethod
     def from_dict(cls, d: dict) -> "IntegratedParams":
@@ -100,11 +106,14 @@ class IntegratedParams:
         params.nthreads = int(d.get("nthreads", 1))
         params.timeout = float(d.get("timeout", 0.0))
         params.retries = int(d.get("retries", 1))
-        params.scratch_dir = str(d.get("scratch_dir", ""))
+        params.output_wait = float(d.get("output_wait", 10.0))
+        params.scratch_dir = os.path.expandvars(os.path.expanduser(str(d.get("scratch_dir", ""))))
         params.copy_back_exclude = list(d.get("copy_back_exclude", []))
         params.cores = int(d.get("cores", 0))
-        if params.nworkers < 1 or params.nprocs < 1 or params.retries < 0:
-            raise ValueError("[mlref.integrated]: nworkers and nprocs must be >= 1 and retries >= 0")
+        if params.nworkers < 1 or params.nprocs < 1 or params.nthreads < 1:
+            raise ValueError("[mlref.integrated]: nworkers, nprocs and nthreads must be >= 1")
+        if params.retries < 0 or params.timeout < 0 or params.output_wait < 0 or params.cores < 0:
+            raise ValueError("[mlref.integrated]: retries, timeout, output_wait and cores must be >= 0")
         return params
 
 
@@ -129,6 +138,20 @@ def resolve_solver_path(path: str) -> str:
             f"[mlref.solver] path = '{path}' is not an existing file nor a command on PATH"
         )
     return os.path.abspath(found)
+
+
+def launched_by_mpi() -> bool:
+    """True when this process was started by mpiexec/mpirun/srun with more than one rank.
+
+    Checked through the environment so that MPI is not initialized here.
+    """
+    for var in ("OMPI_COMM_WORLD_SIZE", "PMI_SIZE", "MPI_LOCALNRANKS", "MV2_COMM_WORLD_SIZE"):
+        try:
+            if int(os.environ.get(var, "1")) > 1:
+                return True
+        except ValueError:
+            pass
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -162,14 +185,41 @@ Launcher = Callable[[str, int], str]
 
 
 def try_parse(solver_output, stage_dir: str) -> Optional[Tuple[float, Structure]]:
-    """Energy and structure of a finished solver run, or ``None`` if it cannot be parsed."""
+    """Energy and structure of a finished solver run, or ``None`` if it cannot be parsed.
+
+    Some solver parsers call ``exit()`` on a missing output, so ``SystemExit``
+    is caught as well.
+    """
     try:
         energy, st = solver_output.get_results(stage_dir)
-    except Exception:  # noqa: BLE001 - any parse error means "not finished"
+    except (Exception, SystemExit):  # any parse error means "not finished"
         return None
     if energy is None or not np.isfinite(energy):
         return None
     return float(energy), st
+
+
+def parse_with_wait(solver_output, stage_dir: str, output_wait: float) -> Optional[Tuple[float, Structure]]:
+    """Parse the output, re-trying for ``output_wait`` seconds.
+
+    On a shared file system the files written by the solver's node may
+    become visible to this process a little later than the exit status.
+    """
+    deadline = time.time() + output_wait
+    while True:
+        parsed = try_parse(solver_output, stage_dir)
+        if parsed is not None or time.time() >= deadline:
+            return parsed
+        time.sleep(min(1.0, max(0.1, deadline - time.time())))
+
+
+def stage_done(stage_dir: str) -> bool:
+    return os.path.isfile(os.path.join(stage_dir, DONE_MARKER))
+
+
+def mark_stage_done(stage_dir: str, attempt: int) -> None:
+    with open(os.path.join(stage_dir, DONE_MARKER), "w") as f:
+        f.write(f"finished {datetime.datetime.now().isoformat()} after {attempt} attempt(s)\n")
 
 
 def run_task_stages(
@@ -178,12 +228,15 @@ def run_task_stages(
     alparams: ALParams,
     retries: int,
     launch: Launcher,
+    output_wait: float = 0.0,
 ) -> Tuple[str, float, Optional[Structure], int]:
     """Run all relaxation stages of one configuration.
 
     Returns ``(status, energy, structure, attempts)``; ``structure`` is the
-    solver's final structure without the ignored species.  Stages whose
-    output already parses are not run again (resume after interruption).
+    solver's final structure without the ignored species.  A stage whose
+    marker file (:data:`DONE_MARKER`) exists is not run again (resume after
+    interruption); a stage with output but no marker is rerun, because the
+    output may be that of an interrupted run.
     """
     solver_input = solver.input
     solver_output = solver.output
@@ -196,7 +249,9 @@ def run_task_stages(
         if stage > 0 and not os.path.isdir(sdir):
             solver_input.from_directory(alparams.base_input_dir[stage])
             al.write_next_stage_input(solver_input, structure, task.input_dir, stage)
-        parsed = try_parse(solver_output, sdir)
+        parsed = try_parse(solver_output, sdir) if stage_done(sdir) else None
+        if parsed is None and stage_done(sdir):
+            os.remove(os.path.join(sdir, DONE_MARKER))  # marker without readable output: rerun
         status = "ok"
         attempt = 0
         while parsed is None and attempt <= retries:
@@ -204,9 +259,11 @@ def run_task_stages(
             attempts += 1
             status = launch(sdir, attempt)
             if status == "ok":
-                parsed = try_parse(solver_output, sdir)
+                parsed = parse_with_wait(solver_output, sdir, output_wait)
                 if parsed is None:
                     status = "output could not be parsed"
+                else:
+                    mark_stage_done(sdir, attempt)
         if parsed is None:
             return f"stage {stage}: {status}", energy, structure, attempts
         energy, structure = parsed
@@ -259,71 +316,86 @@ def task_list_gen(H, persis_info, gen_specs, libE_info):
 
 
 def run_reference_task(H, persis_info, sim_specs, libE_info):
-    """Run the solver for one configuration on a libEnsemble worker."""
+    """Run the solver for one configuration on a libEnsemble worker.
+
+    Never raises: any problem is reported in the ``status`` field so that
+    the manager can list the failed configurations.
+    """
     from libensemble.executors.executor import Executor, TimeoutExpired
 
     user = sim_specs["user"]
     rootdir = user["rootdir"]
-    os.chdir(rootdir)
-    if rootdir not in sys.path:
-        sys.path.insert(0, rootdir)
-    # libEnsemble passes ``user`` through pydantic, which turns dataclasses
-    # into dicts: rebuild the objects here
-    task = ReferenceTask(**user["tasks"][int(H["task_index"][0])])
-    ip = IntegratedParams(**user["integrated"])
-    alparams = ALParams.from_dict(user["mlref_solver"])  # paths relative to rootdir
-    replica_dir = user["replica_dirs"][task.replica]
-    solver = create_solver(alparams.solver, alparams)
-    exctr = Executor.executor
-
-    def launch(stage_dir: str, attempt: int) -> str:
-        run_dir = stage_dir
-        if ip.scratch_dir:
-            run_dir = os.path.join(
-                ip.scratch_dir,
-                f"abics_{os.getpid()}_{task.replica}_{task.index}_{os.path.basename(stage_dir)}_{attempt}",
-            )
-            shutil.rmtree(run_dir, ignore_errors=True)
-            shutil.copytree(stage_dir, run_dir)
-        args = solver.input.cl_args(ip.nprocs, ip.nthreads, run_dir)
-        os.chdir(run_dir)
-        try:
-            libe_task = exctr.submit(
-                app_name=SOLVER_APP,
-                num_procs=ip.nprocs,
-                app_args=" ".join(str(a) for a in args),
-                stdout=os.path.join(run_dir, "stdout"),
-                stderr=os.path.join(run_dir, "stderr"),
-                wait_on_start=True,
-            )
-            try:
-                libe_task.wait(timeout=ip.timeout if ip.timeout > 0 else None)
-            except TimeoutExpired:
-                libe_task.kill()
-                return f"timeout after {ip.timeout} s"
-        finally:
-            os.chdir(rootdir)
-        if ip.scratch_dir:
-            copy_tree_filtered(run_dir, stage_dir, ip.copy_back_exclude)
-            shutil.rmtree(run_dir, ignore_errors=True)
-        if libe_task.success:
-            return "ok"
-        return f"solver exited with status {libe_task.errcode}"
-
-    status, energy, structure, attempts = run_task_stages(task, solver, alparams, ip.retries, launch)
+    task_index = int(H["task_index"][0])
     H_o = np.zeros(1, dtype=sim_specs["out"])
-    H_o["task_index"] = int(H["task_index"][0])
-    H_o["attempts"] = attempts
-    if status == "ok" and structure is not None:
-        dmax_id, dmax = finish_task(task, structure, alparams, user["al_step"], replica_dir)
-        H_o["energy"] = energy
-        H_o["dmax_id"] = dmax_id
-        H_o["dmax"] = dmax
-    else:
-        H_o["energy"] = np.nan
-        H_o["dmax_id"] = -1
-        H_o["dmax"] = np.nan
-    H_o["status"] = status
+    H_o["task_index"] = task_index
+    H_o["energy"] = np.nan
+    H_o["dmax_id"] = -1
+    H_o["dmax"] = np.nan
+    try:
+        os.chdir(rootdir)
+        if rootdir not in sys.path:
+            sys.path.insert(0, rootdir)
+        # libEnsemble passes ``user`` through pydantic, which turns dataclasses
+        # into dicts: rebuild the objects here
+        task = ReferenceTask(**user["tasks"][task_index])
+        ip = IntegratedParams(**user["integrated"])
+        alparams = ALParams.from_dict(user["mlref_solver"])  # paths relative to rootdir
+        replica_dir = user["replica_dirs"][task.replica]
+        solver = create_solver(alparams.solver, alparams)
+        exctr = Executor.executor
+
+        def launch(stage_dir: str, attempt: int) -> str:
+            run_dir = stage_dir
+            if ip.scratch_dir:
+                run_dir = os.path.join(
+                    ip.scratch_dir,
+                    f"abics_{os.getpid()}_{task.replica}_{task.index}_{os.path.basename(stage_dir)}_{attempt}",
+                )
+                shutil.rmtree(run_dir, ignore_errors=True)
+                shutil.copytree(stage_dir, run_dir)
+            args = solver.input.cl_args(ip.nprocs, ip.nthreads, run_dir)
+            status = "ok"
+            try:
+                os.chdir(run_dir)
+                libe_task = exctr.submit(
+                    app_name=SOLVER_APP,
+                    num_procs=ip.nprocs,
+                    app_args=" ".join(str(a) for a in args),
+                    stdout=os.path.join(run_dir, "stdout"),
+                    stderr=os.path.join(run_dir, "stderr"),
+                    wait_on_start=True,
+                )
+                try:
+                    libe_task.wait(timeout=ip.timeout if ip.timeout > 0 else None)
+                    if not libe_task.success:
+                        status = f"solver exited with status {libe_task.errcode}"
+                except TimeoutExpired:
+                    libe_task.kill()
+                    status = f"timeout after {ip.timeout} s"
+            finally:
+                os.chdir(rootdir)
+                if ip.scratch_dir:
+                    # copy back whatever is there (also after a failure, for inspection)
+                    copy_tree_filtered(run_dir, stage_dir, ip.copy_back_exclude)
+                    shutil.rmtree(run_dir, ignore_errors=True)
+            return status
+
+        status, energy, structure, attempts = run_task_stages(
+            task, solver, alparams, ip.retries, launch, ip.output_wait
+        )
+        H_o["attempts"] = attempts
+        if status == "ok" and structure is not None:
+            dmax_id, dmax = finish_task(task, structure, alparams, user["al_step"], replica_dir)
+            H_o["energy"] = energy
+            H_o["dmax_id"] = dmax_id
+            H_o["dmax"] = dmax
+    except (Exception, SystemExit) as e:  # noqa: BLE001 - reported, not raised
+        status = f"internal error: {type(e).__name__}: {e}"
+        try:
+            os.chdir(rootdir)
+        except OSError:
+            pass
+    H_o["status"] = status[:127]
     return H_o, persis_info
 
 
@@ -382,6 +454,7 @@ def run_reference_calculations(
         comms="local",
         nworkers=ip.nworkers,
         gen_on_manager=True,
+        # one resource set per core; each solver run takes nprocs of them
         num_resource_sets=cores,
         resource_info={"cores_on_node": (cores, cores)},
         sim_dirs_make=False,
@@ -439,12 +512,43 @@ def seed_replica(seed: int, replica: int) -> None:
         rand.seed(rand.randint(10000))
 
 
+def check_resumable(
+    replica_dirs: Sequence[str],
+    fmtstr_by_replica: Sequence[str],
+    ndata: int,
+    energy_ref: Optional[Sequence[Dict[int, float]]],
+) -> Tuple[List[ReferenceTask], List[str]]:
+    """Tasks of an existing ``AL<n>`` and the reasons why it cannot be resumed (empty if it can).
+
+    Every replica directory must exist and hold exactly ``ndata`` input
+    directories, and for ``AL<n>`` with ``n > 0`` every input index must be a
+    sample of the preceding MC run (``energy_ref[r]``).
+    """
+    tasks: List[ReferenceTask] = []
+    problems: List[str] = []
+    for r, replica_dir in enumerate(replica_dirs):
+        if not os.path.isdir(replica_dir):
+            problems.append(f"{replica_dir} does not exist")
+            continue
+        indices = al.list_input_indices(replica_dir)
+        if len(indices) != ndata:
+            problems.append(f"{replica_dir} has {len(indices)} input directories, expected ndata = {ndata}")
+        if energy_ref is not None:
+            missing = [i for i in indices if i not in energy_ref[r]]
+            if missing:
+                problems.append(
+                    f"{replica_dir}: inputs {missing} have no sample in the preceding MC run "
+                    "(MC output or [sampling] sampler changed?)"
+                )
+        for index in indices:
+            tasks.append(ReferenceTask(r, index, os.path.join(replica_dir, fmtstr_by_replica[r].format(index))))
+    return tasks, problems
+
+
 def main_integrated(params_root) -> None:
     require_libensemble()
-    from mpi4py import MPI
-
-    if MPI.COMM_WORLD.Get_size() > 1:
-        logger.error("abics_mlref with exec_mode = 'integrated' must not be run under mpiexec:")
+    if launched_by_mpi():
+        logger.error("abics_mlref with exec_mode = 'integrated' must not be run under mpiexec/mpirun/srun:")
         logger.error("it is a single process that launches the solver runs itself.")
         sys.exit(1)
 
@@ -460,6 +564,8 @@ def main_integrated(params_root) -> None:
         logger.error("for exec_mode = 'integrated'.")
         sys.exit(1)
     resolve_solver_path(alparams.path)
+    if ip.scratch_dir:
+        os.makedirs(ip.scratch_dir, exist_ok=True)
 
     ndata = rxparams.ndata
     nreplicas = rxparams.nreplicas
@@ -472,13 +578,12 @@ def main_integrated(params_root) -> None:
     nextMC_index = newest_mc_index(rootdir)
     ALstep = nextMC_index
     aldir = os.path.join(rootdir, f"AL{ALstep}")
-    replica_dirs = {r: os.path.join(aldir, str(r)) for r in range(nreplicas)}
+    replica_dirs = [os.path.join(aldir, str(r)) for r in range(nreplicas)]
     progress_path = os.path.join(rootdir, al.PROGRESS_FILE)
     if ALstep == 0:
         if os.path.exists(progress_path):
             logger.error("It seems you've already run the first active learning step. You should train now.")
             sys.exit(1)
-        fmtstr = al.input_dir_format(ndata)
     else:
         MCdirname = f"MC{ALstep - 1}"
         last_li = al.last_progress(rootdir)
@@ -493,19 +598,32 @@ def main_integrated(params_root) -> None:
     logger.info(f"-Running AL{ALstep} in integrated mode: {ip.nworkers} solver run(s) at a time, "
                 f"{ip.nprocs} MPI rank(s) each")
 
-    # --- configurations and solver inputs -------------------------------
-    tasks: List[ReferenceTask] = []
-    energy_ref: Dict[int, Dict[int, float]] = {}
-    resume = os.path.isdir(aldir)
-    if resume:
-        logger.info(f"-{aldir} exists: resuming, configurations with finished solver runs are skipped")
-    if ALstep > 0:
+    # --- candidates of the preceding MC run (AL1 and later) -----------------
+    energy_ref: Optional[List[Dict[int, float]]] = None
+    candidates_by_replica: List[List[al.ReferenceCandidate]] = []
+    if ALstep == 0:
+        fmtstr_by_replica = [al.input_dir_format(ndata)] * nreplicas
+    else:
+        energy_ref = []
+        fmtstr_by_replica = []
         for r in range(nreplicas):
             candidates = al.reference_candidates(os.path.join(rootdir, MCdirname, str(r)), sampler_type)
-            energy_ref[r] = {c.index: c.energy + energy_ref_empty * mult_now for c in candidates}
-            if r == 0:
-                fmtstr = al.input_dir_format(len(candidates))
-    if not resume:
+            candidates_by_replica.append(candidates)
+            energy_ref.append({c.index: c.energy + energy_ref_empty * mult_now for c in candidates})
+            fmtstr_by_replica.append(al.input_dir_format(len(candidates)))
+
+    # --- configurations and solver inputs ----------------------------------
+    tasks: List[ReferenceTask] = []
+    if os.path.isdir(aldir):
+        logger.info(f"-{aldir} exists: resuming, stages with a {DONE_MARKER} marker are not rerun")
+        tasks, problems = check_resumable(replica_dirs, fmtstr_by_replica, ndata, energy_ref)
+        if problems:
+            for problem in problems:
+                logger.error(f"  {problem}")
+            logger.error(f"-AL{ALstep} is incomplete and cannot be resumed. Remove the directory to "
+                         "generate the configurations again.")
+            sys.exit(1)
+    else:
         logger.info(f"-Preparing {alparams.solver} input in AL{ALstep}/*/input*/baseinput0")
         solver_input.from_directory(alparams.base_input_dir[0])
         rundirs = []
@@ -513,24 +631,23 @@ def main_integrated(params_root) -> None:
             seed_replica(rxparams.seed, r)
             os.makedirs(replica_dirs[r])
             if ALstep == 0:
-                config = defect_config(configparams)
+                # A fresh DFTConfigParams per replica, as every staged rank has: the
+                # lattice of its base structure caches its inverse on first use, and a
+                # cached inverse changes the last digit of the fractional coordinates
+                # written for the following replicas.
+                config = defect_config(DFTConfigParams.from_dict(params_root["config"]))
                 structures = enumerate(al.generate_random_structures(config, ndata))
             else:
-                candidates = al.reference_candidates(os.path.join(rootdir, MCdirname, str(r)), sampler_type)
-                selected = al.select_candidates(candidates, rxparams)
+                selected = al.select_candidates(candidates_by_replica[r], rxparams)
                 structures = zip(
                     [c.index for c in selected],
                     al.load_candidate_structures(selected, mcparams.ignore_species),
                 )
             for index, structure in structures:
-                input_dir = os.path.join(replica_dirs[r], fmtstr.format(index))
+                input_dir = os.path.join(replica_dirs[r], fmtstr_by_replica[r].format(index))
                 rundirs.append(al.write_reference_input(solver_input, structure, alparams.perturb, input_dir))
                 tasks.append(ReferenceTask(r, index, input_dir))
         al.write_rundirs(rootdir, rundirs)
-    else:
-        for r in range(nreplicas):
-            for index in al.list_input_indices(replica_dirs[r]):
-                tasks.append(ReferenceTask(r, index, os.path.join(replica_dirs[r], fmtstr.format(index))))
 
     # --- solver runs -------------------------------------------------------
     logger.info(f"-Running {alparams.solver} for {len(tasks)} configurations")
@@ -540,7 +657,7 @@ def main_integrated(params_root) -> None:
         params_root["mlref"]["solver"],
         ip,
         rootdir,
-        [replica_dirs[r] for r in range(nreplicas)],
+        replica_dirs,
         ALstep,
         os.path.join(aldir, "libE"),
     )
@@ -548,14 +665,16 @@ def main_integrated(params_root) -> None:
     failed = [res for res in results if res.status != "ok"]
     if failed or len(results) != len(tasks):
         for res in failed:
-            logger.error(f"  AL{ALstep}/{res.replica}/{fmtstr.format(res.index)}: {res.status} "
-                         f"(after {res.attempts} attempt(s))")
-        logger.error(f"-{len(failed)} of {len(tasks)} solver runs failed. Fix the cause and run "
-                     "abics_mlref again: finished configurations are not rerun.")
+            logger.error(f"  AL{ALstep}/{res.replica}/{fmtstr_by_replica[res.replica].format(res.index)}: "
+                         f"{res.status} (after {res.attempts} attempt(s))")
+        if len(results) != len(tasks):
+            logger.error(f"  {len(tasks) - len(results)} configuration(s) returned no result")
+        logger.error(f"-{len(failed) + len(tasks) - len(results)} of {len(tasks)} solver runs failed. "
+                     "Fix the cause and run abics_mlref again: finished stages are not rerun.")
         sys.exit(1)
 
     # --- per-replica result files, as in the staged mode ------------------
-    by_replica: Dict[int, List[TaskResult]] = {r: [] for r in range(nreplicas)}
+    by_replica: List[List[TaskResult]] = [[] for _ in range(nreplicas)]
     for res in results:
         by_replica[res.replica].append(res)
     replica_rows = []

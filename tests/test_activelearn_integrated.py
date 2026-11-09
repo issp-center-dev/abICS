@@ -1,6 +1,8 @@
 import os
 import tempfile
+import time
 import unittest
+import unittest.mock
 from collections import namedtuple
 
 import numpy as np
@@ -115,14 +117,72 @@ class TestRunTaskStages(unittest.TestCase):
     def test_finished_stage_is_not_rerun(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             task = make_task(tmpdir)
-            with open(os.path.join(task.input_dir, "baseinput0", "energy.dat"), "w") as f:
+            stage0 = os.path.join(task.input_dir, "baseinput0")
+            with open(os.path.join(stage0, "energy.dat"), "w") as f:
                 f.write("-3.0\n")
+            ai.mark_stage_done(stage0, 1)
 
             def launch(run_dir, attempt):
                 raise AssertionError("must not be called")
 
             status, energy, _, attempts = ai.run_task_stages(task, FakeSolver(), alparams(), 1, launch)
         self.assertEqual((status, energy, attempts), ("ok", -3.0, 0))
+
+    def test_output_without_marker_is_rerun(self):
+        # output of an interrupted run: parseable but not marked complete
+        calls = []
+
+        def launch(run_dir, attempt):
+            calls.append(attempt)
+            with open(os.path.join(run_dir, "energy.dat"), "w") as f:
+                f.write("-4.0\n")
+            return "ok"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task = make_task(tmpdir)
+            stage0 = os.path.join(task.input_dir, "baseinput0")
+            with open(os.path.join(stage0, "energy.dat"), "w") as f:
+                f.write("-3.0\n")  # stale partial output
+            status, energy, _, attempts = ai.run_task_stages(task, FakeSolver(), alparams(), 1, launch)
+            self.assertTrue(ai.stage_done(stage0))
+        self.assertEqual((status, energy, attempts, calls), ("ok", -4.0, 1, [1]))
+
+    def test_marker_is_written_only_after_success(self):
+        def launch(run_dir, attempt):
+            return "solver exited with status 1"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task = make_task(tmpdir)
+            status, _, _, _ = ai.run_task_stages(task, FakeSolver(), alparams(), 0, launch)
+            self.assertFalse(ai.stage_done(os.path.join(task.input_dir, "baseinput0")))
+        self.assertTrue(status.startswith("stage 0: solver exited"))
+
+    def test_output_appearing_late_is_waited_for(self):
+        import threading
+
+        def launch(run_dir, attempt):
+            def write_later():
+                time.sleep(0.5)
+                with open(os.path.join(run_dir, "energy.dat"), "w") as f:
+                    f.write("-5.0\n")
+
+            threading.Thread(target=write_later).start()
+            return "ok"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task = make_task(tmpdir)
+            status, energy, _, attempts = ai.run_task_stages(
+                task, FakeSolver(), alparams(), 0, launch, output_wait=5.0
+            )
+        self.assertEqual((status, energy, attempts), ("ok", -5.0, 1))
+
+    def test_parser_calling_exit_is_treated_as_not_finished(self):
+        class ExitingOutput:
+            def get_results(self, workdir):
+                exit(1)  # as the QE/aenet/MLIP-3 parsers do on a missing output
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.assertIsNone(ai.try_parse(ExitingOutput(), tmpdir))
 
     def test_two_stages_are_chained(self):
         stages = []
@@ -178,8 +238,46 @@ class TestHelpers(unittest.TestCase):
         p = ai.IntegratedParams.from_dict({"nworkers": 4, "nprocs": 2, "timeout": 30, "scratch_dir": "/tmp/x"})
         self.assertEqual((p.nworkers, p.nprocs, p.timeout, p.retries, p.scratch_dir), (4, 2, 30.0, 1, "/tmp/x"))
         self.assertEqual(ai.IntegratedParams.from_dict({}).nworkers, 1)
-        with self.assertRaises(ValueError):
-            ai.IntegratedParams.from_dict({"nworkers": 0})
+        for bad in ({"nworkers": 0}, {"nthreads": 0}, {"timeout": -1}, {"retries": -1}):
+            with self.assertRaises(ValueError):
+                ai.IntegratedParams.from_dict(bad)
+
+    def test_scratch_dir_is_expanded(self):
+        with unittest.mock.patch.dict(os.environ, {"ABICS_TEST_SCRATCH": "/scr"}):
+            p = ai.IntegratedParams.from_dict({"scratch_dir": "$ABICS_TEST_SCRATCH/$USER"})
+        self.assertTrue(p.scratch_dir.startswith("/scr/"))
+        self.assertNotIn("$", p.scratch_dir)
+        self.assertEqual(ai.IntegratedParams.from_dict({"scratch_dir": "~"}).scratch_dir, os.path.expanduser("~"))
+
+    def test_launched_by_mpi(self):
+        with unittest.mock.patch.dict(os.environ, {"OMPI_COMM_WORLD_SIZE": "4"}):
+            self.assertTrue(ai.launched_by_mpi())
+        with unittest.mock.patch.dict(os.environ, {"OMPI_COMM_WORLD_SIZE": "1", "PMI_SIZE": "1"}):
+            self.assertFalse(ai.launched_by_mpi())
+
+    def test_check_resumable(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            replica_dirs = [os.path.join(tmpdir, "AL1", "0"), os.path.join(tmpdir, "AL1", "1")]
+            fmt = [al.input_dir_format(80)] * 2
+            for name in ("input00", "input08", "input17"):
+                os.makedirs(os.path.join(replica_dirs[0], name))
+            # replica 1 was never generated
+            energy_ref = [{0: -1.0, 8: -2.0, 17: -3.0}, {}]
+            tasks, problems = ai.check_resumable(replica_dirs, fmt, 3, energy_ref)
+            self.assertEqual([(t.replica, t.index) for t in tasks], [(0, 0), (0, 8), (0, 17)])
+            self.assertEqual(len(problems), 1)
+            self.assertIn("does not exist", problems[0])
+
+            os.makedirs(os.path.join(replica_dirs[1], "input00"))
+            tasks, problems = ai.check_resumable(replica_dirs, fmt, 3, energy_ref)
+            self.assertEqual(len(problems), 2)  # wrong count, and index 0 not in MC samples of replica 1
+            self.assertTrue(any("expected ndata = 3" in p for p in problems))
+            self.assertTrue(any("no sample" in p for p in problems))
+
+            # a complete AL0 (no energy_ref) resumes without problems
+            tasks, problems = ai.check_resumable(replica_dirs[:1], fmt[:1], 3, None)
+            self.assertEqual(problems, [])
+            self.assertEqual(len(tasks), 3)
 
     def test_copy_tree_filtered(self):
         with tempfile.TemporaryDirectory() as tmpdir:

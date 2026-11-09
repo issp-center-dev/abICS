@@ -42,10 +42,7 @@ import numpy as np
 
 from abics import __version__
 
-from abics.mc_mpi import (
-    RX_MPI_init,
-    RefParams,
-)
+from abics.mlref import RefParams
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -123,6 +120,9 @@ def main_impl(params_root: MutableMapping):
     if exec_mode != "staged":
         logger.error(f"Unknown [mlref] exec_mode = '{exec_mode}' (use 'staged' or 'integrated')")
         sys.exit(1)
+
+    # imported here so that the integrated mode never initializes MPI
+    from abics.sampling.mc_mpi import RX_MPI_init
 
     rxparams = RefParams.from_dict(params_root["mlref"])
     ndata = rxparams.ndata

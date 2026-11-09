@@ -207,4 +207,5 @@ one colour per replica, with the diagonal as a guide.
 -----------------------------------
 (``exec_mode = "integrated"`` only) The logs of libEnsemble, which manages the solver runs
 (``ensemble.log``, ``libE_stats.txt``, ...). The standard output and error of each solver run are written to
-``ALn/RANK/inputXX/baseinputK/stdout`` and ``stderr``.
+``ALn/RANK/inputXX/baseinputK/stdout`` and ``stderr``, and ``abics_mlref.done`` is written into a stage directory
+once the solver exited successfully and its output was parsed (on a rerun such stages are not calculated again).

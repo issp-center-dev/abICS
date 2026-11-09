@@ -116,13 +116,23 @@ Key words
     If configurations still fail, ``abics_mlref`` reports them, exits with status 1 and does not update ``ALloop.progress``;
     after removing the cause, rerunning ``abics_mlref`` calculates only the failed configurations.
 
+  - ``output_wait``
+
+    **Format :** float (seconds, default: 10)
+
+    **Description :** Maximum time to wait, after the solver exited, until its output can be read.
+    On a shared file system the files written by another node may become visible with a delay, so reading is retried for this long.
+
   - ``scratch_dir``
 
-    **Format :** string (default: empty)
+    **Format :** string (default: empty; ``~`` and environment variables are expanded)
 
-    **Description :** If set, the solver input is copied to this directory (e.g. a node-local scratch), the solver runs there,
+    **Description :** If set, the solver input is copied to this directory, the solver runs there,
     and afterwards the outputs are copied back to ``ALn/RANK/inputXX/baseinputK`` and the scratch copy is removed.
     If empty, the solver runs in place.
+    The copy is made on the node where ``abics_mlref`` runs, so **the directory must be visible under the same path
+    from the nodes where the solver runs** (a shared scratch file system, or a node-local directory in a single-node job).
+    A node-local directory in a multi-node job is not supported yet.
 
   - ``copy_back_exclude``
 
@@ -134,7 +144,8 @@ Key words
 
     **Format :** int (default: 0)
 
-    **Description :** Cores available for the solver runs. 0 means ``nworkers * nprocs``.
+    **Description :** Total number of cores (libEnsemble resource sets) given to the solver runs; each run takes ``nprocs`` of them.
+    0 means ``nworkers * nprocs``.
 
   Example::
 
