@@ -18,7 +18,7 @@
 
 Usage::
 
-    abics_al [input.toml] [--max-iterations N] [--forget-durations]
+    abics_al [input.toml] [--max-iterations N] [--evaluate-final-model] [--forget-durations]
 
 Exit status 0: the target number of Monte Carlo runs exists; 2: stopped
 because of the wall time (run again to continue); 1: a stage failed or
@@ -53,6 +53,12 @@ def main():
         help="number of Monte Carlo runs to complete, >= 1 (overrides [al] max_iterations)",
     )
     parser.add_argument(
+        "--evaluate-final-model",
+        action="store_true",
+        help="after the last Monte Carlo run, run one more reference-data step to evaluate the final model "
+        "(same as [al] evaluate_final_model = true)",
+    )
+    parser.add_argument(
         "--forget-durations",
         action="store_true",
         help="forget the recorded stage durations used for the wall-time decisions",
@@ -85,7 +91,13 @@ def main():
         logger.warning(f"-[log] logfile_path = '{shared_logfile}' is used by abics_train and abics_sampling, "
                        "each of which overwrites it; their full output is kept in al_driver/*.log")
     try:
-        state = run_driver(params_root, args.tomlfile, args.max_iterations, args.forget_durations)
+        state = run_driver(
+            params_root,
+            args.tomlfile,
+            args.max_iterations,
+            args.forget_durations,
+            True if args.evaluate_final_model else None,
+        )
     except DriverError as e:
         logger.error(str(e))
         sys.exit(1)

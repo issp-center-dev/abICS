@@ -307,6 +307,21 @@ class TestSummaryAndMetadata(unittest.TestCase):
             self.assertEqual(sorted(meta["accuracy"]), ["AL1", "AL2"])
             self.assertAlmostEqual(meta["accuracy"]["AL2"]["rmse"], 0.079)
             self.assertEqual(len(meta["input_sha256"]), 64)
+            # AL3 has no convergence.dat yet: the model trained on AL0..AL2 is not evaluated
+            self.assertIsNone(meta["provenance"]["evaluated_in"])
+            self.assertIn("has not been evaluated", meta["accuracy_note"])
+
+            # the evaluation step (AL3 with statistics) describes the current model
+            with open(os.path.join(tmpdir, "AL3", "convergence.dat"), "w") as f:
+                f.write("# header\nall  2  0.05  0.05  0.05  0\n")
+            drv.write_model_metadata(tmpdir, params_root, tomlfile, 3, driver_dir)
+            with open(path) as f:
+                meta = json.load(f)
+            self.assertEqual(meta["provenance"]["evaluated_in"], "AL3")
+            self.assertEqual(sorted(meta["accuracy"]), ["AL1", "AL2", "AL3"])
+            self.assertAlmostEqual(meta["accuracy"]["AL3"]["rmse"], 0.05)
+            self.assertIn("is evaluated in AL3", meta["accuracy_note"])
+            self.assertEqual(meta["provenance"]["reference_configurations"], 12)  # training data unchanged
 
 
 class TestRunDriverWithStubbedStages(unittest.TestCase):
@@ -320,12 +335,19 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
         "config": {"supercell": [1, 1, 1], "base_structure": [], "defect_structure": []},
     }
 
-    def stubs(self, tmpdir, calls, fail_sampling_at=None, slow=None):
+    def stubs(self, tmpdir, calls, fail_sampling_at=None, fail_mlref_once=None, slow=None):
         def mlref(params_root):  # stands in for run_integrated_step
             n = drv.newest_mc_index(tmpdir)
             calls.append(("mlref", n))
             self.assertEqual(params_root["mlref"]["exec_mode"], "integrated")
             os.makedirs(os.path.join(tmpdir, f"AL{n}", "0"), exist_ok=True)
+            if fail_mlref_once and n in fail_mlref_once:
+                # interrupted: the directory exists, nothing is recorded
+                fail_mlref_once.discard(n)
+                raise drv.IntegratedStepError()
+            if n > 0:  # the error statistics written from AL1 on
+                with open(os.path.join(tmpdir, f"AL{n}", "convergence.dat"), "w") as f:
+                    f.write(f"# header\nall  2  0.{n}  0.{n}  0.{n}  0\n")
             al_path = os.path.join(tmpdir, al_progress)
             with open(al_path, "a") as f:
                 f.write(f"AL{n}\n")
@@ -425,7 +447,7 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
             with self.assertRaises(drv.DriverError):
                 self.run_loop(tmpdir, 0, [])
 
-    def run_with_al(self, tmpdir, al_section, max_iterations=2, **stub_kwargs):
+    def run_with_al(self, tmpdir, al_section, max_iterations=2, evaluate=None, **stub_kwargs):
         tomlfile = os.path.join(tmpdir, "input.toml")
         with open(tomlfile, "w") as f:
             f.write("[al]\n")
@@ -440,9 +462,83 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
                  unittest.mock.patch.object(drv, "run_train", train), \
                  unittest.mock.patch.object(drv, "run_sampling", sampling), \
                  unittest.mock.patch.object(drv, "require_libensemble", lambda: None):
-                return drv.run_driver(params_root, tomlfile, max_iterations), calls
+                return drv.run_driver(params_root, tomlfile, max_iterations, evaluate_final_model=evaluate), calls
         finally:
             os.chdir(cwd)
+
+    def read_metadata(self, tmpdir):
+        with open(os.path.join(tmpdir, drv.DRIVER_DIR, drv.METADATA_FILE)) as f:
+            return json.load(f)
+
+    def test_final_model_is_evaluated_by_one_more_reference_step(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state, calls = self.run_with_al(tmpdir, {"evaluate_final_model": True}, max_iterations=2)
+            self.assertEqual(state, "done")
+            self.assertEqual(calls, [("mlref", 0), ("train", 0), ("sampling", 0),
+                                     ("mlref", 1), ("train", 1), ("sampling", 1), ("mlref", 2)])
+            self.assertEqual(drv.read_progress(tmpdir), ["AL0", "train", "MC0", "AL1", "train", "MC1", "AL2"])
+            meta = self.read_metadata(tmpdir)
+            self.assertEqual(meta["provenance"]["iterations"], 2)
+            self.assertEqual(meta["provenance"]["trained_on_steps"], 2)
+            self.assertEqual(meta["provenance"]["evaluated_in"], "AL2")
+            self.assertEqual(sorted(meta["accuracy"]), ["AL1", "AL2"])
+            summary = [l for l in open(os.path.join(tmpdir, drv.SUMMARY_FILE)) if not l.startswith("#")]
+            self.assertEqual([l.split()[0] for l in summary], ["1", "2"])
+            # the evaluation exists: a rerun runs nothing
+            state, calls = self.run_with_al(tmpdir, {"evaluate_final_model": True}, max_iterations=2)
+            self.assertEqual((state, calls), ("done", []))
+            # extending the loop trains on the evaluation data and evaluates the new model again
+            state, calls = self.run_with_al(tmpdir, {"evaluate_final_model": True}, max_iterations=3)
+            self.assertEqual(calls, [("train", 2), ("sampling", 2), ("mlref", 3)])
+            self.assertEqual(self.read_metadata(tmpdir)["provenance"]["evaluated_in"], "AL3")
+
+    def test_evaluation_can_be_requested_on_the_command_line(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            state, calls = self.run_with_al(tmpdir, {}, max_iterations=1)
+            self.assertEqual(calls, [("mlref", 0), ("train", 0), ("sampling", 0)])
+            self.assertIsNone(self.read_metadata(tmpdir)["provenance"]["evaluated_in"])
+            # the option given to run_driver (the --evaluate-final-model flag) adds the step afterwards
+            state, calls = self.run_with_al(tmpdir, {}, max_iterations=1, evaluate=True)
+            self.assertEqual((state, calls), ("done", [("mlref", 1)]))
+            self.assertEqual(drv.read_progress(tmpdir), ["AL0", "train", "MC0", "AL1"])
+            self.assertEqual(self.read_metadata(tmpdir)["provenance"]["evaluated_in"], "AL1")
+
+    def test_interrupted_evaluation_is_resumed_and_a_lowered_target_skips_it(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            al = {"evaluate_final_model": True}
+            # the evaluation AL1 is interrupted: AL1 exists, ALloop.progress still ends with MC0
+            with self.assertRaises(drv.DriverError):
+                self.run_with_al(tmpdir, al, max_iterations=1, fail_mlref_once={1})
+            self.assertEqual(drv.read_progress(tmpdir), ["AL0", "train", "MC0"])
+            self.assertTrue(os.path.isdir(os.path.join(tmpdir, "AL1")))
+            # the rerun resumes the evaluation (run_integrated_step resumes an existing AL<n>)
+            state, calls = self.run_with_al(tmpdir, al, max_iterations=1)
+            self.assertEqual((state, calls), ("done", [("mlref", 1)]))
+            self.assertEqual(drv.read_progress(tmpdir), ["AL0", "train", "MC0", "AL1"])
+            # extended to 3 runs without evaluation, then a target below the recorded runs with the
+            # option: the loop stops without spending reference calculations on an evaluation
+            state, calls = self.run_with_al(tmpdir, {}, max_iterations=3)
+            self.assertEqual(calls, [("train", 1), ("sampling", 1), ("mlref", 2), ("train", 2), ("sampling", 2)])
+            self.assertEqual(drv.read_progress(tmpdir)[-1], "MC2")
+            state, calls = self.run_with_al(tmpdir, al, max_iterations=2)
+            self.assertEqual((state, calls), ("done", []))
+            self.assertIsNone(self.read_metadata(tmpdir)["provenance"]["evaluated_in"])
+            # with the target equal to the recorded runs the evaluation is added afterwards
+            state, calls = self.run_with_al(tmpdir, al, max_iterations=3)
+            self.assertEqual((state, calls), ("done", [("mlref", 3)]))
+
+    def test_evaluation_respects_the_wall_time(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # the loop itself fits, the evaluation (an mlref stage) does not: stop with status "walltime"
+            al = {"evaluate_final_model": True, "walltime": 100, "walltime_margin": 10,
+                  "stage_estimates": {"mlref": 1, "train": 1, "sampling": 1}}
+            state, calls = self.run_with_al(tmpdir, al, max_iterations=1)
+            self.assertEqual((state, calls), ("done", [("mlref", 0), ("train", 0), ("sampling", 0), ("mlref", 1)]))
+            with open(os.path.join(tmpdir, drv.DRIVER_DIR, drv.DURATIONS_FILE), "w") as f:
+                json.dump({"mlref": 1000.0}, f)  # as if the reference-data step had taken 1000 s
+            state, calls = self.run_with_al(tmpdir, al, max_iterations=2)
+            self.assertEqual(state, "walltime")
+            self.assertEqual(calls, [("train", 1), ("sampling", 1)])  # stopped before the evaluation AL2
 
     def test_walltime_stop_runs_resubmit_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:

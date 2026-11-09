@@ -439,8 +439,9 @@ QEの網羅計算により教師データが作成されましたので、次に
    ``[al]`` セクションに繰り返し回数 ``max_iterations`` と、サンプリングを起動するコマンド
    (例: ``sampling_command = "srun -n {nprocs} abics_sampling {input}"`` )を指定し、
    ``abics_al input.toml`` を 1 プロセスで実行します。各ステップの誤差は ``al_summary.dat`` に
-   まとめられ、 ``max_iterations`` を増やして再実行すればループを延長できます
-   ( :doc:`../inputfiles/parameter_al` 参照)。
+   まとめられ、 ``max_iterations`` を増やして再実行すればループを延長できます。
+   ``evaluate_final_model = true`` を指定すると、最後に訓練したモデルを第一原理計算と比較するステップを
+   ループの最後にもう 1 回実行します( :doc:`../inputfiles/parameter_al` 参照)。
 
 
 ***************************

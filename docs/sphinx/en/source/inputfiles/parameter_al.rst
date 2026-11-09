@@ -21,6 +21,10 @@ interruption continues where it stopped without repeating finished stages. A sam
 A finished loop is extended by raising ``max_iterations`` and rerunning. Conversely, with ``max_iterations`` at or
 below the number of recorded Monte Carlo runs the driver stops even in the middle of an iteration (after ``AL<n>``
 or its training) and does not run the following stages.
+The error statistics of ``AL<n>`` evaluate the model trained on the data up to ``AL<n-1>`` and used in ``MC<n-1>``,
+so the model trained last in the loop is not evaluated by itself. With ``evaluate_final_model = true`` one more
+first-principles step ``AL<max_iterations>`` is run after the last Monte Carlo run (without training), leaving the
+error statistics of the final model in ``AL<max_iterations>/convergence.dat`` and ``al_summary.dat``.
 ``[sampling] reload = true`` cannot be used (an interrupted sampling run is moved aside and repeated).
 A lock file ``al_driver/abics_al.lock`` prevents two ``abics_al`` from running in the same directory.
 On SIGTERM (e.g. the scheduler's time limit) ``abics_al`` stops the running stage and releases the lock.
@@ -54,6 +58,21 @@ Key words
 
   **Description :** Number of Monte Carlo runs to complete (``MC0`` to ``MC(max_iterations-1)``).
   Can also be given on the command line as ``--max-iterations N``.
+
+- ``evaluate_final_model``
+
+  **Format :** bool (default: false)
+
+  **Description :** Once exactly ``max_iterations`` Monte Carlo runs exist, run the first-principles step
+  ``AL<max_iterations>`` once more to evaluate the final model (without the training and sampling that would
+  follow). The configurations sampled in ``MC<max_iterations-1>`` are calculated with the reference solver and
+  compared with the predictions of the final model; the statistics are written to
+  ``AL<max_iterations>/convergence.dat``. It costs ``ndata`` × ``nreplicas`` reference calculations.
+  Nothing is done when ``AL<max_iterations>`` is already recorded, nor when more Monte Carlo runs than
+  ``max_iterations`` are recorded (the loop was stopped by lowering the target). If the loop is extended later by
+  raising ``max_iterations``, the data of this step are used for training like any ``AL<n>``.
+  Can also be given on the command line as ``--evaluate-final-model``; to evaluate a finished loop afterwards,
+  pass ``--max-iterations`` equal to the number of recorded Monte Carlo runs.
 
 - ``train_command``
 
@@ -149,8 +168,10 @@ Output
   the number of completed iterations ``iterations`` and of AL steps the model was trained on ``trained_on_steps``
   (larger than ``iterations`` when the loop was stopped in the middle of an iteration), the number of reference
   calculations, reference solver and trainer settings, species, temperature range and supercell, error statistics
-  of every step). Note that the statistics of ``AL<n>`` evaluate the model trained after ``AL<n-1>`` and used in
-  ``MC<n-1>``; the last trained model itself is not evaluated.
+  of every step). The statistics of ``AL<n>`` evaluate the model trained after ``AL<n-1>`` and used in
+  ``MC<n-1>``; ``evaluated_in`` names the step that evaluates the current model (``AL<trained_on_steps>``) when
+  it exists, and is ``null`` when the loop ended without ``evaluate_final_model`` or was stopped right after a
+  training stage, in which case the last trained model itself is not evaluated.
 
 The exit status is 0 when the target number of iterations is reached, 2 when the run stopped because of the wall time,
 and 1 when a stage failed (or the input is wrong, or the resubmission command failed).

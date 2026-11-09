@@ -40,6 +40,11 @@ command, when the stage would not finish in time.
 After each reference-data step the errors of the model are collected in
 ``al_summary.dat``; when the target number of iterations is reached a
 description of the final model is written to ``al_driver/model_metadata.json``.
+With ``[al] evaluate_final_model = true`` one more reference-data step is
+run once exactly ``max_iterations`` Monte Carlo runs exist, so that the
+final model itself is compared with the reference solver
+(``AL<max_iterations>/convergence.dat``); its data are used for training
+only if the loop is extended later.
 """
 
 from __future__ import annotations
@@ -130,11 +135,14 @@ class DriverParams:
     "Command run when abics_al stops because of the wall time (e.g. 'sbatch job.sh')"
     generate_train_input: bool = True
     "Generate the aenet training input with abics_gen_aenet_input if train.base_input_dir is missing"
+    evaluate_final_model: bool = False
+    "Once exactly max_iterations Monte Carlo runs exist, run one more reference-data step (without training) to evaluate the final model"
 
     @classmethod
     def from_dict(cls, d: dict) -> "DriverParams":
         params = cls()
         params.max_iterations = int(d.get("max_iterations", 1))
+        params.evaluate_final_model = bool(d.get("evaluate_final_model", False))
         params.train_command = str(d.get("train_command", params.train_command))
         params.sampling_command = str(d.get("sampling_command", params.sampling_command))
         params.stage_timeout = float(d.get("stage_timeout", 0.0))
@@ -580,6 +588,18 @@ def count_reference_data(rootdir: str, iterations: int) -> int:
     return total
 
 
+def evaluation_step(rootdir: str, trained_on: int) -> Optional[str]:
+    """``"AL<k>"`` if the model trained on AL0 .. AL<k-1> has been compared with the reference solver.
+
+    That comparison is the reference-data step after the model's Monte Carlo
+    run, ``AL<k>`` with ``k = trained_on``; it exists when the loop went on
+    or when ``evaluate_final_model`` ran it.
+    """
+    if trained_on > 0 and os.path.exists(os.path.join(rootdir, f"AL{trained_on}", "convergence.dat")):
+        return f"AL{trained_on}"
+    return None
+
+
 def write_model_metadata(
     rootdir: str,
     params_root: dict,
@@ -606,8 +626,11 @@ def write_model_metadata(
         {g.get("name") for d in config.get("defect_structure", []) for g in d.get("groups", []) if g.get("name")}
         | {b.get("type") for b in config.get("base_structure", []) if b.get("type")}
     )
+    # AL<trained_on>, when it exists, is the evaluation of the current model (the step
+    # run by evaluate_final_model, or the next iteration's reference data)
+    evaluated_in = evaluation_step(rootdir, trained_on)
     accuracy = {}
-    for n in range(1, trained_on):
+    for n in range(1, trained_on + 1 if evaluated_in else trained_on):
         path = os.path.join(rootdir, f"AL{n}", "convergence.dat")
         if os.path.exists(path):
             total = read_convergence(path).get("all")
@@ -621,21 +644,28 @@ def write_model_metadata(
                 }
     with open(tomlfile, "rb") as f:
         toml_hash = hashlib.sha256(f.read()).hexdigest()
+    if trained_on == 0:
+        accuracy_note = "no model has been trained yet"
+    else:
+        accuracy_note = (
+            "AL<n> compares the model trained after AL<n-1> (the one used in MC<n-1>) with the "
+            "reference solver on configurations sampled in MC<n-1>; the current model, trained on "
+            f"AL0 .. AL{trained_on - 1}, "
+        )
+        if evaluated_in:
+            accuracy_note += f"is evaluated in {evaluated_in}"
+        else:
+            accuracy_note += "has not been evaluated (set [al] evaluate_final_model = true to add that step)"
     metadata = {
         "abics_version": __version__,
         "written": datetime.datetime.now().isoformat(timespec="seconds"),
         "input_file": os.path.abspath(tomlfile),
         "input_sha256": toml_hash,
-        "accuracy_note": (
-            "AL<n> compares the model trained after AL<n-1> (the one used in MC<n-1>) with the "
-            "reference solver on configurations sampled in MC<n-1>; the current model, trained on "
-            f"AL0 .. AL{trained_on - 1}, has not been evaluated"
-            if trained_on > 0
-            else "no model has been trained yet"
-        ),
+        "accuracy_note": accuracy_note,
         "provenance": {
             "iterations": iterations,
             "trained_on_steps": trained_on,
+            "evaluated_in": evaluated_in,
             # rows of energy_corr.dat of the steps the model was trained on; abics_train may
             # drop configurations it cannot map, so this is an upper bound of the training-set size
             "reference_configurations": count_reference_data(rootdir, trained_on),
@@ -687,12 +717,17 @@ def resubmit(params: DriverParams) -> None:
 
 
 def run_driver(
-    params_root: dict, tomlfile: str, max_iterations: Optional[int] = None, forget_durations: bool = False
+    params_root: dict,
+    tomlfile: str,
+    max_iterations: Optional[int] = None,
+    forget_durations: bool = False,
+    evaluate_final_model: Optional[bool] = None,
 ) -> str:
     """Run the active-learning loop; returns ``"done"`` or ``"walltime"``.
 
-    Raises :class:`DriverError` when a stage fails or the directory is in an
-    inconsistent state.
+    ``max_iterations`` and ``evaluate_final_model`` override the ``[al]``
+    section when given.  Raises :class:`DriverError` when a stage fails or
+    the directory is in an inconsistent state.
     """
     require_libensemble()
     if launched_by_mpi():
@@ -710,6 +745,8 @@ def run_driver(
         if max_iterations < 1:
             raise DriverError("--max-iterations must be >= 1")
         params.max_iterations = max_iterations
+    if evaluate_final_model is not None:
+        params.evaluate_final_model = evaluate_final_model
     rootdir = os.getcwd()
     driver_dir = os.path.join(rootdir, DRIVER_DIR)
     os.makedirs(driver_dir, exist_ok=True)
@@ -744,20 +781,36 @@ def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
         action, n = next_action(progress, newest_mc_index(rootdir), params.max_iterations)
         if action == "done":
             if progress and not progress[-1].startswith("MC"):
-                logger.info(f"-{n} Monte Carlo run(s) are recorded, which meets the target; the stage after "
-                            f"them ({progress[-1]}) is kept as it is.")
-            break
-        stage = "sampling" if action == "sampling_interrupted" else action
+                if params.evaluate_final_model and progress[-1] == f"AL{n}":
+                    logger.info(f"-{n} Monte Carlo run(s) are recorded and the evaluation step AL{n} exists: "
+                                "nothing to run.")
+                else:
+                    logger.info(f"-{n} Monte Carlo run(s) are recorded, which meets the target; the stage after "
+                                f"them ({progress[-1]}) is kept as it is.")
+                break
+            if not params.evaluate_final_model or n != params.max_iterations:
+                # a lowered target (n > max_iterations) stops the loop without spending
+                # reference calculations on an evaluation
+                break
+            # exactly max_iterations runs and the last entry is MC<n-1>: AL<n> does not exist yet,
+            # and running it (without training afterwards) evaluates the model used in MC<n-1>
+            action = "evaluate"
+        stage = {"sampling_interrupted": "sampling", "evaluate": "mlref"}.get(action, action)
         ok, message = clock.can_start(stage)
         if not ok:
+            pending = (
+                f"the evaluation step AL{n} (the target of {n} Monte Carlo runs is met; only this mlref stage is pending)"
+                if action == "evaluate"
+                else f"the {stage} stage of step {n}"
+            )
             if stages_finished_here == 0:
                 raise DriverError(
-                    f"the {stage} stage of step {n} does not fit into the wall time even at the start of the "
+                    f"{pending} does not fit into the wall time even at the start of the "
                     f"run ({message}); raise [al] walltime, lower the stage estimate, or remove "
                     f"{os.path.join(DRIVER_DIR, DURATIONS_FILE)} if the recorded duration is outdated. "
                     "Not resubmitting, since this run made no progress."
                 )
-            logger.info(f"-Stopping before {stage} of step {n}: {message}.")
+            logger.info(f"-Stopping before {pending}: {message}.")
             logger.info("-Run abics_al again to continue; finished stages are not repeated.")
             return "walltime"
         if message:
@@ -768,7 +821,10 @@ def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
             logger.warning(f"--Moved it to {moved}; running the sampling again.")
             action = "sampling"
         t_stage = time.time()
-        if action == "mlref":
+        if action in ("mlref", "evaluate"):
+            if action == "evaluate":
+                logger.info(f"-The target is met: evaluating the current model (used in MC{n - 1}) with one more "
+                            f"reference-data step, AL{n}, without training on it")
             run_mlref(params_root, n)
             if n > 0:
                 for line in write_summary(rootdir):
@@ -778,16 +834,24 @@ def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
             run_train(params, params_root, tomlfile, n, driver_dir, rootdir)
         else:
             run_sampling(params, params_root, tomlfile, n, driver_dir, rootdir)
-        clock.record(action, time.time() - t_stage)
+        clock.record(stage, time.time() - t_stage)
         stages_finished_here += 1
-        logger.info(f"--{action} of step {n} finished in {time.time() - t_stage:.0f} s")
+        logger.info(f"--{stage} of step {n} finished in {time.time() - t_stage:.0f} s")
+        if action == "evaluate":
+            break
 
     progress = read_progress(rootdir)
     completed = completed_mc_runs(progress)
     trained_on = trained_steps(progress)
     write_summary(rootdir)
     path = write_model_metadata(rootdir, params_root, tomlfile, completed, driver_dir, trained_on)
+    evaluated_in = evaluation_step(rootdir, trained_on)
     logger.info(f"-{completed} Monte Carlo run(s) completed (target {params.max_iterations}); the current model "
                 f"was trained on {trained_on} AL step(s); model description written to {path}")
+    if evaluated_in:
+        logger.info(f"-The current model is evaluated in {evaluated_in}/convergence.dat (last row of {SUMMARY_FILE}).")
+    elif trained_on > 0:
+        logger.info("-The current model itself has not been evaluated: set [al] evaluate_final_model = true "
+                    "(or pass --evaluate-final-model) to run one more reference-data step for it.")
     logger.info(f"-Errors per step are in {SUMMARY_FILE}. Raise [al] max_iterations and rerun abics_al to continue.")
     return "done"

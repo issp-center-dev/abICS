@@ -422,7 +422,9 @@ The above process completes the AL.sh process for active learning.
    single invocation: give the number of iterations ``max_iterations`` and the command that starts the sampling
    (e.g. ``sampling_command = "srun -n {nprocs} abics_sampling {input}"``) in the ``[al]`` section and run
    ``abics_al input.toml`` as one process. The errors of every step are collected in ``al_summary.dat``, and the loop
-   is extended by raising ``max_iterations`` and rerunning (see :doc:`../inputfiles/parameter_al`).
+   is extended by raising ``max_iterations`` and rerunning. With ``evaluate_final_model = true`` one more step
+   comparing the last trained model with the first-principles calculations is run at the end of the loop
+   (see :doc:`../inputfiles/parameter_al`).
 
 **********************************
 Monte Carlo sampling
