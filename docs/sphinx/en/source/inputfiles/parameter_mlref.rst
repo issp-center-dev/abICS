@@ -119,6 +119,13 @@ Key words
     If configurations still fail, ``abics_mlref`` reports them, exits with status 1 and does not update ``ALloop.progress``;
     after removing the cause, rerunning ``abics_mlref`` calculates only the failed configurations.
 
+    Independently of this count, libEnsemble's ``MPIExecutor`` treats a solver run that ends within 2 seconds of
+    its launch as a launch failure and relaunches it up to 5 times, waiting 5, 10, 15 and 20 seconds in between,
+    with the same output files. These relaunches are not counted in ``retries`` and do not appear in the attempt
+    counts of ``abics_mlref.done`` or of the error messages. A solver that exits at once (a missing executable or
+    input, for example) therefore takes about 50 seconds per attempt before the failure is reported
+    (the relaunches are logged as ``(Retry n)`` in ``AL<n>/libE/ensemble.log``).
+
   - ``output_wait``
 
     **Format :** float (seconds, default: 10)

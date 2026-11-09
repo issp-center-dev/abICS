@@ -88,7 +88,12 @@ class IntegratedParams:
     timeout: float = 0.0
     "Seconds after which a solver run is killed (0: no limit)"
     retries: int = 1
-    "How many times a failed (or timed-out) solver run is repeated"
+    """How many times a failed (or timed-out) solver run is repeated.
+
+    libEnsemble's MPIExecutor additionally relaunches a run that ends within
+    ``fail_time`` (2 s) of its launch as a launch failure, up to
+    ``max_launch_attempts`` (5) times with growing delays; those relaunches
+    are not counted here (documented in the parameter reference)."""
     output_wait: float = 10.0
     "Seconds to keep re-trying to read the output after the solver exited (shared file systems)"
     scratch_dir: str = ""
