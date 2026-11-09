@@ -11,6 +11,8 @@ train?
 train??
 generate?
 generate??
+al_summary.dat
+al_driver/
 
 ### https://raw.github.com/github/gitignore/5db84d2431ce5209d252112fdc377c0f17d5078b/Python.gitignore
 
@@ -128,7 +130,8 @@ venv.bak/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*

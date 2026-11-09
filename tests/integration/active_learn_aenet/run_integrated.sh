@@ -9,11 +9,10 @@ set -e
 
 cleanup() {
   rm -f ./ALloop.progress ./rundirs.txt ./runtask.log
-  rm -rf ./AL0 ./AL1 ./MC0 ./MC1 ./aenetXSF ./train0 ./generate0 ./baseinput
+  rm -rf ./AL0 ./AL1 ./MC0 ./MC1 ./aenetXSF ./train0 ./generate0 ./baseinput ./ref_staged_AL0
 }
 
 cleanup
-rm -rf ./ref_staged_AL0
 
 # --- staged AL0 as the reference (abics_mlref -> mock solver -> abics_mlref) ---
 echo start staged AL0 reference
@@ -38,6 +37,7 @@ if bad:
     sys.exit(1)
 print("integrated AL0 identical to the staged AL0 (structures and energy_corr.dat)")
 PYEOF
+rm -rf ./ref_staged_AL0
 sh ./MC.sh
 sh ./AL_integrated.sh
 sh ./MC.sh

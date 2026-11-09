@@ -203,6 +203,12 @@ one colour per replica, with the diagonal as a guide.
 -----------------------------------
 (When several ``base_input_dir`` are given, staged mode only) The indices of the solver stages that have been completed.
 
+``al_summary.dat``, ``al_driver/``
+-----------------------------------
+(``abics_al`` only) The error statistics over all replicas of every step, and the working files of the driver
+(logs of the child processes, stage durations, the description of the final model ``model_metadata.json``).
+See :doc:`../inputfiles/parameter_al` for details.
+
 ``ALn/libE/``
 -----------------------------------
 (``exec_mode = "integrated"`` only) The logs of libEnsemble, which manages the solver runs

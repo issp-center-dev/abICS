@@ -76,7 +76,8 @@ jobs:
         ActiveLearnAenetIntegrated ) python -m pip install libensemble
                            cd tests/integration/active_learn_aenet
                            sh ./install_aenet.sh
-                           sh ./run_integrated.sh ;;
+                           sh ./run_integrated.sh
+                           sh ./run_driver.sh ;;
         ActiveLearnNequip ) cd tests/integration/active_learn_nequip
                             sh ./install_nequip.sh
                             sh ./run.sh ;;

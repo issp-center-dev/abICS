@@ -610,12 +610,30 @@ def check_resumable(
     return tasks, problems
 
 
+class IntegratedStepError(RuntimeError):
+    """The reference-data step could not be completed; the reasons were logged."""
+
+
 def main_integrated(params_root) -> None:
+    """``abics_mlref`` entry of the integrated mode: exit status 1 when the step fails."""
+    try:
+        run_integrated_step(params_root)
+    except IntegratedStepError:
+        sys.exit(1)
+
+
+def run_integrated_step(params_root) -> int:
+    """Run one reference-data step (AL<n>) in the integrated mode and return ``n``.
+
+    Raises :class:`IntegratedStepError` after logging the reasons when the
+    step cannot be run or some solver runs failed.  Used by ``abics_mlref``
+    and by the ``abics_al`` driver.
+    """
     require_libensemble()
     if launched_by_mpi():
         logger.error("abics_mlref with exec_mode = 'integrated' must not be run under mpiexec/mpirun/srun:")
         logger.error("it is a single process that launches the solver runs itself.")
-        sys.exit(1)
+        raise IntegratedStepError()
 
     rxparams = RefParams.from_dict(params_root["mlref"])
     ip = IntegratedParams.from_dict(params_root["mlref"].get("integrated", {}))
@@ -627,13 +645,13 @@ def main_integrated(params_root) -> None:
     if alparams.solver_run_scheme == "function" or not alparams.path:
         logger.error("[mlref.solver] must give 'path' (the solver command) and run_scheme = 'subprocess'")
         logger.error("for exec_mode = 'integrated'.")
-        sys.exit(1)
+        raise IntegratedStepError()
     resolve_solver_path(alparams.path)
     rootdir = os.getcwd()
     if any(c.isspace() for c in rootdir):
         logger.error(f"The working directory '{rootdir}' contains whitespace; libEnsemble splits the")
         logger.error("solver command line on whitespace, so exec_mode = 'integrated' cannot be used here.")
-        sys.exit(1)
+        raise IntegratedStepError()
 
     ndata = rxparams.ndata
     nreplicas = rxparams.nreplicas
@@ -656,7 +674,7 @@ def main_integrated(params_root) -> None:
     if ALstep == 0:
         if os.path.exists(progress_path):
             logger.error("It seems you've already run the first active learning step. You should train now.")
-            sys.exit(1)
+            raise IntegratedStepError()
     else:
         MCdirname = f"MC{ALstep - 1}"
         last_li = al.last_progress(rootdir)
@@ -666,7 +684,7 @@ def main_integrated(params_root) -> None:
             logger.error(f"  actual:   {last_li}")
             logger.error("You shouldn't run activelearn now.")
             logger.error("Either train (abics_train) or MC (abics_sampling) first.")
-            sys.exit(1)
+            raise IntegratedStepError()
 
     logger.info(f"-Running AL{ALstep} in integrated mode: {ip.nworkers} solver run(s) at a time, "
                 f"{ip.nprocs} MPI rank(s) each")
@@ -689,7 +707,7 @@ def main_integrated(params_root) -> None:
             for r, n in too_few:
                 logger.error(f"  {MCdirname}/{r} has only {n} samples, fewer than [mlref] ndata = {ndata}")
             logger.error("-Reduce ndata or sample more configurations (nsteps / sample_frequency).")
-            sys.exit(1)
+            raise IntegratedStepError()
 
     # --- configurations and solver inputs ----------------------------------
     tasks: List[ReferenceTask] = []
@@ -701,7 +719,7 @@ def main_integrated(params_root) -> None:
                 logger.error(f"  {problem}")
             logger.error(f"-AL{ALstep} is incomplete and cannot be resumed. Remove the directory to "
                          "generate the configurations again.")
-            sys.exit(1)
+            raise IntegratedStepError()
     else:
         logger.info(f"-Preparing {alparams.solver} input in AL{ALstep}/*/input*/baseinput0")
         solver_input.from_directory(alparams.base_input_dir[0])
@@ -753,7 +771,7 @@ def main_integrated(params_root) -> None:
             logger.error(f"  {len(tasks) - len(results)} configuration(s) returned no result")
         logger.error(f"-{len(failed) + len(tasks) - len(results)} of {len(tasks)} solver runs failed. "
                      "Fix the cause and run abics_mlref again: finished stages are not rerun.")
-        sys.exit(1)
+        raise IntegratedStepError()
 
     # --- per-replica result files, as in the staged mode ------------------
     by_replica: List[List[TaskResult]] = [[] for _ in range(nreplicas)]
@@ -788,3 +806,4 @@ def main_integrated(params_root) -> None:
     al.record_progress(rootdir, f"AL{ALstep}")
     logger.info("--Done. Please run abics_train next.")
     logger.info(f"Exiting normally on {datetime.datetime.now()}.\n")
+    return ALstep
