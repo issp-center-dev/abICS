@@ -63,8 +63,12 @@ def main():
     logger.info(f"-Reading input from: {args.tomlfile}")
     try:
         state = run_driver(params_root, args.tomlfile, args.max_iterations)
-    except (DriverError, RuntimeError, ValueError) as e:
+    except DriverError as e:
         logger.error(str(e))
+        sys.exit(1)
+    except Exception as e:  # noqa: BLE001 - a clean message instead of a traceback
+        logger.error(f"abics_al stopped: {type(e).__name__}: {e}")
+        logger.debug("traceback:", exc_info=True)
         sys.exit(1)
     logger.info(f"Exiting on {datetime.datetime.now()} ({state}).")
     sys.exit(0 if state == "done" else 2)

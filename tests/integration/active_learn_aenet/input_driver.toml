@@ -22,7 +22,7 @@ seed = 31415
 [al]
 max_iterations = 2
 # mpiexec of Open MPI needs --oversubscribe on small machines
-sampling_command = 'mpiexec -n {nreplicas} --oversubscribe abics_sampling {input}'
+sampling_command = 'mpiexec -n {nprocs} --oversubscribe abics_sampling {input}'
 
 [mlref]
 nreplicas = 2
