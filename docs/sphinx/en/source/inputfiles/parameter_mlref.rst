@@ -58,6 +58,106 @@ Key words
 
     **Description :** Seed of the random number generator. A positive value makes the initial random configurations, the perturbation of the atomic coordinates (``perturb``) and the ``sampler = "random"`` selection reproducible (replica ``i`` uses ``seed + 137 * i``). With 0 the seed is not fixed.
 
+- Execution mode
+
+  - ``exec_mode``
+
+    **Format :** string ("staged" or "integrated", default: "staged")
+
+    **Description :** How ``abics_mlref`` runs.
+
+          - "staged"
+
+            The conventional mode. ``abics_mlref`` writes the input files of the first-principles solver and exits;
+            the user runs the solver and then runs ``abics_mlref`` again to collect the results
+            (``abics_mlref`` is run with ``nreplicas`` MPI processes).
+
+          - "integrated"
+
+            A single run of ``abics_mlref`` generates the configurations, runs the solver and collects the results.
+            The solver is launched by ``abics_mlref`` itself through libEnsemble (``pip install libensemble``), so
+            run ``abics_mlref`` **as a single process, without mpiexec / srun** (inside a job script this process
+            launches the solver runs with ``mpirun`` / ``srun`` on the allocated nodes). The ``[mlref.solver]`` section
+            must give the solver command ``path`` and ``run_scheme = "subprocess"``; the solver runs are configured in
+            the ``[mlref.integrated]`` section. The output files are the same as in the staged mode, and after an
+            interruption a rerun skips the configurations whose solver output is complete.
+
+- ``[mlref.integrated]`` subsection (for ``exec_mode = "integrated"``)
+
+  - ``nworkers``
+
+    **Format :** int (natural number, default: 1)
+
+    **Description :** Number of solver runs executed at the same time (libEnsemble workers).
+
+  - ``nprocs``
+
+    **Format :** int (natural number, default: 1)
+
+    **Description :** MPI processes per solver run.
+
+  - ``nthreads``
+
+    **Format :** int (natural number, default: 1)
+
+    **Description :** Threads per MPI process (passed to the solver's command-line generator).
+
+  - ``timeout``
+
+    **Format :** float (seconds, default: 0)
+
+    **Description :** Time limit of one solver run; a run exceeding it is killed and counted as failed. 0 means no limit.
+
+  - ``retries``
+
+    **Format :** int (>= 0, default: 1)
+
+    **Description :** How many times a failed solver run (abnormal exit, time-out, unreadable output) is repeated.
+    If configurations still fail, ``abics_mlref`` reports them, exits with status 1 and does not update ``ALloop.progress``;
+    after removing the cause, rerunning ``abics_mlref`` calculates only the failed configurations.
+
+  - ``scratch_dir``
+
+    **Format :** string (default: empty)
+
+    **Description :** If set, the solver input is copied to this directory (e.g. a node-local scratch), the solver runs there,
+    and afterwards the outputs are copied back to ``ALn/RANK/inputXX/baseinputK`` and the scratch copy is removed.
+    If empty, the solver runs in place.
+
+  - ``copy_back_exclude``
+
+    **Format :** list of strings (default: empty)
+
+    **Description :** Patterns of files not copied back from ``scratch_dir`` (e.g. ``["*.wfc*", "*.save"]``).
+
+  - ``cores``
+
+    **Format :** int (default: 0)
+
+    **Description :** Cores available for the solver runs. 0 means ``nworkers * nprocs``.
+
+  Example::
+
+        [mlref]
+        nreplicas = 8
+        ndata = 50
+        exec_mode = "integrated"
+
+        [mlref.integrated]
+        nworkers = 16     # 16 DFT runs at a time
+        nprocs = 8        # 8 MPI processes each
+        timeout = 3600
+        retries = 1
+        scratch_dir = "/scratch/$USER"
+        copy_back_exclude = ["*.wfc*"]
+
+        [mlref.solver]
+        type = "qe"
+        path = "pw.x"
+        run_scheme = "subprocess"
+        base_input_dir = "./baseinput_ref"
+        perturb = 0.05
+
 .. - Others
 ..
 ..   -  ``output_frequency``

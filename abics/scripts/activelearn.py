@@ -110,6 +110,20 @@ def finish_inputs(comm, replica: int, rootdir: str, rundir_list, messages) -> No
 
 
 def main_impl(params_root: MutableMapping):
+    exec_mode = params_root["mlref"].get("exec_mode", "staged")
+    if exec_mode == "integrated":
+        # one non-MPI process generates the inputs, runs the solver through
+        # libEnsemble and collects the results (see activelearn_integrated)
+        from abics.applications.latgas_abinitio_interface.activelearn_integrated import (
+            main_integrated,
+        )
+
+        main_integrated(params_root)
+        return
+    if exec_mode != "staged":
+        logger.error(f"Unknown [mlref] exec_mode = '{exec_mode}' (use 'staged' or 'integrated')")
+        sys.exit(1)
+
     rxparams = RefParams.from_dict(params_root["mlref"])
     ndata = rxparams.ndata
     # the sampler that produced the MC* directories (same default as abics_sampling)

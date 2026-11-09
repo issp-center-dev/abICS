@@ -201,4 +201,10 @@ one colour per replica, with the diagonal as a guide.
 
 ``ALn/baseinput.progress``
 -----------------------------------
-(When several ``base_input_dir`` are given) The indices of the solver stages that have been completed.
+(When several ``base_input_dir`` are given, staged mode only) The indices of the solver stages that have been completed.
+
+``ALn/libE/``
+-----------------------------------
+(``exec_mode = "integrated"`` only) The logs of libEnsemble, which manages the solver runs
+(``ensemble.log``, ``libE_stats.txt``, ...). The standard output and error of each solver run are written to
+``ALn/RANK/inputXX/baseinputK/stdout`` and ``stderr``.
