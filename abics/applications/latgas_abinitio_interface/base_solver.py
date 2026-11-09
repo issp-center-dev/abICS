@@ -22,6 +22,18 @@ from pymatgen.core.structure import Structure
 
 from .params import ALParams, DFTParams
 
+
+class SolverOutputError(RuntimeError):
+    """The output of a solver run is missing or cannot be read.
+
+    Raised by ``Output.get_results`` instead of exiting the process, so that
+    the caller can report which run failed before it stops (a sampling rank
+    aborts the MPI job; ``abics_mlref`` in the integrated mode counts the
+    run as failed and retries it).  Parsers that do not raise it leave the
+    underlying ``OSError`` (missing file) to the caller.
+    """
+
+
 class SolverBase(object):
     """
     Base class defining the common interface of solvers.

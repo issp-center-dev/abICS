@@ -33,7 +33,7 @@ from pymatgen.core import Structure
 from qe_tools.parsers import PwInputFile
 
 from .params import ALParams, DFTParams
-from .base_solver import SolverBase
+from .base_solver import SolverBase, SolverOutputError
 from ...util import expand_path
 from ...exception import InputError
 
@@ -400,11 +400,11 @@ class QESolver(SolverBase):
                 and coordinates is measured in the units of Angstrom.
             """
             # Read results from files in output_dir and calculate values
+            path = os.path.join(workdir, "pwscf.save", "data-file-schema.xml")
             try:
-                tree = ET.parse(os.path.join(workdir, "pwscf.save", "data-file-schema.xml"))
+                tree = ET.parse(path)
             except Exception as e:
-                print("ERROR: QESolver.Output.get_results:", e)
-                exit(1)
+                raise SolverOutputError(f"QE output {path} is missing or unreadable: {e}") from e
             root = tree.getroot()
             A = np.zeros((3, 3))
             child = root.find("input").find("atomic_structure").find("cell")
