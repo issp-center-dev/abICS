@@ -54,6 +54,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 import shlex
 import shutil
 import signal
@@ -293,8 +294,10 @@ def set_aside_interrupted_mc(rootdir: str, n: int, driver_dir: str) -> str:
     """Move an unfinished ``MC<n>`` into the driver directory and return its new path.
 
     Refuses when the directory was modified within :data:`RECENT_ACTIVITY`
-    seconds: the sampling run may still be alive (for example an ``srun``
-    that outlived a killed driver).
+    seconds: the sampling run may still be alive although ``stage.pid``
+    (:class:`StageRecord`) did not say so, for example MPI ranks that
+    survived their killed launcher, a driver killed before the record was
+    written, or directories from an abICS version without the record.
     """
     source = os.path.join(rootdir, f"MC{n}")
     age = time.time() - last_modified(source)
@@ -328,16 +331,22 @@ class DriverLock:
             except (OSError, ValueError):
                 host, pid = "?", -1
             if host == os.uname().nodename and pid > 0 and _process_alive(pid):
-                raise DriverError(
-                    f"another abics_al (pid {pid} on {host}) is running in this directory; "
-                    f"stop it first or remove {self.path} if it is stale"
-                )
-            if host != os.uname().nodename:
+                # the pid may have been reused by an unrelated process since the lock was written
+                command = _process_command(pid)
+                if not command or _is_driver_command(command):
+                    raise DriverError(
+                        f"another abics_al (pid {pid} on {host}) is running in this directory; "
+                        f"stop it first or remove {self.path} if it is stale"
+                    )
+                logger.warning(f"-The lock file {self.path} names pid {pid}, which is now '{command}', not abics_al: "
+                               "treating the lock as stale")
+            elif host != os.uname().nodename:
                 raise DriverError(
                     f"{self.path} says abics_al (pid {pid}) runs on {host}, which cannot be checked from here; "
                     "if that process is not running any more (e.g. its job was killed), remove the file and rerun"
                 )
-            logger.warning(f"-Removing the stale lock file {self.path} (pid {pid} is not running)")
+            else:
+                logger.warning(f"-Removing the stale lock file {self.path} (pid {pid} is not running)")
         with open(self.path, "w") as f:
             f.write(f"{os.uname().nodename} {os.getpid()} {datetime.datetime.now().isoformat(timespec='seconds')}\n")
 
@@ -356,6 +365,113 @@ def _process_alive(pid: int) -> bool:
     except PermissionError:
         return True
     return True
+
+
+def _process_command(pid: int) -> str:
+    """Command line of a live process, or an empty string if it cannot be read."""
+    try:
+        out = subprocess.run(["ps", "-o", "command=", "-p", str(pid)], capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    return out.stdout.strip()
+
+
+def _is_driver_command(command: str) -> bool:
+    """True if a command line is an ``abics_al`` (the console script or the module)."""
+    return re.search(r"(^|/)abics_al(\s|$)|abics\.scripts\.aldriver", command) is not None
+
+
+def _group_alive(pgid: int) -> bool:
+    """True while any process of the process group exists (also when it belongs to another user)."""
+    try:
+        os.killpg(pgid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
+def _group_commands(pgid: int) -> List[str]:
+    """Command lines of the processes of a process group (empty if none or if they cannot be listed)."""
+    try:
+        pids = subprocess.run(["pgrep", "-g", str(pgid)], capture_output=True, text=True, timeout=10).stdout.split()
+    except (OSError, subprocess.SubprocessError):
+        return []
+    return [command for command in (_process_command(int(pid)) for pid in pids) if command]
+
+
+STAGE_FILE = "stage.pid"
+
+
+class StageRecord:
+    """``al_driver/stage.pid``: the process group of the training or sampling stage that is running.
+
+    The stage command is started in a session of its own, so its process
+    group holds the command and, for an MPI launcher, the launcher process;
+    the ranks started by ``mpiexec``/``srun`` are usually in groups of their
+    own (or on other nodes) and are stopped by the launcher.  The record is
+    written when a stage starts and removed when it ends, so that a rerun
+    after the driver was killed without a chance to stop the stage (SIGKILL,
+    a crash of the driver) can tell that the stage may still be running
+    instead of starting it a second time.  Ranks that survive their launcher
+    are not covered; the recent-modification rule of
+    :func:`set_aside_interrupted_mc` remains the guard for them.
+    """
+
+    def __init__(self, driver_dir: str):
+        self.path = os.path.join(driver_dir, STAGE_FILE)
+
+    def write(self, stage: str, pgid: int, command: str = "") -> None:
+        """Record the group; ``command`` is the stage's program (to recognize the group later)."""
+        with open(self.path, "w") as f:
+            f.write(f"{os.uname().nodename} {pgid} {stage} "
+                    f"{datetime.datetime.now().isoformat(timespec='seconds')} {os.path.basename(command)}\n")
+
+    def clear(self) -> None:
+        try:
+            os.remove(self.path)
+        except OSError:
+            pass
+
+    def check(self) -> None:
+        """Raise :class:`DriverError` if the recorded stage may still be running; remove a stale record."""
+        if not os.path.exists(self.path):
+            return
+        try:
+            with open(self.path) as f:
+                fields = f.read().split()
+            host, pgid, stage, started = fields[:4]
+            command = fields[4] if len(fields) > 4 else ""
+            pgid = int(pgid)
+        except (OSError, ValueError, IndexError):
+            logger.warning(f"-Removing the unreadable {self.path}")
+            self.clear()
+            return
+        if host != os.uname().nodename:
+            raise DriverError(
+                f"{self.path} says the {stage} stage (process group {pgid}, started {started}) was running on {host}, "
+                "which cannot be checked from here; make sure it has ended (e.g. its job was killed), then remove "
+                f"the file (and {LOCK_FILE} next to it, if present) and rerun"
+            )
+        if pgid != os.getpgrp() and _group_alive(pgid):
+            # a group id can be reused (after a reboot, or when pids wrapped around): look at
+            # what runs in it before refusing
+            commands = _group_commands(pgid)
+            ours = [c for c in commands if "abics_" in c or (command and command.lower() in c.lower())]
+            if ours or not commands:
+                detail = f"; it runs: {ours[0]}" if ours else ""
+                raise DriverError(
+                    f"the {stage} stage started {started} by an earlier abics_al is still running (process group "
+                    f"{pgid} on {host}{detail}); wait for it to end, or stop it with 'kill -TERM -- -{pgid}', then "
+                    f"rerun. If no such stage exists any more (e.g. after a reboot), remove {self.path} and rerun"
+                )
+            logger.warning(f"-Process group {pgid} of {self.path} now runs '{commands[0]}', not the {stage} stage: "
+                           "treating the record as stale")
+        else:
+            logger.warning(f"-Removing the stale {self.path}: the {stage} stage (process group {pgid}) started "
+                           f"{started} is not running any more")
+        self.clear()
 
 
 # ---------------------------------------------------------------------------
@@ -427,12 +543,16 @@ class WallClock:
 # ---------------------------------------------------------------------------
 
 
-def run_child(args: Sequence[str], logfile: str, timeout: float) -> int:
+def run_child(
+    args: Sequence[str], logfile: str, timeout: float, record: Optional[StageRecord] = None, stage: str = ""
+) -> int:
     """Run a stage command, appending its output to ``logfile``; returns the exit status.
 
-    On ``timeout`` the process is sent SIGTERM (so that ``mpirun``/``srun``
-    can stop their ranks) and SIGKILL after :data:`TERMINATE_GRACE` seconds;
-    the status is then -1.
+    The command runs in a session of its own; ``record`` (``al_driver/stage.pid``)
+    names its process group while the command runs (see :class:`StageRecord`).
+    On ``timeout`` the group is sent SIGTERM (``mpirun``/``srun`` then stop
+    their ranks) and SIGKILL after :data:`TERMINATE_GRACE` seconds; the
+    status is then -1.
     """
     logger.info(f"--Command: {' '.join(shlex.quote(a) for a in args)}")
     logger.info(f"--Output appended to: {logfile}")
@@ -440,31 +560,51 @@ def run_child(args: Sequence[str], logfile: str, timeout: float) -> int:
         fo.write(f"=== {datetime.datetime.now().isoformat(timespec='seconds')} {' '.join(args)}\n")
         fo.flush()
         try:
-            proc = subprocess.Popen(args, stdout=fo, stderr=subprocess.STDOUT)
+            proc = subprocess.Popen(args, stdout=fo, stderr=subprocess.STDOUT, start_new_session=True)
         except OSError as e:
             logger.error(f"--Cannot start the command: {e}")
             return 127
         try:
+            if record is not None:
+                record.write(stage, proc.pid, args[0])
             return proc.wait(timeout=timeout or None)
         except subprocess.TimeoutExpired:
             logger.error(f"--No completion after {timeout} s: terminating")
             _stop_child(proc)
             return -1
         except BaseException:
-            # the driver itself is being stopped (SIGTERM, Ctrl-C, an error): do not
-            # leave the stage running, it would keep writing into the directory
+            # the driver itself is being stopped (SIGTERM, Ctrl-C, an error) or the record
+            # could not be written: do not leave the stage running, it would keep writing
+            # into the directory
             logger.error("--abics_al is being stopped: terminating the stage")
             _stop_child(proc)
             raise
+        finally:
+            # keep the record if the stage was not reaped (a second signal during _stop_child):
+            # the next run's check() will see whether the group is still alive
+            if record is not None and proc.poll() is not None:
+                record.clear()
+
+
+def _signal_group(proc: subprocess.Popen, sig: int) -> None:
+    """Send ``sig`` to the process group of ``proc`` (its session, see :func:`run_child`)."""
+    try:
+        os.killpg(proc.pid, sig)
+    except ProcessLookupError:
+        pass
 
 
 def _stop_child(proc: subprocess.Popen) -> None:
-    """SIGTERM, then SIGKILL after :data:`TERMINATE_GRACE` seconds."""
-    proc.terminate()
+    """SIGTERM to the stage's process group, then SIGKILL after :data:`TERMINATE_GRACE` seconds.
+
+    An MPI launcher stops its ranks on SIGTERM; ranks of a launcher that had
+    to be killed may survive (they are not in the group, see :class:`StageRecord`).
+    """
+    _signal_group(proc, signal.SIGTERM)
     try:
         proc.wait(timeout=TERMINATE_GRACE)
     except subprocess.TimeoutExpired:
-        proc.kill()
+        _signal_group(proc, signal.SIGKILL)
         proc.wait()
 
 
@@ -516,7 +656,7 @@ def run_train(params: DriverParams, params_root: dict, tomlfile: str, n: int, dr
     nreplicas, nprocs = sampling_nprocs(params_root)
     args = expand_command(params.train_command, input=tomlfile, nreplicas=nreplicas, nprocs=nprocs)
     logfile = os.path.join(driver_dir, f"train_{n}.log")
-    rc = run_child(args, logfile, params.stage_timeout)
+    rc = run_child(args, logfile, params.stage_timeout, StageRecord(driver_dir), "train")
     if rc != 0:
         raise DriverError(f"AL{n}: training failed (exit status {rc}); see {logfile}")
     if not wait_for_progress(rootdir, "train", params.progress_wait):
@@ -528,7 +668,7 @@ def run_sampling(params: DriverParams, params_root: dict, tomlfile: str, n: int,
     nreplicas, nprocs = sampling_nprocs(params_root)
     args = expand_command(params.sampling_command, input=tomlfile, nreplicas=nreplicas, nprocs=nprocs)
     logfile = os.path.join(driver_dir, f"sampling_{n}.log")
-    rc = run_child(args, logfile, params.stage_timeout)
+    rc = run_child(args, logfile, params.stage_timeout, StageRecord(driver_dir), "sampling")
     if rc != 0:
         raise DriverError(f"MC{n}: sampling failed (exit status {rc}); see {logfile}")
     if not wait_for_progress(rootdir, f"MC{n}", params.progress_wait) or not os.path.isdir(
@@ -762,6 +902,7 @@ def run_driver(
     lock = DriverLock(driver_dir)
     lock.acquire()
     try:
+        StageRecord(driver_dir).check()  # a stage left running by a killed driver
         state = _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock)
     except DriverInterrupted as e:
         logger.error(f"-abics_al interrupted by {e}; the running stage was stopped. Rerun to continue.")

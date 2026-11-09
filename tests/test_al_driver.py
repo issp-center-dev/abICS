@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -175,9 +176,12 @@ class TestStages(unittest.TestCase):
             self.assertEqual(drv.run_child(["no-such-command-abics", "x"], log, 0), 127)
 
     def test_child_is_stopped_when_the_driver_is_interrupted(self):
+        import signal
+
         class FakeProc:
+            pid = 424242
+
             def __init__(self):
-                self.calls = []
                 self.waits = 0
 
             def wait(self, timeout=None):
@@ -186,18 +190,70 @@ class TestStages(unittest.TestCase):
                     raise KeyboardInterrupt
                 return 0
 
-            def terminate(self):
-                self.calls.append("terminate")
-
-            def kill(self):
-                self.calls.append("kill")
+            def poll(self):
+                return 0 if self.waits >= 2 else None  # reaped by _stop_child's wait
 
         fake = FakeProc()
+        signals = []
         with tempfile.TemporaryDirectory() as tmpdir:
-            with unittest.mock.patch.object(drv.subprocess, "Popen", return_value=fake):
+            record = drv.StageRecord(tmpdir)
+            with unittest.mock.patch.object(drv.subprocess, "Popen", return_value=fake), \
+                 unittest.mock.patch.object(drv.os, "killpg", lambda pgid, sig: signals.append((pgid, sig))):
                 with self.assertRaises(KeyboardInterrupt):
-                    drv.run_child(["x"], os.path.join(tmpdir, "x.log"), 0)
-        self.assertEqual(fake.calls, ["terminate"])
+                    drv.run_child(["x"], os.path.join(tmpdir, "x.log"), 0, record, "sampling")
+            # the whole process group of the stage gets SIGTERM; the record is removed
+            self.assertEqual(signals, [(424242, signal.SIGTERM)])
+            self.assertFalse(os.path.exists(record.path))
+
+    def test_stage_record(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            record = drv.StageRecord(tmpdir)
+            record.check()  # no record: nothing happens
+            # run_child names the process group of the stage while it runs and clears it afterwards
+            log = os.path.join(tmpdir, "x.log")
+            probe = f"import os, sys; sys.exit(0 if os.path.exists({record.path!r}) else 3)"
+            self.assertEqual(drv.run_child([sys.executable, "-c", probe], log, 0, record, "train"), 0)
+            self.assertFalse(os.path.exists(record.path))
+            self.assertEqual(drv.run_child([sys.executable, "-c", "import time; time.sleep(30)"], log, 1,
+                                           record, "train"), -1)
+            self.assertFalse(os.path.exists(record.path))
+            # a live group running the recorded program (a stage that outlived a killed driver) is refused
+            child = subprocess.Popen(["sleep", "60"], start_new_session=True)  # ps shows it as "sleep 60"
+            try:
+                record.write("sampling", child.pid, "/bin/sleep")
+                with self.assertRaises(drv.DriverError) as cm:
+                    record.check()
+                self.assertIn("still running", str(cm.exception))
+                self.assertIn(f"-{child.pid}", str(cm.exception))
+                self.assertIn("after a reboot", str(cm.exception))
+                # the same group id now runs something else (reused after a reboot): stale
+                record.write("sampling", child.pid, "abics_sampling")
+                with self.assertLogs("main", level="WARNING") as logs:
+                    record.check()
+                self.assertIn("not the sampling stage", logs.output[0])
+                self.assertFalse(os.path.exists(record.path))
+                record.write("sampling", child.pid, "sleep")
+            finally:
+                os.killpg(child.pid, 9)
+                child.wait()
+            # the group is gone: the record is stale and removed
+            record.check()
+            self.assertFalse(os.path.exists(record.path))
+            # the driver's own group is never "a stage of an earlier driver"
+            record.write("train", os.getpgrp(), "python")
+            record.check()
+            self.assertFalse(os.path.exists(record.path))
+            # another host cannot be checked
+            with open(record.path, "w") as f:
+                f.write("some-other-host 12345 sampling 2026-01-01T00:00:00\n")
+            with self.assertRaises(drv.DriverError) as cm:
+                record.check()
+            self.assertIn("some-other-host", str(cm.exception))
+            # an unreadable record is removed
+            with open(record.path, "w") as f:
+                f.write("garbage\n")
+            record.check()
+            self.assertFalse(os.path.exists(record.path))
 
     def test_sigterm_becomes_an_exception(self):
         import signal
@@ -578,15 +634,50 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
                     drv.run_driver(params_root, os.path.join(tmpdir, "input.toml"), 1)
             self.assertIn("reload", str(cm.exception))
 
+    def test_driver_refuses_while_a_stage_of_a_killed_driver_runs(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            driver_dir = os.path.join(tmpdir, drv.DRIVER_DIR)
+            os.makedirs(driver_dir)
+            child = subprocess.Popen(["sleep", "60"], start_new_session=True)
+            try:
+                drv.StageRecord(driver_dir).write("sampling", child.pid, "sleep")
+                with self.assertRaises(drv.DriverError) as cm:
+                    self.run_with_al(tmpdir, {})
+                self.assertIn("still running", str(cm.exception))
+                self.assertFalse(os.path.exists(os.path.join(driver_dir, drv.LOCK_FILE)))  # lock released
+            finally:
+                os.killpg(child.pid, 9)
+                child.wait()
+            state, calls = self.run_with_al(tmpdir, {}, max_iterations=1)  # stale record: removed, loop runs
+            self.assertEqual(state, "done")
+            self.assertEqual(calls, [("mlref", 0), ("train", 0), ("sampling", 0)])
+
     def test_lock_file(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             driver_dir = os.path.join(tmpdir, drv.DRIVER_DIR)
             os.makedirs(driver_dir)
-            # a live process (this one) holds the lock
+            # a live process (this one, pretending to be abics_al) holds the lock
             with open(os.path.join(driver_dir, drv.LOCK_FILE), "w") as f:
                 f.write(f"{os.uname().nodename} {os.getpid()} now\n")
-            with self.assertRaises(drv.DriverError):
-                drv.DriverLock(driver_dir).acquire()
+            with unittest.mock.patch.object(drv, "_process_command", lambda pid: "python /venv/bin/abics_al input.toml"):
+                with self.assertRaises(drv.DriverError):
+                    drv.DriverLock(driver_dir).acquire()
+            # ps cannot be read: refused as well (conservative)
+            with unittest.mock.patch.object(drv, "_process_command", lambda pid: ""):
+                with self.assertRaises(drv.DriverError):
+                    drv.DriverLock(driver_dir).acquire()
+            # the same pid reused by another program: the lock is stale
+            with unittest.mock.patch.object(drv, "_process_command", lambda pid: "sleep 100"):
+                lock = drv.DriverLock(driver_dir)
+                with self.assertLogs("main", level="WARNING") as logs:
+                    lock.acquire()
+                self.assertIn("not abics_al", logs.output[0])
+                lock.release()
+            self.assertTrue(drv._process_command(os.getpid()))  # the real ps works here
+            for command in ("/venv/bin/python /venv/bin/abics_al input.toml", "abics_al", "python -m abics.scripts.aldriver x"):
+                self.assertTrue(drv._is_driver_command(command), command)
+            for command in ("less al_driver/abics_al_1.log", "vim abics_al.lock", "sleep 100"):
+                self.assertFalse(drv._is_driver_command(command), command)
             # a stale lock (dead pid) is replaced
             with open(os.path.join(driver_dir, drv.LOCK_FILE), "w") as f:
                 f.write(f"{os.uname().nodename} 999999999 then\n")

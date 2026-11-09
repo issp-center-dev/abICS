@@ -29,9 +29,18 @@ error statistics of the final model in ``AL<max_iterations>/convergence.dat`` an
 A lock file ``al_driver/abics_al.lock`` prevents two ``abics_al`` from running in the same directory.
 On SIGTERM (e.g. the scheduler's time limit) ``abics_al`` stops the running stage and releases the lock.
 If a lock is left behind (e.g. after SIGKILL), a rerun on the same host checks whether the process is alive
-and removes a stale lock; on another host this cannot be checked, so make sure that job has ended and remove
-the file by hand. An unrecorded ``MC<n>`` that was modified within the last 120 seconds is not moved aside
-but reported as possibly still running (e.g. an ``srun`` child that outlived the driver).
+(and is an ``abics_al``) and removes a stale lock; on another host this cannot be checked, so make sure that
+job has ended and remove the file by hand.
+The training and sampling child processes are started in a process group of their own, which holds the command
+and, for MPI, the ``mpiexec`` / ``srun`` launcher; it is recorded in ``al_driver/stage.pid`` while the stage runs.
+When the driver died without being able to stop the stage (e.g. SIGKILL), a rerun on the same host stops with an
+error while that group is still alive (the message gives the ``kill`` command; wait for the stage to end or stop
+it, then rerun) and removes the record once it has ended. A group id reused by unrelated processes (e.g. after a
+reboot) is recognized as stale; when this cannot be decided, remove ``stage.pid`` by hand as the message says.
+A record from another host must be checked by hand, like the lock; remove both ``abics_al.lock`` and ``stage.pid``.
+A stop by ``stage_timeout`` or SIGTERM is sent to this group, and the launcher stops its MPI ranks. Ranks that
+survive a killed launcher cannot be detected this way, which is why an unrecorded ``MC<n>`` that was modified
+within the last 120 seconds is not moved aside but reported as possibly still running.
 
 The file format is as follows.
 
@@ -161,7 +170,8 @@ Output
 - ``al_summary.dat``: the error statistics over all replicas of every step from ``AL1`` on (number of configurations,
   RMSE, MAE, largest error), collected from ``AL<n>/convergence.dat``; use it to decide whether to continue the loop.
 - ``al_driver/``: the output of the training and sampling child processes (``train_<n>.log``, ``sampling_<n>.log``,
-  appended on reruns), the stage durations (``durations.json``), interrupted sampling runs that were moved aside
+  appended on reruns), the process group of the running stage (``stage.pid``, removed when the stage ends),
+  the stage durations (``durations.json``), interrupted sampling runs that were moved aside
   (``MC<n>.interrupted-<timestamp>``), the driver's own log (``abics_al_<timestamp>.log``; the driver does not
   write to ``[log] logfile_path`` because the training and sampling programs overwrite it) and, once the target is
   reached, a description of the current model, ``model_metadata.json`` (abICS version, hash of the input file,

@@ -24,7 +24,10 @@ exit status:
    recent, then moves it aside and repeats the sampling;
 7. the wall time: no progress is an error without resubmission; a stop
    after a finished stage exits with status 2 and runs ``resubmit_command``;
-8. ``ALloop.progress`` and the directories disagree: the driver refuses.
+8. ``ALloop.progress`` and the directories disagree: the driver refuses;
+9. the driver killed with SIGKILL during sampling: the sampling stage
+   survives, the rerun refuses while it runs (``al_driver/stage.pid``) and
+   continues once it has ended.
 """
 
 import contextlib
@@ -126,10 +129,13 @@ def run(args, expect, timeout=900, logname=None):
 def background(args, logname):
     """Run a command in the background, in a session of its own.
 
-    Everything it starts (libEnsemble workers, mpirun, solver runs, the
-    sampling stage) shares its process group, so :func:`group_alive` sees
-    them whatever their command lines look like, and the whole group is
-    killed if the scenario fails before the command has ended.
+    The command and its direct children that do not change their group
+    (the libEnsemble workers of abics_al, mpirun) share its process group,
+    so :func:`group_alive` sees them whatever their command lines look
+    like, and the whole group is killed if the scenario fails before the
+    command has ended.  Open MPI gives every rank a group of its own and
+    abics_al starts its training and sampling stages in sessions of their
+    own, so those are checked by name (:func:`processes`).
     """
     logfile = os.path.join(LOG_DIR, logname + ".log")
     print(f"$ {' '.join(args)} &  (log {logfile})", flush=True)
@@ -167,8 +173,8 @@ def finish(proc, expect, timeout=900):
 
 
 def wait_for_group_exit(proc, timeout, what):
-    t = wait_until(lambda: not group_alive(proc), timeout, f"every process started by {what} has ended")
-    print(f"  every process started by {what} (workers, launchers, solver runs) ended within {t:.1f} s")
+    t = wait_until(lambda: not group_alive(proc), timeout, f"the process group of {what} has ended")
+    print(f"  the process group of {what} (libEnsemble workers, launchers) ended within {t:.1f} s")
 
 
 def wait_until(cond, timeout, what):
@@ -501,12 +507,58 @@ def scenario_inconsistent_state(tomlfile):
     check(not os.path.exists(os.path.join("al_driver", "abics_al.lock")), "the lock file was left behind")
 
 
+def scenario_driver_sigkilled_in_sampling():
+    banner("9. the driver killed with SIGKILL during sampling: the orphaned stage is detected")
+    cleanup()
+    set_faults()
+    tomlfile = write_input("sigkill", nsteps=1280)
+    # this scenario's sampling stage (the driver passes the input file as an absolute path), not another run's
+    sampling = f"abics_sampling .*{re.escape(tomlfile)}"
+    stage_record = os.path.join("al_driver", "stage.pid")
+    try:
+        with background(["abics_al", tomlfile], "s9_driver_sigkilled") as proc:
+            wait_until(lambda: os.path.isdir("MC0") or proc.poll() is not None, 300, "MC0 is created")
+            check(proc.poll() is None, "abics_al ended before it could be killed")
+            proc.send_signal(signal.SIGKILL)
+            finish(proc, expect=-signal.SIGKILL, timeout=60)
+            # the driver could not stop the stage: the lock and the stage record stay, the sampling goes on
+            check(os.path.exists(os.path.join("al_driver", "abics_al.lock")), "the lock is missing after SIGKILL")
+            check(os.path.exists(stage_record), "stage.pid is missing after SIGKILL")
+            check(processes(sampling), "the sampling stage did not survive the SIGKILL of the driver")
+
+            banner("9b. the rerun refuses while the orphaned sampling runs")
+            output = run(["abics_al", tomlfile], expect=1, logname="s9_driver_refuses")
+            check("Removing the stale lock file" in output, "the dead driver's lock was not recognized as stale")
+            check("is still running (process group" in output, "the orphaned sampling stage was not detected")
+            check(not os.path.exists(os.path.join("al_driver", "abics_al.lock")), "the lock was left after the refusal")
+            check(os.path.exists(stage_record), "stage.pid was removed although the stage runs")
+
+            banner("9c. the orphaned sampling ends; the rerun removes the stale record and continues")
+            wait_until(lambda: not processes(sampling), 300, "the orphaned sampling has ended")
+    finally:
+        # on a failure the orphaned stage (in a session of its own) must not outlive the scenario
+        if os.path.exists(stage_record):
+            with open(stage_record) as f:
+                fields = f.read().split()
+            if len(fields) > 1 and fields[1].isdigit():
+                try:
+                    os.killpg(int(fields[1]), signal.SIGKILL)
+                except (ProcessLookupError, PermissionError):
+                    pass
+    check(progress() == ["AL0", "train", "MC0"], f"ALloop.progress = {progress()} after the orphan ended")
+    output = run(["abics_al", tomlfile], expect=0, logname="s9_driver_rerun")
+    check("Removing the stale" in output and "stage.pid" in output, "the stale stage record was not reported")
+    check(not os.path.exists(os.path.join("al_driver", "stage.pid")), "stage.pid was left behind")
+    check(progress() == ["AL0", "train", "MC0", "AL1", "train", "MC1"], f"ALloop.progress = {progress()}")
+    check_outputs(tomlfile, 2)
+
+
 def main():
-    """``run_faults.py [scenario ...]``: all scenarios, or only the numbered ones (1-8)."""
+    """``run_faults.py [scenario ...]``: all scenarios, or only the numbered ones (1-9)."""
     os.chdir(HERE)
     shutil.rmtree(LOG_DIR, ignore_errors=True)
     os.makedirs(LOG_DIR)
-    selected = [int(a) for a in sys.argv[1:]] or list(range(1, 9))
+    selected = [int(a) for a in sys.argv[1:]] or list(range(1, 10))
     t0 = time.time()
     try:
         tomlfile = write_input("driver1", max_iterations=1)
@@ -532,6 +584,8 @@ def main():
                 if 7 not in selected:
                     last = scenario_walltime()
                 scenario_inconsistent_state(last)
+            elif number == 9:
+                scenario_driver_sigkilled_in_sampling()
             else:
                 raise Failure(f"unknown scenario {number}")
     except Failure as e:
