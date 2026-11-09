@@ -8,6 +8,19 @@ import unittest.mock
 from abics.applications.latgas_abinitio_interface import al_driver as drv
 
 
+def make_old(path, age=3600):
+    """Set the modification times under ``path`` (two levels) ``age`` seconds into the past."""
+    import time
+
+    t = time.time() - age
+    os.utime(path, (t, t))
+    for entry in os.scandir(path):
+        os.utime(entry.path, (t, t))
+        if entry.is_dir():
+            for sub in os.scandir(entry.path):
+                os.utime(sub.path, (t, t))
+
+
 class TestNextAction(unittest.TestCase):
     def test_sequence(self):
         # a fresh directory
@@ -51,12 +64,26 @@ class TestNextAction(unittest.TestCase):
     def test_set_aside_interrupted_mc(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             os.makedirs(os.path.join(tmpdir, "MC1", "0"))
+            open(os.path.join(tmpdir, "MC1", "0", "obs.dat"), "w").close()
             driver_dir = os.path.join(tmpdir, drv.DRIVER_DIR)
             os.makedirs(driver_dir)
+            # just written: a sampling run may still be alive
+            with self.assertRaises(drv.DriverError) as cm:
+                drv.set_aside_interrupted_mc(tmpdir, 1, driver_dir)
+            self.assertIn("may still be active", str(cm.exception))
+            make_old(os.path.join(tmpdir, "MC1"))
             moved = drv.set_aside_interrupted_mc(tmpdir, 1, driver_dir)
             self.assertFalse(os.path.exists(os.path.join(tmpdir, "MC1")))
             self.assertTrue(os.path.isdir(os.path.join(moved, "0")))
             self.assertTrue(os.path.basename(moved).startswith("MC1.interrupted-"))
+
+    def test_trained_steps(self):
+        self.assertEqual(drv.trained_steps([]), 0)
+        self.assertEqual(drv.trained_steps(["AL0"]), 0)
+        self.assertEqual(drv.trained_steps(["AL0", "train"]), 1)
+        self.assertEqual(drv.trained_steps(["AL0", "train", "MC0", "AL1"]), 1)
+        self.assertEqual(drv.trained_steps(["AL0", "train", "MC0", "AL1", "train"]), 2)
+        self.assertEqual(drv.trained_steps(["AL0", "train", "MC0", "AL1", "train", "MC1"]), 2)
 
 
 class TestParamsAndCommands(unittest.TestCase):
@@ -86,8 +113,10 @@ class TestParamsAndCommands(unittest.TestCase):
         self.assertEqual(args[6], os.path.expanduser("~/x"))
         # unknown placeholders are left alone instead of raising
         self.assertEqual(drv.expand_command("echo {unknown}", input="x"), ["echo", "{unknown}"])
-        # a value with spaces stays one argument
+        # a value with spaces stays one argument, quoted or not, and values are not expanded
         self.assertEqual(drv.expand_command("abics_train {input}", input="/a dir/in.toml"), ["abics_train", "/a dir/in.toml"])
+        self.assertEqual(drv.expand_command('abics_train "{input}"', input="/a dir/in.toml"), ["abics_train", "/a dir/in.toml"])
+        self.assertEqual(drv.expand_command("x {input}", input="$HOME/~")[1], "$HOME/~")
 
     def test_sampling_nprocs(self):
         self.assertEqual(drv.sampling_nprocs({"sampling": {"nreplicas": 4, "solver": {"base_input_dir": "./b"}}}), (4, 4))
@@ -144,6 +173,42 @@ class TestStages(unittest.TestCase):
             self.assertEqual(content.count("==="), 2)  # both runs are kept (appended)
             self.assertEqual(drv.run_child([sys.executable, "-c", "import time; time.sleep(30)"], log, 1), -1)
             self.assertEqual(drv.run_child(["no-such-command-abics", "x"], log, 0), 127)
+
+    def test_child_is_stopped_when_the_driver_is_interrupted(self):
+        class FakeProc:
+            def __init__(self):
+                self.calls = []
+                self.waits = 0
+
+            def wait(self, timeout=None):
+                self.waits += 1
+                if self.waits == 1:
+                    raise KeyboardInterrupt
+                return 0
+
+            def terminate(self):
+                self.calls.append("terminate")
+
+            def kill(self):
+                self.calls.append("kill")
+
+        fake = FakeProc()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with unittest.mock.patch.object(drv.subprocess, "Popen", return_value=fake):
+                with self.assertRaises(KeyboardInterrupt):
+                    drv.run_child(["x"], os.path.join(tmpdir, "x.log"), 0)
+        self.assertEqual(fake.calls, ["terminate"])
+
+    def test_sigterm_becomes_an_exception(self):
+        import signal
+
+        previous = signal.getsignal(signal.SIGTERM)
+        try:
+            drv.install_signal_handlers()
+            with self.assertRaises(drv.DriverInterrupted):
+                os.kill(os.getpid(), signal.SIGTERM)
+        finally:
+            signal.signal(signal.SIGTERM, previous)
 
     def test_wait_for_progress(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -328,10 +393,37 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
             self.assertTrue(os.path.isdir(os.path.join(tmpdir, "MC0")))
             self.assertEqual(drv.read_progress(tmpdir)[-1], "train")
             calls.clear()
+            # freshly modified: refused, a sampling run may still be alive
+            with self.assertRaises(drv.DriverError):
+                self.run_loop(tmpdir, 1, calls)
+            self.assertEqual(calls, [])
+            make_old(os.path.join(tmpdir, "MC0"))
             self.assertEqual(self.run_loop(tmpdir, 1, calls), "done")
             self.assertEqual(calls, [("sampling", 0)])  # repeated, nothing else
             moved = [d for d in os.listdir(os.path.join(tmpdir, drv.DRIVER_DIR)) if d.startswith("MC0.interrupted-")]
             self.assertEqual(len(moved), 1)
+
+    def test_stop_in_the_middle_of_an_iteration_describes_the_trained_model(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            calls = []
+            # AL0 train MC0 AL1 train, then the sampling of MC1 fails
+            with self.assertRaises(drv.DriverError):
+                self.run_loop(tmpdir, 2, calls, fail_sampling_at=1)
+            self.assertEqual(drv.read_progress(tmpdir), ["AL0", "train", "MC0", "AL1", "train"])
+            calls.clear()
+            self.assertEqual(self.run_loop(tmpdir, 1, calls), "done")  # target already met
+            self.assertEqual(calls, [])
+            self.assertTrue(os.path.isdir(os.path.join(tmpdir, "MC1")))  # the unrecorded MC1 is left alone
+            with open(os.path.join(tmpdir, drv.DRIVER_DIR, drv.METADATA_FILE)) as f:
+                meta = json.load(f)
+            self.assertEqual(meta["provenance"]["iterations"], 1)
+            self.assertEqual(meta["provenance"]["trained_on_steps"], 2)  # the model in baseinput used AL0 and AL1
+            self.assertIn("AL0 .. AL1", meta["accuracy_note"])
+
+    def test_max_iterations_below_one_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with self.assertRaises(drv.DriverError):
+                self.run_loop(tmpdir, 0, [])
 
     def run_with_al(self, tmpdir, al_section, max_iterations=2, **stub_kwargs):
         tomlfile = os.path.join(tmpdir, "input.toml")

@@ -50,7 +50,7 @@ def main():
         "--max-iterations",
         type=int,
         default=None,
-        help="number of Monte Carlo runs to complete (overrides [al] max_iterations)",
+        help="number of Monte Carlo runs to complete, >= 1 (overrides [al] max_iterations)",
     )
     parser.add_argument(
         "--forget-durations",
@@ -58,6 +58,8 @@ def main():
         help="forget the recorded stage durations used for the wall-time decisions",
     )
     args = parser.parse_args()
+    if args.max_iterations is not None and args.max_iterations < 1:
+        parser.error("--max-iterations must be >= 1")
 
     try:
         params_root = toml.load(args.tomlfile)
@@ -87,9 +89,9 @@ def main():
     except DriverError as e:
         logger.error(str(e))
         sys.exit(1)
-    except Exception as e:  # noqa: BLE001 - a clean message instead of a traceback
+    except Exception as e:  # noqa: BLE001 - message first, traceback kept in the log
         logger.error(f"abics_al stopped: {type(e).__name__}: {e}")
-        logger.debug("traceback:", exc_info=True)
+        logger.error("traceback:", exc_info=True)
         sys.exit(1)
     logger.info(f"Exiting on {datetime.datetime.now()} ({state}).")
     sys.exit(0 if state == "done" else 2)

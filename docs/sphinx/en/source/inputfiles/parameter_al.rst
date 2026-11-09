@@ -22,8 +22,12 @@ A finished loop is extended by raising ``max_iterations`` and rerunning. Convers
 below the number of recorded Monte Carlo runs the driver stops even in the middle of an iteration (after ``AL<n>``
 or its training) and does not run the following stages.
 ``[sampling] reload = true`` cannot be used (an interrupted sampling run is moved aside and repeated).
-A lock file ``al_driver/abics_al.lock`` prevents two ``abics_al`` from running in the same directory
-(a stale lock is removed automatically).
+A lock file ``al_driver/abics_al.lock`` prevents two ``abics_al`` from running in the same directory.
+On SIGTERM (e.g. the scheduler's time limit) ``abics_al`` stops the running stage and releases the lock.
+If a lock is left behind (e.g. after SIGKILL), a rerun on the same host checks whether the process is alive
+and removes a stale lock; on another host this cannot be checked, so make sure that job has ended and remove
+the file by hand. An unrecorded ``MC<n>`` that was modified within the last 120 seconds is not moved aside
+but reported as possibly still running (e.g. an ``srun`` child that outlived the driver).
 
 The file format is as follows.
 
@@ -128,8 +132,9 @@ Key words
 
   **Format :** bool (default: true)
 
-  **Description :** With ``[train] type = "aenet"`` and a missing ``base_input_dir``, generate a template of the
-  training input with ``abics_gen_aenet_input`` before the first training.
+  **Description :** With ``[train] type = "aenet"`` and a missing (or empty) ``base_input_dir``, generate a template
+  of the training input with ``abics_gen_aenet_input`` before the first training (with a warning). Set it to false
+  when you provide the input yourself, so that a misspelt ``base_input_dir`` is not hidden.
 
 Output
 ^^^^^^^^^^
@@ -140,11 +145,12 @@ Output
   appended on reruns), the stage durations (``durations.json``), interrupted sampling runs that were moved aside
   (``MC<n>.interrupted-<timestamp>``), the driver's own log (``abics_al_<timestamp>.log``; the driver does not
   write to ``[log] logfile_path`` because the training and sampling programs overwrite it) and, once the target is
-  reached, a description of the final model, ``model_metadata.json`` (abICS version, hash of the input file,
-  number of completed iterations and reference calculations, reference solver and trainer settings, species,
-  temperature range and supercell, error statistics of every step). Note that the statistics of ``AL<n>``
-  evaluate the model trained after ``AL<n-1>`` and used in ``MC<n-1>``; the last trained model itself is not
-  evaluated.
+  reached, a description of the current model, ``model_metadata.json`` (abICS version, hash of the input file,
+  the number of completed iterations ``iterations`` and of AL steps the model was trained on ``trained_on_steps``
+  (larger than ``iterations`` when the loop was stopped in the middle of an iteration), the number of reference
+  calculations, reference solver and trainer settings, species, temperature range and supercell, error statistics
+  of every step). Note that the statistics of ``AL<n>`` evaluate the model trained after ``AL<n-1>`` and used in
+  ``MC<n-1>``; the last trained model itself is not evaluated.
 
 The exit status is 0 when the target number of iterations is reached, 2 when the run stopped because of the wall time,
 and 1 when a stage failed (or the input is wrong, or the resubmission command failed).

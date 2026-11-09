@@ -51,6 +51,7 @@ import logging
 import os
 import shlex
 import shutil
+import signal
 import subprocess
 import time
 from dataclasses import dataclass, field
@@ -81,6 +82,23 @@ TERMINATE_GRACE = 30.0
 
 class DriverError(RuntimeError):
     """The loop cannot continue; the reasons were logged."""
+
+
+class DriverInterrupted(BaseException):
+    """SIGTERM (e.g. the scheduler's time limit) or SIGINT reached the driver."""
+
+
+def install_signal_handlers() -> None:
+    """Turn SIGTERM into :class:`DriverInterrupted` so that cleanup code runs.
+
+    Without this the default disposition kills the process at once: the lock
+    file would stay and a running stage would be orphaned.
+    """
+
+    def handler(signum, frame):
+        raise DriverInterrupted(signal.Signals(signum).name)
+
+    signal.signal(signal.SIGTERM, handler)
 
 
 # ---------------------------------------------------------------------------
@@ -144,10 +162,13 @@ def expand_command(template: str, **values) -> List[str]:
     work), and ``~`` and environment variables are expanded in every
     argument.  No shell is involved.
     """
-    command = template
-    for name, value in values.items():
-        command = command.replace("{" + name + "}", shlex.quote(str(value)))
-    return [os.path.expanduser(os.path.expandvars(arg)) for arg in shlex.split(command)]
+    args = []
+    for token in shlex.split(template):
+        token = os.path.expanduser(os.path.expandvars(token))
+        for name, value in values.items():
+            token = token.replace("{" + name + "}", str(value))  # within one argument: spaces survive
+        args.append(token)
+    return args
 
 
 # ---------------------------------------------------------------------------
@@ -178,6 +199,19 @@ def wait_for_progress(rootdir: str, expected_last: str, timeout: float) -> bool:
 def completed_mc_runs(progress: List[str]) -> int:
     """Number of Monte Carlo runs recorded as finished in ``ALloop.progress``."""
     return sum(1 for p in progress if p.startswith("MC"))
+
+
+def trained_steps(progress: List[str]) -> int:
+    """Number of AL steps whose data the current model was trained on (0: no model yet).
+
+    The model in ``baseinput`` is the one made by the last ``train`` entry,
+    which follows ``AL<k>`` and used AL0 .. AL<k>.
+    """
+    last_train = max((i for i, p in enumerate(progress) if p == "train"), default=None)
+    if last_train is None:
+        return 0
+    al_before = [p for p in progress[:last_train] if p.startswith("AL")]
+    return int(al_before[-1][2:]) + 1 if al_before else 0
 
 
 def next_action(progress: List[str], newest_mc: int, max_iterations: int) -> Tuple[str, int]:
@@ -232,11 +266,39 @@ def next_action(progress: List[str], newest_mc: int, max_iterations: int) -> Tup
     raise DriverError(f"Unknown entry '{last}' in ALloop.progress")
 
 
+RECENT_ACTIVITY = 120.0
+"""Seconds: an unrecorded MC<n> modified more recently than this may still be written by a live run."""
+
+
+def last_modified(path: str) -> float:
+    """Newest modification time of ``path``, its replica directories and their files (one level)."""
+    newest = os.path.getmtime(path)
+    for entry in os.scandir(path):
+        newest = max(newest, entry.stat().st_mtime)
+        if entry.is_dir():
+            for sub in os.scandir(entry.path):
+                newest = max(newest, sub.stat().st_mtime)
+    return newest
+
+
 def set_aside_interrupted_mc(rootdir: str, n: int, driver_dir: str) -> str:
-    """Move an unfinished ``MC<n>`` into the driver directory and return its new path."""
+    """Move an unfinished ``MC<n>`` into the driver directory and return its new path.
+
+    Refuses when the directory was modified within :data:`RECENT_ACTIVITY`
+    seconds: the sampling run may still be alive (for example an ``srun``
+    that outlived a killed driver).
+    """
+    source = os.path.join(rootdir, f"MC{n}")
+    age = time.time() - last_modified(source)
+    if age < RECENT_ACTIVITY:
+        raise DriverError(
+            f"MC{n} is not recorded in ALloop.progress but was modified {age:.0f} s ago: a sampling run may "
+            f"still be active. Make sure no abics_sampling is running, then rerun abics_al "
+            f"(after {RECENT_ACTIVITY:.0f} s without changes the directory is moved aside and the sampling repeated)."
+        )
     stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     target = os.path.join(driver_dir, f"MC{n}.interrupted-{stamp}")
-    shutil.move(os.path.join(rootdir, f"MC{n}"), target)
+    shutil.move(source, target)
     return target
 
 
@@ -264,8 +326,8 @@ class DriverLock:
                 )
             if host != os.uname().nodename:
                 raise DriverError(
-                    f"{self.path} says abics_al (pid {pid}) runs on {host}; if it is not running any more, "
-                    "remove the file"
+                    f"{self.path} says abics_al (pid {pid}) runs on {host}, which cannot be checked from here; "
+                    "if that process is not running any more (e.g. its job was killed), remove the file and rerun"
                 )
             logger.warning(f"-Removing the stale lock file {self.path} (pid {pid} is not running)")
         with open(self.path, "w") as f:
@@ -378,13 +440,24 @@ def run_child(args: Sequence[str], logfile: str, timeout: float) -> int:
             return proc.wait(timeout=timeout or None)
         except subprocess.TimeoutExpired:
             logger.error(f"--No completion after {timeout} s: terminating")
-            proc.terminate()
-            try:
-                proc.wait(timeout=TERMINATE_GRACE)
-            except subprocess.TimeoutExpired:
-                proc.kill()
-                proc.wait()
+            _stop_child(proc)
             return -1
+        except BaseException:
+            # the driver itself is being stopped (SIGTERM, Ctrl-C, an error): do not
+            # leave the stage running, it would keep writing into the directory
+            logger.error("--abics_al is being stopped: terminating the stage")
+            _stop_child(proc)
+            raise
+
+
+def _stop_child(proc: subprocess.Popen) -> None:
+    """SIGTERM, then SIGKILL after :data:`TERMINATE_GRACE` seconds."""
+    proc.terminate()
+    try:
+        proc.wait(timeout=TERMINATE_GRACE)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait()
 
 
 def ensure_train_input(params_root: dict) -> None:
@@ -392,16 +465,18 @@ def ensure_train_input(params_root: dict) -> None:
     train = params_root.get("train", {})
     if train.get("type", "aenet") != "aenet":
         return
-    base = train.get("base_input_dir", "./aenet_train_input")
-    if isinstance(base, list):
-        base = base[0]
-    base = os.path.expanduser(os.path.expandvars(base))
-    if os.path.isdir(base) and os.listdir(base):
-        return
+    bases = train.get("base_input_dir", "./aenet_train_input")
+    if not isinstance(bases, list):
+        bases = [bases]
     from abics.scripts.gen_aenet_input import main_impl as gen_aenet_input
 
-    logger.info(f"-Training input {base} does not exist: generating it with abics_gen_aenet_input")
-    gen_aenet_input(params_root, base, False)
+    for base in bases:
+        base = os.path.expanduser(os.path.expandvars(base))
+        if os.path.isdir(base) and os.listdir(base):
+            continue
+        logger.warning(f"-Training input {base} does not exist: generating the default template with "
+                       "abics_gen_aenet_input (check it, or set [al] generate_train_input = false)")
+        gen_aenet_input(params_root, base, False)
 
 
 def sampling_nprocs(params_root: dict) -> Tuple[int, int]:
@@ -505,12 +580,24 @@ def count_reference_data(rootdir: str, iterations: int) -> int:
     return total
 
 
-def write_model_metadata(rootdir: str, params_root: dict, tomlfile: str, iterations: int, driver_dir: str) -> str:
-    """Describe the final model: provenance, scope and accuracy (a small model card).
+def write_model_metadata(
+    rootdir: str,
+    params_root: dict,
+    tomlfile: str,
+    iterations: int,
+    driver_dir: str,
+    trained_on: Optional[int] = None,
+) -> str:
+    """Describe the current model: provenance, scope and accuracy (a small model card).
 
-    ``iterations`` is the number of completed Monte Carlo runs; the model
-    was trained on the reference data of AL0 .. AL<iterations-1>.
+    ``iterations`` is the number of completed Monte Carlo runs and
+    ``trained_on`` the number of AL steps whose data the model in the
+    sampling solver's ``base_input_dir`` was trained on (``iterations`` when
+    the loop ended after a Monte Carlo run; more when it was stopped after
+    a later reference-data step and training).
     """
+    if trained_on is None:
+        trained_on = iterations
     config = params_root.get("config", {})
     sampling = params_root.get("sampling", {})
     train = params_root.get("train", {})
@@ -520,7 +607,7 @@ def write_model_metadata(rootdir: str, params_root: dict, tomlfile: str, iterati
         | {b.get("type") for b in config.get("base_structure", []) if b.get("type")}
     )
     accuracy = {}
-    for n in range(1, iterations):
+    for n in range(1, trained_on):
         path = os.path.join(rootdir, f"AL{n}", "convergence.dat")
         if os.path.exists(path):
             total = read_convergence(path).get("all")
@@ -541,14 +628,17 @@ def write_model_metadata(rootdir: str, params_root: dict, tomlfile: str, iterati
         "input_sha256": toml_hash,
         "accuracy_note": (
             "AL<n> compares the model trained after AL<n-1> (the one used in MC<n-1>) with the "
-            "reference solver on configurations sampled in MC<n-1>; the final model, trained after "
-            f"AL{iterations - 1}, has not been evaluated"
+            "reference solver on configurations sampled in MC<n-1>; the current model, trained on "
+            f"AL0 .. AL{trained_on - 1}, has not been evaluated"
+            if trained_on > 0
+            else "no model has been trained yet"
         ),
         "provenance": {
             "iterations": iterations,
-            # rows of energy_corr.dat; abics_train may drop configurations it cannot map,
-            # so this is an upper bound of the training-set size
-            "reference_configurations": count_reference_data(rootdir, iterations),
+            "trained_on_steps": trained_on,
+            # rows of energy_corr.dat of the steps the model was trained on; abics_train may
+            # drop configurations it cannot map, so this is an upper bound of the training-set size
+            "reference_configurations": count_reference_data(rootdir, trained_on),
             "reference_solver": {
                 "type": mlref.get("solver", {}).get("type"),
                 "base_input_dir": mlref.get("solver", {}).get("base_input_dir"),
@@ -617,6 +707,8 @@ def run_driver(
         )
     params = DriverParams.from_dict(params_root.get("al", {}))
     if max_iterations is not None:
+        if max_iterations < 1:
+            raise DriverError("--max-iterations must be >= 1")
         params.max_iterations = max_iterations
     rootdir = os.getcwd()
     driver_dir = os.path.join(rootdir, DRIVER_DIR)
@@ -629,12 +721,19 @@ def run_driver(
             pass
     clock = WallClock(params, driver_dir)
     tomlfile = os.path.abspath(tomlfile)
+    install_signal_handlers()
     lock = DriverLock(driver_dir)
     lock.acquire()
     try:
-        return _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock)
+        state = _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock)
+    except DriverInterrupted as e:
+        logger.error(f"-abics_al interrupted by {e}; the running stage was stopped. Rerun to continue.")
+        raise DriverError(f"interrupted by {e}") from None
     finally:
         lock.release()
+    if state == "walltime" and params.resubmit_command:
+        resubmit(params)  # after the lock is released: the next driver may start at once
+    return state
 
 
 def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
@@ -648,27 +747,26 @@ def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
                 logger.info(f"-{n} Monte Carlo run(s) are recorded, which meets the target; the stage after "
                             f"them ({progress[-1]}) is kept as it is.")
             break
+        stage = "sampling" if action == "sampling_interrupted" else action
+        ok, message = clock.can_start(stage)
+        if not ok:
+            if stages_finished_here == 0:
+                raise DriverError(
+                    f"the {stage} stage of step {n} does not fit into the wall time even at the start of the "
+                    f"run ({message}); raise [al] walltime, lower the stage estimate, or remove "
+                    f"{os.path.join(DRIVER_DIR, DURATIONS_FILE)} if the recorded duration is outdated. "
+                    "Not resubmitting, since this run made no progress."
+                )
+            logger.info(f"-Stopping before {stage} of step {n}: {message}.")
+            logger.info("-Run abics_al again to continue; finished stages are not repeated.")
+            return "walltime"
+        if message:
+            logger.warning(f"-{message}")
         if action == "sampling_interrupted":
             moved = set_aside_interrupted_mc(rootdir, n, driver_dir)
             logger.warning(f"-MC{n} exists but was never recorded in ALloop.progress: the sampling run did not finish.")
             logger.warning(f"--Moved it to {moved}; running the sampling again.")
             action = "sampling"
-        ok, message = clock.can_start(action)
-        if not ok:
-            if stages_finished_here == 0:
-                raise DriverError(
-                    f"the {action} stage of step {n} does not fit into the wall time even at the start of the "
-                    f"run ({message}); raise [al] walltime, lower the stage estimate, or remove "
-                    f"{os.path.join(DRIVER_DIR, DURATIONS_FILE)} if the recorded duration is outdated. "
-                    "Not resubmitting, since this run made no progress."
-                )
-            logger.info(f"-Stopping before {action} of step {n}: {message}.")
-            logger.info("-Run abics_al again to continue; finished stages are not repeated.")
-            if params.resubmit_command:
-                resubmit(params)
-            return "walltime"
-        if message:
-            logger.warning(f"-{message}")
         t_stage = time.time()
         if action == "mlref":
             run_mlref(params_root, n)
@@ -684,10 +782,12 @@ def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
         stages_finished_here += 1
         logger.info(f"--{action} of step {n} finished in {time.time() - t_stage:.0f} s")
 
-    completed = completed_mc_runs(read_progress(rootdir))
+    progress = read_progress(rootdir)
+    completed = completed_mc_runs(progress)
+    trained_on = trained_steps(progress)
     write_summary(rootdir)
-    path = write_model_metadata(rootdir, params_root, tomlfile, completed, driver_dir)
-    logger.info(f"-{completed} Monte Carlo run(s) completed (target {params.max_iterations}); "
-                f"model description written to {path}")
+    path = write_model_metadata(rootdir, params_root, tomlfile, completed, driver_dir, trained_on)
+    logger.info(f"-{completed} Monte Carlo run(s) completed (target {params.max_iterations}); the current model "
+                f"was trained on {trained_on} AL step(s); model description written to {path}")
     logger.info(f"-Errors per step are in {SUMMARY_FILE}. Raise [al] max_iterations and rerun abics_al to continue.")
     return "done"
