@@ -396,10 +396,17 @@ def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     params_root = toml.load(tomlfile)
 
+    log_params = dict(params_root.get("log", {}))
+    if params_root.get("mlref", {}).get("exec_mode", "staged") == "integrated":
+        # the integrated mode is a single non-MPI process: the default logger
+        # setup would initialize MPI (singleton) before the solver runs are
+        # launched, so log serially unless the user configured [log] explicitly
+        log_params.setdefault("console", "serial")
+        log_params.setdefault("logfile_mode", "serial")
     loggers.set_log_handles(
         app_name="activelearn",
         level=logging.INFO,
-        params=params_root.get("log", {}))
+        params=log_params)
 
     logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
     logger.info(f"-Reading input from: {tomlfile}")

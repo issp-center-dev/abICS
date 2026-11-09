@@ -25,7 +25,7 @@ qe_tools = "^1.1"
 # removed numpy.in1d, so it needs numpy<2 and cannot run on Python 3.13.
 nequip = {version=">=0.5.6, <0.7", optional=true}
 # libEnsemble runs the reference solver from abics_mlref ([mlref] exec_mode = "integrated")
-libensemble = {version=">=1.4", optional=true}
+libensemble = {version=">=1.4, <2", optional=true}
 
 [tool.poetry.extras]
 nequip = ["nequip"]

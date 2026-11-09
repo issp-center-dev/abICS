@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import tempfile
 import time
@@ -238,9 +239,14 @@ class TestHelpers(unittest.TestCase):
         p = ai.IntegratedParams.from_dict({"nworkers": 4, "nprocs": 2, "timeout": 30, "scratch_dir": "/tmp/x"})
         self.assertEqual((p.nworkers, p.nprocs, p.timeout, p.retries, p.scratch_dir), (4, 2, 30.0, 1, "/tmp/x"))
         self.assertEqual(ai.IntegratedParams.from_dict({}).nworkers, 1)
-        for bad in ({"nworkers": 0}, {"nthreads": 0}, {"timeout": -1}, {"retries": -1}):
+        for bad in (
+            {"nworkers": 0}, {"nthreads": 0}, {"timeout": -1}, {"retries": -1},
+            {"nprocs": 4, "cores": 2},  # no run could be scheduled
+            {"scratch_dir": "/scratch/with space"},
+        ):
             with self.assertRaises(ValueError):
                 ai.IntegratedParams.from_dict(bad)
+        self.assertEqual(ai.IntegratedParams.from_dict({"nprocs": 4, "cores": 8}).cores, 8)
 
     def test_scratch_dir_is_expanded(self):
         with unittest.mock.patch.dict(os.environ, {"ABICS_TEST_SCRATCH": "/scr"}):
@@ -250,10 +256,21 @@ class TestHelpers(unittest.TestCase):
         self.assertEqual(ai.IntegratedParams.from_dict({"scratch_dir": "~"}).scratch_dir, os.path.expanduser("~"))
 
     def test_launched_by_mpi(self):
-        with unittest.mock.patch.dict(os.environ, {"OMPI_COMM_WORLD_SIZE": "4"}):
-            self.assertTrue(ai.launched_by_mpi())
-        with unittest.mock.patch.dict(os.environ, {"OMPI_COMM_WORLD_SIZE": "1", "PMI_SIZE": "1"}):
+        clean = {k: v for k, v in os.environ.items() if k not in ai.MPI_LAUNCHER_VARIABLES}
+        with unittest.mock.patch.dict(os.environ, clean, clear=True):
             self.assertFalse(ai.launched_by_mpi())
+            # even "mpirun -np 1" is refused: the nested mpirun of the solver would fail
+            with unittest.mock.patch.dict(os.environ, {"OMPI_COMM_WORLD_SIZE": "1"}):
+                self.assertTrue(ai.launched_by_mpi())
+            with unittest.mock.patch.dict(os.environ, {"PMI_SIZE": "4"}):
+                self.assertTrue(ai.launched_by_mpi())
+
+    def test_seed_zero_gives_independent_replicas(self):
+        ai.seed_replica(0, 0)
+        a = np.random.random(4)
+        ai.seed_replica(0, 1)
+        b = np.random.random(4)
+        self.assertFalse(np.array_equal(a, b))
 
     def test_check_resumable(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -279,19 +296,172 @@ class TestHelpers(unittest.TestCase):
             self.assertEqual(problems, [])
             self.assertEqual(len(tasks), 3)
 
+            # the directory names must match the current zero-padding width
+            tasks, problems = ai.check_resumable(replica_dirs[:1], [al.input_dir_format(1000)], 3, None)
+            self.assertEqual(tasks, [])
+            self.assertEqual(len(problems), 3)
+            self.assertIn("is not named input0000", problems[0])
+
+
+@unittest.skipUnless(importlib.util.find_spec("libensemble"), "libEnsemble not installed")
+class TestRunReferenceTask(unittest.TestCase):
+    """The worker-side function, with a fake libEnsemble executor."""
+
+    class FakeTask:
+        def __init__(self, run_dir, succeed):
+            self.run_dir = run_dir
+            self.succeed = succeed
+            self.success = False
+            self.errcode = None
+
+        def wait(self, timeout=None):
+            # "the solver": computes the energy in the current directory (= run_dir)
+            assert os.path.realpath(os.getcwd()) == os.path.realpath(self.run_dir)
+            if self.succeed:
+                with open(os.path.join(self.run_dir, "energy.dat"), "w") as f:
+                    f.write("-7.5\n")
+                open(os.path.join(self.run_dir, "machinefile_autogen_for_worker_1_task_0"), "w").close()
+            self.success = self.succeed
+            self.errcode = 0 if self.succeed else 5
+
+        def kill(self):
+            pass
+
+    class FakeExecutor:
+        def __init__(self, succeed=True):
+            self.succeed = succeed
+            self.submits = []
+
+        def submit(self, **kwargs):
+            self.submits.append(kwargs)
+            return TestRunReferenceTask.FakeTask(os.getcwd(), self.succeed)
+
+    def run_worker(self, tmpdir, fake, scratch_root="", al_step=1):
+        from libensemble.executors.executor import Executor
+
+        task = make_task(tmpdir, replica=0, index=3)
+        user = {
+            "tasks": [{"replica": 0, "index": 3, "input_dir": task.input_dir}],
+            "mlref_solver": {"type": "user", "function": "fakemock.calc_energy",
+                             "path": "/bin/true", "run_scheme": "subprocess", "perturb": 0.0},
+            "integrated": {"nworkers": 1, "nprocs": 1, "nthreads": 1, "timeout": 0.0, "retries": 0,
+                           "output_wait": 0.0, "scratch_dir": scratch_root and os.path.dirname(scratch_root),
+                           "copy_back_exclude": [], "cores": 0},
+            "rootdir": tmpdir,
+            "replica_dirs": [os.path.join(tmpdir, "AL1", "0")],
+            "al_step": al_step,
+            "scratch_root": scratch_root,
+        }
+        # the user-function solver imports its module from rootdir
+        with open(os.path.join(tmpdir, "fakemock.py"), "w") as f:
+            f.write("def calc_energy(st):\n    return 0.0\n")
+        H = np.zeros(1, dtype=[("task_index", int)])
+        sim_specs = {
+            "out": [("task_index", int), ("status", "U256"), ("energy", float),
+                    ("dmax_id", int), ("dmax", float), ("attempts", int)],
+            "user": user,
+        }
+        cwd = os.getcwd()
+        try:
+            with unittest.mock.patch.object(Executor, "executor", fake, create=True):
+                H_o, _ = ai.run_reference_task(H, {}, sim_specs, {})
+        finally:
+            os.chdir(cwd)
+        return task, H_o
+
+    def test_success_path(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fake = self.FakeExecutor(succeed=True)
+            task, H_o = self.run_worker(tmpdir, fake)
+            stage0 = os.path.join(task.input_dir, "baseinput0")
+            self.assertEqual(str(H_o["status"][0]), "ok")
+            self.assertEqual(float(H_o["energy"][0]), -7.5)
+            self.assertEqual(int(H_o["attempts"][0]), 1)
+            self.assertTrue(ai.stage_done(stage0))
+            self.assertTrue(os.path.isfile(os.path.join(tmpdir, "AL1", "0", "structure.3.vasp")))
+            self.assertEqual(fake.submits[0]["app_args"], stage0)  # cl_args of the user solver
+            self.assertFalse(any(n.startswith("machinefile") for n in os.listdir(stage0)))
+
+    def test_solver_failure_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            task, H_o = self.run_worker(tmpdir, self.FakeExecutor(succeed=False))
+            self.assertEqual(str(H_o["status"][0]), "stage 0: solver exited with status 5")
+            self.assertTrue(np.isnan(H_o["energy"][0]))
+            self.assertFalse(ai.stage_done(os.path.join(task.input_dir, "baseinput0")))
+
+    def test_internal_error_becomes_a_status(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fake = self.FakeExecutor(succeed=True)
+            task_dir = os.path.join(tmpdir, "AL1", "0", "input03")
+            os.makedirs(os.path.join(task_dir, "baseinput0"))
+            # make_task would write initial.vasp; here it is missing -> finish_task fails
+            with open(os.path.join(task_dir, "baseinput0", "structure.vasp"), "w") as f:
+                f.write(Structure(Lattice.cubic(4.0), ["Al"], [[0, 0, 0]]).to(fmt="POSCAR"))
+            os.makedirs(os.path.join(tmpdir, "AL1", "0"), exist_ok=True)
+            from libensemble.executors.executor import Executor
+            with open(os.path.join(tmpdir, "fakemock.py"), "w") as f:
+                f.write("def calc_energy(st):\n    return 0.0\n")
+            sim_specs = {
+                "out": [("task_index", int), ("status", "U256"), ("energy", float),
+                        ("dmax_id", int), ("dmax", float), ("attempts", int)],
+                "user": {
+                    "tasks": [{"replica": 0, "index": 3, "input_dir": task_dir}],
+                    "mlref_solver": {"type": "user", "function": "fakemock.calc_energy",
+                                     "path": "/bin/true", "run_scheme": "subprocess", "perturb": 0.0},
+                    "integrated": {"nworkers": 1, "nprocs": 1, "nthreads": 1, "timeout": 0.0, "retries": 0,
+                                   "output_wait": 0.0, "scratch_dir": "", "copy_back_exclude": [], "cores": 0},
+                    "rootdir": tmpdir, "replica_dirs": [os.path.join(tmpdir, "AL1", "0")],
+                    "al_step": 1, "scratch_root": "",
+                },
+            }
+            cwd = os.getcwd()
+            try:
+                with unittest.mock.patch.object(Executor, "executor", fake, create=True):
+                    H_o, _ = ai.run_reference_task(np.zeros(1, dtype=[("task_index", int)]), {}, sim_specs, {})
+            finally:
+                os.chdir(cwd)
+            self.assertTrue(str(H_o["status"][0]).startswith("internal error: "))
+            self.assertIn("initial.vasp", str(H_o["status"][0]))
+
+    def test_scratch_copy_back_and_cleanup(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            scratch_root = os.path.join(tmpdir, "scratch", "abics_mlref_AL1")
+            os.makedirs(scratch_root)
+            fake = self.FakeExecutor(succeed=True)
+            task, H_o = self.run_worker(tmpdir, fake, scratch_root=scratch_root)
+            stage0 = os.path.join(task.input_dir, "baseinput0")
+            self.assertEqual(str(H_o["status"][0]), "ok")
+            self.assertTrue(fake.submits[0]["stdout"].startswith(scratch_root))  # ran in scratch
+            self.assertTrue(os.path.isfile(os.path.join(stage0, "energy.dat")))  # copied back
+            self.assertFalse(any(n.startswith("machinefile") for n in os.listdir(stage0)))
+            self.assertEqual(os.listdir(scratch_root), [])  # run directory removed
+
     def test_copy_tree_filtered(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             src = os.path.join(tmpdir, "src")
             os.makedirs(os.path.join(src, "sub"))
-            for name in ("a.out", "b.wfc1", "sub/c.dat", "sub/d.wfc2"):
+            os.makedirs(os.path.join(src, "pwscf.save", "deep"))
+            for name in (
+                "a.out", "b.wfc1", "sub/c.dat", "sub/d.wfc2", "machinefile_autogen_for_worker_1_task_0",
+                "pwscf.save/charge-density.dat", "pwscf.save/deep/x",
+            ):
                 with open(os.path.join(src, name), "w") as f:
                     f.write(name)
             dst = os.path.join(tmpdir, "dst")
-            ai.copy_tree_filtered(src, dst, ["*.wfc*"])
+            ai.copy_tree_filtered(src, dst, ["*.wfc*", "*.save"])
             copied = sorted(
                 os.path.relpath(os.path.join(r, f), dst) for r, _, fs in os.walk(dst) for f in fs
             )
+            # "*.save" excludes the whole directory; launcher machinefiles are never copied
             self.assertEqual(copied, ["a.out", "sub/c.dat"])
+            self.assertFalse(os.path.exists(os.path.join(dst, "pwscf.save")))
+
+    def test_remove_launcher_files(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            for name in ("machinefile_autogen_for_worker_2_task_5", "stdout"):
+                open(os.path.join(tmpdir, name), "w").close()
+            ai.remove_launcher_files(tmpdir)
+            self.assertEqual(os.listdir(tmpdir), ["stdout"])
 
     def test_resolve_solver_path(self):
         with tempfile.TemporaryDirectory() as tmpdir:

@@ -22,6 +22,7 @@ seed = 31415
 [mlref]
 nreplicas = 2
 ndata = 10
+seed = 12345  # same seed in input.toml and input_integrated.toml: the two modes must agree
 # integrated mode: one abics_mlref process runs the reference solver itself
 exec_mode = 'integrated'
 

@@ -114,6 +114,14 @@ class IntegratedParams:
             raise ValueError("[mlref.integrated]: nworkers, nprocs and nthreads must be >= 1")
         if params.retries < 0 or params.timeout < 0 or params.output_wait < 0 or params.cores < 0:
             raise ValueError("[mlref.integrated]: retries, timeout, output_wait and cores must be >= 0")
+        if 0 < params.cores < params.nprocs:
+            raise ValueError(
+                f"[mlref.integrated]: cores = {params.cores} is smaller than nprocs = {params.nprocs}; "
+                "no solver run could ever be scheduled"
+            )
+        if any(c.isspace() for c in params.scratch_dir):
+            raise ValueError("[mlref.integrated]: scratch_dir must not contain whitespace "
+                             "(libEnsemble splits the solver command line on whitespace)")
         return params
 
 
@@ -140,18 +148,17 @@ def resolve_solver_path(path: str) -> str:
     return os.path.abspath(found)
 
 
+MPI_LAUNCHER_VARIABLES = ("OMPI_COMM_WORLD_SIZE", "PMI_SIZE", "PMI_RANK", "MPI_LOCALNRANKS", "MV2_COMM_WORLD_SIZE")
+
+
 def launched_by_mpi() -> bool:
-    """True when this process was started by mpiexec/mpirun/srun with more than one rank.
+    """True when this process was started by mpiexec/mpirun/srun (even with one rank).
 
     Checked through the environment so that MPI is not initialized here.
+    Running under a launcher is refused regardless of the rank count: the
+    nested ``mpirun`` of the solver runs would fail or misbehave.
     """
-    for var in ("OMPI_COMM_WORLD_SIZE", "PMI_SIZE", "MPI_LOCALNRANKS", "MV2_COMM_WORLD_SIZE"):
-        try:
-            if int(os.environ.get(var, "1")) > 1:
-                return True
-        except ValueError:
-            pass
-    return False
+    return any(var in os.environ for var in MPI_LAUNCHER_VARIABLES)
 
 
 # ---------------------------------------------------------------------------
@@ -288,17 +295,50 @@ def finish_task(
     return al.max_displacement(st_in, structure)
 
 
+ALWAYS_EXCLUDE = ("machinefile_autogen_*",)
+"""Files of the MPI launcher that are never copied back from the run directory."""
+
+
+def _excluded(relpath: str, patterns: Sequence[str]) -> bool:
+    """True if the relative path, its basename or any of its directory components matches a pattern."""
+    parts = relpath.split(os.sep)
+    return any(
+        fnmatch.fnmatch(relpath, pat) or any(fnmatch.fnmatch(part, pat) for part in parts)
+        for pat in patterns
+    )
+
+
 def copy_tree_filtered(src: str, dst: str, exclude: Sequence[str]) -> None:
-    """Copy the files of ``src`` into ``dst`` except those matching ``exclude`` patterns."""
+    """Copy the files of ``src`` into ``dst`` except those matching ``exclude``.
+
+    A pattern is matched against each file's path relative to ``src``, its
+    name, and every directory name on its path, so ``"*.save"`` excludes the
+    whole ``pwscf.save/`` directory.
+    """
+    patterns = list(exclude) + list(ALWAYS_EXCLUDE)
     for root, dirs, files in os.walk(src):
         rel = os.path.relpath(root, src)
+        # do not descend into excluded directories
+        dirs[:] = [
+            d for d in dirs if not _excluded(d if rel == "." else os.path.join(rel, d), patterns)
+        ]
         target = dst if rel == "." else os.path.join(dst, rel)
         os.makedirs(target, exist_ok=True)
         for name in files:
             relpath = name if rel == "." else os.path.join(rel, name)
-            if any(fnmatch.fnmatch(relpath, pat) or fnmatch.fnmatch(name, pat) for pat in exclude):
+            if _excluded(relpath, patterns):
                 continue
             shutil.copy2(os.path.join(root, name), os.path.join(target, name))
+
+
+def remove_launcher_files(run_dir: str) -> None:
+    """Remove the MPI launcher's machinefiles that libEnsemble writes into the run directory."""
+    for name in os.listdir(run_dir):
+        if any(fnmatch.fnmatch(name, pat) for pat in ALWAYS_EXCLUDE):
+            try:
+                os.remove(os.path.join(run_dir, name))
+            except OSError:
+                pass
 
 
 # ---------------------------------------------------------------------------
@@ -347,9 +387,11 @@ def run_reference_task(H, persis_info, sim_specs, libE_info):
         def launch(stage_dir: str, attempt: int) -> str:
             run_dir = stage_dir
             if ip.scratch_dir:
+                # under the per-run scratch root made by the manager (removed when a
+                # rerun starts, so copies of an interrupted run do not pile up)
                 run_dir = os.path.join(
-                    ip.scratch_dir,
-                    f"abics_{os.getpid()}_{task.replica}_{task.index}_{os.path.basename(stage_dir)}_{attempt}",
+                    user["scratch_root"],
+                    f"{task.replica}_{task.index}_{os.path.basename(stage_dir)}_{attempt}",
                 )
                 shutil.rmtree(run_dir, ignore_errors=True)
                 shutil.copytree(stage_dir, run_dir)
@@ -378,6 +420,8 @@ def run_reference_task(H, persis_info, sim_specs, libE_info):
                     # copy back whatever is there (also after a failure, for inspection)
                     copy_tree_filtered(run_dir, stage_dir, ip.copy_back_exclude)
                     shutil.rmtree(run_dir, ignore_errors=True)
+                else:
+                    remove_launcher_files(run_dir)
             return status
 
         status, energy, structure, attempts = run_task_stages(
@@ -390,12 +434,19 @@ def run_reference_task(H, persis_info, sim_specs, libE_info):
             H_o["dmax_id"] = dmax_id
             H_o["dmax"] = dmax
     except (Exception, SystemExit) as e:  # noqa: BLE001 - reported, not raised
-        status = f"internal error: {type(e).__name__}: {e}"
+        detail = str(e)
+        if isinstance(e, OSError) and e.filename:
+            # keep the message short and the file recognizable
+            try:
+                detail = f"{e.strerror}: {os.path.relpath(e.filename, rootdir)}"
+            except ValueError:
+                detail = f"{e.strerror}: {e.filename}"
+        status = f"internal error: {type(e).__name__}: {detail}"
         try:
             os.chdir(rootdir)
         except OSError:
             pass
-    H_o["status"] = status[:127]
+    H_o["status"] = status[:255]
     return H_o, persis_info
 
 
@@ -407,12 +458,14 @@ def run_reference_calculations(
     replica_dirs: Sequence[str],
     al_step: int,
     libe_dir: str,
+    scratch_root: str = "",
 ) -> List[TaskResult]:
     """Run the reference solver for all ``tasks`` through libEnsemble and collect the results.
 
     ``mlref_solver`` is the ``[mlref.solver]`` section (the workers build
     their own ``ALParams`` and solver from it); ``replica_dirs[r]`` is
-    ``AL<n>/<r>``.
+    ``AL<n>/<r>``; ``scratch_root`` is the directory under ``scratch_dir``
+    for this run (ignored when ``scratch_dir`` is empty).
     """
     require_libensemble()
     from libensemble import Ensemble
@@ -429,7 +482,7 @@ def run_reference_calculations(
         inputs=["task_index"],
         outputs=[
             ("task_index", int),
-            ("status", "U128"),
+            ("status", "U256"),
             ("energy", float),
             ("dmax_id", int),
             ("dmax", float),
@@ -443,6 +496,7 @@ def run_reference_calculations(
             "rootdir": rootdir,
             "replica_dirs": list(replica_dirs),
             "al_step": al_step,
+            "scratch_root": scratch_root,
         },
     )
     gen_specs = GenSpecs(
@@ -505,11 +559,15 @@ def newest_mc_index(rootdir: str) -> int:
 
 
 def seed_replica(seed: int, replica: int) -> None:
-    """Seed the random number generator as RX_MPI_init does for rank ``replica``."""
+    """Seed the random number generator as RX_MPI_init does for rank ``replica``.
+
+    With ``seed = 0`` every replica gets a fresh seed from the operating
+    system, as every independently started rank of the staged mode does.
+    """
     if seed > 0:
         rand.seed(seed + replica * 137)
     else:
-        rand.seed(rand.randint(10000))
+        rand.seed()
 
 
 def check_resumable(
@@ -541,7 +599,14 @@ def check_resumable(
                     "(MC output or [sampling] sampler changed?)"
                 )
         for index in indices:
-            tasks.append(ReferenceTask(r, index, os.path.join(replica_dir, fmtstr_by_replica[r].format(index))))
+            input_dir = os.path.join(replica_dir, fmtstr_by_replica[r].format(index))
+            if not os.path.isdir(input_dir):
+                problems.append(
+                    f"{replica_dir}: input directory for sample {index} is not named "
+                    f"{os.path.basename(input_dir)} (number of MC samples changed?)"
+                )
+                continue
+            tasks.append(ReferenceTask(r, index, input_dir))
     return tasks, problems
 
 
@@ -564,8 +629,11 @@ def main_integrated(params_root) -> None:
         logger.error("for exec_mode = 'integrated'.")
         sys.exit(1)
     resolve_solver_path(alparams.path)
-    if ip.scratch_dir:
-        os.makedirs(ip.scratch_dir, exist_ok=True)
+    rootdir = os.getcwd()
+    if any(c.isspace() for c in rootdir):
+        logger.error(f"The working directory '{rootdir}' contains whitespace; libEnsemble splits the")
+        logger.error("solver command line on whitespace, so exec_mode = 'integrated' cannot be used here.")
+        sys.exit(1)
 
     ndata = rxparams.ndata
     nreplicas = rxparams.nreplicas
@@ -573,12 +641,17 @@ def main_integrated(params_root) -> None:
     mult_now = np.prod(configparams.supercell)
     solver = create_solver(alparams.solver, alparams)
     solver_input = solver.input
-    rootdir = os.getcwd()
 
     nextMC_index = newest_mc_index(rootdir)
     ALstep = nextMC_index
     aldir = os.path.join(rootdir, f"AL{ALstep}")
     replica_dirs = [os.path.join(aldir, str(r)) for r in range(nreplicas)]
+    scratch_root = ""
+    if ip.scratch_dir:
+        # one directory per AL step: a rerun removes the copies left by an interrupted run
+        scratch_root = os.path.join(ip.scratch_dir, f"abics_mlref_AL{ALstep}")
+        shutil.rmtree(scratch_root, ignore_errors=True)
+        os.makedirs(scratch_root, exist_ok=True)
     progress_path = os.path.join(rootdir, al.PROGRESS_FILE)
     if ALstep == 0:
         if os.path.exists(progress_path):
@@ -611,6 +684,12 @@ def main_integrated(params_root) -> None:
             candidates_by_replica.append(candidates)
             energy_ref.append({c.index: c.energy + energy_ref_empty * mult_now for c in candidates})
             fmtstr_by_replica.append(al.input_dir_format(len(candidates)))
+        too_few = [(r, len(c)) for r, c in enumerate(candidates_by_replica) if len(c) < ndata]
+        if too_few:
+            for r, n in too_few:
+                logger.error(f"  {MCdirname}/{r} has only {n} samples, fewer than [mlref] ndata = {ndata}")
+            logger.error("-Reduce ndata or sample more configurations (nsteps / sample_frequency).")
+            sys.exit(1)
 
     # --- configurations and solver inputs ----------------------------------
     tasks: List[ReferenceTask] = []
@@ -660,7 +739,10 @@ def main_integrated(params_root) -> None:
         replica_dirs,
         ALstep,
         os.path.join(aldir, "libE"),
+        scratch_root,
     )
+    if scratch_root:
+        shutil.rmtree(scratch_root, ignore_errors=True)
     logger.info(f"--{len(results)} solver runs finished in {time.time() - t0:.1f} s")
     failed = [res for res in results if res.status != "ok"]
     if failed or len(results) != len(tasks):

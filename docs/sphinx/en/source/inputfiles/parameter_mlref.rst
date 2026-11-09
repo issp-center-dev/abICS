@@ -80,7 +80,10 @@ Key words
             launches the solver runs with ``mpirun`` / ``srun`` on the allocated nodes). The ``[mlref.solver]`` section
             must give the solver command ``path`` and ``run_scheme = "subprocess"``; the solver runs are configured in
             the ``[mlref.integrated]`` section. The output files are the same as in the staged mode, and after an
-            interruption a rerun skips the configurations whose solver output is complete.
+            interruption a rerun skips the stages that were completed.
+            Unless a ``[log]`` section is given, this mode logs without MPI (``console = "serial"``,
+            ``logfile_mode = "serial"``). libEnsemble splits the solver command line on whitespace, so the
+            working directory and ``scratch_dir`` must not contain whitespace.
 
 - ``[mlref.integrated]`` subsection (for ``exec_mode = "integrated"``)
 
@@ -127,9 +130,9 @@ Key words
 
     **Format :** string (default: empty; ``~`` and environment variables are expanded)
 
-    **Description :** If set, the solver input is copied to this directory, the solver runs there,
-    and afterwards the outputs are copied back to ``ALn/RANK/inputXX/baseinputK`` and the scratch copy is removed.
-    If empty, the solver runs in place.
+    **Description :** If set, the solver input is copied to ``abics_mlref_ALn/`` under this directory, the solver runs
+    there, and afterwards the outputs are copied back to ``ALn/RANK/inputXX/baseinputK`` and the scratch copy is removed
+    (copies left by an interrupted run are removed when the next run starts). If empty, the solver runs in place.
     The copy is made on the node where ``abics_mlref`` runs, so **the directory must be visible under the same path
     from the nodes where the solver runs** (a shared scratch file system, or a node-local directory in a single-node job).
     A node-local directory in a multi-node job is not supported yet.
@@ -139,13 +142,16 @@ Key words
     **Format :** list of strings (default: empty)
 
     **Description :** Patterns of files not copied back from ``scratch_dir`` (e.g. ``["*.wfc*", "*.save"]``).
+    A pattern is matched against the file name, its relative path and every directory name on the path, so
+    ``"*.save"`` excludes the whole ``pwscf.save/`` directory. The machinefiles of the MPI launcher are always excluded.
 
   - ``cores``
 
     **Format :** int (default: 0)
 
     **Description :** Total number of cores (libEnsemble resource sets) given to the solver runs; each run takes ``nprocs`` of them.
-    0 means ``nworkers * nprocs``.
+    0 means ``nworkers * nprocs``. Values smaller than ``nprocs`` are rejected. Make sure that ``nworkers * nprocs``
+    (or ``cores``) fits into the cores allocated to the job; allocations spanning several nodes are not checked.
 
   Example::
 
