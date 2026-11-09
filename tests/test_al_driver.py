@@ -23,6 +23,11 @@ class TestNextAction(unittest.TestCase):
         self.assertEqual(drv.next_action(["AL0", "train", "MC0", "AL1", "train", "MC1"], 2, 3), ("mlref", 2))
         # lowering it below the completed count is simply "done"
         self.assertEqual(drv.next_action(["AL0", "train", "MC0", "AL1", "train", "MC1"], 2, 1), ("done", 2))
+        # ... also in the middle of an iteration: the stages beyond the target are not continued
+        self.assertEqual(drv.next_action(["AL0", "train", "MC0", "AL1"], 1, 1), ("done", 1))
+        self.assertEqual(drv.next_action(["AL0", "train", "MC0", "AL1", "train"], 1, 1), ("done", 1))
+        self.assertEqual(drv.next_action(["AL0", "train", "MC0", "AL1", "train"], 2, 1), ("done", 1))  # interrupted MC1
+        self.assertEqual(drv.completed_mc_runs(["AL0", "train", "MC0", "AL1", "train"]), 1)
 
     def test_interrupted_sampling_is_recognized(self):
         # abics_sampling creates MC<n> first and records it only when it finishes
@@ -81,6 +86,8 @@ class TestParamsAndCommands(unittest.TestCase):
         self.assertEqual(args[6], os.path.expanduser("~/x"))
         # unknown placeholders are left alone instead of raising
         self.assertEqual(drv.expand_command("echo {unknown}", input="x"), ["echo", "{unknown}"])
+        # a value with spaces stays one argument
+        self.assertEqual(drv.expand_command("abics_train {input}", input="/a dir/in.toml"), ["abics_train", "/a dir/in.toml"])
 
     def test_sampling_nprocs(self):
         self.assertEqual(drv.sampling_nprocs({"sampling": {"nreplicas": 4, "solver": {"base_input_dir": "./b"}}}), (4, 4))
@@ -326,36 +333,85 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
             moved = [d for d in os.listdir(os.path.join(tmpdir, drv.DRIVER_DIR)) if d.startswith("MC0.interrupted-")]
             self.assertEqual(len(moved), 1)
 
+    def run_with_al(self, tmpdir, al_section, max_iterations=2, **stub_kwargs):
+        tomlfile = os.path.join(tmpdir, "input.toml")
+        with open(tomlfile, "w") as f:
+            f.write("[al]\n")
+        params_root = dict(self.params_root)
+        params_root["al"] = al_section
+        calls = []
+        mlref, train, sampling = self.stubs(tmpdir, calls, **stub_kwargs)
+        cwd = os.getcwd()
+        os.chdir(tmpdir)
+        try:
+            with unittest.mock.patch.object(drv, "run_integrated_step", mlref), \
+                 unittest.mock.patch.object(drv, "run_train", train), \
+                 unittest.mock.patch.object(drv, "run_sampling", sampling), \
+                 unittest.mock.patch.object(drv, "require_libensemble", lambda: None):
+                return drv.run_driver(params_root, tomlfile, max_iterations), calls
+        finally:
+            os.chdir(cwd)
+
     def test_walltime_stop_runs_resubmit_command(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             marker = os.path.join(tmpdir, "resubmitted")
-            tomlfile = os.path.join(tmpdir, "input.toml")
-            with open(tomlfile, "w") as f:
-                f.write(
-                    "[al]\nwalltime = 100\nwalltime_margin = 10\n"
-                    "[al.stage_estimates]\ntrain = 1000\n"
-                )
-            import toml
-
-            params_root = dict(self.params_root)
-            params_root["al"] = toml.load(tomlfile)["al"]
-            params_root["al"]["resubmit_command"] = f"{sys.executable} -c \"open('{marker}', 'w').close()\""
-            calls = []
-            mlref, train, sampling = self.stubs(tmpdir, calls)
-            cwd = os.getcwd()
-            os.chdir(tmpdir)
-            try:
-                with unittest.mock.patch.object(drv, "run_integrated_step", mlref), \
-                     unittest.mock.patch.object(drv, "run_train", train), \
-                     unittest.mock.patch.object(drv, "run_sampling", sampling), \
-                     unittest.mock.patch.object(drv, "require_libensemble", lambda: None):
-                    state = drv.run_driver(params_root, tomlfile, 2)
-            finally:
-                os.chdir(cwd)
+            al = {"walltime": 100, "walltime_margin": 10, "stage_estimates": {"train": 1000},
+                  "resubmit_command": f"{sys.executable} -c \"open('{marker}', 'w').close()\""}
+            state, calls = self.run_with_al(tmpdir, al)
             # mlref (unknown duration) ran; the training (estimated 1000 s) does not fit into 100 s
             self.assertEqual(state, "walltime")
             self.assertEqual(calls, [("mlref", 0)])
             self.assertTrue(os.path.exists(marker))
+
+    def test_no_progress_means_error_instead_of_resubmission(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            marker = os.path.join(tmpdir, "resubmitted")
+            al = {"walltime": 100, "walltime_margin": 10, "stage_estimates": {"mlref": 1000},
+                  "resubmit_command": f"{sys.executable} -c \"open('{marker}', 'w').close()\""}
+            with self.assertRaises(drv.DriverError) as cm:
+                self.run_with_al(tmpdir, al)
+            self.assertIn("does not fit into the wall time even at the start", str(cm.exception))
+            self.assertFalse(os.path.exists(marker))  # no endless resubmission loop
+
+    def test_failing_resubmit_command_is_an_error(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            al = {"walltime": 100, "walltime_margin": 10, "stage_estimates": {"train": 1000},
+                  "resubmit_command": f"{sys.executable} -c 'import sys; sys.exit(4)'"}
+            with self.assertRaises(drv.DriverError) as cm:
+                self.run_with_al(tmpdir, al)
+            self.assertIn("exited with status 4", str(cm.exception))
+
+    def test_reload_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            params_root = {k: dict(v) for k, v in self.params_root.items()}
+            params_root["sampling"]["reload"] = True
+            with unittest.mock.patch.object(drv, "require_libensemble", lambda: None):
+                with self.assertRaises(drv.DriverError) as cm:
+                    drv.run_driver(params_root, os.path.join(tmpdir, "input.toml"), 1)
+            self.assertIn("reload", str(cm.exception))
+
+    def test_lock_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            driver_dir = os.path.join(tmpdir, drv.DRIVER_DIR)
+            os.makedirs(driver_dir)
+            # a live process (this one) holds the lock
+            with open(os.path.join(driver_dir, drv.LOCK_FILE), "w") as f:
+                f.write(f"{os.uname().nodename} {os.getpid()} now\n")
+            with self.assertRaises(drv.DriverError):
+                drv.DriverLock(driver_dir).acquire()
+            # a stale lock (dead pid) is replaced
+            with open(os.path.join(driver_dir, drv.LOCK_FILE), "w") as f:
+                f.write(f"{os.uname().nodename} 999999999 then\n")
+            lock = drv.DriverLock(driver_dir)
+            lock.acquire()
+            with open(lock.path) as f:
+                self.assertIn(str(os.getpid()), f.read())
+            lock.release()
+            self.assertFalse(os.path.exists(lock.path))
+            # the driver removes its lock even when a stage fails
+            with self.assertRaises(drv.DriverError):
+                self.run_with_al(tmpdir, {}, fail_sampling_at=0)
+            self.assertFalse(os.path.exists(lock.path))
 
 
 if __name__ == "__main__":

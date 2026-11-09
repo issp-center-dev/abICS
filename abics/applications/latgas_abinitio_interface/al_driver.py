@@ -146,7 +146,7 @@ def expand_command(template: str, **values) -> List[str]:
     """
     command = template
     for name, value in values.items():
-        command = command.replace("{" + name + "}", str(value))
+        command = command.replace("{" + name + "}", shlex.quote(str(value)))
     return [os.path.expanduser(os.path.expandvars(arg)) for arg in shlex.split(command)]
 
 
@@ -175,25 +175,37 @@ def wait_for_progress(rootdir: str, expected_last: str, timeout: float) -> bool:
         time.sleep(min(1.0, max(0.1, deadline - time.time())))
 
 
+def completed_mc_runs(progress: List[str]) -> int:
+    """Number of Monte Carlo runs recorded as finished in ``ALloop.progress``."""
+    return sum(1 for p in progress if p.startswith("MC"))
+
+
 def next_action(progress: List[str], newest_mc: int, max_iterations: int) -> Tuple[str, int]:
     """What to run next, from ``ALloop.progress`` and the existing ``MC<n>`` directories.
 
     Returns ``(action, n)`` with action ``"mlref"`` (run AL<n>), ``"train"``
     (train after AL<n>), ``"sampling"`` (run MC<n>), ``"sampling_interrupted"``
     (MC<n> exists but was never recorded: a sampling run that did not finish,
-    to be moved aside and repeated) or ``"done"`` (n Monte Carlo runs exist).
+    to be moved aside and repeated) or ``"done"`` (``n`` finished Monte Carlo
+    runs are recorded and ``n >= max_iterations``; a reference-data or
+    training stage beyond the target is left as it is).
     Raises :class:`DriverError` when the progress file and the directories
     disagree in any other way.
     """
     if not progress:
         if newest_mc != 0:
             raise DriverError(f"MC0..MC{newest_mc - 1} exist but ALloop.progress does not")
+        if max_iterations <= 0:
+            return "done", 0
         return "mlref", 0
     last = progress[-1]
+    completed = completed_mc_runs(progress)
     if last.startswith("AL"):
         n = int(last[2:])
         if newest_mc != n:
             raise DriverError(f"ALloop.progress ends with {last} but {newest_mc} MC run(s) exist")
+        if completed >= max_iterations:
+            return "done", completed
         return "train", n
     if last == "train":
         al_entries = [p for p in progress if p.startswith("AL")]
@@ -201,17 +213,21 @@ def next_action(progress: List[str], newest_mc: int, max_iterations: int) -> Tup
             raise DriverError("ALloop.progress ends with 'train' but has no AL entry")
         n = int(al_entries[-1][2:])
         if newest_mc == n:
+            if completed >= max_iterations:
+                return "done", completed
             return "sampling", n
         if newest_mc == n + 1:
             # abics_sampling creates MC<n> at its start and records it only at its end
+            if completed >= max_iterations:
+                return "done", completed
             return "sampling_interrupted", n
         raise DriverError(f"ALloop.progress ends with 'train' after AL{n} but {newest_mc} MC run(s) exist")
     if last.startswith("MC"):
         n = int(last[2:])
         if newest_mc != n + 1:
             raise DriverError(f"ALloop.progress ends with {last} but {newest_mc} MC run(s) exist")
-        if n + 1 >= max_iterations:
-            return "done", n + 1
+        if completed >= max_iterations:
+            return "done", completed
         return "mlref", n + 1
     raise DriverError(f"Unknown entry '{last}' in ALloop.progress")
 
@@ -222,6 +238,54 @@ def set_aside_interrupted_mc(rootdir: str, n: int, driver_dir: str) -> str:
     target = os.path.join(driver_dir, f"MC{n}.interrupted-{stamp}")
     shutil.move(os.path.join(rootdir, f"MC{n}"), target)
     return target
+
+
+LOCK_FILE = "abics_al.lock"
+
+
+class DriverLock:
+    """A lock file so that two drivers (or a driver and its own orphaned rerun) do not share a directory."""
+
+    def __init__(self, driver_dir: str):
+        self.path = os.path.join(driver_dir, LOCK_FILE)
+
+    def acquire(self) -> None:
+        if os.path.exists(self.path):
+            try:
+                with open(self.path) as f:
+                    host, pid = f.read().split()[:2]
+                pid = int(pid)
+            except (OSError, ValueError):
+                host, pid = "?", -1
+            if host == os.uname().nodename and pid > 0 and _process_alive(pid):
+                raise DriverError(
+                    f"another abics_al (pid {pid} on {host}) is running in this directory; "
+                    f"stop it first or remove {self.path} if it is stale"
+                )
+            if host != os.uname().nodename:
+                raise DriverError(
+                    f"{self.path} says abics_al (pid {pid}) runs on {host}; if it is not running any more, "
+                    "remove the file"
+                )
+            logger.warning(f"-Removing the stale lock file {self.path} (pid {pid} is not running)")
+        with open(self.path, "w") as f:
+            f.write(f"{os.uname().nodename} {os.getpid()} {datetime.datetime.now().isoformat(timespec='seconds')}\n")
+
+    def release(self) -> None:
+        try:
+            os.remove(self.path)
+        except OSError:
+            pass
+
+
+def _process_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -475,6 +539,11 @@ def write_model_metadata(rootdir: str, params_root: dict, tomlfile: str, iterati
         "written": datetime.datetime.now().isoformat(timespec="seconds"),
         "input_file": os.path.abspath(tomlfile),
         "input_sha256": toml_hash,
+        "accuracy_note": (
+            "AL<n> compares the model trained after AL<n-1> (the one used in MC<n-1>) with the "
+            "reference solver on configurations sampled in MC<n-1>; the final model, trained after "
+            f"AL{iterations - 1}, has not been evaluated"
+        ),
         "provenance": {
             "iterations": iterations,
             # rows of energy_corr.dat; abics_train may drop configurations it cannot map,
@@ -516,7 +585,20 @@ def write_model_metadata(rootdir: str, params_root: dict, tomlfile: str, iterati
 # ---------------------------------------------------------------------------
 
 
-def run_driver(params_root: dict, tomlfile: str, max_iterations: Optional[int] = None) -> str:
+def resubmit(params: DriverParams) -> None:
+    """Run the resubmission command; a failure is an error (the loop would otherwise silently end)."""
+    logger.info(f"-Running the resubmission command: {params.resubmit_command}")
+    try:
+        proc = subprocess.run(expand_command(params.resubmit_command), check=False)
+    except OSError as e:
+        raise DriverError(f"the resubmission command could not be started: {e}") from e
+    if proc.returncode != 0:
+        raise DriverError(f"the resubmission command exited with status {proc.returncode}")
+
+
+def run_driver(
+    params_root: dict, tomlfile: str, max_iterations: Optional[int] = None, forget_durations: bool = False
+) -> str:
     """Run the active-learning loop; returns ``"done"`` or ``"walltime"``.
 
     Raises :class:`DriverError` when a stage fails or the directory is in an
@@ -528,20 +610,43 @@ def run_driver(params_root: dict, tomlfile: str, max_iterations: Optional[int] =
     for section in ("sampling", "mlref", "train", "config"):
         if section not in params_root:
             raise DriverError(f"the input file has no [{section}] section")
+    if params_root["sampling"].get("reload", False):
+        raise DriverError(
+            "[sampling] reload = true is not supported by abics_al: an interrupted Monte Carlo run is "
+            "moved aside and repeated, while reload would continue the previous MC<n-1>. Set reload = false."
+        )
     params = DriverParams.from_dict(params_root.get("al", {}))
     if max_iterations is not None:
         params.max_iterations = max_iterations
     rootdir = os.getcwd()
     driver_dir = os.path.join(rootdir, DRIVER_DIR)
     os.makedirs(driver_dir, exist_ok=True)
+    if forget_durations:
+        try:
+            os.remove(os.path.join(driver_dir, DURATIONS_FILE))
+            logger.info("-Recorded stage durations forgotten")
+        except OSError:
+            pass
     clock = WallClock(params, driver_dir)
     tomlfile = os.path.abspath(tomlfile)
+    lock = DriverLock(driver_dir)
+    lock.acquire()
+    try:
+        return _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock)
+    finally:
+        lock.release()
 
+
+def _run_loop(params, params_root, tomlfile, rootdir, driver_dir, clock) -> str:
     logger.info(f"-Target: {params.max_iterations} Monte Carlo run(s) (MC0 .. MC{params.max_iterations - 1})")
+    stages_finished_here = 0
     while True:
         progress = read_progress(rootdir)
         action, n = next_action(progress, newest_mc_index(rootdir), params.max_iterations)
         if action == "done":
+            if progress and not progress[-1].startswith("MC"):
+                logger.info(f"-{n} Monte Carlo run(s) are recorded, which meets the target; the stage after "
+                            f"them ({progress[-1]}) is kept as it is.")
             break
         if action == "sampling_interrupted":
             moved = set_aside_interrupted_mc(rootdir, n, driver_dir)
@@ -550,11 +655,17 @@ def run_driver(params_root: dict, tomlfile: str, max_iterations: Optional[int] =
             action = "sampling"
         ok, message = clock.can_start(action)
         if not ok:
+            if stages_finished_here == 0:
+                raise DriverError(
+                    f"the {action} stage of step {n} does not fit into the wall time even at the start of the "
+                    f"run ({message}); raise [al] walltime, lower the stage estimate, or remove "
+                    f"{os.path.join(DRIVER_DIR, DURATIONS_FILE)} if the recorded duration is outdated. "
+                    "Not resubmitting, since this run made no progress."
+                )
             logger.info(f"-Stopping before {action} of step {n}: {message}.")
             logger.info("-Run abics_al again to continue; finished stages are not repeated.")
             if params.resubmit_command:
-                logger.info(f"-Running the resubmission command: {params.resubmit_command}")
-                subprocess.run(expand_command(params.resubmit_command), check=False)
+                resubmit(params)
             return "walltime"
         if message:
             logger.warning(f"-{message}")
@@ -570,12 +681,13 @@ def run_driver(params_root: dict, tomlfile: str, max_iterations: Optional[int] =
         else:
             run_sampling(params, params_root, tomlfile, n, driver_dir, rootdir)
         clock.record(action, time.time() - t_stage)
+        stages_finished_here += 1
         logger.info(f"--{action} of step {n} finished in {time.time() - t_stage:.0f} s")
 
-    completed = newest_mc_index(rootdir)
+    completed = completed_mc_runs(read_progress(rootdir))
     write_summary(rootdir)
     path = write_model_metadata(rootdir, params_root, tomlfile, completed, driver_dir)
-    logger.info(f"-{completed} Monte Carlo run(s) exist (target {params.max_iterations}); "
+    logger.info(f"-{completed} Monte Carlo run(s) completed (target {params.max_iterations}); "
                 f"model description written to {path}")
     logger.info(f"-Errors per step are in {SUMMARY_FILE}. Raise [al] max_iterations and rerun abics_al to continue.")
     return "done"

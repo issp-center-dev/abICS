@@ -18,22 +18,24 @@
 
 Usage::
 
-    abics_al [input.toml] [--max-iterations N]
+    abics_al [input.toml] [--max-iterations N] [--forget-durations]
 
 Exit status 0: the target number of Monte Carlo runs exists; 2: stopped
-because of the wall time (run again to continue); 1: a stage failed.
+because of the wall time (run again to continue); 1: a stage failed or
+the input is wrong.
 """
 
 import argparse
 import datetime
 import logging
+import os
 import sys
 
 import toml
 
 from abics import __version__
 import abics.loggers as loggers
-from abics.applications.latgas_abinitio_interface.al_driver import DriverError, run_driver
+from abics.applications.latgas_abinitio_interface.al_driver import DRIVER_DIR, DriverError, run_driver
 
 logger = logging.getLogger("main")
 
@@ -50,19 +52,38 @@ def main():
         default=None,
         help="number of Monte Carlo runs to complete (overrides [al] max_iterations)",
     )
+    parser.add_argument(
+        "--forget-durations",
+        action="store_true",
+        help="forget the recorded stage durations used for the wall-time decisions",
+    )
     args = parser.parse_args()
 
-    params_root = toml.load(args.tomlfile)
+    try:
+        params_root = toml.load(args.tomlfile)
+    except (OSError, toml.TomlDecodeError) as e:
+        print(f"abics_al: cannot read {args.tomlfile}: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # The driver logs into its own file: the stage programs started from the same
+    # input file would truncate a shared [log] logfile_path.
+    os.makedirs(DRIVER_DIR, exist_ok=True)
     log_params = dict(params_root.get("log", {}))
-    # a single non-MPI process: log without MPI unless configured otherwise
+    shared_logfile = log_params.get("logfile_path")
+    stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    log_params["logfile_path"] = os.path.join(DRIVER_DIR, f"abics_al_{stamp}.log")
     log_params.setdefault("console", "serial")
-    log_params.setdefault("logfile_mode", "serial")
+    log_params["logfile_mode"] = "serial"
     loggers.set_log_handles(app_name="al_driver", level=logging.INFO, params=log_params)
 
     logger.info(f"Running abics_al (abICS v{__version__}) on {datetime.datetime.now()}")
     logger.info(f"-Reading input from: {args.tomlfile}")
+    logger.info(f"-Log file: {log_params['logfile_path']}")
+    if shared_logfile:
+        logger.warning(f"-[log] logfile_path = '{shared_logfile}' is used by abics_train and abics_sampling, "
+                       "each of which overwrites it; their full output is kept in al_driver/*.log")
     try:
-        state = run_driver(params_root, args.tomlfile, args.max_iterations)
+        state = run_driver(params_root, args.tomlfile, args.max_iterations, args.forget_durations)
     except DriverError as e:
         logger.error(str(e))
         sys.exit(1)

@@ -18,7 +18,12 @@ The ``[mlref]`` section must be set up for the integrated mode (``path`` and ``r
 The state of the loop is read from ``ALloop.progress`` and the ``MC*`` directories, so rerunning ``abics_al`` after an
 interruption continues where it stopped without repeating finished stages. A sampling run that was interrupted
 (``MC<n>`` exists but is not recorded in ``ALloop.progress``) is moved under ``al_driver/`` and repeated.
-A finished loop is extended by raising ``max_iterations`` and rerunning.
+A finished loop is extended by raising ``max_iterations`` and rerunning. Conversely, with ``max_iterations`` at or
+below the number of recorded Monte Carlo runs the driver stops even in the middle of an iteration (after ``AL<n>``
+or its training) and does not run the following stages.
+``[sampling] reload = true`` cannot be used (an interrupted sampling run is moved aside and repeated).
+A lock file ``al_driver/abics_al.lock`` prevents two ``abics_al`` from running in the same directory
+(a stale lock is removed automatically).
 
 The file format is as follows.
 
@@ -52,7 +57,8 @@ Key words
 
   **Description :** Command of the training stage; ``{input}`` is replaced by the input file name
   (``{nreplicas}`` and ``{nprocs}`` are available too).
-  Include a launcher when resources must be requested, e.g. ``"srun -n 1 --gpus 1 abics_train {input}"`` for GPU training.
+  Include a launcher when resources must be requested, e.g. ``"srun -n 1 --gpus 1 abics_train {input}"`` for GPU training
+  (if ``[train.exe_command]`` also uses ``srun``, the nested Slurm job step may need ``--overlap``).
 
 - ``sampling_command``
 
@@ -85,6 +91,10 @@ Key words
   The expected duration is the longest the stage has taken in any earlier run (recorded in
   ``al_driver/durations.json`` and carried over to the next run), or ``stage_estimates`` for a stage that
   has not run yet. Without either, the stage is started with a warning.
+  If a stage cannot be started before any stage was finished in this run, resubmitting would never make
+  progress, so ``abics_al`` exits with status 1 instead of resubmitting: raise ``walltime``, lower the
+  estimate, or forget outdated records with ``abics_al --forget-durations`` (or by removing
+  ``al_driver/durations.json``), also after reducing ``nsteps`` or the like.
 
 - ``walltime_margin``
 
@@ -112,7 +122,7 @@ Key words
 
   **Description :** Command run when ``abics_al`` stops because of the wall time (e.g. ``"sbatch job.sh"``).
   Calling ``abics_al`` from a job script and putting the submission command of that script here makes the loop
-  continue automatically.
+  continue automatically. If this command fails (non-zero status), ``abics_al`` exits with status 1.
 
 - ``generate_train_input``
 
@@ -128,10 +138,13 @@ Output
   RMSE, MAE, largest error), collected from ``AL<n>/convergence.dat``; use it to decide whether to continue the loop.
 - ``al_driver/``: the output of the training and sampling child processes (``train_<n>.log``, ``sampling_<n>.log``,
   appended on reruns), the stage durations (``durations.json``), interrupted sampling runs that were moved aside
-  (``MC<n>.interrupted-<timestamp>``) and, once the target is reached, a description of the final model,
-  ``model_metadata.json`` (abICS version, hash of the input file, number of completed iterations and reference
-  calculations, reference solver and trainer settings, species, temperature range and supercell, error statistics
-  of every step).
+  (``MC<n>.interrupted-<timestamp>``), the driver's own log (``abics_al_<timestamp>.log``; the driver does not
+  write to ``[log] logfile_path`` because the training and sampling programs overwrite it) and, once the target is
+  reached, a description of the final model, ``model_metadata.json`` (abICS version, hash of the input file,
+  number of completed iterations and reference calculations, reference solver and trainer settings, species,
+  temperature range and supercell, error statistics of every step). Note that the statistics of ``AL<n>``
+  evaluate the model trained after ``AL<n-1>`` and used in ``MC<n-1>``; the last trained model itself is not
+  evaluated.
 
 The exit status is 0 when the target number of iterations is reached, 2 when the run stopped because of the wall time,
-and 1 when a stage failed.
+and 1 when a stage failed (or the input is wrong, or the resubmission command failed).
