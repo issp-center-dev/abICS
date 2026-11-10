@@ -17,7 +17,7 @@
 from __future__ import annotations
 
 import os
-import sys, shutil, io
+import shutil, io
 from collections import namedtuple
 import numpy as np
 from pymatgen.core import Structure
@@ -88,10 +88,11 @@ class AenetSolver(SolverBase):
 
         def update_info_from_files(self, output_dir, rerun):
             """
-            Do nothing.
+            Not supported: this solver cannot continue from the files of an earlier run.
             """
-            print("rerun not implemented. Something has gone wrong")
-            sys.exit(1)
+            raise NotImplementedError(
+                f"{type(self).__qualname__}: continuing from the output files in {output_dir} (rerun) is not implemented"
+            )
 
         def write_input(self, output_dir: os.PathLike):
             """

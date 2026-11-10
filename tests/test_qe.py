@@ -22,7 +22,7 @@ import numpy as np
 
 from pymatgen.core import Structure
 
-from abics.applications.latgas_abinitio_interface.base_solver import create_solver
+from abics.applications.latgas_abinitio_interface.base_solver import SolverOutputError, create_solver
 from abics.applications.latgas_abinitio_interface.params import DFTParams
 from abics.applications.latgas_abinitio_interface.qe import QESolver
 
@@ -58,6 +58,23 @@ class TestQE(unittest.TestCase):
         ref_energy = -1039.9018832347706
         self.assertTrue(res.structure.matches(ref))
         self.assertTrue(np.isclose(res.energy, ref_energy))
+
+    def test_missing_output_raises(self):
+        # a missing pwscf.save is reported as an exception, not by exiting the process
+        with self.assertRaises(SolverOutputError) as cm:
+            self.solver.output.get_results(os.path.join(self.workdir, "no_such_run"))
+        self.assertIn("data-file-schema.xml", str(cm.exception))
+        self.assertIsInstance(cm.exception.__cause__, FileNotFoundError)
+
+    def test_broken_output_raises(self):
+        # an unparseable data-file-schema.xml (an interrupted run) as well
+        broken = os.path.join(self.workdir, "broken", "pwscf.save")
+        os.makedirs(broken, exist_ok=True)
+        with open(os.path.join(broken, "data-file-schema.xml"), "w") as f:
+            f.write("<qes:espresso><output><atomic_struc")
+        with self.assertRaises(SolverOutputError) as cm:
+            self.solver.output.get_results(os.path.join(self.workdir, "broken"))
+        self.assertIn("broken", str(cm.exception))
 
     def test_input(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))

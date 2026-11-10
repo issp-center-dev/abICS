@@ -33,6 +33,7 @@ import numpy as np
 
 from abics import __version__
 from .model_setup import perturb_structure
+from .base_solver import SolverOutputError
 
 
 class Run(metaclass=ABCMeta):
@@ -291,7 +292,14 @@ class RunMpispawnReady(Run):
         # Rerun if Solver failed
         failed_dir = self.comm.bcast(failed_dir, root=0)
         if len(failed_dir) != 0:
-            solverinput.update_info_from_files(output_dir, rerun)
+            try:
+                solverinput.update_info_from_files(output_dir, rerun)
+            except NotImplementedError as e:
+                # this solver cannot continue from its output files: stop the whole
+                # job (an exception on these ranks alone would leave the others waiting)
+                print(f"ERROR: rank {MPI.COMM_WORLD.Get_rank()}: {e}", file=sys.stderr, flush=True)
+                MPI.COMM_WORLD.Abort(1)
+                raise
             rerun -= 1
             self.submit(solver_name, solverinput, output_dir, rerun)
 
@@ -744,7 +752,20 @@ class Runner:
                 output_dir = output_dir[1:]
             output_dir = os.path.join(self.tmpdir.name, output_dir)
         self.run.submit(self.solver_name, solverinput, output_dir)
-        results = self.output.get_results(output_dir)
+        try:
+            results = self.output.get_results(output_dir)
+        except (SolverOutputError, OSError) as e:
+            # Name the run, then abort the whole MPI job: an exception (like the exit()
+            # the parsers used to call) would end only this rank, and the other ranks
+            # would wait forever in their next collective.
+            detail = str(e) if output_dir in str(e) else f"{output_dir}: {e}"
+            print(
+                f"ERROR: rank {MPI.COMM_WORLD.Get_rank()}: the solver output could not be read: {detail}",
+                file=sys.stderr,
+                flush=True,
+            )
+            MPI.COMM_WORLD.Abort(1)
+            raise
         return float(results.energy), results.structure
 
 

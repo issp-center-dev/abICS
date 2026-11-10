@@ -28,7 +28,6 @@ from __future__ import annotations
 import io
 import os
 import shutil
-import sys
 from collections import namedtuple
 
 import numpy as np
@@ -269,10 +268,11 @@ class MLIP3Solver(SolverBase):
 
         def update_info_from_files(self, output_dir, rerun):
             """
-            Do nothing.
+            Not supported: this solver cannot continue from the files of an earlier run.
             """
-            print("rerun not implemented. Something has gone wrong")
-            sys.exit(1)
+            raise NotImplementedError(
+                f"{type(self).__qualname__}: continuing from the output files in {output_dir} (rerun) is not implemented"
+            )
 
         def write_input(self, output_dir: os.PathLike):
             """

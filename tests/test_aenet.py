@@ -59,6 +59,10 @@ class TestAENET(unittest.TestCase):
         self.assertTrue(res.structure.matches(ref))
         self.assertTrue(np.isclose(res.energy, ref_energy))
 
+    def test_rerun_is_not_implemented(self):
+        with self.assertRaises(NotImplementedError):
+            self.solver.input.update_info_from_files(self.workdir, 1)
+
     def test_input(self):
         self.solver.input.from_directory(os.path.join(self.datadir, "baseinput"))
         A = 4.0 * np.eye(3)
