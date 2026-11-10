@@ -52,6 +52,12 @@ Key words
             Random sampling by
             ``numpy.random.choice(range(N), size=ndata, replace=False)``
 
+  - ``seed``
+
+    **Format :** int (default: 0)
+
+    **Description :** Seed of the random number generator. A positive value makes the initial random configurations, the perturbation of the atomic coordinates (``perturb``) and the ``sampler = "random"`` selection reproducible (replica ``i`` uses ``seed + 137 * i``). With 0 the seed is not fixed.
+
 .. - Others
 ..
 ..   -  ``output_frequency``

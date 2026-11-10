@@ -39,6 +39,8 @@ class RefParams:
     "The number of structures to be converted"
     sampler: str
     "The sampling method ('linspace' or 'random')"
+    seed: int
+    "Seed of the random number generator (0: not fixed)"
 
     def __init__(self):
         self.nreplicas = 1
@@ -77,6 +79,7 @@ class RefParams:
         params.nreplicas = d["nreplicas"]
         params.ndata = d["ndata"]
         params.sampler = d.get("sampler", "linspace")
+        params.seed = d.get("seed", 0)
         return params
 
     @classmethod

@@ -15,17 +15,13 @@ rm -rf ./MC1
 rm -rf ./nequipXSF
 rm -rf ./train0
 rm -rf ./generate0
-rm -rf ./baseinput
+rm -rf ./baseinput_allegro
 
 sh ./AL.sh
 sh ./MC.sh
 sh ./AL.sh
 sh ./MC.sh
 
-if [ -e MC1/kTs.npy ] ; then
-  echo OK
-  exit 0
-else
-  echo FAILED
-  exit 1
-fi
+# Verify the outputs of AL0 -> train -> MC0 -> AL1 -> train -> MC1
+python3 ../check_active_learn.py input.toml 2
+echo OK
