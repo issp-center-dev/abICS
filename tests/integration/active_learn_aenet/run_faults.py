@@ -482,7 +482,7 @@ def scenario_walltime():
     tomlfile = write_input("walltime", max_iterations=1, walltime=30, walltime_margin=5,
                            stage_estimates={"mlref": 1, "train": 1000}, resubmit_command=f"touch {RESUBMITTED}")
     output = run(["abics_al", tomlfile], expect=2, logname="s7_walltime")
-    check("Stopping before train of step 0" in output, "the stop was not reported")
+    check("Stopping before the train stage of step 0" in output, "the stop was not reported")
     check(os.path.exists(RESUBMITTED), "the resubmission command did not run")
     check(progress() == ["AL0"], f"ALloop.progress = {progress()}")
     with open(os.path.join("al_driver", "durations.json")) as f:

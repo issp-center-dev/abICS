@@ -101,7 +101,15 @@ def install_signal_handlers() -> None:
     file would stay and a running stage would be orphaned.
     """
 
+    driver_pid = os.getpid()
+
     def handler(signum, frame):
+        if os.getpid() != driver_pid:
+            # a forked child (a libEnsemble worker) inherited this handler: it has no
+            # cleanup to run, so let the signal end it the default way, quietly
+            signal.signal(signum, signal.SIG_DFL)
+            os.kill(os.getpid(), signum)
+            return
         raise DriverInterrupted(signal.Signals(signum).name)
 
     signal.signal(signal.SIGTERM, handler)

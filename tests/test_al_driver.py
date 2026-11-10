@@ -263,6 +263,18 @@ class TestStages(unittest.TestCase):
             drv.install_signal_handlers()
             with self.assertRaises(drv.DriverInterrupted):
                 os.kill(os.getpid(), signal.SIGTERM)
+            # a forked child (as libEnsemble's workers are on Linux) inherits the handler but
+            # must simply die of the signal, without raising DriverInterrupted
+            pid = os.fork()
+            if pid == 0:  # pragma: no cover - the child
+                try:
+                    os.kill(os.getpid(), signal.SIGTERM)
+                    os._exit(3)  # the handler returned instead of ending the process
+                except BaseException:
+                    os._exit(4)  # DriverInterrupted was raised in the child
+            _, status = os.waitpid(pid, 0)
+            self.assertTrue(os.WIFSIGNALED(status), f"child exited with status {os.WEXITSTATUS(status)}")
+            self.assertEqual(os.WTERMSIG(status), signal.SIGTERM)
         finally:
             signal.signal(signal.SIGTERM, previous)
 
@@ -601,11 +613,14 @@ class TestRunDriverWithStubbedStages(unittest.TestCase):
             marker = os.path.join(tmpdir, "resubmitted")
             al = {"walltime": 100, "walltime_margin": 10, "stage_estimates": {"train": 1000},
                   "resubmit_command": f"{sys.executable} -c \"open('{marker}', 'w').close()\""}
-            state, calls = self.run_with_al(tmpdir, al)
+            with self.assertLogs("main", level="INFO") as logs:
+                state, calls = self.run_with_al(tmpdir, al)
             # mlref (unknown duration) ran; the training (estimated 1000 s) does not fit into 100 s
             self.assertEqual(state, "walltime")
             self.assertEqual(calls, [("mlref", 0)])
             self.assertTrue(os.path.exists(marker))
+            # the message the fault-injection test (scenario 7b) looks for
+            self.assertTrue(any("Stopping before the train stage of step 0" in line for line in logs.output))
 
     def test_no_progress_means_error_instead_of_resubmission(self):
         with tempfile.TemporaryDirectory() as tmpdir:
