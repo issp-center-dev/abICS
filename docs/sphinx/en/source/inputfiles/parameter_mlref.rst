@@ -58,6 +58,130 @@ Key words
 
     **Description :** Seed of the random number generator. A positive value makes the initial random configurations, the perturbation of the atomic coordinates (``perturb``) and the ``sampler = "random"`` selection reproducible (replica ``i`` uses ``seed + 137 * i``). With 0 the seed is not fixed.
 
+- Execution mode
+
+  - ``exec_mode``
+
+    **Format :** string ("staged" or "integrated", default: "staged")
+
+    **Description :** How ``abics_mlref`` runs.
+
+          - "staged"
+
+            The conventional mode. ``abics_mlref`` writes the input files of the first-principles solver and exits;
+            the user runs the solver and then runs ``abics_mlref`` again to collect the results
+            (``abics_mlref`` is run with ``nreplicas`` MPI processes).
+
+          - "integrated"
+
+            A single run of ``abics_mlref`` generates the configurations, runs the solver and collects the results.
+            The solver is launched by ``abics_mlref`` itself through libEnsemble (``pip install libensemble``), so
+            run ``abics_mlref`` **as a single process, without mpiexec / srun** (inside a job script this process
+            launches the solver runs with ``mpirun`` / ``srun`` on the allocated nodes). The ``[mlref.solver]`` section
+            must give the solver command ``path`` and ``run_scheme = "subprocess"``; the solver runs are configured in
+            the ``[mlref.integrated]`` section. The output files are the same as in the staged mode, and after an
+            interruption a rerun skips the stages that were completed.
+            Unless a ``[log]`` section is given, this mode logs without MPI (``console = "serial"``,
+            ``logfile_mode = "serial"``). libEnsemble splits the solver command line on whitespace, so the
+            working directory and ``scratch_dir`` must not contain whitespace.
+
+- ``[mlref.integrated]`` subsection (for ``exec_mode = "integrated"``)
+
+  - ``nworkers``
+
+    **Format :** int (natural number, default: 1)
+
+    **Description :** Number of solver runs executed at the same time (libEnsemble workers).
+
+  - ``nprocs``
+
+    **Format :** int (natural number, default: 1)
+
+    **Description :** MPI processes per solver run.
+
+  - ``nthreads``
+
+    **Format :** int (natural number, default: 1)
+
+    **Description :** Threads per MPI process (passed to the solver's command-line generator).
+
+  - ``timeout``
+
+    **Format :** float (seconds, default: 0)
+
+    **Description :** Time limit of one solver run; a run exceeding it is killed and counted as failed. 0 means no limit.
+
+  - ``retries``
+
+    **Format :** int (>= 0, default: 1)
+
+    **Description :** How many times a failed solver run (abnormal exit, time-out, unreadable output) is repeated.
+    If configurations still fail, ``abics_mlref`` reports them, exits with status 1 and does not update ``ALloop.progress``;
+    after removing the cause, rerunning ``abics_mlref`` calculates only the failed configurations.
+
+    Independently of this count, libEnsemble's ``MPIExecutor`` treats a solver run that ends within 2 seconds of
+    its launch as a launch failure and relaunches it up to 5 times, waiting 5, 10, 15 and 20 seconds in between,
+    with the same output files. These relaunches are not counted in ``retries`` and do not appear in the attempt
+    counts of ``abics_mlref.done`` or of the error messages. A solver that exits at once (a missing executable or
+    input, for example) therefore takes about 50 seconds per attempt before the failure is reported
+    (the relaunches are logged as ``(Retry n)`` in ``AL<n>/libE/ensemble.log``).
+
+  - ``output_wait``
+
+    **Format :** float (seconds, default: 10)
+
+    **Description :** Maximum time to wait, after the solver exited, until its output can be read.
+    On a shared file system the files written by another node may become visible with a delay, so reading is retried for this long.
+
+  - ``scratch_dir``
+
+    **Format :** string (default: empty; ``~`` and environment variables are expanded)
+
+    **Description :** If set, the solver input is copied to ``abics_mlref_ALn/`` under this directory, the solver runs
+    there, and afterwards the outputs are copied back to ``ALn/RANK/inputXX/baseinputK`` and the scratch copy is removed
+    (copies left by an interrupted run are removed when the next run starts). If empty, the solver runs in place.
+    The copy is made on the node where ``abics_mlref`` runs, so **the directory must be visible under the same path
+    from the nodes where the solver runs** (a shared scratch file system, or a node-local directory in a single-node job).
+    A node-local directory in a multi-node job is not supported yet.
+
+  - ``copy_back_exclude``
+
+    **Format :** list of strings (default: empty)
+
+    **Description :** Patterns of files not copied back from ``scratch_dir`` (e.g. ``["*.wfc*", "*.save"]``).
+    A pattern is matched against the file name, its relative path and every directory name on the path, so
+    ``"*.save"`` excludes the whole ``pwscf.save/`` directory. The machinefiles of the MPI launcher are always excluded.
+
+  - ``cores``
+
+    **Format :** int (default: 0)
+
+    **Description :** Total number of cores (libEnsemble resource sets) given to the solver runs; each run takes ``nprocs`` of them.
+    0 means ``nworkers * nprocs``. Values smaller than ``nprocs`` are rejected. Make sure that ``nworkers * nprocs``
+    (or ``cores``) fits into the cores allocated to the job; allocations spanning several nodes are not checked.
+
+  Example::
+
+        [mlref]
+        nreplicas = 8
+        ndata = 50
+        exec_mode = "integrated"
+
+        [mlref.integrated]
+        nworkers = 16     # 16 DFT runs at a time
+        nprocs = 8        # 8 MPI processes each
+        timeout = 3600
+        retries = 1
+        scratch_dir = "/scratch/$USER"
+        copy_back_exclude = ["*.wfc*"]
+
+        [mlref.solver]
+        type = "qe"
+        path = "pw.x"
+        run_scheme = "subprocess"
+        base_input_dir = "./baseinput_ref"
+        perturb = 0.05
+
 .. - Others
 ..
 ..   -  ``output_frequency``

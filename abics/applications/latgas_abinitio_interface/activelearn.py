@@ -327,6 +327,13 @@ def load_candidate_structures(
         yield st
 
 
+def restore_ignored_species(
+    st: Structure, full_structure: Structure, ignore_species: Sequence[str]
+) -> None:
+    """Append the sites of ``ignore_species`` in ``full_structure`` to ``st`` (in place)."""
+    _append_ignored_species(st, full_structure, ignore_species)
+
+
 def _append_ignored_species(
     st: Structure, full_structure: Structure, ignore_species: Sequence[str]
 ) -> None:

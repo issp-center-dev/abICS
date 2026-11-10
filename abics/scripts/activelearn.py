@@ -42,10 +42,7 @@ import numpy as np
 
 from abics import __version__
 
-from abics.mc_mpi import (
-    RX_MPI_init,
-    RefParams,
-)
+from abics.mlref import RefParams
 from abics.applications.latgas_abinitio_interface.defect import (
     defect_config,
     DFTConfigParams,
@@ -110,6 +107,23 @@ def finish_inputs(comm, replica: int, rootdir: str, rundir_list, messages) -> No
 
 
 def main_impl(params_root: MutableMapping):
+    exec_mode = params_root["mlref"].get("exec_mode", "staged")
+    if exec_mode == "integrated":
+        # one non-MPI process generates the inputs, runs the solver through
+        # libEnsemble and collects the results (see activelearn_integrated)
+        from abics.applications.latgas_abinitio_interface.activelearn_integrated import (
+            main_integrated,
+        )
+
+        main_integrated(params_root)
+        return
+    if exec_mode != "staged":
+        logger.error(f"Unknown [mlref] exec_mode = '{exec_mode}' (use 'staged' or 'integrated')")
+        sys.exit(1)
+
+    # imported here so that the integrated mode never initializes MPI
+    from abics.sampling.mc_mpi import RX_MPI_init
+
     rxparams = RefParams.from_dict(params_root["mlref"])
     ndata = rxparams.ndata
     # the sampler that produced the MC* directories (same default as abics_sampling)
@@ -382,10 +396,17 @@ def main():
     tomlfile = sys.argv[1] if len(sys.argv) > 1 else "input.toml"
     params_root = toml.load(tomlfile)
 
+    log_params = dict(params_root.get("log", {}))
+    if params_root.get("mlref", {}).get("exec_mode", "staged") == "integrated":
+        # the integrated mode is a single non-MPI process: the default logger
+        # setup would initialize MPI (singleton) before the solver runs are
+        # launched, so log serially unless the user configured [log] explicitly
+        log_params.setdefault("console", "serial")
+        log_params.setdefault("logfile_mode", "serial")
     loggers.set_log_handles(
         app_name="activelearn",
         level=logging.INFO,
-        params=params_root.get("log", {}))
+        params=log_params)
 
     logger.info(f"Running abics_mlref (abICS v{__version__}) on {now}")
     logger.info(f"-Reading input from: {tomlfile}")

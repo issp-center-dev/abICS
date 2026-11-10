@@ -409,6 +409,23 @@ When the calculation is completed successfully, the trained neural network is ou
 
 The above process completes the AL.sh process for active learning.
 
+.. note::
+
+   If libEnsemble is installed (``pip install libensemble``), setting ``exec_mode = "integrated"`` in the ``[mlref]``
+   section merges the two ``abics_mlref`` runs and the QE runs of ``parallel_run.sh`` in ``AL.sh`` above into a single
+   ``abics_mlref`` run. In this mode ``abics_mlref`` is run as one process without ``srun``, and it launches QE itself
+   according to the ``[mlref.integrated]`` section (``nworkers`` runs at a time, ``nprocs`` MPI processes each,
+   ``timeout``, ``retries``, ...). The ``[mlref.solver]`` section needs ``path = "pw.x"`` and
+   ``run_scheme = "subprocess"``. See :doc:`../inputfiles/parameter_mlref` for details.
+
+   Going one step further, ``abics_al`` runs the whole repetition of ``AL.sh`` and ``MC.sh`` (described below) in a
+   single invocation: give the number of iterations ``max_iterations`` and the command that starts the sampling
+   (e.g. ``sampling_command = "srun -n {nprocs} abics_sampling {input}"``) in the ``[al]`` section and run
+   ``abics_al input.toml`` as one process. The errors of every step are collected in ``al_summary.dat``, and the loop
+   is extended by raising ``max_iterations`` and rerunning. With ``evaluate_final_model = true`` one more step
+   comparing the last trained model with the first-principles calculations is run at the end of the loop
+   (see :doc:`../inputfiles/parameter_al`).
+
 **********************************
 Monte Carlo sampling
 **********************************

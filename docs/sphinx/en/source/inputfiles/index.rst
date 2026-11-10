@@ -4,7 +4,7 @@
 Input Files Format
 ***************************
 
-The input file of abICS is constructed by the following five sections:
+The input file of abICS is constructed by the following sections:
 
 1. [sampling] section specifies the parameters of the replica exchange Monte Carlo part, such as the number of replicas, the temperature range, and the number of Monte Carlo steps. In addition, [sampling.solver] subsection specifies the parameters for the (first principle calculation) solver, including the type of solver (VASP, QE,...), the path to the solver, and the directory containing immutable input files.
 
@@ -18,6 +18,8 @@ The input file of abICS is constructed by the following five sections:
 
 6. [log] section specifies the settings of logging.
 
+7. [al] section specifies the settings of ``abics_al``, which runs the whole active-learning loop as one program. This section is used for ``abics_al``.
+
 The following sections describe the detail of each section.
 
 .. toctree::
@@ -30,4 +32,5 @@ The following sections describe the detail of each section.
    parameter_observer
    parameter_config
    parameter_log
+   parameter_al
    

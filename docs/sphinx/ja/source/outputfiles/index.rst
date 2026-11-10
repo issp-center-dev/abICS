@@ -205,4 +205,17 @@ Example::
 
 ``ALn/baseinput.progress``
 -----------------------------------
-（ ``base_input_dir`` を複数指定した場合）完了したソルバー計算の段の番号。
+（ ``base_input_dir`` を複数指定した場合, staged モードのみ）完了したソルバー計算の段の番号。
+
+``al_summary.dat`` , ``al_driver/``
+-----------------------------------
+（ ``abics_al`` のみ）各ステップの全レプリカをまとめた誤差統計と、ドライバの作業ファイル
+（子プロセスのログ、ステージの所要時間、最終モデルの記述 ``model_metadata.json`` ）。
+詳細は :doc:`../inputfiles/parameter_al` を参照してください。
+
+``ALn/libE/``
+-----------------------------------
+（ ``exec_mode = "integrated"`` のみ）ソルバーの実行を管理する libEnsemble のログ
+（ ``ensemble.log`` 、 ``libE_stats.txt`` など）。各ソルバー実行の標準出力・標準エラー出力は
+``ALn/RANK/inputXX/baseinputK/stdout`` と ``stderr`` に書かれ、ソルバーが正常終了して出力が
+読み取れた段には ``abics_mlref.done`` が書かれます（再実行時にこのファイルのある段は計算し直しません）。

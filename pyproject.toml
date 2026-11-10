@@ -24,9 +24,12 @@ qe_tools = "^1.1"
 # abICS nequip solver/trainer do not yet support. The supported series uses the
 # removed numpy.in1d, so it needs numpy<2 and cannot run on Python 3.13.
 nequip = {version=">=0.5.6, <0.7", optional=true}
+# libEnsemble runs the reference solver from abics_mlref ([mlref] exec_mode = "integrated")
+libensemble = {version=">=1.4, <2", optional=true}
 
 [tool.poetry.extras]
 nequip = ["nequip"]
+libensemble = ["libensemble"]
 
 [tool.poetry.dev-dependencies]
 Sphinx = "^4.5.0"
@@ -40,6 +43,7 @@ abics_mlref = "abics.scripts.activelearn:main"
 abics_train = "abics.scripts.train:main"
 abics_postproc = "abics.scripts.postproc:main"
 abics_gen_aenet_input = "abics.scripts.gen_aenet_input:main"
+abics_al = "abics.scripts.aldriver:main"
 
 [tool.mypy]
 files = "abics"

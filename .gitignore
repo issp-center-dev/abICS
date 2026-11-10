@@ -11,6 +11,11 @@ train?
 train??
 generate?
 generate??
+al_summary.dat
+al_driver/
+# fault-injection test (tests/integration/active_learn_aenet/run_faults.py)
+faults.json
+faults_*
 
 ### https://raw.github.com/github/gitignore/5db84d2431ce5209d252112fdc377c0f17d5078b/Python.gitignore
 

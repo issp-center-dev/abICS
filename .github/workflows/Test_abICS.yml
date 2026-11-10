@@ -17,7 +17,7 @@ jobs:
       matrix:
         python-version: ['3.9', '3.13']
         numpy-version: ['1.20.0', '1.26.4', 'latest']
-        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnNequip, ActiveLearnMLIP-3]
+        testname: [Unit, Sampling, ActiveLearnAenet, ActiveLearnAenetIntegrated, ActiveLearnNequip, ActiveLearnMLIP-3]
         exclude:
           - python-version: '3.13'
             numpy-version: '1.20.0'
@@ -33,6 +33,9 @@ jobs:
           # incompatible rewrite). See the nequip cap in pyproject.toml.
           - python-version: '3.13'
             testname: ActiveLearnNequip
+          # libEnsemble needs numpy >= 1.21
+          - numpy-version: '1.20.0'
+            testname: ActiveLearnAenetIntegrated
       fail-fast: false
 
     steps:
@@ -70,6 +73,12 @@ jobs:
         ActiveLearnAenet ) cd tests/integration/active_learn_aenet
                            sh ./install_aenet.sh
                            sh ./run.sh ;;
+        ActiveLearnAenetIntegrated ) python -m pip install libensemble
+                           cd tests/integration/active_learn_aenet
+                           sh ./install_aenet.sh
+                           sh ./run_integrated.sh
+                           sh ./run_driver.sh
+                           sh ./run_faults.sh ;;
         ActiveLearnNequip ) cd tests/integration/active_learn_nequip
                             sh ./install_nequip.sh
                             sh ./run.sh ;;

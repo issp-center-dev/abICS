@@ -20,9 +20,12 @@ Check the outputs of a staged active-learning integration test.
 Usage (run in the test directory after run.sh has executed
 ``AL.sh`` and ``MC.sh`` alternately ``nloops`` times)::
 
-    python3 ../check_active_learn.py input.toml [nloops]
+    python3 ../check_active_learn.py input.toml [nloops] [--evaluated]
 
 ``nloops`` defaults to 2 (AL0 -> train -> MC0 -> AL1 -> train -> MC1).
+With ``--evaluated`` the loop is followed by one more reference-data step
+``AL<nloops>`` (the evaluation of the final model by ``abics_al`` with
+``evaluate_final_model``), which is checked like the other steps.
 
 The checks pin down the file-based interface between ``abics_mlref``,
 ``abics_train`` and ``abics_sampling`` so that a refactoring of the
@@ -321,11 +324,13 @@ def check_rundirs(nloops, nreplicas, ndata):
 
 
 def main():
-    if len(sys.argv) < 2:
+    evaluated = "--evaluated" in sys.argv
+    args = [a for a in sys.argv[1:] if a != "--evaluated"]
+    if not args:
         print(__doc__)
         sys.exit(2)
-    params = toml.load(sys.argv[1])
-    nloops = int(sys.argv[2]) if len(sys.argv) > 2 else 2
+    params = toml.load(args[0])
+    nloops = int(args[1]) if len(args) > 1 else 2
 
     sys.path.insert(0, os.getcwd())
     import mock  # the test's reference solver
@@ -339,6 +344,8 @@ def main():
     expected_progress = []
     for n in range(nloops):
         expected_progress += [f"AL{n}", "train", f"MC{n}"]
+    if evaluated:
+        expected_progress.append(f"AL{nloops}")
 
     try:
         progress = read_progress()
@@ -352,14 +359,19 @@ def main():
                 check_mc_step(n, r, nsamples)
             if n > 0:
                 check_convergence(n, nreplicas)
-        check_rundirs(nloops, nreplicas, ndata)
+        if evaluated:
+            for r in range(nreplicas):
+                check_al_step(nloops, r, params, nsamples, mock.calc_energy)
+            check_convergence(nloops, nreplicas)
+        check_rundirs(nloops + 1 if evaluated else nloops, nreplicas, ndata)
     except CheckFailure as e:
         print(f"CHECK FAILED: {e}")
         sys.exit(1)
 
     print(
-        f"CHECK OK: {nloops} active-learning loops, "
-        f"{nreplicas} replicas, {ndata} reference calculations per loop"
+        f"CHECK OK: {nloops} active-learning loops"
+        + (f" and the evaluation step AL{nloops}" if evaluated else "")
+        + f", {nreplicas} replicas, {ndata} reference calculations per loop"
     )
 
 

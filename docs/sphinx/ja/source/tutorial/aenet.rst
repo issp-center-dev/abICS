@@ -424,6 +424,25 @@ QEの網羅計算により教師データが作成されましたので、次に
 
 以上の手続きで、能動学習を行うための ``AL.sh`` のプロセスが完了します。
 
+.. note::
+
+   libEnsemble(``pip install libensemble``)がインストールされていれば、 ``[mlref]`` セクションに
+   ``exec_mode = "integrated"`` を指定することで、上の ``AL.sh`` のうち ``abics_mlref`` の 2 回の実行と
+   ``parallel_run.sh`` による QE の実行を、 ``abics_mlref`` の 1 回の実行にまとめられます。
+   この場合 ``abics_mlref`` は ``srun`` を付けずに 1 プロセスで実行し、QE は ``abics_mlref`` が
+   ``[mlref.integrated]`` セクションの設定(同時実行数 ``nworkers`` 、1 本あたりの MPI プロセス数 ``nprocs`` 、
+   ``timeout`` 、 ``retries`` など)に従って起動します。 ``[mlref.solver]`` には ``path = "pw.x"`` と
+   ``run_scheme = "subprocess"`` を指定してください。詳細は
+   :doc:`../inputfiles/parameter_mlref` を参照してください。
+
+   さらに ``abics_al`` を使うと、 ``AL.sh`` と後述の ``MC.sh`` の繰り返し全体を 1 回の実行にまとめられます。
+   ``[al]`` セクションに繰り返し回数 ``max_iterations`` と、サンプリングを起動するコマンド
+   (例: ``sampling_command = "srun -n {nprocs} abics_sampling {input}"`` )を指定し、
+   ``abics_al input.toml`` を 1 プロセスで実行します。各ステップの誤差は ``al_summary.dat`` に
+   まとめられ、 ``max_iterations`` を増やして再実行すればループを延長できます。
+   ``evaluate_final_model = true`` を指定すると、最後に訓練したモデルを第一原理計算と比較するステップを
+   ループの最後にもう 1 回実行します( :doc:`../inputfiles/parameter_al` 参照)。
+
 
 ***************************
 モンテカルロサンプリング
