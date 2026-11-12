@@ -31,6 +31,15 @@ without those packages, the observer test passed and the five TorchSim tests
 skipped. Bilingual command parity, relative links, and shell syntax were also
 checked.
 
+The ænet input-generation step was also checked with
+`abics_gen_aenet_input input.toml`. Generated descriptor and training settings
+match the former bundled templates; the prediction file lists Al and Mg in
+sorted order. Using these generated files, all 40 previously validated AL0
+reference structures mapped successfully, upstream ænet 2.0.5 completed 500
+training iterations, and a subsequent energy prediction was finite. The three
+input-generator unit tests also passed. This check reused reference structures
+and did not repeat the Orb relaxations or Monte Carlo runs.
+
 ## Batched relaxation checks
 
 On eight identical 56-atom inputs, compared with individual inference, the

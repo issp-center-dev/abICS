@@ -110,7 +110,7 @@ realpath ../aenet/build/bin
 Copy the printed path for the next step. For other compilers or build errors,
 see the [ænet installation instructions](https://github.com/atomisticnet/aenet#installation).
 
-## 4. Point abICS to your ænet programs
+## 4. Set the ænet paths and generate its input files
 
 Open `input.toml` in a text editor. Replace the three existing executable paths
 shown below. Use the full path printed above in place of `/your/path/aenet/build/bin`:
@@ -129,6 +129,19 @@ settings. The supplied temperatures, composition, and number of parallel
 simulations (called **replicas**) are ready to use. During sampling, each
 replica runs at one temperature. No changes to the Python scripts are needed
 for these GPU instructions.
+
+Generate the ænet input files from `input.toml`:
+
+```sh
+abics_gen_aenet_input input.toml
+```
+
+This creates `aenet_train_input/` with the descriptor, training, and prediction
+settings for Al and Mg. Oxygen is excluded from the on-lattice model by
+`train.ignore_species` in the supplied input; Orb still includes oxygen during
+reference relaxation. Run this once before the first learning cycle and keep
+the generated directory for subsequent cycles. The command refuses to overwrite
+existing files, so you can safely keep any settings you later customize.
 
 ## 5. Run your first learning cycle
 

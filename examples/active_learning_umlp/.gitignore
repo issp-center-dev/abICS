@@ -4,3 +4,4 @@
 /baseinput/
 /*.out
 /output*
+/aenet_train_input/
