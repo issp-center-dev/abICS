@@ -1,0 +1,8 @@
+# Optional dependencies for this example only; Python >=3.12.
+# Install CUDA-enabled torch first, then abICS from this checkout (see README).
+torch==2.8.0
+torch-sim-atomistic==0.6.0
+orb-models==0.7.0
+nvalchemi-toolkit-ops==0.3.1
+warp-lang==1.11.1
+ase==3.29.0

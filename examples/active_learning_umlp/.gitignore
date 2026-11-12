@@ -1,0 +1,6 @@
+/.cache/
+/torchsim-AL*.json
+/torchsim-summary.json
+/baseinput/
+/*.out
+/output*
