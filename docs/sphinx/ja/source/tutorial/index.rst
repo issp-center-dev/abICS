@@ -9,4 +9,5 @@
    :maxdepth: 2
 
    aenet
+   umlp
    other_models
